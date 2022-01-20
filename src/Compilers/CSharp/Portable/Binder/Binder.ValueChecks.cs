@@ -2798,12 +2798,7 @@ moreArguments:
 
                     if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
                     {
-                        var data = conversion.Operand switch
-                        {
-                            BoundInterpolatedString { InterpolationData: { } d } => d,
-                            BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
-                            _ => throw ExceptionUtilities.UnexpectedValue(conversion.Operand.Kind)
-                        };
+                        var data = conversion.Operand.GetInterpolatedStringHandlerData();
                         return GetInterpolatedStringHandlerConversionEscapeScope(data, scopeOfTheContainingExpression);
                     }
 
@@ -3592,12 +3587,7 @@ moreArguments:
         private static bool CheckInterpolatedStringHandlerConversionEscape(BoundExpression expression, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
 
-            var data = expression switch
-            {
-                BoundInterpolatedString { InterpolationData: { } d } => d,
-                BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
-                _ => throw ExceptionUtilities.UnexpectedValue(expression.Kind)
-            };
+            var data = expression.GetInterpolatedStringHandlerData();
 
             // We need to check to see if any values could potentially escape outside the max depth via the handler type.
             // Consider the case where a ref-struct handler saves off the result of one call to AppendFormatted,

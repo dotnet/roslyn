@@ -7853,19 +7853,20 @@ public partial struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
 
-        comp.VerifyDiagnostics(extraConstructorArg != ""
-            ? new[] {
-                    // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
-                    // GetC(ref c).M($"literal");
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15),
-                    // (6,15): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                    // GetC(ref c).M($"literal");
-                    Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(6, 15)
+        comp.VerifyDiagnostics(
+            extraConstructorArg != "" ?
+            new[] {
+                // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // GetC(ref c).M($"""literal""" + $"""
+                Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
+                // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
+                // GetC(ref c).M($"""literal""" + $"""
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15)
             }
             : new[] {
-                    // (6,15): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                    // GetC(ref c).M($"literal");
-                    Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(6, 15)
+                // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // GetC(ref c).M($"""literal""" + $"""
+                Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1)
             });
     }
 
@@ -7900,9 +7901,9 @@ public partial struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(
-            // (5,10): error CS1620: Argument 3 must be passed with the 'ref' keyword
-            // GetC().M($"literal");
-            Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(5, 10));
+                // (5,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // GetC().M($"""literal""" + $"""
+                Diagnostic(ErrorCode.ERR_BadArgRef, "GetC()").WithArguments("3", "ref").WithLocation(5, 1));
     }
 
     [Theory]
@@ -8223,9 +8224,9 @@ public partial struct CustomHandler
         var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
         comp.VerifyDiagnostics(
-            // (8,14): error CS1620: Argument 3 must be passed with the 'ref' keyword
-            // s1.M(ref s2, $"");
-            Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(8, 14));
+                // (8,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // s1.M(ref s2, $"""
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s1").WithArguments("3", "ref").WithLocation(8, 1));
     }
 
     [Theory]
@@ -13042,6 +13043,7 @@ s.M($""""""
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -13065,7 +13067,7 @@ partial struct CustomHandler
 """"""").WithArguments("CustomHandler", "CustomHandler").WithLocation(5, 5),
             // (14,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
             //     public static void M(this S1 s, [InterpolatedStringHandlerArgument("")] CustomHandler c) => throw null;
-            Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(16, 38));
+            Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(17, 38));
     }
 
     [Fact]
@@ -13082,6 +13084,7 @@ s.M($""""""
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -13114,6 +13117,7 @@ s.M($""""""
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -13166,6 +13170,7 @@ s.M($""""""
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -13216,6 +13221,7 @@ s.M($""""""
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -13250,6 +13256,7 @@ s.M($""""""
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 

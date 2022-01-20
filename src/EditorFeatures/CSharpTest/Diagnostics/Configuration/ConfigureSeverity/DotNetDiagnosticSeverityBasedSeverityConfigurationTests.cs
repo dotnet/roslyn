@@ -303,6 +303,101 @@ dotnet_diagnostic.XYZ0001.severity = none
 
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureGlobalconfig_Empty_None()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+[|class Program1 { }|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">is_global = true</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1 { }
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">is_global = true
+
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureGlobalconfig_RuleExists_None()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+[|class Program1 { }|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">is_global = true   # Comment
+dotnet_diagnostic.XYZ0001.severity = suggestion   # Comment
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1 { }
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">is_global = true   # Comment
+dotnet_diagnostic.XYZ0001.severity = none   # Comment
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureGlobalconfig_InvalidHeader_None()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+[|class Program1 { }|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">[*.vb]
+dotnet_diagnostic.XYZ0001.severity = suggestion
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+class Program1 { }
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">[*.vb]
+dotnet_diagnostic.XYZ0001.severity = suggestion
+
+[*.cs]
+
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
         }
     }
 }

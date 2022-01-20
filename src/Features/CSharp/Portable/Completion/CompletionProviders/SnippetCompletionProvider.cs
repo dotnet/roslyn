@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         d => GetSnippetsForDocumentAsync(d, position, cancellationToken)).ConfigureAwait(false));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
@@ -81,12 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
-            var leftToken = syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position, includeDirectives: true);
+            var root = syntaxTree.GetRoot(cancellationToken);
+            var leftToken = root.FindTokenOnLeftOfPosition(position, includeDirectives: true);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken) ||
-                syntaxFacts.GetContainingTypeDeclaration(await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false), position) is EnumDeclarationSyntax)
+                syntaxFacts.GetContainingTypeDeclaration(root, position) is EnumDeclarationSyntax)
             {
                 return ImmutableArray<CompletionItem>.Empty;
             }

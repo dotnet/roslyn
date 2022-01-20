@@ -169,11 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
             {
-                if (node.InterpolatedStringHandlerData is { } data)
-                {
-                    Visit(data.Construction);
-                }
-
                 VisitBinaryOperatorChildren(node);
                 return null;
             }
@@ -253,22 +248,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
-            {
-                if (node.InterpolationData is { Construction: var construction })
-                {
-                    Visit(construction);
-                }
-                base.VisitInterpolatedString(node);
-                return null;
-            }
-
             public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
             {
                 Visit(node.Receiver);
                 Visit(node.Argument);
                 Visit(node.IndexerOrSliceAccess);
                 return null;
+            }
+
+            public override BoundNode? VisitConversion(BoundConversion node)
+            {
+                if (node.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                {
+                    Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
+                }
+
+                return base.VisitConversion(node);
             }
         }
 #endif

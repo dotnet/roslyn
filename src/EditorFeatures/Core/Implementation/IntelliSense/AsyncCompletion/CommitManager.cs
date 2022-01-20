@@ -186,13 +186,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (!subjectBuffer.CheckEditAccess())
             {
                 // We are on the wrong thread.
-                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer did not provide Edit Access"));
+                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer did not provide Edit Access"), ErrorSeverity.Critical);
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
             if (subjectBuffer.EditInProgress)
             {
-                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer is editing by someone else."));
+                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer is editing by someone else."), ErrorSeverity.Critical);
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 

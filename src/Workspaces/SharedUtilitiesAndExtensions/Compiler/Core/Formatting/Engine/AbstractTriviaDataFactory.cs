@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private const int IndentationLevelCacheSize = 20;
 
         protected readonly TreeData TreeInfo;
-        protected readonly AnalyzerConfigOptions Options;
+        protected readonly SyntaxFormattingOptions Options;
 
         protected readonly bool UseTabs;
         protected readonly int TabSize;
@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly Whitespace[] _spaces;
         private readonly Whitespace?[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
 
-        protected AbstractTriviaDataFactory(TreeData treeInfo, AnalyzerConfigOptions options)
+        protected AbstractTriviaDataFactory(TreeData treeInfo, SyntaxFormattingOptions options)
         {
             Contract.ThrowIfNull(treeInfo);
-            Contract.ThrowIfNull(options);
 
             this.TreeInfo = treeInfo;
             this.Options = options;

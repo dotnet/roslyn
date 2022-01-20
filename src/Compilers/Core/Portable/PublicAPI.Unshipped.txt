@@ -9,6 +9,7 @@ const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.ImplementationSourceOutpu
 const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.SourceOutput = "SourceOutput" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
+Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.ChangedTypes.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.TypeDefinitionHandle>
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.UpdatedMethods.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.MethodDefinitionHandle>
 Microsoft.CodeAnalysis.Emit.SemanticEditKind.Replace = 4 -> Microsoft.CodeAnalysis.Emit.SemanticEditKind
@@ -37,12 +38,37 @@ Microsoft.CodeAnalysis.GeneratorSyntaxContext.SemanticModel.get -> Microsoft.Cod
 Microsoft.CodeAnalysis.IIncrementalGenerator
 Microsoft.CodeAnalysis.IIncrementalGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
 Microsoft.CodeAnalysis.IMethodSymbol.IsPartialDefinition.get -> bool
+Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
+Microsoft.CodeAnalysis.IOperation.OperationList
+Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.OperationList() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Count.get -> int
+Microsoft.CodeAnalysis.IOperation.OperationList.First() -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Last() -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.Reverse() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed
+Microsoft.CodeAnalysis.IOperation.OperationList.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Reset() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Reset() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Reversed() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.AdditionalTextsProvider.get -> Microsoft.CodeAnalysis.IncrementalValuesProvider<Microsoft.CodeAnalysis.AdditionalText!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.CompilationProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Compilation!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.IncrementalGeneratorInitializationContext() -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.MetadataReferencesProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.MetadataReference!>
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.MetadataReferencesProvider.get -> Microsoft.CodeAnalysis.IncrementalValuesProvider<Microsoft.CodeAnalysis.MetadataReference!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.ParseOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.ParseOptions!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterImplementationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterImplementationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
@@ -76,6 +102,7 @@ Microsoft.CodeAnalysis.IncrementalValueProvider<TValue>.IncrementalValueProvider
 Microsoft.CodeAnalysis.IncrementalValueProviderExtensions
 Microsoft.CodeAnalysis.IncrementalValuesProvider<TValues>
 Microsoft.CodeAnalysis.IncrementalValuesProvider<TValues>.IncrementalValuesProvider() -> void
+Microsoft.CodeAnalysis.IParameterSymbol.IsNullChecked.get -> bool
 Microsoft.CodeAnalysis.ISymbol.MetadataToken.get -> int
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
@@ -197,6 +224,8 @@ static Microsoft.CodeAnalysis.IncrementalValueProviderExtensions.Where<TSource>(
 static Microsoft.CodeAnalysis.IncrementalValueProviderExtensions.WithComparer<TSource>(this Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Collections.Generic.IEqualityComparer<TSource>! comparer) -> Microsoft.CodeAnalysis.IncrementalValueProvider<TSource>
 static Microsoft.CodeAnalysis.IncrementalValueProviderExtensions.WithComparer<TSource>(this Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Collections.Generic.IEqualityComparer<TSource>! comparer) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource>
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetFunctionPointerSignature(this Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation! functionPointer) -> Microsoft.CodeAnalysis.IMethodSymbol!
+*REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>! nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>! computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>! tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>! computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>! trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>! computeReplacementTrivia) -> TRoot!
+static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>? nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>? computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>? tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>? computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>? trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>? computeReplacementTrivia) -> TRoot!
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 abstract Microsoft.CodeAnalysis.Compilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference!>

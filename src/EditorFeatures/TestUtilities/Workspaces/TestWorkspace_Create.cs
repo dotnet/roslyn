@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -129,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             string[] files,
+            string[] sourceGeneratedFiles = null,
             ExportProvider exportProvider = null,
             TestComposition composition = null,
             string[] metadataReferences = null,
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool openDocuments = false,
             IDocumentServiceProvider documentServiceProvider = null)
         {
-            var workspaceElement = CreateWorkspaceElement(language, compilationOptions, parseOptions, files, metadataReferences, extension, commonReferences);
+            var workspaceElement = CreateWorkspaceElement(language, compilationOptions, parseOptions, files, sourceGeneratedFiles, metadataReferences, extension, commonReferences);
             return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind, documentServiceProvider);
         }
 
@@ -194,11 +196,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string[] metadataReferences = null,
             bool openDocuments = false)
         {
-            return CreateCSharp(new[] { file }, parseOptions, compilationOptions, exportProvider, composition, metadataReferences, openDocuments);
+            return CreateCSharp(new[] { file }, Array.Empty<string>(), parseOptions, compilationOptions, exportProvider, composition, metadataReferences, openDocuments);
         }
 
         public static TestWorkspace CreateCSharp(
             string[] files,
+            string[] sourceGeneratedFiles = null,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
@@ -206,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string[] metadataReferences = null,
             bool openDocuments = false)
         {
-            return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, composition, metadataReferences, openDocuments: openDocuments);
+            return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, sourceGeneratedFiles, exportProvider, composition, metadataReferences, openDocuments: openDocuments);
         }
 
         public static TestWorkspace CreateCSharp2(
@@ -231,11 +234,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string[] metadataReferences = null,
             bool openDocuments = false)
         {
-            return CreateVisualBasic(new[] { file }, parseOptions, compilationOptions, exportProvider, composition, metadataReferences, openDocuments);
+            return CreateVisualBasic(new[] { file }, Array.Empty<string>(), parseOptions, compilationOptions, exportProvider, composition, metadataReferences, openDocuments);
         }
 
         public static TestWorkspace CreateVisualBasic(
             string[] files,
+            string[] sourceGeneratedFiles = null,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
@@ -243,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string[] metadataReferences = null,
             bool openDocuments = false)
         {
-            return Create(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider, composition, metadataReferences, openDocuments: openDocuments);
+            return Create(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, sourceGeneratedFiles, exportProvider, composition, metadataReferences, openDocuments: openDocuments);
         }
 
         /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.vb, test2.vbx, etc.</param>

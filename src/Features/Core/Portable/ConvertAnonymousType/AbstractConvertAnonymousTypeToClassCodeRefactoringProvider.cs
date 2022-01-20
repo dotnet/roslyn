@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             Debug.Assert(anonymousType != null);
 
             var position = span.Start;
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -122,21 +121,18 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
                 containingMember, anonymousObject,
                 anonymousType, cancellationToken).ConfigureAwait(false);
 
+            var context = new CodeGenerationContext(
+                generateMembers: true,
+                sortMembers: false,
+                autoInsertionLocation: false);
+
+            var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+            var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
+
             // Then, actually insert the new class in the appropriate container.
             var container = anonymousObject.GetAncestor<TNamespaceDeclarationSyntax>() ?? root;
             editor.ReplaceNode(container, (currentContainer, _) =>
-            {
-                var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-                var codeGenOptions = new CodeGenerationOptions(
-                    generateMembers: true,
-                    sortMembers: false,
-                    autoInsertionLocation: false,
-                    options: options,
-                    parseOptions: root.SyntaxTree.Options);
-
-                return codeGenService.AddNamedType(
-                    currentContainer, namedTypeSymbol, codeGenOptions, cancellationToken);
-            });
+                codeGenService.AddNamedType(currentContainer, namedTypeSymbol, codeGenOptions, cancellationToken));
 
             var updatedDocument = document.WithSyntaxRoot(editor.GetChangedRoot());
 

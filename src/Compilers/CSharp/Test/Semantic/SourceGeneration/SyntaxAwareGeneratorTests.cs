@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
@@ -1157,6 +1158,57 @@ class D
                     output => Assert.Equal(("fieldD", IncrementalStepRunReason.Removed), output)),
                 step => Assert.Collection(step.Outputs,
                     output => Assert.Equal(("fieldE", IncrementalStepRunReason.Removed), output)));
+        }
+
+        [Fact]
+        [WorkItem(58647, "https://github.com/dotnet/roslyn/issues/58647")]
+        public void IncrementalGenerator_With_Syntax_Filter_Removed_Tree_Add_New_Generator()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+    string fieldB = null;
+    string fieldC = null;
+}";
+
+            var source2 = @"
+#pragma warning disable CS0414
+class D
+{
+    string fieldD = null; 
+    string fieldE = null;
+}
+";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                context.RegisterSourceOutput(source, (spc, fieldName) =>
+                {
+                });
+            });
+
+            var testGenerator2 = new PipelineCallbackGenerator2(context =>
+            {
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                context.RegisterSourceOutput(source, (spc, fieldName) =>
+                {
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            // remove the second tree, and add the new generator
+            compilation = compilation.RemoveSyntaxTrees(compilation.SyntaxTrees.Last());
+            driver = driver.AddGenerators(ImmutableArray.Create(testGenerator2.AsSourceGenerator()));
+            driver = driver.RunGenerators(compilation);
         }
 
         [Fact]

@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
@@ -136,11 +137,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 if (searchParameters != null)
                 {
-                    // WARNING: searchParameters.SearchQuery returns an IVsSearchQuery object, which
-                    // is a COM type. Therefore, it's probably best to grab the values we want now
-                    // rather than get surprised by COM marshalling later.
-                    graphQueries.Add(new SearchGraphQuery(
-                        searchParameters.SearchQuery.SearchString, threadingContext, asyncListener));
+                    // WARNING: searchParameters.SearchQuery returns an IVsSearchQuery object, which is a COM type.
+                    // Therefore, it's probably best to grab the values we want now rather than get surprised by COM
+                    // marshalling later.
+                    //
+                    // Create two queries.  One to find results in normal docs, and one to find results in generated
+                    // docs.  That way if the generated docs take a long time we can still report the regular doc
+                    // results immediately.
+                    graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToSearchScope.RegularDocuments, threadingContext, asyncListener));
+                    graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToSearchScope.GeneratedDocuments, threadingContext, asyncListener));
                 }
             }
 

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
 
-        internal override SyntaxNode LocalDeclarationStatement(SyntaxNode type, SyntaxToken name, SyntaxNode initializer, bool isConst)
+        internal override SyntaxNode LocalDeclarationStatement(SyntaxNode? type, SyntaxToken name, SyntaxNode? initializer, bool isConst)
         {
             return SyntaxFactory.LocalDeclarationStatement(
                 isConst ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword)) : default,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
             => SyntaxFactory.EqualsValueClause(operatorToken, (ExpressionSyntax)value);
 
-        internal static VariableDeclarationSyntax VariableDeclaration(SyntaxNode type, SyntaxToken name, SyntaxNode expression)
+        internal static VariableDeclarationSyntax VariableDeclaration(SyntaxNode? type, SyntaxToken name, SyntaxNode? expression)
         {
             return SyntaxFactory.VariableDeclaration(
                 type == null ? SyntaxFactory.IdentifierName("var") : (TypeSyntax)type,
