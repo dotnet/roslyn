@@ -686,12 +686,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        // Internal for testing only.
         /// <summary>
         /// Log the compiler output to MSBuild. Each language will override this to parse their output and log it
         /// in the language specific manner. This often involves parsing the raw output and formatting it as 
         /// individual messages for MSBuild.
         /// </summary>
+        /// <remarks>
+        /// Internal for testing only.
+        /// </remarks>
         internal abstract void LogCompilerOutput(string output, MessageImportance messageImportance);
 
         /// <summary>

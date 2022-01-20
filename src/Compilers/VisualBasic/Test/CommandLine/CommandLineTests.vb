@@ -337,7 +337,6 @@ End Module
             Assert.Equal("", output.ToString().Trim())
         End Sub
 
-        <Fact()>
         <WorkItem(47790, "https://github.com/dotnet/roslyn/issues/47790")>
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub LogErrorsWithColumnNumbers()
