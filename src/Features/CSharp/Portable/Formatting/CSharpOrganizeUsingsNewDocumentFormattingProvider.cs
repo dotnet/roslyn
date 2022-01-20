@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, DocumentOptionSet optionSet, Document? hintDocument, CancellationToken cancellationToken)
         {
             var organizedDocument = await Formatter.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
             return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(organizedDocument, cancellationToken).ConfigureAwait(false);

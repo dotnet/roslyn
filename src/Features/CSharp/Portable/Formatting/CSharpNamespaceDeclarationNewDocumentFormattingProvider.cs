@@ -27,9 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, DocumentOptionSet optionSet, Document? hintDocument, CancellationToken cancellationToken)
         {
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var namespaces = GetNamespacesToReplace(document, root, optionSet).ToList();

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddFileBanner
@@ -19,10 +20,9 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, DocumentOptionSet documentOptions, Document? hintDocument, CancellationToken cancellationToken)
         {
             var rootToFormat = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Apply file header preferences
             var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);

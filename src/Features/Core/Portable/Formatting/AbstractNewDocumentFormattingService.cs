@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -32,6 +33,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
         {
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return await FormatNewDocumentAsync(document, optionSet, hintDocument, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<Document> FormatNewDocumentAsync(Document document, DocumentOptionSet optionSet, Document? hintDocument, CancellationToken cancellationToken)
+        {
             foreach (var provider in GetProviders())
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -41,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // other, so this shouldn't cause problems.
                 try
                 {
-                    document = await provider.FormatNewDocumentAsync(document, hintDocument, cancellationToken).ConfigureAwait(false);
+                    document = await provider.FormatNewDocumentAsync(document, optionSet, hintDocument, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.General))
                 {

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -26,9 +27,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, DocumentOptionSet documentOptions, Document? hintDocument, CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, document.Project.Language);
             if (accessibilityPreferences.Value == AccessibilityModifiersRequired.Never)
             {

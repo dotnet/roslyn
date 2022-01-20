@@ -1661,5 +1661,32 @@ class A
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
+
+        [Fact]
+        public async Task MoveType_RemoveUsings()
+        {
+            await TestMoveTypeToNewFileAsync(
+                originalCode: @"
+using System;
+
+class A
+{
+}
+
+class [|B|]
+{
+}",
+                expectedSourceTextAfterRefactoring: @"
+using System;
+
+class A
+{
+}",
+                expectedDocumentName: "B.cs",
+                destinationDocumentText: @"
+class B
+{
+}");
+        }
     }
 }

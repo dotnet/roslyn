@@ -10,9 +10,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -61,7 +63,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 //    these imports only were needed for the moved type, and so they shouldn't stay in the original
                 //    file.
 
-                var documentWithMovedType = await AddNewDocumentWithSingleTypeDeclarationAsync(newDocumentId).ConfigureAwait(false);
+                var unformattedDocumentWitMovedType = await AddNewDocumentWithSingleTypeDeclarationAsync(newDocumentId).ConfigureAwait(false);
+
+                var originalOptions = await unformattedDocumentWitMovedType.GetOptionsAsync().ConfigureAwait(false);
+
+                // When formatting a new document with a moved type, we don't need to modify the accessibility modifiers. They were already
+                // established for the existing type prior to being moved
+                var newDocumentOptions = (DocumentOptionSet)originalOptions.WithChangedOption(new Options.OptionKey(CodeStyleOptions2.RequireAccessibilityModifiers, unformattedDocumentWitMovedType.Project.Language), AccessibilityModifiersRequired.Never);
+                var newDocumentFormattingService = unformattedDocumentWitMovedType.GetRequiredLanguageService<INewDocumentFormattingService>();
+                var documentWithMovedType = await newDocumentFormattingService.FormatNewDocumentAsync(unformattedDocumentWitMovedType, newDocumentOptions, SemanticDocument.Document, default).ConfigureAwait(false);
 
                 var solutionWithNewDocument = documentWithMovedType.Project.Solution;
 
