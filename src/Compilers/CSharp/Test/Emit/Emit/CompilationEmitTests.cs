@@ -482,7 +482,6 @@ namespace Goo.Bar
                 xmlDocBytes = xmlStream.ToArray();
             }
 
-            // This should not fail the emit (as it's a warning).
             Assert.True(emitResult.Success);
             emitResult.Diagnostics.Verify();
 
