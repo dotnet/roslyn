@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
             [DebuggerStepThrough]
             public static FormattedClassification Text(string text) => New(text);
+
+            [DebuggerStepThrough]
+            public static FormattedClassification RawInterpolationOpen(string text) => New(text);
+
+            [DebuggerStepThrough]
+            public static FormattedClassification RawInterpolationClose(string text) => New(text);
         }
     }
 }

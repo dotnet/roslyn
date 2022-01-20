@@ -5707,5 +5707,81 @@ class C
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteral(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = """"""Hello world""""""
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("\"\"\"Hello world\"\"\""),
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralInterpolation(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = $""""""{x}""""""
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("$\"\"\""),
+                Punctuation.RawInterpolationOpen("{"),
+                Identifier("x"),
+                Punctuation.RawInterpolationClose("}"),
+                String("\"\"\""),
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }
