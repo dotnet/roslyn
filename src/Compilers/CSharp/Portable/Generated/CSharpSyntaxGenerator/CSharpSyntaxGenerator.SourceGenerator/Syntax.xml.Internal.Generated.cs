@@ -12225,10 +12225,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.closeBraceToken = closeBraceToken;
         }
 
+        /// <summary>This could be a single <c>{</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).</summary>
         public SyntaxToken OpenBraceToken => this.openBraceToken;
         public ExpressionSyntax Expression => this.expression;
         public InterpolationAlignmentClauseSyntax? AlignmentClause => this.alignmentClause;
         public InterpolationFormatClauseSyntax? FormatClause => this.formatClause;
+        /// <summary>
+        /// This could be a single <c>}</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).
+        /// </summary>
         public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
         internal override GreenNode? GetSlot(int index)
