@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             }
         }
 
-        private async Task<Solution> FixSolutionAsync(
+        private static async Task<Solution> FixSolutionAsync(
             Solution solution,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             return solution;
         }
 
-        private async Task<Project> FixProjectAsync(
+        private static async Task<Project> FixProjectAsync(
             Project project,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,
@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private static bool CanCleanupProject(Project project)
             => project.LanguageServices.GetService<ICodeCleanupService>() != null;
 
-        private async Task<Document> FixDocumentAsync(
+        private static async Task<Document> FixDocumentAsync(
             Document document,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,

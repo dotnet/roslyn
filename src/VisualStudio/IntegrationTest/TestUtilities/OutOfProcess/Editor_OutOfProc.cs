@@ -359,7 +359,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return Deserialize(_editorInProc.GetOutliningSpans());
         }
 
-        private TextSpan[] Deserialize(string[] v)
+        private static TextSpan[] Deserialize(string[] v)
         {
             // returned tag looks something like 'text'[12-13]
             return v.Select(tag =>
