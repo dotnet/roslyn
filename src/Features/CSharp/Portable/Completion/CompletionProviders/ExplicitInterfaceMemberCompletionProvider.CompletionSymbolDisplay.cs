@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static void AddParameters(ImmutableArray<IParameterSymbol> parameters, StringBuilder builder)
             {
-                builder.AppendJoinedValues(", ", parameters, (parameter, builder) =>
+                builder.AppendJoinedValues(", ", parameters, static (parameter, builder) =>
                 {
                     builder.Append(parameter.RefKind switch
                     {
