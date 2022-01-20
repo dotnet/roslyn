@@ -82,8 +82,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</source>
+Inheritance Margin;</source>
         <target state="new">Underline reassigned variables;
 Display inline hints;
 Show diagnostics for closed files;
@@ -133,8 +132,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</target>
+Inheritance Margin;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
