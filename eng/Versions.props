@@ -274,10 +274,10 @@
     <RefOnlyMicrosoftBuildFrameworkVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildFrameworkVersion>
     <RefOnlyMicrosoftBuildRuntimeVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildRuntimeVersion>
     <RefOnlyMicrosoftBuildTasksCoreVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildTasksCoreVersion>
-    <RefOnlySystemCollectionsImmutableVersion Condition="'$(RefOnlySystemCollectionsImmutableVersion)' == ''">$(SystemCollectionsImmutableVersion)</RefOnlySystemCollectionsImmutableVersion>
-    <RefOnlySystemReflectionMetadataVersion Condition="'$(RefOnlySystemReflectionMetadataVersion)' == ''">$(SystemReflectionMetadataVersion)</RefOnlySystemReflectionMetadataVersion>
-    <RefOnlySystemRuntimeCompilerServicesUnsafeVersion Condition="'$(RefOnlySystemRuntimeCompilerServicesUnsafeVersion)' == ''">$(SystemRuntimeCompilerServicesUnsafeVersion)</RefOnlySystemRuntimeCompilerServicesUnsafeVersion>
-    <RefOnlySystemTextEncodingCodePagesVersion Condition="'$(RefOnlySystemTextEncodingCodePagesVersion)' == ''">$(SystemTextEncodingCodePagesVersion)</RefOnlySystemTextEncodingCodePagesVersion>
+    <SourceBuildLiftedSystemCollectionsImmutableVersion Condition="'$(SourceBuildLiftedSystemCollectionsImmutableVersion)' == ''">$(SystemCollectionsImmutableVersion)</SourceBuildLiftedSystemCollectionsImmutableVersion>
+    <SourceBuildLiftedSystemReflectionMetadataVersion Condition="'$(SourceBuildLiftedSystemReflectionMetadataVersion)' == ''">$(SystemReflectionMetadataVersion)</SourceBuildLiftedSystemReflectionMetadataVersion>
+    <SourceBuildLiftedSystemRuntimeCompilerServicesUnsafeVersion Condition="'$(SourceBuildLiftedSystemRuntimeCompilerServicesUnsafeVersion)' == ''">$(SystemRuntimeCompilerServicesUnsafeVersion)</SourceBuildLiftedSystemRuntimeCompilerServicesUnsafeVersion>
+    <SourceBuildLiftedSystemTextEncodingCodePagesVersion Condition="'$(SourceBuildLiftedSystemTextEncodingCodePagesVersion)' == ''">$(SystemTextEncodingCodePagesVersion)</SourceBuildLiftedSystemTextEncodingCodePagesVersion>
   </PropertyGroup>
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>

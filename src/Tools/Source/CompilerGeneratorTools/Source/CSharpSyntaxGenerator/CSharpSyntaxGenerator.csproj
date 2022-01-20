@@ -26,10 +26,10 @@
         <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" />
       </ItemGroup>
       <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
-        <PackageReference Include="System.Collections.Immutable" Version="$(RefOnlySystemCollectionsImmutableVersion)" PrivateAssets="all" />
-        <PackageReference Include="System.Reflection.Metadata" Version="$(RefOnlySystemReflectionMetadataVersion)" PrivateAssets="all" />
-        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(RefOnlySystemRuntimeCompilerServicesUnsafeVersion)" PrivateAssets="all" />
-        <PackageReference Include="System.Text.Encoding.CodePages" Version="$(RefOnlySystemTextEncodingCodePagesVersion)" PrivateAssets="all" />
+        <PackageReference Include="System.Collections.Immutable" Version="$(SourceBuildLiftedSystemCollectionsImmutableVersion)" PrivateAssets="all" />
+        <PackageReference Include="System.Reflection.Metadata" Version="$(SourceBuildLiftedSystemReflectionMetadataVersion)" PrivateAssets="all" />
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SourceBuildLiftedSystemRuntimeCompilerServicesUnsafeVersion)" PrivateAssets="all" />
+        <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SourceBuildLiftedSystemTextEncodingCodePagesVersion)" PrivateAssets="all" />
       </ItemGroup>
     </When>
     <Otherwise>
