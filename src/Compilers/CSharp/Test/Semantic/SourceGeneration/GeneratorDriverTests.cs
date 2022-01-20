@@ -1535,7 +1535,7 @@ class C { }
             Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30, cts.Token));
 
             // unless it wasn't *our* cancellation token, in which case it still gets wrapped
-            Assert.True(cts.TryReset());
+            cts = new CancellationTokenSource();
             Assert.Throws<OperationCanceledException>(() => otherTimeoutFunc(30, cts.Token));
             Assert.Throws<UserFunctionException>(() => userOtherTimeoutFunc(30,  cts.Token));
         }

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly string _sourceExtension;
 
-        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput, CancellationToken>action, IncrementalGeneratorOutputKind outputKind, string sourceExtension)
+        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput, CancellationToken> action, IncrementalGeneratorOutputKind outputKind, string sourceExtension)
         {
             _source = source;
             _action = action;
