@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
             get { return new InvalidOperationException("This program location is thought to be unreachable."); }
         }
 
-         /// <summary>
+        /// <summary>
         /// Determine if an exception was an <see cref="OperationCanceledException"/>, and that the provided token caused the cancellation.
         /// </summary>
         /// <param name="exception">The exception to test.</param>
