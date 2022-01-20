@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -105,6 +106,14 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 
                 return await nonExternalItems[0].TryNavigateToAsync(
                     workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
+            }
+
+            // If there were multiple items, but only one had a source location, then naviagte to that, then show the
+            // rest in the UI
+            var sourceItems = nonExternalItems.Where(d => d.SourceSpans.Length > 0).Take(2).ToImmutableArray();
+            if (sourceItems.Length == 1)
+            {
+                await sourceItems[0].TryNavigateToAsync(workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
             }
 
             if (presenter != null)
