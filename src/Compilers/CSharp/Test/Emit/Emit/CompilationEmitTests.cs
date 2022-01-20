@@ -257,7 +257,7 @@ namespace Goo.Bar
     {
         public static void SayHello()
         {
-            ConEmitMetadataOnly_XmlDocs_NoDocMode_Successsole.WriteLine(""hello"");
+            EmitMetadataOnly_XmlDocs_NoDocMode_Success.WriteLine(""hello"");
         }
     }  
 }     
