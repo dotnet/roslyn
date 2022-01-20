@@ -805,6 +805,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(useSiteInfo.DiagnosticInfo, location);
             }
+            if (parameter.IsDiscard)
+            {
+                diagnostics.Add(ErrorCode.ERR_DiscardCannotBeNullChecked, location);
+            }
             if (parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated()
                 || parameter.Type.IsNullableTypeOrTypeParameter())
             {
