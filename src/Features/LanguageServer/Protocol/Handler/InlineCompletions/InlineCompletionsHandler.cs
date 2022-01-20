@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
@@ -86,7 +87,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         // Include function calls (see SnippetExpansionClient) to get switch/class name
         // loc - C:\Program Files\Microsoft Visual Studio\2022\Main\VC#\Snippets\1033\Visual C#
 
-        var matchingSnippet = RetrieveSnippetFromXml(wordText, matchingSnippetInfo, context);
+        var matchingSnippet = RetrieveSnippetFromXml(matchingSnippetInfo, context);
         if (matchingSnippet == null)
         {
             return new VSInternalInlineCompletionList();
@@ -101,13 +102,13 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         var expansion = new ExpansionTemplate(matchingSnippet);
 
         // Get snippet with replaced values
-        var snippetFullText = expansion.GetCodeSnippet();
-        if (snippetFullText == null)
+        var parsedSnippet = expansion.Parse();
+        if (parsedSnippet == null)
         {
             return new VSInternalInlineCompletionList();
         }
 
-        var formattedLspSnippet = await GetFormattedLspSnippetAsync(snippetFullText, expansion, wordOnLeft.Value, context.Document, sourceText, cancellationToken).ConfigureAwait(false);
+        var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, context.Document, sourceText, cancellationToken).ConfigureAwait(false);
 
         return new VSInternalInlineCompletionList
         {
@@ -124,11 +125,16 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
     }
 
     /// <summary>
-    /// Formats the snippet by applying the snippet to the document with the default values for declarations.
+    /// Formats the snippet by applying the snippet to the document with the default values / function results for snippet declarations.
     /// Then converts back into an LSP snippet by replacing the declarations with the appropriate LSP tab stops.
+    /// 
+    /// Note that the operations in this method are sensitive to the context in the document and so must be calculated on each request.
     /// </summary>
-    private static async Task<string> GetFormattedLspSnippetAsync(string snippetFullText, ExpansionTemplate snippetExpansion, TextSpan snippetShortcut, Document originalDocument, SourceText originalSourceText, CancellationToken cancellationToken)
+    private static async Task<string> GetFormattedLspSnippetAsync(ParsedXmlSnippet parsedSnippet, TextSpan snippetShortcut, Document originalDocument, SourceText originalSourceText, CancellationToken cancellationToken)
     {
+        // Calculate the snippet text with defaults + snippet function results.
+        var (snippetFullText, fields, caretSpan) = await GetReplacedSnippetTextAsync(originalDocument, originalSourceText, snippetShortcut, parsedSnippet, cancellationToken).ConfigureAwait(false);
+
         // Create a document with the default snippet text that we can use to format the snippet.
         var textChange = new TextChange(snippetShortcut, snippetFullText);
         var documentWithSnippet = originalDocument.WithText(originalSourceText.WithChanges(textChange));
@@ -138,10 +144,10 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         root = AnnotateSnippetBounds(root, textChange, out var startAnnotation, out var endAnnotation);
 
         // Attach annotations to the fields so we can replace them with LSP snippet placeholders after formatting.
-        root = AnnotateFields(root, textChange, snippetExpansion, out var fieldAnnotations);
+        root = AnnotateFields(root, fields, out var fieldAnnotations);
 
         // Attach an annotation to the trivia indicating the final caret position (if it exists)
-        root = AnnotateFinalCaretPosition(root, textChange, snippetExpansion, out var finalCaretAnnotation);
+        root = AnnotateFinalCaretSpan(root, caretSpan, out var finalCaretAnnotation);
 
         // Format the document with inserted snippet and annotations.
         documentWithSnippet = originalDocument.WithSyntaxRoot(root);
@@ -199,28 +205,23 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
             return root;
         }
 
-        static SyntaxNode AnnotateFields(SyntaxNode root, TextChange snippetTextChange, ExpansionTemplate snippetExpansion, out ImmutableArray<SyntaxAnnotation> fieldAnnotations)
+        static SyntaxNode AnnotateFields(SyntaxNode root, ImmutableDictionary<SnippetFieldPart, ImmutableArray<TextSpan>> fieldLocations, out ImmutableArray<SyntaxAnnotation> fieldAnnotations)
         {
             using var _ = ArrayBuilder<SyntaxAnnotation>.GetInstance(out var annotations);
-            foreach (var field in snippetExpansion.Fields)
+            foreach (var (field, spans) in fieldLocations)
             {
-                if (!field.IsEditable)
-                {
-                    // The field is not editable, we don't need to come back to this later and can just leave it with the default value.
-                    continue;
-                }
+                Contract.ThrowIfNull(field.EditIndex);
 
                 // Generate the LSP formatted text required to insert this tabstop.
-                var fieldTabStopIndex = field.GetTabStopIndex();
-                var lspTextForField = string.IsNullOrEmpty(field.Default) ? $"${{{fieldTabStopIndex}}}" : $"${{{fieldTabStopIndex}:{field.Default}}}";
+                var lspTextForField = string.IsNullOrEmpty(field.DefaultText) ? $"${{{field.EditIndex}}}" : $"${{{field.EditIndex}:{field.DefaultText}}}";
 
                 // Store the LSP snippet text on the annotation as its easy to retrive later.
-                var fieldAnnotation = new SyntaxAnnotation(field.ID, data: lspTextForField);
+                var fieldAnnotation = new SyntaxAnnotation(field.FieldName, data: lspTextForField);
 
                 // Find all the locations associated with this field and annotate the node.
-                foreach (var offset in field.GetOffsets())
+                foreach (var span in spans)
                 {
-                    var originalToken = root.FindTokenOnRightOfPosition(snippetTextChange.Span.Start + offset);
+                    var originalToken = root.FindTokenOnRightOfPosition(span.Start);
                     root = AnnotateToken(originalToken, fieldAnnotation, root);
                 }
 
@@ -231,17 +232,16 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
             return root;
         }
 
-        static SyntaxNode AnnotateFinalCaretPosition(SyntaxNode root, TextChange snippetTextChange, ExpansionTemplate snippetExpansion, out SyntaxAnnotation? finalCaretAnnotation)
+        static SyntaxNode AnnotateFinalCaretSpan(SyntaxNode root, int? finalCaretPosition, out SyntaxAnnotation? finalCaretAnnotation)
         {
-            var finalCaretTokenOffset = snippetExpansion.GetEndOffset();
             finalCaretAnnotation = null;
-            if (finalCaretTokenOffset != null)
+            if (finalCaretPosition != null)
             {
                 var lspTextForFinalCaret = "$0";
                 finalCaretAnnotation = new SyntaxAnnotation("caret", lspTextForFinalCaret);
 
                 // We always indicate the final caret position via trivia (/*$0*/)
-                var originalTrivia = root.FindTrivia(snippetTextChange.Span.Start + finalCaretTokenOffset.Value);
+                var originalTrivia = root.FindTrivia(finalCaretPosition.Value);
                 var annotatedTrivia = originalTrivia.WithAdditionalAnnotations(finalCaretAnnotation);
                 root = root.ReplaceTrivia(originalTrivia, annotatedTrivia);
             }
@@ -263,8 +263,70 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         }
     }
 
+    /// <summary>
+    /// Create the snippet with the full default text and functions applied.  Output the spans associated with
+    /// each field and the final caret location in that text so that we can annotate those locations.
+    /// </summary>
+    private static async Task<(string ReplacedSnippetText, ImmutableDictionary<SnippetFieldPart, ImmutableArray<TextSpan>> Fields, int? FinalCaretPosition)> GetReplacedSnippetTextAsync(
+        Document originalDocument,
+        SourceText originalSourceText,
+        TextSpan snippetSpan,
+        ParsedXmlSnippet parsedSnippet,
+        CancellationToken cancellationToken)
+    {
+        var documentWithDefaultSnippet = originalDocument.WithText(
+            originalSourceText.WithChanges(new TextChange(snippetSpan, parsedSnippet.DefaultText)));
+
+        // Iterate the snippet parts so that we can do two things:
+        //   1.  Calculate the snippet function result.  This must be done against the document containing the default snippet text
+        //       as the function result is context dependent.
+        //   2.  After inserting the function result, determine the spans associated with each editable snippet field.
+        //       The spans will be annotated so that we can retrieve them after formatting.
+        var fieldOffsets = new Dictionary<SnippetFieldPart, ImmutableArray<TextSpan>>();
+        using var _ = PooledStringBuilder.GetInstance(out var functionSnippetBuilder);
+        int? finalCaretPosition = null;
+
+        // Keep track of the field location in both the document with the default snippet (to calculate snippet functions, see below)
+        // and in the document with default + functions evaluated (for later annotation).
+        var locationInDefaultSnippet = snippetSpan.Start;
+        var locationInFinalSnippet = snippetSpan.Start;
+        foreach (var originalPart in parsedSnippet.Parts)
+        {
+            var part = originalPart;
+
+            // Adjust the text associated with this snippet part by applying the result of the snippet function.
+            if (part is SnippetFunctionPart functionPart)
+            {
+                // To avoid a bunch of document changes and re-parsing, we always calculate the snippet function result
+                // against the document with the default snippet text applied to it instead of with each incremental function result.
+                // So we need to remember the index into the original document.
+                part = await functionPart.WithSnippetFunctionResultAsync(documentWithDefaultSnippet, new TextSpan(locationInDefaultSnippet, part.DefaultText.Length), cancellationToken).ConfigureAwait(false);
+            }
+
+            // Only store spans for editable fields or the cursor location, we don't need to get back to anything else.
+            if (part is SnippetFieldPart fieldPart && fieldPart.EditIndex != null)
+            {
+                var offsetsForField = fieldOffsets.GetValueOrDefault(fieldPart, ImmutableArray<TextSpan>.Empty);
+                fieldOffsets[fieldPart] = offsetsForField.Add(new TextSpan(locationInFinalSnippet, part.DefaultText.Length));
+            }
+            else if (part is SnippetCursorPart cursorPart)
+            {
+                finalCaretPosition = locationInFinalSnippet;
+            }
+
+            locationInFinalSnippet += part.DefaultText.Length;
+            functionSnippetBuilder.Append(part.DefaultText);
+
+            locationInDefaultSnippet += originalPart.DefaultText.Length;
+        }
+
+        return (functionSnippetBuilder.ToString(), fieldOffsets.ToImmutableDictionary(), finalCaretPosition);
+    }
+
     private static bool TryGetWordOnLeft(int position, SourceText currentText, ISyntaxFactsService syntaxFactsService, [NotNullWhen(true)] out TextSpan? wordSpan)
     {
+        // TODO unify with AbstractSnippetCommandHandler
+
         var endPosition = position;
         var startPosition = endPosition;
 
@@ -290,7 +352,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         return true;
     }
 
-    private static CodeSnippet? RetrieveSnippetFromXml(string wordText, SnippetInfo snippetInfo, RequestContext context)
+    private static CodeSnippet? RetrieveSnippetFromXml(SnippetInfo snippetInfo, RequestContext context)
     {
         var path = snippetInfo.Path;
         if (path == null)
@@ -307,12 +369,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
         // Load the xml for the snippet from disk.
         // Any exceptions thrown here we allow to bubble up and let the queue log it.
-        var snippets = CodeSnippet.ReadSnippetsFromFile(snippetInfo.Path);
-
-        // There could be multiple snippets defined in the xml file containing the specified snippet info.
-        // Match against the parsed snippets to find the correct one.
-        var matchingSnippet = snippets.Single(s => wordText.Equals(s.Shortcut, StringComparison.OrdinalIgnoreCase));
-
-        return matchingSnippet;
+        var snippet = CodeSnippet.ReadSnippetFromFile(snippetInfo.Path, snippetInfo.Title);
+        return snippet;
     }
 }

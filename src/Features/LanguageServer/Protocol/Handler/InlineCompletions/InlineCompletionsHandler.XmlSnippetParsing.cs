@@ -4,15 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
@@ -22,8 +19,6 @@ internal partial class InlineCompletionsHandler
     /// <summary>
     /// Shamelessly copied from the editor
     /// https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform?path=/src/Editor/VisualStudio/Impl/Snippet/CodeSnippet.cs
-    /// 
-    /// When we switch LSP over to semantic snippets we should remove this.
     /// </summary>
     private class CodeSnippet
     {
@@ -33,64 +28,25 @@ internal partial class InlineCompletionsHandler
         /// Ctor.
         /// </summary>
         /// <param name="codeSnippetElement">XElement representing the CodeSnippet node.</param>
-        /// <param name="filePath">File path from where the code snippet is loaded.  Can be null if not loaded from file.</param>
-        /// <param name="xml">The full XML of the snippet.</param>
-        public CodeSnippet(XElement codeSnippetElement, string? filePath, string? xml)
+        public CodeSnippet(XElement codeSnippetElement)
         {
-            if (codeSnippetElement == null)
-            {
-                throw new ArgumentNullException(nameof(codeSnippetElement));
-            }
-
-            if (string.IsNullOrEmpty(filePath) && string.IsNullOrEmpty(xml))
-            {
-                throw new ArgumentException("filePath and xml cannot be both empty");
-            }
-
-            FilePath = filePath;
-            Xml = xml;
-
             var header = GetElementWithoutNamespace(codeSnippetElement, "Header");
             if (header == null)
             {
                 throw new InvalidOperationException("snippet element is missing header.");
             }
 
+            CodeSnippetElement = codeSnippetElement;
+
             Title = GetElementInnerText(header, "Title");
-            Shortcut = GetElementInnerText(header, "Shortcut");
-            Description = GetElementInnerText(header, "Description");
             var snippetTypes = GetElementsWithoutNamespace(header, "SnippetTypes");
             if (snippetTypes != null)
             {
                 _snippetTypes = snippetTypes.Elements().Select(e => e.Value.Trim()).ToArray();
             }
-
-            var snippetElement = GetElementWithoutNamespace(codeSnippetElement, "Snippet");
-            if (snippetElement != null)
-            {
-                var code = GetElementWithoutNamespace(snippetElement, "Code");
-                if (code != null)
-                {
-                    var kind = code.Attributes().FirstOrDefault(a => a.Name.LocalName.Equals("Kind", StringComparison.OrdinalIgnoreCase));
-                    if (kind != null)
-                    {
-                        SnippetKind = kind.Value;
-                    }
-                }
-            }
         }
 
         public string Title
-        {
-            get;
-        }
-
-        public string Shortcut
-        {
-            get;
-        }
-
-        public string Description
         {
             get;
         }
@@ -100,53 +56,20 @@ internal partial class InlineCompletionsHandler
             get { return _snippetTypes; }
         }
 
-        public string? SnippetKind
+        public XElement CodeSnippetElement
         {
             get;
         }
 
-        public string? Xml
+        public static CodeSnippet ReadSnippetFromFile(string filePath, string snippetTitle)
         {
-            get;
+            var document = XDocument.Load(filePath);
+            var snippets = ReadSnippets(document);
+            var matchingSnippet = snippets.Single(s => string.Equals(s.Title, snippetTitle, StringComparison.OrdinalIgnoreCase));
+            return matchingSnippet;
         }
 
-        public string? FilePath
-        {
-            get;
-        }
-
-        public static IEnumerable<CodeSnippet> ReadSnippetsFromFile(string filePath)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(filePath))
-                {
-                    throw new ArgumentNullException(nameof(filePath));
-                }
-
-                var document = XDocument.Load(filePath);
-                return ReadSnippets(document, filePath, xml: null);
-            }
-            catch (XmlException)
-            {
-                return SpecializedCollections.EmptyEnumerable<CodeSnippet>();
-            }
-        }
-
-        public static IEnumerable<CodeSnippet> ReadSnippetsFromText(string text)
-        {
-            try
-            {
-                var document = XDocument.Parse(text);
-                return ReadSnippets(document: document, filePath: null, xml: text);
-            }
-            catch (XmlException)
-            {
-                return SpecializedCollections.EmptyEnumerable<CodeSnippet>();
-            }
-        }
-
-        public static IEnumerable<XElement>? ReadCodeSnippetElements(XDocument document)
+        private static IEnumerable<XElement>? ReadCodeSnippetElements(XDocument document)
         {
             try
             {
@@ -185,110 +108,44 @@ internal partial class InlineCompletionsHandler
             return subElement == null ? string.Empty : subElement.Value.Trim();
         }
 
-        private static IEnumerable<CodeSnippet> ReadSnippets(XDocument document, string? filePath, string? xml)
+        private static IEnumerable<CodeSnippet> ReadSnippets(XDocument document)
         {
-            return ReadCodeSnippetElements(document).Select(element => new CodeSnippet(element, filePath, xml));
+            return ReadCodeSnippetElements(document).Select(element => new CodeSnippet(element));
         }
     }
 
     /// <summary>
-    /// Shamelessly stolen from https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform?path=/src/Editor/VisualStudio/Impl/Snippet/ExpansionTemplate.cs
-    /// with minor changes to parsing to support LSP snippets.
+    /// Shamelessly adapted from https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform?path=/src/Editor/VisualStudio/Impl/Snippet/ExpansionTemplate.cs
+    /// with changes to parsing to store the snippet as a set of parts instead of a single string.
     /// </summary>
     private class ExpansionTemplate
     {
+        private record ExpansionField(string ID, string Default, string? FunctionName, string? FunctionParam, bool IsEditable);
+
         private const string _selected = "selected";
         private const string _end = "end";
 
-        private string? _snippetFullText;
-        private readonly List<ExpansionField> _tokens = new List<ExpansionField>();
-        private int? _endOffset;
+        private readonly List<ExpansionField> _tokens = new();
 
-        private XElement? _snippetElement;
-        private XElement? _declarationsElement;
-        private string? _code;
-        private string _delimiter = "$";
-
-        public readonly CodeSnippet Snippet;
+        private readonly string? _code;
+        private readonly string _delimiter = "$";
 
         public ExpansionTemplate(CodeSnippet snippet)
         {
-            LoadTemplate(snippet);
-            Parse();
-
-            this.Snippet = snippet;
-        }
-
-        public string? GetCodeSnippet()
-        {
-            return _snippetFullText;
-        }
-
-        public int? GetEndOffset()
-        {
-            return _endOffset;
-        }
-
-        internal IEnumerable<ExpansionField> Fields
-        {
-            get
+            var snippetElement = CodeSnippet.GetElementWithoutNamespace(snippet.CodeSnippetElement, "Snippet");
+            var declarationsElement = CodeSnippet.GetElementWithoutNamespace(snippetElement, "Declarations");
+            ReadDeclarations(declarationsElement);
+            var code = CodeSnippet.GetElementWithoutNamespace(snippetElement, "Code");
+            if (code == null)
             {
-                return _tokens;
-            }
-        }
-
-        private void LoadTemplate(CodeSnippet snippet)
-        {
-            XDocument? document = null;
-            if (File.Exists(snippet.FilePath))
-            {
-                document = XDocument.Load(snippet.FilePath);
-            }
-            else if (!string.IsNullOrEmpty(snippet.Xml))
-            {
-                document = XDocument.Parse(snippet.Xml);
+                throw new InvalidOperationException("snippet is missing code element.");
             }
 
-            if (document == null)
+            _code = Regex.Replace(code.Value, "(?<!\r)\n", "\r\n");
+            var delimiterAttribute = code.Attributes().FirstOrDefault(a => a.Name.LocalName.Equals("Delimiter", StringComparison.OrdinalIgnoreCase));
+            if (delimiterAttribute != null)
             {
-                throw new InvalidOperationException("snippet document is null.");
-            }
-
-            var codeSnippetElements = CodeSnippet.ReadCodeSnippetElements(document);
-            if (codeSnippetElements == null)
-            {
-                throw new InvalidOperationException("document does not contain code snippet elements.");
-            }
-
-            XElement? matchedCodeSnippet = null;
-            foreach (var element in codeSnippetElements)
-            {
-                var header = CodeSnippet.GetElementWithoutNamespace(element, "Header");
-                var title = CodeSnippet.GetElementWithoutNamespace(header, "Title");
-                if (string.Equals(snippet.Title, title?.Value?.Trim(), System.StringComparison.OrdinalIgnoreCase))
-                {
-                    matchedCodeSnippet = element;
-                    break;
-                }
-            }
-
-            if (matchedCodeSnippet != null)
-            {
-                _snippetElement = CodeSnippet.GetElementWithoutNamespace(matchedCodeSnippet, "Snippet");
-                _declarationsElement = CodeSnippet.GetElementWithoutNamespace(_snippetElement, "Declarations");
-                ReadDeclarations(_declarationsElement);
-                var code = CodeSnippet.GetElementWithoutNamespace(_snippetElement, "Code");
-                if (code == null)
-                {
-                    throw new InvalidOperationException("snippet is missing code element.");
-                }
-
-                _code = Regex.Replace(code.Value, "(?<!\r)\n", "\r\n");
-                var delimiterAttribute = code.Attributes().FirstOrDefault(a => a.Name.LocalName.Equals("Delimiter", StringComparison.OrdinalIgnoreCase));
-                if (delimiterAttribute != null)
-                {
-                    _delimiter = delimiterAttribute.Value;
-                }
+                _delimiter = delimiterAttribute.Value;
             }
         }
 
@@ -301,28 +158,30 @@ internal partial class InlineCompletionsHandler
 
             foreach (var declarationElement in declarations.Elements())
             {
-                var defaultAttribute = declarationElement.Attribute("Default");
                 var editableAttribute = declarationElement.Attribute("Editable");
+                var functionElement = CodeSnippet.GetElementWithoutNamespace(declarationElement, "Function");
+                SnippetFunctionService.TryGetSnippetFunctionInfo(functionElement?.Value, out var functionName, out var functionParam);
                 _tokens.Add(new ExpansionField(
                     CodeSnippet.GetElementInnerText(declarationElement, "ID"),
                     CodeSnippet.GetElementInnerText(declarationElement, "Default") ?? " ",
-                    CodeSnippet.GetElementWithoutNamespace(declarationElement, "Function"),
-                    defaultAttribute != null && string.Equals(defaultAttribute.Value, "true", StringComparison.Ordinal),
+                    functionName,
+                    functionParam,
                     editableAttribute == null || string.Equals(editableAttribute.Value, "true", StringComparison.Ordinal) || string.Equals(editableAttribute.Value, "1", StringComparison.Ordinal)));
             }
         }
 
-        private void Parse()
+        public ParsedXmlSnippet? Parse()
         {
-            var pooledStringBuilder = PooledStringBuilder.GetInstance();
-            var total = pooledStringBuilder.Builder;
             int iTokenLen;
             var currentCharIndex = 0;
             var currentTokenCharIndex = 0;
             var sps = SnippetParseState.Code;
 
-            // LSP tab stop locations start at 1.
-            var nextAvailableTabStopIndex = 1;
+            // Associate the field id to the index of the field in the snippet.
+            var fieldNameToSnippetIndex = new Dictionary<string, int>();
+            var currentTabStopIndex = 1;
+
+            using var _builder = ArrayBuilder<SnippetPart>.GetInstance(out var snippetParts);
 
             // Mechanically ported from env/msenv/textmgr/ExpansionTemplate.cpp
             while (currentCharIndex < _code!.Length)
@@ -341,7 +200,8 @@ internal partial class InlineCompletionsHandler
                             if (currentCharIndex > currentTokenCharIndex)
                             {
                                 // append the token into our buffer
-                                total.Append(_code.Substring(currentTokenCharIndex, iTokenLen));
+                                var token = _code.Substring(currentTokenCharIndex, iTokenLen);
+                                snippetParts.Add(new SnippetStringPart(token));
                             }
 
                             // start the new token at the next character
@@ -374,30 +234,26 @@ internal partial class InlineCompletionsHandler
                                 }
                                 else if (string.Equals(fieldName, _end, StringComparison.Ordinal))
                                 {
-                                    var endToken = "/*$0*/";
-                                    _endOffset = total.Length;
-
-                                    // LSP indicates the final cursor location with $0.
-                                    // Add in a multi-line comment token that we can attach an annotation for formatting.
-                                    total.Append(endToken);
+                                    snippetParts.Add(new SnippetCursorPart());
                                 }
                                 else
                                 {
                                     var field = FindField(fieldName);
                                     if (field != null)
                                     {
-                                        field.AddOffset(total.Length);
-                                        total.Append(field.Default);
-
-                                        // Set the tab stop index for the field in the order we see them in the code.
-                                        field.GetOrSetTabStopIndexForField(ref nextAvailableTabStopIndex);
+                                        // If we have an editable field we need to know its order in the snippet so we can place the appropriate tab stop indices.
+                                        int? fieldIndex = field.IsEditable ? fieldNameToSnippetIndex.GetOrAdd(field.ID, (key) => currentTabStopIndex++) : null;
+                                        var fieldPart = string.IsNullOrEmpty(field.FunctionName)
+                                                    ? new SnippetFieldPart(field.ID, field.Default, fieldIndex)
+                                                    : new SnippetFunctionPart(field.ID, field.Default, fieldIndex, field.FunctionName, field.FunctionParam);
+                                        snippetParts.Add(fieldPart);
                                     }
                                 }
                             }
                             else
                             {
                                 // simply append a '$'    
-                                total.Append(_delimiter);
+                                snippetParts.Add(new SnippetStringPart(_delimiter));
                             }
 
                             // start the new token at the next character
@@ -414,10 +270,11 @@ internal partial class InlineCompletionsHandler
             // do we have any remaining text to be copied?
             if (sps == SnippetParseState.Code && (currentCharIndex > currentTokenCharIndex))
             {
-                total.Append(_code.Substring(currentTokenCharIndex, currentCharIndex - currentTokenCharIndex));
+                var remaining = _code.Substring(currentTokenCharIndex, currentCharIndex - currentTokenCharIndex);
+                snippetParts.Add(new SnippetStringPart(remaining));
             }
 
-            _snippetFullText = pooledStringBuilder.ToStringAndFree();
+            return snippetParts.Any() ? new ParsedXmlSnippet(snippetParts.ToImmutable()) : null;
         }
 
         private ExpansionField FindField(string fieldName)
@@ -429,77 +286,6 @@ internal partial class InlineCompletionsHandler
         {
             Code,
             Literal
-        }
-    }
-
-    internal class ExpansionField
-    {
-        private int? _fieldTabStopIndex;
-        private readonly List<int> _offsets = new List<int>();
-
-        public ExpansionField(string id, string @default, XElement? function, bool isDefault, bool isEditable)
-        {
-            ID = id ?? throw new ArgumentNullException(nameof(id));
-            Default = @default ?? throw new ArgumentNullException(nameof(@default));
-            Function = function;
-            IsDefault = isDefault;
-            IsEditable = isEditable;
-
-            _fieldTabStopIndex = null;
-        }
-
-        public string ID { get; }
-
-        public string Default
-        {
-            get;
-        }
-
-        public XElement? Function
-        {
-            get;
-        }
-
-        public bool IsDefault
-        {
-            get;
-        }
-
-        public bool IsEditable
-        {
-            get;
-        }
-
-        public ImmutableArray<int> GetOffsets()
-        {
-            return _offsets.ToImmutableArray();
-        }
-
-        public void AddOffset(int offset)
-        {
-            _offsets.Add(offset);
-        }
-
-        /// <summary>
-        /// Gets the tab stop index associated with this field.
-        /// If none, associate this field with the next available tab stop index and
-        /// set increment the next available index (as the prev value is now associated with this field).
-        /// </summary>
-        public int GetOrSetTabStopIndexForField(ref int nextAvailableFieldTabStopIndex)
-        {
-            if (_fieldTabStopIndex == null)
-            {
-                _fieldTabStopIndex = nextAvailableFieldTabStopIndex;
-                nextAvailableFieldTabStopIndex++;
-            }
-
-            return _fieldTabStopIndex.Value;
-        }
-
-        public int GetTabStopIndex()
-        {
-            Contract.ThrowIfNull(_fieldTabStopIndex);
-            return _fieldTabStopIndex.Value;
         }
     }
 }

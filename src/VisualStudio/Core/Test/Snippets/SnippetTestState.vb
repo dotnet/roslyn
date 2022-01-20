@@ -205,10 +205,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Return TryInsertExpansionReturnValue
             End Function
 
-            Public Overrides Function GetExpansionFunction(xmlFunctionNode As IXMLDOMNode, bstrFieldName As String, ByRef pFunc As IVsExpansionFunction) As Integer
-                Throw New NotImplementedException()
-            End Function
-
             Protected Overrides Function InsertEmptyCommentAndGetEndPositionTrackingSpan() As ITrackingSpan
                 Throw New NotImplementedException()
             End Function
