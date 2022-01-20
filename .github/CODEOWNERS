@@ -6,6 +6,7 @@
 eng/ @dotnet/roslyn-infrastructure
 scripts/ @dotnet/roslyn-infrastructure
 
+src/Analyzers/ @dotnet/roslyn-ide
 src/CodeStyle/ @dotnet/roslyn-ide
 src/Compilers/ @dotnet/roslyn-compiler
 # Both IDE and Compiler traits are in this file, so we don't want to ping each other for changes to just this file.
