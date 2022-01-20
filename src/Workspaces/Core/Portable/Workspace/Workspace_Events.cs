@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis
         private const string WorkspaceFailedEventName = "WorkspaceFailed";
         private const string DocumentOpenedEventName = "DocumentOpened";
         private const string DocumentClosedEventName = "DocumentClosed";
-        private const string SourceGeneratedDocumentOpenedEventName = "SourceGeneratedDocumentOpened";
-        private const string SourceGeneratedDocumentClosedEventName = "SourceGeneratedDocumentClosed";
         private const string DocumentActiveContextChangedName = "DocumentActiveContextChanged";
 
         /// <summary>
@@ -163,72 +161,6 @@ namespace Microsoft.CodeAnalysis
                     var args = new DocumentEventArgs(document);
                     ev.RaiseEvent(handler => handler(this, args));
                 }, DocumentClosedEventName);
-            }
-            else
-            {
-                return Task.CompletedTask;
-            }
-        }
-
-        /// <summary>
-        /// An event that is fired when a documents is opened in the editor.
-        /// </summary>
-        internal event EventHandler<DocumentEventArgs> SourceGeneratedDocumentOpened
-        {
-            add
-            {
-                _eventMap.AddEventHandler(SourceGeneratedDocumentOpenedEventName, value);
-            }
-
-            remove
-            {
-                _eventMap.RemoveEventHandler(SourceGeneratedDocumentOpenedEventName, value);
-            }
-        }
-
-        private protected Task RaiseSourceGeneratedDocumentOpenedEventAsync(Document document)
-        {
-            var ev = GetEventHandlers<DocumentEventArgs>(SourceGeneratedDocumentOpenedEventName);
-            if (ev.HasHandlers && document != null)
-            {
-                return this.ScheduleTask(() =>
-                {
-                    var args = new DocumentEventArgs(document);
-                    ev.RaiseEvent(handler => handler(this, args));
-                }, SourceGeneratedDocumentOpenedEventName);
-            }
-            else
-            {
-                return Task.CompletedTask;
-            }
-        }
-
-        /// <summary>
-        /// An event that is fired when a document is closed in the editor.
-        /// </summary>
-        internal event EventHandler<DocumentEventArgs> SourceGeneratedDocumentClosed
-        {
-            add
-            {
-                _eventMap.AddEventHandler(SourceGeneratedDocumentClosedEventName, value);
-            }
-
-            remove
-            {
-                _eventMap.RemoveEventHandler(SourceGeneratedDocumentClosedEventName, value);
-            }
-        }
-
-        private protected Task RaiseSourceGeneratedDocumentClosedEventAsync(Document document)
-        {
-            var ev = GetEventHandlers<DocumentEventArgs>(SourceGeneratedDocumentClosedEventName);
-            if (ev.HasHandlers && document != null)
-            {
-                return this.ScheduleTask(() =>
-                {
-                    var args = new DocumentEventArgs(document);
-                    ev.RaiseEvent(handler => handler(this, args));
-                }, SourceGeneratedDocumentClosedEventName);
             }
             else
             {

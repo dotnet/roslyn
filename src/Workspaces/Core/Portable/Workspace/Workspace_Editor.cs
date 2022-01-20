@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis
                 static async Task RaiseSourceGeneratedDocumentOpenedAsync(Workspace workspace, Solution currentSolution, DocumentId documentId)
                 {
                     var document = await currentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
-                    await workspace.RaiseSourceGeneratedDocumentOpenedEventAsync(document).ConfigureAwait(false);
+                    await workspace.RaiseDocumentOpenedEventAsync(document).ConfigureAwait(false);
                 }
             }
 
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis
                 static async Task RaiseSourceGeneratedDocumentClosedAsync(Workspace workspace, Solution currentSolution, DocumentId documentId)
                 {
                     var document = await currentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
-                    await workspace.RaiseSourceGeneratedDocumentClosedEventAsync(document).ConfigureAwait(false);
+                    await workspace.RaiseDocumentClosedEventAsync(document).ConfigureAwait(false);
                 }
             }
         }

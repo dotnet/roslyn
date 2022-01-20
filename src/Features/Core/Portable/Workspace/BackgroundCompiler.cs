@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.Host
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _workspace.DocumentOpened += OnDocumentOpened;
             _workspace.DocumentClosed += OnDocumentClosed;
-            _workspace.SourceGeneratedDocumentOpened += OnDocumentOpened;
-            _workspace.SourceGeneratedDocumentClosed += OnDocumentClosed;
         }
 
         public void Dispose()
@@ -51,8 +49,6 @@ namespace Microsoft.CodeAnalysis.Host
 
                 _workspace.DocumentClosed -= OnDocumentClosed;
                 _workspace.DocumentOpened -= OnDocumentOpened;
-                _workspace.SourceGeneratedDocumentClosed -= OnDocumentClosed;
-                _workspace.SourceGeneratedDocumentOpened -= OnDocumentOpened;
                 _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
                 _workspace = null!;

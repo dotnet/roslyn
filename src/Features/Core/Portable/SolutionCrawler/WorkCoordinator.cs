@@ -77,8 +77,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                     _registration.Workspace.DocumentOpened += OnDocumentOpened;
                     _registration.Workspace.DocumentClosed += OnDocumentClosed;
-                    _registration.Workspace.SourceGeneratedDocumentOpened += OnDocumentOpened;
-                    _registration.Workspace.SourceGeneratedDocumentClosed += OnDocumentClosed;
                 }
 
                 // subscribe to option changed event after all required fields are set
@@ -110,8 +108,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
                 _registration.Workspace.DocumentOpened -= OnDocumentOpened;
                 _registration.Workspace.DocumentClosed -= OnDocumentClosed;
-                _registration.Workspace.SourceGeneratedDocumentOpened -= OnDocumentOpened;
-                _registration.Workspace.SourceGeneratedDocumentClosed -= OnDocumentClosed;
 
                 // cancel any pending blocks
                 _shutdownNotificationSource.Cancel();
@@ -156,16 +152,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                         _registration.Workspace.DocumentOpened += OnDocumentOpened;
                         _registration.Workspace.DocumentClosed += OnDocumentClosed;
-                        _registration.Workspace.SourceGeneratedDocumentOpened += OnDocumentOpened;
-                        _registration.Workspace.SourceGeneratedDocumentClosed += OnDocumentClosed;
                     }
                     else
                     {
                         _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
                         _registration.Workspace.DocumentOpened -= OnDocumentOpened;
                         _registration.Workspace.DocumentClosed -= OnDocumentClosed;
-                        _registration.Workspace.SourceGeneratedDocumentOpened -= OnDocumentOpened;
-                        _registration.Workspace.SourceGeneratedDocumentClosed -= OnDocumentClosed;
                     }
 
                     SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
