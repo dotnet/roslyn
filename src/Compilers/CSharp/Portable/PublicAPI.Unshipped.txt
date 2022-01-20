@@ -37,8 +37,6 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralExpression = 9
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralToken = 9073 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralExpression = 9074 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralToken = 9072 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.RawInterpolationOpenToken = 9084 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.RawInterpolationCloseToken = 9085 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax.AddPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax.CloseBracketToken.get -> Microsoft.CodeAnalysis.SyntaxToken
