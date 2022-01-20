@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// True if this service would like to format the document based on the user typing the
         /// provided character.
         /// </summary>
-        bool SupportsFormattingOnTypedCharacter(Document document, char ch);
+        bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, char ch);
 
         /// <summary>
         /// Returns the text changes necessary to format the document.  If "textSpan" is provided,

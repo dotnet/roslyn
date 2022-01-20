@@ -246,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return controlService.CreateDisposableToolTip(document, textBuffer, contentSpan, EnvironmentColors.ToolWindowBackgroundBrushKey);
             }
 
-            private void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)
+            private static void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)
             {
                 var key = PredefinedPreviewTaggerKeys.StaticClassificationSpansKey;
                 textBuffer.Properties.RemoveProperty(key);
@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            public Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(CanNavigateTo());
 
@@ -309,7 +309,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     workspace,
                     _excerptResult.Document.Id,
                     _excerptResult.Span,
-                    solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
+                    solution.Options
+                        .WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview)
+                        .WithChangedOption(NavigationOptions.ActivateTab, shouldActivate),
                     cancellationToken);
             }
         }

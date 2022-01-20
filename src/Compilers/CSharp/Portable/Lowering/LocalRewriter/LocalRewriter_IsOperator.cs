@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // operand is a reference type with bound identity or implicit conversion
                     // We can replace the "is" instruction with a null check
-                    return MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
+                    return _factory.MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
                 }
             }
 

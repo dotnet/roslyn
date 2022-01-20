@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnusedReferences;
@@ -56,7 +57,6 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteProjectTelemetryService), typeof(IRemoteProjectTelemetryService.ICallback)),
             (typeof(IRemoteDiagnosticAnalyzerService), null),
             (typeof(IRemoteSemanticClassificationService), null),
-            (typeof(IRemoteSemanticClassificationCacheService), null),
             (typeof(IRemoteDocumentHighlightsService), null),
             (typeof(IRemoteEncapsulateFieldService), null),
             (typeof(IRemoteRenamerService), null),
@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteUnusedReferenceAnalysisService), null),
             (typeof(IRemoteProcessTelemetryService), null),
             (typeof(IRemoteCompilationAvailableService), null),
+            (typeof(IRemoteStackTraceExplorerService), null),
         });
 
         internal readonly RemoteSerializationOptions Options;

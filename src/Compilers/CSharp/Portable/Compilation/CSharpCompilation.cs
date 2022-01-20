@@ -140,23 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
 
         /// <summary>
-        /// Nullable analysis data for methods, parameter default values, and attributes.
-        /// The key is a symbol for methods or parameters, and syntax for attributes.
-        /// The data is collected during testing only.
+        /// Optional data collected during testing only.
+        /// Used for instance for nullable analysis (<see cref="NullableWalker.NullableAnalysisData"/>)
+        /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>).
         /// </summary>
-        internal NullableData? NullableAnalysisData;
-
-        internal sealed class NullableData
-        {
-            internal readonly int MaxRecursionDepth;
-            internal readonly ConcurrentDictionary<object, NullableWalker.Data> Data;
-
-            internal NullableData(int maxRecursionDepth = -1)
-            {
-                MaxRecursionDepth = maxRecursionDepth;
-                Data = new ConcurrentDictionary<object, NullableWalker.Data>();
-            }
-        }
+        internal object? TestOnlyCompilationData;
 
         internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
@@ -1574,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal TypeSymbol GetTypeByReflectionType(Type type, BindingDiagnosticBag diagnostics)
         {
             var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
-            if ((object)result == null)
+            if (result is null)
             {
                 var errorType = new ExtendedErrorTypeSymbol(this, type.Name, 0, CreateReflectionTypeNotFoundError(type));
                 diagnostics.Add(errorType.ErrorInfo, NoLocation.Singleton);
@@ -1602,9 +1590,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (HostObjectType != null && _lazyHostObjectTypeSymbol is null)
             {
-                TypeSymbol symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
+                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
 
-                if ((object)symbol == null)
+                if (symbol is null)
                 {
                     MetadataTypeName mdName = MetadataTypeName.FromNamespaceAndTypeName(HostObjectType.Namespace ?? String.Empty,
                                                                                         HostObjectType.Name,

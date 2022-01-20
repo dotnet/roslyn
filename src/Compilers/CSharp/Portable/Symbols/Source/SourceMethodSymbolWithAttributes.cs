@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
                 {
-                    var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                    var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
                     if (!attributeData.HasErrors)
                     {
                         string? name = attributeData.GetConstructorArgument<string>(0, SpecialType.System_String);
@@ -918,14 +918,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, diagnostics);
+            checkAndReportManagedTypes(ReturnType, this.RefKind, returnTypeSyntax, isParam: false, diagnostics);
             foreach (var param in Parameters)
             {
-                checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, diagnostics);
+                checkAndReportManagedTypes(param.Type, param.RefKind, param.GetNonNullSyntaxNode(), isParam: true, diagnostics);
             }
 
-            static void checkAndReportManagedTypes(TypeSymbol type, SyntaxNode syntax, bool isParam, BindingDiagnosticBag diagnostics)
+            static void checkAndReportManagedTypes(TypeSymbol type, RefKind refKind, SyntaxNode syntax, bool isParam, BindingDiagnosticBag diagnostics)
             {
+                if (refKind != RefKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, syntax.Location);
+                }
+
                 // use-site diagnostics will be reported at actual parameter declaration site, we're only interested
                 // in reporting managed types being used
                 switch (type.ManagedKindNoUseSiteDiagnostics)

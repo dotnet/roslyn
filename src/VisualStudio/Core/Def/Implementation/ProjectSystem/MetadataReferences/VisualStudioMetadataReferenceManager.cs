@@ -36,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly MetadataCache _metadataCache;
         private readonly ImmutableArray<string> _runtimeDirectories;
-        private readonly Workspace _workspace;
         private readonly ITemporaryStorageService _temporaryStorageService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
@@ -53,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
         internal VisualStudioMetadataReferenceManager(
-            Workspace workspace,
             IServiceProvider serviceProvider,
             ITemporaryStorageService temporaryStorageService)
         {
@@ -68,7 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
             Assumes.Present(FileChangeService);
-            _workspace = workspace;
             _temporaryStorageService = temporaryStorageService;
             Assumes.Present(_temporaryStorageService);
         }
@@ -130,10 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (VsSmartScopeCandidate(key.FullPath) && TryCreateAssemblyMetadataFromMetadataImporter(key, out var newMetadata))
             {
-                ValueSource<Optional<AssemblyMetadata>> metadataValueSource = _workspace.Options.GetOption(WorkspaceConfigurationOptions.DisableReferenceManagerWeakRuntimeReferences)
-                    ? new ConstantValueSource<Optional<AssemblyMetadata>>(newMetadata)
-                    : new WeakValueSource<AssemblyMetadata>(newMetadata);
-
+                var metadataValueSource = new ConstantValueSource<Optional<AssemblyMetadata>>(newMetadata);
                 if (!_metadataCache.GetOrAddMetadata(key, metadataValueSource, out metadata))
                 {
                     newMetadata.Dispose();
@@ -222,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             pImage = directAccess.GetPointer();
         }
 
-        private void StreamCopy(Stream source, Stream destination, int start, int length)
+        private static void StreamCopy(Stream source, Stream destination, int start, int length)
         {
             source.Position = start;
 
@@ -318,7 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private AssemblyMetadata CreateAssemblyMetadata(
+        private static AssemblyMetadata CreateAssemblyMetadata(
             FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage>? storages,
             Func<FileKey, List<ITemporaryStreamStorage>?, ModuleMetadata> moduleMetadataFactory)
         {

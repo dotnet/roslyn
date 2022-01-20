@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task IncrementalSourceGeneratorInvokedCorrectNumberOfTimes()
         {
-            using var workspace = CreateWorkspace();
+            using var workspace = CreateWorkspace(new[] { typeof(TestCSharpCompilationFactoryServiceWithIncrementalGeneratorTracking) });
             var generator = new GenerateFileForEachAdditionalFileWithContentsCommented();
             var analyzerReference = new TestGeneratorReference(generator);
             var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
@@ -81,29 +82,66 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
+            var generatorDriver = project.Solution.State.GetTestAccessor().GetGeneratorDriver(project)!;
+
+            var runResult = generatorDriver!.GetRunResult().Results[0];
+
             Assert.Equal(2, compilation.SyntaxTrees.Count());
-            Assert.Equal(2, generator.AdditionalFilesConvertedCount);
+            Assert.Equal(2, runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName].Length);
+            Assert.All(runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source => Assert.Equal(IncrementalStepRunReason.New, source.Source.Outputs[source.OutputIndex].Reason));
+                    Assert.Collection(step.Outputs,
+                        output => Assert.Equal(IncrementalStepRunReason.New, output.Reason));
+                });
 
             // Change one of the additional documents, and rerun; we should only reprocess that one change, since this
             // is an incremental generator.
             project = project.AdditionalDocuments.First().WithAdditionalDocumentText(SourceText.From("Changed text!")).Project;
 
             compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+            generatorDriver = project.Solution.State.GetTestAccessor().GetGeneratorDriver(project)!;
+            runResult = generatorDriver.GetRunResult().Results[0];
 
             Assert.Equal(2, compilation.SyntaxTrees.Count());
-
-            // We should now have converted three additional files -- the two from the original run and then the one that was changed.
-            // The other one should have been kept constant because that didn't change.
-            Assert.Equal(3, generator.AdditionalFilesConvertedCount);
+            Assert.Equal(2, runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName].Length);
+            Assert.Contains(runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName],
+                step =>
+                {
+                    return step.Inputs.Length == 1
+                    && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Modified
+                    && step.Outputs.Length == 1
+                    && step.Outputs[0].Reason == IncrementalStepRunReason.Modified;
+                });
+            Assert.Contains(runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName],
+                step =>
+                {
+                    return step.Inputs.Length == 1
+                    && step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason == IncrementalStepRunReason.Cached
+                    && step.Outputs.Length == 1
+                    && step.Outputs[0].Reason == IncrementalStepRunReason.Cached;
+                });
 
             // Change one of the source documents, and rerun; we should again only reprocess that one change.
             project = project.AddDocument("Source.cs", SourceText.From("")).Project;
 
             compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+            generatorDriver = project.Solution.State.GetTestAccessor().GetGeneratorDriver(project)!;
+            runResult = generatorDriver.GetRunResult().Results[0];
 
             // We have one extra syntax tree now, but it did not require any invocations of the incremental generator.
             Assert.Equal(3, compilation.SyntaxTrees.Count());
-            Assert.Equal(3, generator.AdditionalFilesConvertedCount);
+            Assert.Equal(2, runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName].Length);
+            Assert.All(runResult.TrackedSteps[GenerateFileForEachAdditionalFileWithContentsCommented.StepName],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source => Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason));
+                    Assert.Collection(step.Outputs,
+                        output => Assert.Equal(IncrementalStepRunReason.Cached, output.Reason));
+                });
         }
 
         [Fact]
@@ -138,31 +176,54 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
-        public async Task SourceGeneratorContentChangesAfterAdditionalFileChanges()
+        // This will make a series of changes to additional files and assert that we correctly update generated output at various times.
+        // By making this a theory with a bunch of booleans, it tests that we are correctly handling the situation where we queue up multiple changes
+        // to the Compilation at once.
+        [Theory]
+        [CombinatorialData]
+        public async Task SourceGeneratorContentChangesAfterAdditionalFileChanges(
+            bool assertRightAway,
+            bool assertAfterAdd,
+            bool assertAfterFirstChange,
+            bool assertAfterSecondChange)
         {
             using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
-                .AddAnalyzerReference(analyzerReference)
-                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+                .AddAnalyzerReference(analyzerReference);
 
+            if (assertRightAway)
+                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: new string[] { });
+
+            project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
             var additionalDocumentId = project.AdditionalDocumentIds.Single();
 
-            await AssertCompilationContainsGeneratedFile(project, "// Hello, world!");
+            if (assertAfterAdd)
+                await AssertCompilationContainsGeneratedFilesAsync(project, "// Hello, world!");
 
             project = project.Solution.WithAdditionalDocumentText(additionalDocumentId, SourceText.From("Hello, everyone!")).Projects.Single();
 
-            await AssertCompilationContainsGeneratedFile(project, "// Hello, everyone!");
+            if (assertAfterFirstChange)
+                await AssertCompilationContainsGeneratedFilesAsync(project, "// Hello, everyone!");
 
-            static async Task AssertCompilationContainsGeneratedFile(Project project, string expectedGeneratedContents)
+            project = project.Solution.WithAdditionalDocumentText(additionalDocumentId, SourceText.From("Good evening, everyone!")).Projects.Single();
+
+            if (assertAfterSecondChange)
+                await AssertCompilationContainsGeneratedFilesAsync(project, "// Good evening, everyone!");
+
+            project = project.RemoveAdditionalDocument(additionalDocumentId);
+
+            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: new string[] { });
+
+            static async Task AssertCompilationContainsGeneratedFilesAsync(Project project, params string[] expectedGeneratedContents)
             {
                 var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
-                var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees);
-                Assert.IsType<SourceGeneratedDocument>(project.GetDocument(generatedSyntaxTree));
+                foreach (var tree in compilation.SyntaxTrees)
+                    Assert.IsType<SourceGeneratedDocument>(project.GetDocument(tree));
 
-                Assert.Equal(expectedGeneratedContents, generatedSyntaxTree.GetText().ToString());
+                var texts = compilation.SyntaxTrees.Select(t => t.GetText().ToString());
+                AssertEx.SetEqual(expectedGeneratedContents, texts);
             }
         }
 
@@ -282,7 +343,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // finalizing a compilation more than once doesn't recreate things incorrectly or run the generator more than once.
             generatorRan = false;
             var compilationReference = ObjectReference.CreateFromFactory(() => project.GetCompilationAsync().Result);
-            compilationReference.AssertReleased();
+            compilationReference.AssertHeld();
             var secondCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
             var generatedDocumentSecondTime = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
@@ -644,7 +705,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(generatorRan);
             generatorRan = false;
 
-            compilationReference.AssertReleased();
+            compilationReference.AssertHeld();
 
             var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
@@ -656,6 +717,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
 
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
+        }
+
+        [Fact]
+        public async Task ChangesToAdditionalFilesCorrectlyAppliedEvenIfCompilationFallsAway()
+        {
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var compilationReference = ObjectReference.CreateFromFactory(() => project.GetRequiredCompilationAsync(CancellationToken.None).Result);
+            compilationReference.AssertHeld();
+
+            var projectWithoutAdditionalFiles = project.RemoveAdditionalDocument(project.AdditionalDocumentIds.Single());
+            Assert.Empty((await projectWithoutAdditionalFiles.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
     }
 }

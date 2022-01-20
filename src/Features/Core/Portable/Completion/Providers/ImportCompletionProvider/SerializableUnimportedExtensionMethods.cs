@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     [DataContract]
-    internal readonly struct SerializableUnimportedExtensionMethods
+    internal sealed class SerializableUnimportedExtensionMethods
     {
         [DataMember(Order = 0)]
         public readonly ImmutableArray<SerializableImportCompletionItem> CompletionItems;
@@ -22,16 +22,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         [DataMember(Order = 3)]
         public readonly int CreateItemsTicks;
 
+        [DataMember(Order = 4)]
+        public readonly bool IsRemote;
+
         public SerializableUnimportedExtensionMethods(
             ImmutableArray<SerializableImportCompletionItem> completionItems,
             bool isPartialResult,
             int getSymbolsTicks,
-            int createItemsTicks)
+            int createItemsTicks,
+            bool isRemote)
         {
             CompletionItems = completionItems;
             IsPartialResult = isPartialResult;
             GetSymbolsTicks = getSymbolsTicks;
             CreateItemsTicks = createItemsTicks;
+            IsRemote = isRemote;
         }
     }
 }

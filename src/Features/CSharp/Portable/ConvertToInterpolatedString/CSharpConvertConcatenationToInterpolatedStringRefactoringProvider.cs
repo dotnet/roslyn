@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
         }
 
         protected override bool SupportsConstantInterpolatedStrings(Document document)
-            => ((CSharpParseOptions)document.Project.ParseOptions!).LanguageVersion.HasConstantInterpolatedStrings();
+            => document.Project.ParseOptions!.LanguageVersion().HasConstantInterpolatedStrings();
 
         protected override string GetTextWithoutQuotes(string text, bool isVerbatim, bool isCharacterLiteral)
             => isVerbatim

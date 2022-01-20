@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
             string diagnosticId,
             int maxResults,
             bool allowInHiddenRegions,
-            bool searchReferenceAssemblies,
+            AddImportOptions options,
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var result = await service.GetFixesAsync(
                     document, span, diagnosticId, maxResults,
                     allowInHiddenRegions,
-                    symbolSearchService, searchReferenceAssemblies,
+                    symbolSearchService, options,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
                 return result;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId documentId,
             TextSpan span,
             ImmutableArray<string> diagnosticIds,
-            bool searchReferenceAssemblies,
+            AddImportOptions options,
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var result = await service.GetUniqueFixesAsync(
                     document, span, diagnosticIds,
-                    symbolSearchService, searchReferenceAssemblies,
+                    symbolSearchService, options,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
                 return result;

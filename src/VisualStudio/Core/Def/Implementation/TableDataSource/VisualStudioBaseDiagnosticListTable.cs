@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -36,9 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.DetailsExpander,
             StandardTableColumnDefinitions.SuppressionState);
 
-        public static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
+        protected static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
         {
-            // REVIEW: why is it using old interface for new API?
             return severity switch
             {
                 DiagnosticSeverity.Error => __VSERRORCATEGORY.EC_ERROR,
@@ -51,24 +48,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected abstract class DiagnosticTableEntriesSource : AbstractTableEntriesSource<DiagnosticTableItem>
         {
             public abstract string BuildTool { get; }
+            [MemberNotNullWhen(true, nameof(TrackingDocumentId))]
             public abstract bool SupportSpanTracking { get; }
-            public abstract DocumentId TrackingDocumentId { get; }
+            public abstract DocumentId? TrackingDocumentId { get; }
         }
 
         protected class AggregatedKey
         {
             public readonly ImmutableArray<DocumentId> DocumentIds;
             public readonly DiagnosticAnalyzer Analyzer;
-            public readonly int Kind;
+            public readonly AnalysisKind Kind;
 
-            public AggregatedKey(ImmutableArray<DocumentId> documentIds, DiagnosticAnalyzer analyzer, int kind)
+            public AggregatedKey(ImmutableArray<DocumentId> documentIds, DiagnosticAnalyzer analyzer, AnalysisKind kind)
             {
                 DocumentIds = documentIds;
                 Analyzer = analyzer;
                 Kind = kind;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (obj is not AggregatedKey other)
                 {
@@ -79,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             public override int GetHashCode()
-                => Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), Kind));
+                => Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), (int)Kind));
         }
     }
 }

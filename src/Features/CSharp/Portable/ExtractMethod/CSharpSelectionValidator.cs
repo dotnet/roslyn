@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             SemanticDocument document,
             TextSpan textSpan,
             bool localFunction,
-            OptionSet options)
+            ExtractMethodOptions options)
             : base(document, textSpan, options)
         {
             _localFunction = localFunction;

@@ -6474,7 +6474,7 @@ unsafe class C
     }
 }
 
-class var
+class @var
 {
 }
 ";

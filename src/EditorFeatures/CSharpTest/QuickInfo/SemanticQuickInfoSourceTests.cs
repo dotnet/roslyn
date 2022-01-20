@@ -7573,6 +7573,70 @@ class Program
                 MainDescription($"({FeaturesResources.local_variable}) string? x"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVarKeyword_InListPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [ va$$r one ])
+      {
+      }
+    }
+}",
+                MainDescription("struct System.Char"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVariableItself_InListPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [ var o$$ne ])
+      {
+      }
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) char one"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVarKeyword_InSlicePattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [..va$$r one ])
+      {
+      }
+    }
+}" + TestSources.Index + TestSources.Range,
+                MainDescription("char[]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVariableItself_InSlicePattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [ ..var o$$ne ])
+      {
+      }
+    }
+}" + TestSources.Index + TestSources.Range,
+                MainDescription($"({FeaturesResources.local_variable}) char[]? one"));
+        }
+
         [WorkItem(53135, "https://github.com/dotnet/roslyn/issues/53135")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDocumentationCData()
@@ -7850,6 +7914,23 @@ T {FeaturesResources.is_} int
 TResult {FeaturesResources.is_} string"));
         }
 
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInferredNonAnonymousDelegateType1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$var v = (int i) => i.ToString();
+    }
+}",
+                MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
+                AnonymousTypes(""));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousSynthesizedLambdaType()
         {
@@ -7861,7 +7942,49 @@ TResult {FeaturesResources.is_} string"));
         $$var v = (ref int i) => i.ToString();
     }
 }",
-                MainDescription("delegate string <anonymous delegate>(ref int)"));
+                MainDescription("delegate string <anonymous delegate>(ref int)"),
+                AnonymousTypes(""));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var $$v = (ref int i) => i.ToString();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) 'a v"),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} delegate string (ref int)"));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var v = (ref int i) => i.ToString();
+        $$Goo(v);
+    }
+
+    T Goo<T>(T t) => default;
+}",
+                MainDescription("'a C.Goo<'a>('a t)"),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} delegate string (ref int)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

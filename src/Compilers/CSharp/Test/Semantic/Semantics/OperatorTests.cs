@@ -11189,7 +11189,7 @@ class M
             {
                 numChildren++;
                 Assert.NotNull(iop);
-                foreach (var child in iop.Children)
+                foreach (var child in iop.ChildOperations)
                 {
                     enumerateChildren(child);
                 }
@@ -11213,6 +11213,120 @@ class M
                 //         d += p;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "d += p").WithArguments("+=", "dynamic", "int*").WithLocation(5, 9)
                 );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedUnaryOperator_InvalidTypeArgument01()
+        {
+            var code = @"
+S1? s1 = default;
+var s2 = +s1;
+
+struct S1
+{
+    public static S2 operator+(S1 s1) => throw null;
+}
+
+ref struct S2 {}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (3,10): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
+                // var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1?").WithLocation(3, 10)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedUnaryOperator_InvalidTypeArgument02()
+        {
+            var code = @"
+S1? s1 = default;
+var s2 = +s1;
+
+unsafe struct S1
+{
+    public static unsafe int* operator+(S1 s1) => throw null;
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (3,10): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
+                // var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1?").WithLocation(3, 10)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument01()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(x + y)?.M();
+
+public readonly ref struct S1
+{
+    public static S1 operator+ (S1 x, int y) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'int?'
+                // (x + y)?.M();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "S1", "int?").WithLocation(4, 2)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument02()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(y + x)?.M();
+
+public readonly ref struct S1
+{
+    public static S1 operator+ (int y, S1 x) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0019: Operator '+' cannot be applied to operands of type 'int?' and 'S1'
+                // (y + x)?.M();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "int?", "S1").WithLocation(4, 2)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument03()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(y > x).ToString();
+
+public readonly ref struct S1
+{
+    public static bool operator >(int y, S1 x) => throw null;
+    public static bool operator <(int y, S1 x) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0019: Operator '>' cannot be applied to operands of type 'int?' and 'S1'
+                // (y > x).ToString();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y > x").WithArguments(">", "int?", "S1").WithLocation(4, 2)
+            );
         }
     }
 }

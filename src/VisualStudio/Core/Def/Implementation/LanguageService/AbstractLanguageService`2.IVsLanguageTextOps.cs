@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var text = root.SyntaxTree.GetText(cancellationToken);
-            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var ts = selections.Single();
             var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
@@ -63,11 +63,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             // Since we know we are on the UI thread, lets get the base indentation now, so that there is less
             // cleanup work to do later in Venus.
-            var ruleFactory = this.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+            var ruleFactory = Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
             var rules = ruleFactory.CreateRule(document, start).Concat(Formatter.GetDefaultFormattingRules(document));
 
             // use formatting that return text changes rather than tree rewrite which is more expensive
-            var originalChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
+            var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var originalChanges = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), options, rules, cancellationToken)
+                .GetTextChanges(cancellationToken);
 
             var originalSpan = RoslynTextSpan.FromBounds(start, end);
             var formattedChanges = ruleFactory.FilterFormattedChanges(document, originalSpan, originalChanges);
@@ -78,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             // create new formatted document
             var formattedDocument = document.WithText(text.WithChanges(formattedChanges));
-            formattedDocument.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
+            Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
 
             return VSConstants.S_OK;
         }

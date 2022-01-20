@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 foreach (var type in types)
                     await HandleSingleTypeAsync(context, semanticModel, token, type, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -317,8 +317,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static INamedTypeSymbol? TryGetTypeWithStaticMembers(ITypeSymbol type)
         {
+            // The reference type might be nullable, so we need to remove the annotation.
+            // Otherwise, we will end up with items like "string?.Empty".
             if (type.TypeKind is TypeKind.Struct or TypeKind.Class)
-                return type as INamedTypeSymbol;
+                return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated) as INamedTypeSymbol;
 
             return null;
         }

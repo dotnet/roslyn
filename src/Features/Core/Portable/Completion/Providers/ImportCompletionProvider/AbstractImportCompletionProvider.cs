@@ -7,11 +7,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
+    internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider, INotifyCommittingItemCompletionProvider
     {
         protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
@@ -28,9 +28,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
         protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken);
-
-        // For telemetry reporting
         protected abstract void LogCommit();
+
+        public Task NotifyCommittingItemAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        {
+            LogCommit();
+            return Task.CompletedTask;
+        }
 
         internal override bool IsExpandItemProvider => true;
 
@@ -96,7 +100,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public override async Task<CompletionChange> GetChangeAsync(
             Document document, CompletionItem completionItem, char? commitKey, CancellationToken cancellationToken)
         {
-            LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
             var provideParenthesisCompletion = await ShouldProvideParenthesisCompletionAsync(
                 document,
@@ -125,12 +128,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Add required using/imports directive.
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
             var importNode = CreateImport(document, containingNamespace);
 
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, optionSet, allowInHiddenRegions, cancellationToken);
+            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, preferences, allowInHiddenRegions, cancellationToken);
             var documentWithImport = document.WithSyntaxRoot(rootWithImport);
             // This only formats the annotated import we just added, not the entire document.
             var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);

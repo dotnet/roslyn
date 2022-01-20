@@ -172,10 +172,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SignatureHelpSymbolParameter> parameters,
             IList<SymbolDisplayPart>? descriptionParts)
         {
-            prefixParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position);
-            separatorParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position);
-            suffixParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(suffixParts, semanticModel, position);
-            parameters = parameters.Select(p => InlineDelegateAnonymousTypes(p, semanticModel, position, structuralTypeDisplayService)).ToList();
             descriptionParts = descriptionParts == null
                 ? SpecializedCollections.EmptyList<SymbolDisplayPart>()
                 : descriptionParts;
@@ -187,7 +183,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
             var structuralTypes =
                 from part in allParts
-                where part.Symbol.IsNormalAnonymousType() || part.Symbol.IsTupleType()
+                where part.Symbol.IsAnonymousType() || part.Symbol.IsTupleType()
                 select (INamedTypeSymbol)part.Symbol!;
 
             var info = structuralTypeDisplayService.GetTypeDisplayInfo(
@@ -195,12 +191,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
             if (info.TypesParts.Count > 0)
             {
-                var anonymousTypeParts = new List<SymbolDisplayPart>
+                var structuralTypeParts = new List<SymbolDisplayPart>
                 {
                     new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
                 };
 
-                anonymousTypeParts.AddRange(info.TypesParts);
+                structuralTypeParts.AddRange(info.TypesParts);
 
                 return new SymbolKeySignatureHelpItem(
                     orderSymbol,
@@ -210,7 +206,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     info.ReplaceStructuralTypes(separatorParts, semanticModel, position).ToTaggedText(),
                     info.ReplaceStructuralTypes(suffixParts, semanticModel, position).ToTaggedText(),
                     parameters.Select(p => ReplaceStructuralTypes(p, info, semanticModel, position)).Select(p => (SignatureHelpParameter)p),
-                    anonymousTypeParts.ToTaggedText());
+                    structuralTypeParts.ToTaggedText());
             }
 
             return new SymbolKeySignatureHelpItem(
@@ -236,22 +232,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 parameter.DocumentationFactory,
                 info.ReplaceStructuralTypes(parameter.DisplayParts, semanticModel, position),
                 info.ReplaceStructuralTypes(parameter.SelectedDisplayParts, semanticModel, position));
-        }
-
-        private static SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
-            SignatureHelpSymbolParameter parameter,
-            SemanticModel semanticModel,
-            int position,
-            IStructuralTypeDisplayService structuralTypeDisplayService)
-        {
-            return new SignatureHelpSymbolParameter(
-                parameter.Name,
-                parameter.IsOptional,
-                parameter.DocumentationFactory,
-                structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.DisplayParts, semanticModel, position),
-                structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.PrefixDisplayParts, semanticModel, position),
-                structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SuffixDisplayParts, semanticModel, position),
-                structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SelectedDisplayParts, semanticModel, position));
         }
 
         public async Task<SignatureHelpItems?> GetItemsAsync(
