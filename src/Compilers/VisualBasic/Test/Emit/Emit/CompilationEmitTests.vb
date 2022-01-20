@@ -330,7 +330,17 @@ End Namespace
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
             Assert.Equal(
-                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+"﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
@@ -366,7 +376,17 @@ End Namespace
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
             Assert.Equal(
-                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
@@ -405,7 +425,17 @@ End Namespace
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
             Assert.Equal(
-                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
@@ -442,7 +472,20 @@ End Namespace
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
             Assert.Equal(
-                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "<member name=""T:Goo.Bar.X"">" & vbCrLf & " <summary><see cref=""!:T""/></summary>" & vbCrLf & "</member>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary><see cref=""!:T""/></summary>
+</member>
+</members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
@@ -478,7 +521,20 @@ End Namespace
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
             Assert.Equal(
-                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "<member name=""T:Goo.Bar.X"">" & vbCrLf & " <summary>This should emit</summary>" & vbCrLf & "</member>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary>This should emit</summary>
+</member>
+</members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
@@ -514,7 +570,20 @@ End Namespace
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
             Assert.Equal(
-                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "<member name=""T:Goo.Bar.X"">" & vbCrLf & " <summary>This should emit</summary>" & vbCrLf & "</member>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary>This should emit</summary>
+</member>
+</members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 

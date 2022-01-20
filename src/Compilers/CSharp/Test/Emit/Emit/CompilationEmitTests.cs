@@ -279,7 +279,15 @@ namespace Goo.Bar
             emitResult.Diagnostics.Verify();
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
             Assert.Equal(
-                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n    </members>\r\n</doc>\r\n",
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+    </members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes));
         }
 
@@ -317,7 +325,15 @@ namespace Goo.Bar
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
             Assert.Equal(
-                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n    </members>\r\n</doc>\r\n",
+                @"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+    </members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes));
         }
 
@@ -362,7 +378,16 @@ namespace Goo.Bar
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
             Assert.Equal(
-                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n        <!-- Badly formed XML comment ignored for member \"T:Goo.Bar.Test1\" -->\r\n    </members>\r\n</doc>\r\n",
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member ""T:Goo.Bar.Test1"" -->
+    </members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes));
         }
 
@@ -407,7 +432,18 @@ namespace Goo.Bar
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
             Assert.Equal(
-                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n        <member name=\"T:Goo.Bar.Test1\">\r\n            <summary><see cref=\"!:T\"/></summary>\r\n        </member>\r\n    </members>\r\n</doc>\r\n",
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name=""T:Goo.Bar.Test1"">
+            <summary><see cref=""!:T""/></summary>
+        </member>
+    </members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes));
         }
 
@@ -449,7 +485,18 @@ namespace Goo.Bar
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
             Assert.Equal(
-                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n        <member name=\"T:Goo.Bar.Test1\">\r\n            <summary>This should emit</summary>\r\n        </member>\r\n    </members>\r\n</doc>\r\n",
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name=""T:Goo.Bar.Test1"">
+            <summary>This should emit</summary>
+        </member>
+    </members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes));
         }
 
@@ -487,7 +534,18 @@ namespace Goo.Bar
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
             Assert.Equal(
-                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n        <member name=\"T:Goo.Bar.Test1\">\r\n            <summary>This should emit</summary>\r\n        </member>\r\n    </members>\r\n</doc>\r\n",
+                @"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name=""T:Goo.Bar.Test1"">
+            <summary>This should emit</summary>
+        </member>
+    </members>
+</doc>
+",
                 Encoding.UTF8.GetString(xmlDocBytes));
         }
 
