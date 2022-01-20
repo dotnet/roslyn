@@ -222,6 +222,11 @@
         <target state="translated">Açık dönüş türü olmadan, anonim yöntemlerde AsyncMethodBuilder özniteliğine izin verilmez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
         <target state="translated">'{0}' öğesine null değer alma özelliği verilemiyor.</target>
@@ -1390,6 +1395,11 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">struct alan başlatıcıları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">

@@ -367,5 +367,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Conversion.NoConversion;
         }
+
+        /// <summary>
+        /// Returns this instance if includeNullability is correct, and returns a
+        /// cached clone of this instance with distinct IncludeNullability otherwise.
+        /// </summary>
+        internal new Conversions WithNullability(bool includeNullability)
+        {
+            return (Conversions)base.WithNullability(includeNullability);
+        }
+
+        /// <summary>
+        /// Determines if the source expression is convertible to the destination type via
+        /// any built-in or user-defined implicit conversion.
+        /// </summary>
+        public Conversion ClassifyImplicitConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return ClassifyImplicitConversionFromExpression(sourceExpression, Compilation, destination, ref useSiteInfo);
+        }
+
+        /// <summary>
+        /// Determines if the source expression is convertible to the destination type via
+        /// any conversion: implicit, explicit, user-defined or built-in.
+        /// </summary>
+        /// <remarks>
+        /// It is rare but possible for a source expression to be convertible to a destination type
+        /// by both an implicit user-defined conversion and a built-in explicit conversion.
+        /// In that circumstance, this method classifies the conversion as the implicit conversion or explicit depending on "forCast"
+        /// </remarks>
+        public Conversion ClassifyConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast = false)
+        {
+            return ClassifyConversionFromExpression(sourceExpression, Compilation, destination, ref useSiteInfo, forCast);
+        }
+
+        // Spec 7.6.5.2: "An extension method ... is eligible if ... [an] implicit identity, reference,
+        // or boxing conversion exists from expr to the type of the first parameter"
+        public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt, Compilation, sourceType, destination, ref useSiteInfo);
+        }
     }
 }

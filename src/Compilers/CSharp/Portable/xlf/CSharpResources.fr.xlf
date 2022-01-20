@@ -222,6 +222,11 @@
         <target state="translated">L'attribut AsyncMethodBuilder n'est pas autorisé pour les méthodes anonymes sans type de retour explicite.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
         <target state="translated">'{0}' ne peut pas être null.</target>
@@ -1390,6 +1395,11 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">initialiseurs de champ de struct</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">

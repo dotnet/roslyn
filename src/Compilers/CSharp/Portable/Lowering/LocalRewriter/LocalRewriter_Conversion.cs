@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -31,6 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     InterpolationHandlerResult interpolationResult = RewriteToInterpolatedStringHandlerPattern(data, parts, node.Operand.Syntax);
                     return interpolationResult.WithFinalResult(interpolationResult.HandlerTemp);
+
+                case ConversionKind.ImplicitUtf8StringLiteral:
+                    return RewriteUtf8StringLiteralConversion(node);
+
                 case ConversionKind.SwitchExpression:
                     // Skip through target-typed switches
                     Debug.Assert(node.Operand is BoundConvertedSwitchExpression { WasTargetTyped: true });
@@ -69,6 +74,85 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(result.Type!.Equals(toType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             return result;
+        }
+
+        private BoundNode RewriteUtf8StringLiteralConversion(BoundConversion node)
+        {
+            string? value = node.Operand.ConstantValue?.StringValue;
+            Debug.Assert(value != null); // PROTOTYPE(UTF8StringLiterals) : Adjust if we actually want it to work with 'null' value.
+
+            var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+            byte[] bytes;
+
+            try
+            {
+                bytes = utf8.GetBytes(value);
+            }
+            catch (Exception ex)
+            {
+                _diagnostics.Add(
+                    ErrorCode.ERR_CannotBeConvertedToUTF8,
+                    node.Operand.Syntax.Location,
+                    ex.Message);
+
+                return BadExpression(node.Syntax, node.Type, ImmutableArray<BoundExpression>.Empty);
+            }
+
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(bytes.Length);
+            foreach (byte b in bytes)
+            {
+                builder.Add(_factory.Literal(b));
+            }
+
+            ArrayTypeSymbol byteArray;
+
+            if (node.Type is ArrayTypeSymbol array)
+            {
+                Debug.Assert(array.IsSZArray);
+                Debug.Assert(array.ElementType.SpecialType == SpecialType.System_Byte);
+                byteArray = array;
+            }
+            else
+            {
+                Debug.Assert(node.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||
+                             node.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(node.Type.OriginalDefinition.TypeKind == TypeKind.Struct && node.Type.OriginalDefinition.IsRefLikeType);
+
+                var byteType = ((NamedTypeSymbol)node.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type;
+                Debug.Assert(byteType.SpecialType == SpecialType.System_Byte);
+
+                byteArray = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, TypeWithAnnotations.Create(byteType));
+            }
+
+            var utf8Bytes = new BoundArrayCreation(
+                                    node.Syntax,
+                                    ImmutableArray.Create<BoundExpression>(_factory.Literal(builder.Count)),
+                                    new BoundArrayInitialization(node.Syntax, builder.ToImmutableAndFree()),
+                                    byteArray);
+
+            if ((object)node.Type == byteArray)
+            {
+                return utf8Bytes;
+            }
+
+            WellKnownMember wellKnownCtor;
+
+            if (node.Type.Name == "Span")
+            {
+                wellKnownCtor = WellKnownMember.System_Span_T__ctor_Array;
+            }
+            else
+            {
+                Debug.Assert(node.Type.Name == "ReadOnlySpan");
+                wellKnownCtor = WellKnownMember.System_ReadOnlySpan_T__ctor_Array;
+            }
+
+            if (!TryGetWellKnownTypeMember<MethodSymbol>(node.Syntax, wellKnownCtor, out MethodSymbol ctor))
+            {
+                return BadExpression(node.Syntax, node.Type, ImmutableArray<BoundExpression>.Empty);
+            }
+
+            return new BoundObjectCreationExpression(node.Syntax, ctor.AsMember((NamedTypeSymbol)node.Type), utf8Bytes);
         }
 
         private static bool IsFloatingPointExpressionOfUnknownPrecision(BoundExpression rewrittenNode)

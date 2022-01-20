@@ -222,6 +222,11 @@
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
         <target state="translated">'{0}'은(는) nullable이 될 수 없습니다.</target>
@@ -1390,6 +1395,11 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">구조체 필드 이니셜라이저</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">

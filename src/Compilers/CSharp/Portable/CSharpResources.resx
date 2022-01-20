@@ -6941,4 +6941,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_LowerCaseTypeName_Title" xml:space="preserve">
     <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
+  <data name="ERR_CannotBeConvertedToUTF8" xml:space="preserve">
+    <value>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</value>
+  </data>
+  <data name="IDS_FeatureUTF8StringLiterals" xml:space="preserve">
+    <value>Utf8 String Literals</value>
+  </data>
 </root>

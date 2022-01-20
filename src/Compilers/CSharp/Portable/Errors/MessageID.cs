@@ -243,6 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_ParameterNullChecking = MessageBase + 12815,
 
         IDS_FeatureCacheStaticMethodGroupConversion = MessageBase + 12816,
+
+        IDS_FeatureUTF8StringLiterals = MessageBase + 12900, // PROTOTYPE(UTF8StringLiterals) : pack numbers
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -358,6 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureListPattern: // semantic check
                 case MessageID.IDS_FeatureCacheStaticMethodGroupConversion: // lowering check
                 case MessageID.IDS_ParameterNullChecking: // syntax check
+                case MessageID.IDS_FeatureUTF8StringLiterals: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.

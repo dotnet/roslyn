@@ -253,6 +253,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .WithSuppression(source.IsSuppressed);
                 }
 
+                if (conversion.IsUtf8StringLiteral)
+                {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
+                }
+
                 reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
 
                 return new BoundConversion(
@@ -547,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedOperand = CreateConversion(
                     syntax: syntax,
                     source: convertedOperand,
-                    conversion: Conversions.ClassifyStandardConversion(null, convertedOperand.Type, conversionParameterType, ref useSiteInfo),
+                    conversion: Conversions.ClassifyStandardConversion(convertedOperand.Type, conversionParameterType, ref useSiteInfo),
                     isCast: false,
                     conversionGroupOpt: conversionGroup,
                     wasCompilerGenerated: true,
@@ -591,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     userDefinedConversion = CreateConversion(
                         syntax: syntax,
                         source: userDefinedConversion,
-                        conversion: Conversions.ClassifyStandardConversion(null, conversionReturnType, conversionToType, ref useSiteInfo),
+                        conversion: Conversions.ClassifyStandardConversion(conversionReturnType, conversionToType, ref useSiteInfo),
                         isCast: false,
                         conversionGroupOpt: conversionGroup,
                         wasCompilerGenerated: true,

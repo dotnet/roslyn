@@ -4030,7 +4030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Note: so long as we have a best type, we can proceed.
                 var bestTypeWithObliviousAnnotation = TypeWithAnnotations.Create(bestType);
-                ConversionsBase conversionsWithoutNullability = walker._conversions.WithNullability(false);
+                Conversions conversionsWithoutNullability = walker._conversions.WithNullability(false);
                 for (int i = 0; i < n; i++)
                 {
                     BoundExpression placeholder = placeholders[i];
@@ -7721,6 +7721,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
+                case ConversionKind.ImplicitUtf8StringLiteral:
+                    resultState = NullableFlowState.NotNull; // PROTOTYPE(UTF8StringLiterals) : Adjust if we actually want it to work with 'null' value.
+                    break;
+
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
@@ -8350,7 +8354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(operandType.Type is object);
             Debug.Assert(diagnosticLocation != null);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            var conversion = _conversions.ClassifyStandardConversion(null, operandType.Type, targetType.Type, ref discardedUseSiteInfo);
+            var conversion = _conversions.ClassifyStandardConversion(operandType.Type, targetType.Type, ref discardedUseSiteInfo);
             if (reportWarnings && !conversion.Exists)
             {
                 if (assignmentKind == AssignmentKind.Argument)
