@@ -90,8 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If basicOptions.ParseOptions IsNot Nothing Then
                 WriteParseOptions(writer, basicOptions.ParseOptions)
             Else
-                writer.WriteObjectStart()
-                writer.WriteObjectEnd()
+                writer.WriteNull()
             End If
         End Sub
 

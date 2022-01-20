@@ -493,5 +493,95 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             AssertJson(expected, compilationValue.ToString(Formatting.Indented), "toolsVersions", "references", "extensions");
         }
+
+        [Fact]
+        public void FeatureFlag()
+        {
+            var compiler = TestableCompiler.CreateCSharpNetCoreApp("test.cs", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic");
+            var sourceFile = compiler.AddSourceFile("test.cs", @"// this is a test file");
+            compiler.AddOutputFile("test.dll");
+            var keyFile = compiler.AddOutputFile("test.dll.key");
+            var (result, output) = compiler.Run();
+            Assert.Equal(0, result);
+
+            var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
+            var expected = @$"
+{{
+  ""compilation"": {{
+    ""publicKey"": """",
+    ""options"": {{
+      ""outputKind"": ""DynamicallyLinkedLibrary"",
+      ""moduleName"": ""test.dll"",
+      ""scriptClassName"": ""Script"",
+      ""mainTypeName"": null,
+      ""cryptoPublicKey"": """",
+      ""cryptoKeyFile"": null,
+      ""delaySign"": null,
+      ""publicSign"": false,
+      ""checkOverflow"": false,
+      ""platform"": ""AnyCpu"",
+      ""optimizationLevel"": ""Debug"",
+      ""generalDiagnosticOption"": ""Default"",
+      ""warningLevel"": 4,
+      ""deterministic"": true,
+      ""debugPlusMode"": false,
+      ""referencesSupersedeLowerVersions"": false,
+      ""reportSuppressedDiagnostics"": false,
+      ""nullableContextOptions"": ""Disable"",
+      ""specificDiagnosticOptions"": [],
+      ""localtime"": null,
+      ""unsafe"": false,
+      ""topLevelBinderFlags"": ""None"",
+      ""usings"": []
+    }},
+    ""syntaxTrees"": [
+      {{
+        ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(sourceFile.FilePath)}"",
+        ""text"": {{
+          ""checksum"": ""2326e849c5bb80ded5ef51743244896b812672aa03119ee8788cdc3b356f88"",
+          ""checksumAlgorithm"": ""Sha256"",
+          ""encodingName"": ""Unicode (UTF-8)""
+        }},
+        ""parseOptions"": {{
+          ""kind"": ""Regular"",
+          ""specifiedKind"": ""Regular"",
+          ""documentationMode"": ""None"",
+          ""language"": ""C#"",
+          ""features"": {{
+            ""debug-determinism"": ""true""
+          }},
+          ""languageVersion"": ""CSharp10"",
+          ""specifiedLanguageVersion"": ""Default"",
+          ""preprocessorSymbols"": []
+        }}
+      }}
+    ]
+  }},
+  ""additionalTexts"": [],
+  ""analyzers"": [],
+  ""generators"": [],
+  ""emitOptions"": {{
+    ""emitMetadataOnly"": false,
+    ""tolerateErrors"": false,
+    ""includePrivateMembers"": true,
+    ""instrumentationKinds"": [],
+    ""subsystemVersion"": {{
+      ""major"": 0,
+      ""minor"": 0
+    }},
+    ""fileAlignment"": 0,
+    ""highEntropyVirtualAddressSpace"": false,
+    ""baseAddress"": ""0"",
+    ""debugInformationFormat"": ""Pdb"",
+    ""outputNameOverride"": null,
+    ""pdbFilePath"": null,
+    ""pdbChecksumAlgorithm"": ""SHA256"",
+    ""runtimeMetadataVersion"": null,
+    ""defaultSourceFileEncoding"": null,
+    ""fallbackSourceFileEncoding"": null
+  }}
+}}";
+            AssertJson(expected, json, "toolsVersions", "references", "extensions");
+        }
     }
 }

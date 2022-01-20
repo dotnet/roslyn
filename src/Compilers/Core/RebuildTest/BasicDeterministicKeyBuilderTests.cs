@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""optionCompareText"": false,
       ""embedVbCoreRuntime"": false,
       ""globalImports"": [],
-      ""parseOptions"": {}
+      ""parseOptions"": null
     },
     ""syntaxTrees"": [
       {
@@ -304,6 +304,122 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 ";
 
             AssertJson(expected, compilationValue.ToString(Formatting.Indented), "toolsVersions", "references", "extensions");
+        }
+
+        [Fact]
+        public void FeatureFlag()
+        {
+            var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""");
+            var sourceFile = compiler.AddSourceFile("test.vb", @"' this is a test file");
+            compiler.AddOutputFile("test.dll");
+            var keyFile = compiler.AddOutputFile("test.dll.key");
+            var (result, output) = compiler.Run();
+            Assert.Equal(0, result);
+            Assert.True(string.IsNullOrEmpty(output));
+
+            var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
+            var expected = @$"
+{{
+  ""compilation"": {{
+    ""publicKey"": """",
+    ""options"": {{
+      ""outputKind"": ""DynamicallyLinkedLibrary"",
+      ""moduleName"": ""test.dll"",
+      ""scriptClassName"": ""Script"",
+      ""mainTypeName"": null,
+      ""cryptoPublicKey"": """",
+      ""cryptoKeyFile"": null,
+      ""delaySign"": null,
+      ""publicSign"": false,
+      ""checkOverflow"": true,
+      ""platform"": ""AnyCpu"",
+      ""optimizationLevel"": ""Debug"",
+      ""generalDiagnosticOption"": ""Default"",
+      ""warningLevel"": 1,
+      ""deterministic"": true,
+      ""debugPlusMode"": false,
+      ""referencesSupersedeLowerVersions"": false,
+      ""reportSuppressedDiagnostics"": false,
+      ""nullableContextOptions"": ""Disable"",
+      ""specificDiagnosticOptions"": [],
+      ""localtime"": null,
+      ""rootNamespace"": """",
+      ""optionStrict"": ""Off"",
+      ""optionInfer"": false,
+      ""optionExplicit"": true,
+      ""optionCompareText"": false,
+      ""embedVbCoreRuntime"": false,
+      ""globalImports"": [],
+      ""parseOptions"": {{
+        ""kind"": ""Regular"",
+        ""specifiedKind"": ""Regular"",
+        ""documentationMode"": ""None"",
+        ""language"": ""Visual Basic"",
+        ""features"": {{
+          ""debug-determinism"": ""true""
+        }},
+        ""languageVersion"": ""VisualBasic16_9"",
+        ""specifiedLanguageVersion"": ""Default"",
+        ""preprocessorSymbols"": {{
+          ""TARGET"": ""library"",
+          ""VBC_VER"": ""16.9"",
+          ""_MYTYPE"": ""Empty""
+        }}
+      }}
+    }},
+    ""syntaxTrees"": [
+      {{
+        ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(sourceFile.FilePath)}"",
+        ""text"": {{
+          ""checksum"": ""8f9cdc9e727da9f8f0569be3dc606bfc6c1a1b13444e18c95eefb73810bbf1"",
+          ""checksumAlgorithm"": ""Sha256"",
+          ""encodingName"": ""Unicode (UTF-8)""
+        }},
+        ""parseOptions"": {{
+          ""kind"": ""Regular"",
+          ""specifiedKind"": ""Regular"",
+          ""documentationMode"": ""None"",
+          ""language"": ""Visual Basic"",
+          ""features"": {{
+            ""debug-determinism"": ""true""
+          }},
+          ""languageVersion"": ""VisualBasic16_9"",
+          ""specifiedLanguageVersion"": ""Default"",
+          ""preprocessorSymbols"": {{
+            ""TARGET"": ""library"",
+            ""VBC_VER"": ""16.9"",
+            ""_MYTYPE"": ""Empty""
+          }}
+        }}
+      }}
+    ]
+  }},
+  ""additionalTexts"": [],
+  ""analyzers"": [],
+  ""generators"": [],
+  ""emitOptions"": {{
+    ""emitMetadataOnly"": false,
+    ""tolerateErrors"": false,
+    ""includePrivateMembers"": true,
+    ""instrumentationKinds"": [],
+    ""subsystemVersion"": {{
+      ""major"": 0,
+      ""minor"": 0
+    }},
+    ""fileAlignment"": 0,
+    ""highEntropyVirtualAddressSpace"": false,
+    ""baseAddress"": ""0"",
+    ""debugInformationFormat"": ""Pdb"",
+    ""outputNameOverride"": null,
+    ""pdbFilePath"": null,
+    ""pdbChecksumAlgorithm"": ""SHA256"",
+    ""runtimeMetadataVersion"": null,
+    ""defaultSourceFileEncoding"": null,
+    ""fallbackSourceFileEncoding"": null
+  }}
+}}
+";
+            AssertJson(expected, json, "toolsVersions", "references", "extensions");
         }
     }
 }

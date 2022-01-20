@@ -15,9 +15,19 @@ namespace Roslyn.Test.Utilities
 
     public sealed class TestableFileSystem : ICommonCompilerFileSystem
     {
-        public OpenFileFunc OpenFileFunc { get; set; } = delegate { throw new InvalidOperationException(); };
-        public OpenFileExFunc OpenFileExFunc { get; set; } = (string _, FileMode _, FileAccess _, FileShare _, int _, FileOptions _, out string _) => throw new InvalidOperationException();
-        public Func<string, bool> FileExistsFunc { get; set; } = delegate { throw new InvalidOperationException(); };
+        private readonly Dictionary<string, TestableFile>? _map;
+
+        public OpenFileFunc OpenFileFunc { get; private set; } = delegate { throw new InvalidOperationException(); };
+        public OpenFileExFunc OpenFileExFunc { get; private set; } = (string _, FileMode _, FileAccess _, FileShare _, int _, FileOptions _, out string _) => throw new InvalidOperationException();
+        public Func<string, bool> FileExistsFunc { get; private set; } = delegate { throw new InvalidOperationException(); };
+
+        public Dictionary<string, TestableFile> Map => _map ?? throw new InvalidOperationException();
+        public bool UsingMap => _map is not null;
+
+        private TestableFileSystem(Dictionary<string, TestableFile>? map = null)
+        {
+            _map = map;
+        }
 
         public Stream OpenFile(string filePath, FileMode mode, FileAccess access, FileShare share)
             => OpenFileFunc(filePath, mode, access, share);
@@ -59,8 +69,10 @@ namespace Roslyn.Test.Utilities
             return CreateForMap(map);
         }
 
+        public static TestableFileSystem CreateForMap() => CreateForMap(new());
+
         public static TestableFileSystem CreateForMap(Dictionary<string, TestableFile> map)
-            => new TestableFileSystem()
+            => new TestableFileSystem(map)
             {
                 OpenFileExFunc = (string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath) =>
                 {

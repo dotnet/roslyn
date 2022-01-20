@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see cref="ICommonCompilerFileSystem"/> used to access the file system inside this instance.
         /// </summary>
-        internal ICommonCompilerFileSystem FileSystem { get; set; } = StandardFileSystem.Instance;
+        internal ICommonCompilerFileSystem FileSystem { get; set; }
 
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators);
 
-        public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache)
+        public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache, ICommonCompilerFileSystem? fileSystem)
         {
             IEnumerable<string> allArgs = args;
 
@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis
             this.AssemblyLoader = assemblyLoader;
             this.GeneratorDriverCache = driverCache;
             this.EmbeddedSourcePaths = GetEmbeddedSourcePaths(Arguments);
+            this.FileSystem = fileSystem ?? StandardFileSystem.Instance;
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
@@ -1080,11 +1081,6 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
-                {
-                    EmitDeterminismKey(compilation, additionalTextFiles, analyzers, generators, Arguments.PathMap, Arguments.EmitOptions);
-                }
-
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                       additionalTextFiles, analyzerConfigProvider);
 
@@ -1112,6 +1108,11 @@ namespace Microsoft.CodeAnalysis
                         analyzerCts.Token);
                     reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
                 }
+            }
+
+            if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
+            {
+                EmitDeterminismKey(compilation, FileSystem, additionalTextFiles, analyzers, generators, Arguments.PathMap, Arguments.EmitOptions);
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
@@ -1661,6 +1662,7 @@ namespace Microsoft.CodeAnalysis
 
         private void EmitDeterminismKey(
             Compilation compilation,
+            ICommonCompilerFileSystem fileSystem,
             ImmutableArray<AdditionalText> additionalTexts,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
@@ -1669,11 +1671,9 @@ namespace Microsoft.CodeAnalysis
         {
             var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, pathMap, emitOptions);
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
-            using (var stream = File.Create(filePath))
-            {
-                var bytes = Encoding.UTF8.GetBytes(key);
-                stream.Write(bytes, 0, bytes.Length);
-            }
+            using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            var bytes = Encoding.UTF8.GetBytes(key);
+            stream.Write(bytes, 0, bytes.Length);
         }
     }
 }
