@@ -1064,7 +1064,7 @@ namespace Microsoft.CodeAnalysis
         /// </para>
         /// <para>Type forwarders are ignored, and not considered part of the assembly where the TypeForwardAttribute is written.</para>
         /// <para>
-        /// Ambiguities are detected on each nested level. For example, if <c>A+B</c> is request, and there are multiple <c>A</c>s but only one of them has a <c>B</c> nested
+        /// Ambiguities are detected on each nested level. For example, if <c>A+B</c> is requested, and there are multiple <c>A</c>s but only one of them has a <c>B</c> nested
         /// type, the lookup will be considered ambiguous and null will be returned.
         /// </para>
         /// </remarks>
