@@ -9503,6 +9503,28 @@ public class C
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInRawStringLiteralInterpolation(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+	void M(int y)
+	{
+        var s = $"""""
+        {$$}
+        """"";
+    }        
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("ne")
+                Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
+            End Using
+        End Function
+
         ' Simulate the situation that some provider (e.g. IntelliCode) provides items with higher match priority that only match case-insensitively.
         <ExportCompletionProvider(NameOf(PreselectionProvider), LanguageNames.CSharp)>
         <[Shared]>

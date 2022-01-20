@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -74,6 +75,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             Contract.ThrowIfNull(indenter.Tree);
             Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None);
 
+            var sourceText = indenter.LineToBeIndented.Text;
+            RoslynDebug.AssertNotNull(sourceText);
+
+            // case: """$$
+            //       """
+            if (token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+            {
+                var lastNewLine = token.Text.LastIndexOf(Environment.NewLine);
+                if (lastNewLine != -1)
+                {
+                    var lastLine = token.Text[(lastNewLine + Environment.NewLine.Length)..];
+                    var nonWhitespaceOffset = lastLine.GetFirstNonWhitespaceOffset();
+
+                    if (nonWhitespaceOffset is not null)
+                    {
+                        var tokenIndentation = new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
+                        return tokenIndentation;
+                    }
+                }
+            }
+
+            // case 1: $"""$$
+            //          """
+            // case 2: $"""
+            //          text$$
+            //          """
+            if (token.IsKind(
+                SyntaxKind.InterpolatedMultiLineRawStringStartToken,
+                SyntaxKind.InterpolatedStringTextToken))
+            {
+                var interpolatedExpression = token.GetAncestor<InterpolatedStringExpressionSyntax>();
+                if (interpolatedExpression is not null)
+                {
+                    if (interpolatedExpression.StringEndToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringEndToken))
+                    {
+                        var endLinePosition = sourceText.Lines.GetLineFromPosition(interpolatedExpression.StringEndToken.Span.End);
+                        var nonWhitespaceOffset = endLinePosition.GetFirstNonWhitespaceOffset();
+                        if (nonWhitespaceOffset is not null)
+                        {
+                            var tokenIndentation = new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
+                            return tokenIndentation;
+                        }
+                    }
+                }
+            }
+
             // special cases
             // case 1: token belongs to verbatim token literal
             // case 2: $@"$${0}"
@@ -110,8 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
 
             // if we couldn't determine indentation from the service, use heuristic to find indentation.
-            var sourceText = indenter.LineToBeIndented.Text;
-            RoslynDebug.AssertNotNull(sourceText);
 
             // If this is the last token of an embedded statement, walk up to the top-most parenting embedded
             // statement owner and use its indentation.
@@ -217,6 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                             return GetDefaultIndentationFromToken(indenter, token.Parent.GetFirstToken(includeZeroWidth: true));
                         }
 
+                        goto default;
+                    }
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
+                    {
                         goto default;
                     }
 
