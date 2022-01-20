@@ -257,7 +257,7 @@ namespace Goo.Bar
     {
         public static void SayHello()
         {
-            ConEmitMetadataOnly_XmlDocs_NoDocMode_Successsole.WriteLine(""hello"");
+            Console.WriteLine(""hello"");
         }
     }  
 }     
@@ -482,11 +482,9 @@ namespace Goo.Bar
                 xmlDocBytes = xmlStream.ToArray();
             }
 
-            // This should not fail the emit (as it's a warning).
             Assert.True(emitResult.Success);
             emitResult.Diagnostics.Verify();
 
-            // Even though docs failed, we should still produce the peStream.
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
             Assert.Equal(
                 "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n        <member name=\"T:Goo.Bar.Test1\">\r\n            <summary>This should emit</summary>\r\n        </member>\r\n    </members>\r\n</doc>\r\n",
