@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -93,8 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         _ => ""
                     });
 
+                    if (parameter.IsParams)
+                    {
+                        builder.Append("params ");
+                    }
+
                     AddType(parameter.Type, builder);
-                    builder.Append($" {parameter.Name}");
+                    builder.Append($" {parameter.Name.EscapeIdentifier()}");
                 }
             }
 
@@ -121,7 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             private static void AddType(ITypeSymbol symbol, StringBuilder builder)
-                => builder.Append(symbol.ToNameDisplayString());
+            {
+                builder.Append(symbol.ToNameDisplayString());
+                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                {
+                    builder.Append('?');
+                }
+            }
         }
     }
 }

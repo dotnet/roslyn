@@ -734,5 +734,129 @@ class C : I<C>
 
             await VerifyProviderCommitAsync(markup, "operator +(C x, C y)", expected, '\t');
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestWithParamsParameter()
+        {
+            var markup = @"
+interface I
+{
+    void M(params string[] args);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(params string[] args);
+}
+
+class C : I
+{
+    void I.M(params string[] args)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestWithNullable()
+        {
+            var markup = @"
+#nullable enable
+
+interface I
+{
+    void M<T>(T? x);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+#nullable enable
+
+interface I
+{
+    void M<T>(T? x);
+}
+
+class C : I
+{
+    void I.M<T>(T? x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M<T>(T? x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestEscapeIdentifier()
+        {
+            var markup = @"
+interface I
+{
+    void M(string @class);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(string @class);
+}
+
+class C : I
+{
+    void I.M(string @class)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M(string @class)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestParameterWithDefaultValue()
+        {
+            var markup = @"
+interface I
+{
+    void M(int x = 10);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(int x = 10);
+}
+
+class C : I
+{
+    void I.M(int x)
+}
+";
+            // TODO: Consider adding the default value too.
+            await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
+        }
     }
 }
