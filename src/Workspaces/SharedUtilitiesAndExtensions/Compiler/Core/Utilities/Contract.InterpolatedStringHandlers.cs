@@ -5,6 +5,8 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/58168
+
 namespace Roslyn.Utilities
 {
     internal static partial class Contract
@@ -14,9 +16,7 @@ namespace Roslyn.Utilities
         {
             private readonly StringBuilder _stringBuilder;
 
-#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/58168
             public ThrowIfTrueInterpolatedStringHandler(int literalLength, int formattedCount, bool condition, out bool success)
-#pragma warning restore IDE0060 // Remove unused parameter
             {
                 _stringBuilder = condition ? new StringBuilder(capacity: literalLength) : null!;
                 success = condition;
@@ -54,9 +54,7 @@ namespace Roslyn.Utilities
         {
             private readonly StringBuilder _stringBuilder;
 
-#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/58168
             public ThrowIfNullInterpolatedStringHandler(int literalLength, int formattedCount, T? value, out bool success)
-#pragma warning restore IDE0060 // Remove unused parameter
             {
                 _stringBuilder = value is null ? new StringBuilder(capacity: literalLength) : null!;
                 success = value is null;
