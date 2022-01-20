@@ -97,16 +97,17 @@ namespace Microsoft.CodeAnalysis
                     // now, using the obtained syntax nodes, run the transform
                     foreach (SyntaxNode node in nodes)
                     {
-                        if (state != EntryState.Cached || !_transformTable.TryUseCachedEntries(TimeSpan.Zero, noInputStepsStepInfo))
-                        {
-                            var stopwatch = SharedStopwatch.StartNew();
-                            var value = new GeneratorSyntaxContext(node, model);
-                            var transformed = _owner._transformFunc(value, cancellationToken);
+                        var stopwatch = SharedStopwatch.StartNew();
+                        var value = new GeneratorSyntaxContext(node, model);
+                        var transformed = _owner._transformFunc(value, cancellationToken);
 
-                            if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, state))
-                            {
-                                _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
-                            }
+                        // The SemanticModel we provide to GeneratorSyntaxContext is never guaranteed to be the same between runs,
+                        // so we never consider the input to the transform as cached.
+                        var transformInputState = state == EntryState.Cached ? EntryState.Modified : state;
+
+                        if (transformInputState == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, transformInputState))
+                        {
+                            _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
                         }
                     }
                 }
