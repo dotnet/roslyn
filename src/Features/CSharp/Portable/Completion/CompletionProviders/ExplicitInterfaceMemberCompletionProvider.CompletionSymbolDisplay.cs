@@ -77,15 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static void AddParameters(ImmutableArray<IParameterSymbol> parameters, StringBuilder builder)
             {
-                var first = true;
-                foreach (var parameter in parameters)
+                builder.AppendJoinedValues(", ", parameters, (parameter, builder) =>
                 {
-                    if (!first)
-                    {
-                        builder.Append(", ");
-                    }
-
-                    first = false;
                     builder.Append(parameter.RefKind switch
                     {
                         RefKind.Out => "out ",
@@ -101,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     AddType(parameter.Type, builder);
                     builder.Append($" {parameter.Name.EscapeIdentifier()}");
-                }
+                });
             }
 
             private static void AddTypeArguments(IMethodSymbol symbol, StringBuilder builder)
@@ -109,19 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (symbol.TypeArguments.Length > 0)
                 {
                     builder.Append('<');
-
-                    var first = true;
-                    foreach (var typeArgument in symbol.TypeArguments)
-                    {
-                        if (!first)
-                        {
-                            builder.Append(", ");
-                        }
-
-                        first = false;
-                        builder.Append(typeArgument.Name.EscapeIdentifier());
-                    }
-
+                    builder.AppendJoinedValues(", ", symbol.TypeArguments, static (symbol, builder) => builder.Append(symbol.Name.EscapeIdentifier()));
                     builder.Append('>');
                 }
             }
