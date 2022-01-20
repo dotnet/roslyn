@@ -1411,32 +1411,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function AsInterfaceMember(node As SyntaxNode) As SyntaxNode
-            If node IsNot Nothing Then
-                Select Case node.Kind
-                    Case SyntaxKind.FunctionBlock,
-                     SyntaxKind.SubBlock
-                        Return AsInterfaceMember(DirectCast(node, MethodBlockSyntax).BlockStatement)
-                    Case SyntaxKind.FunctionStatement,
-                     SyntaxKind.SubStatement
-                        Return Isolate(node, Function(d) DirectCast(d, MethodStatementSyntax).WithModifiers(Nothing))
-                    Case SyntaxKind.PropertyBlock
-                        Return AsInterfaceMember(DirectCast(node, PropertyBlockSyntax).PropertyStatement)
-                    Case SyntaxKind.PropertyStatement
-                        Return Isolate(
-                            node,
-                            Function(d)
-                                Dim propertyStatement = DirectCast(d, PropertyStatementSyntax)
-                                Dim mods = SyntaxFactory.TokenList(propertyStatement.Modifiers.Where(Function(tk) tk.IsKind(SyntaxKind.ReadOnlyKeyword) Or tk.IsKind(SyntaxKind.DefaultKeyword)))
-                                Return propertyStatement.WithModifiers(mods)
-                            End Function)
-                    Case SyntaxKind.EventBlock
-                        Return AsInterfaceMember(DirectCast(node, EventBlockSyntax).EventStatement)
-                    Case SyntaxKind.EventStatement
-                        Return Isolate(node, Function(d) DirectCast(d, EventStatementSyntax).WithModifiers(Nothing).WithCustomKeyword(Nothing))
-                End Select
-            End If
-
-            Return Nothing
+            Select Case node.Kind
+                Case SyntaxKind.FunctionBlock,
+                 SyntaxKind.SubBlock
+                    Return AsInterfaceMember(DirectCast(node, MethodBlockSyntax).BlockStatement)
+                Case SyntaxKind.FunctionStatement,
+                 SyntaxKind.SubStatement
+                    Return Isolate(node, Function(d) DirectCast(d, MethodStatementSyntax).WithModifiers(Nothing))
+                Case SyntaxKind.PropertyBlock
+                    Return AsInterfaceMember(DirectCast(node, PropertyBlockSyntax).PropertyStatement)
+                Case SyntaxKind.PropertyStatement
+                    Return Isolate(
+                        node,
+                        Function(d)
+                            Dim propertyStatement = DirectCast(d, PropertyStatementSyntax)
+                            Dim mods = SyntaxFactory.TokenList(propertyStatement.Modifiers.Where(Function(tk) tk.IsKind(SyntaxKind.ReadOnlyKeyword) Or tk.IsKind(SyntaxKind.DefaultKeyword)))
+                            Return propertyStatement.WithModifiers(mods)
+                        End Function)
+                Case SyntaxKind.EventBlock
+                    Return AsInterfaceMember(DirectCast(node, EventBlockSyntax).EventStatement)
+                Case SyntaxKind.EventStatement
+                    Return Isolate(node, Function(d) DirectCast(d, EventStatementSyntax).WithModifiers(Nothing).WithCustomKeyword(Nothing))
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
+            End Select
         End Function
 
         Public Overrides Function EnumDeclaration(

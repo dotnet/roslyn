@@ -108,14 +108,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return document;
             }
 
-            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-            var changes = Formatter.GetFormattedTextChanges(
+            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var changes = formatter.GetFormattingResult(
                 root,
                 SpecializedCollections.SingletonCollection(CommonFormattingHelpers.GetFormattingSpan(root, span.Value)),
-                document.Project.Solution.Workspace,
                 options,
-                cancellationToken: cancellationToken);
+                rules: null,
+                cancellationToken).GetTextChanges(cancellationToken);
 
             return document.ApplyTextChanges(changes, cancellationToken);
         }

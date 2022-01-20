@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             catch (OperationCanceledException)
             {
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
             {
             }
         }

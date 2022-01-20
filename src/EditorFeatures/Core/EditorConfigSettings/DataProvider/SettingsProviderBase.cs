@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                 return;
             }
 
-            var configOptionsProvider = new WorkspaceAnalyzerConfigOptionsProvider(project.State);
+            var configOptionsProvider = new ProjectAnalyzerConfigOptionsProvider(project.State);
             var workspaceOptions = configOptionsProvider.GetOptionsForSourcePath(givenFolder.FullName);
             var result = project.GetAnalyzerConfigOptions();
             var options = new CombinedAnalyzerConfigOptions(workspaceOptions, result);

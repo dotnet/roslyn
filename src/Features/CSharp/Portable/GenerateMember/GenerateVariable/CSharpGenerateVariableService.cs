@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             return expression.CanReplaceWithLValue(document.SemanticModel, cancellationToken);
         }
 
-        protected override bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, OptionSet options, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot)
+        protected override bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot)
         {
             var token = identifierToken;
             var node = identifierToken.Parent as IdentifierNameSyntax;

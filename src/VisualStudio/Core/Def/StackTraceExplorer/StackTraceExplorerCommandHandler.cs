@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Design;
 using System.IO.Packaging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Setup;
@@ -63,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                     var windowFrame = (IVsWindowFrame)window.Frame;
                     ErrorHandler.ThrowOnFailure(windowFrame.Show());
+                    Logger.Log(FunctionId.StackTraceToolWindow_ShowOnActivated, logLevel: LogLevel.Information);
                 }
             });
 

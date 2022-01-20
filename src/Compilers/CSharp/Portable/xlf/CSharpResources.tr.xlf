@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
-        <target state="new">'{0}' cannot be made nullable.</target>
+        <target state="translated">'{0}' öğesine null değer alma özelliği verilemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotClone">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
         <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
-        <target state="new">Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</target>
+        <target state="translated">'UnmanagedCallersOnly' özniteliğine sahip bir metodun imzasında 'ref', 'in' veya 'out' kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
@@ -407,6 +407,11 @@
         <target state="translated">'else' bir deyim başlatamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
+        <source>Cannot update because an inferred delegate type has changed.</source>
+        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Uygulama giriş noktaları 'UnmanagedCallersOnly' ile ilişkilendirilemez.</target>
@@ -464,7 +469,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">İfade ağacı, desen System.Index veya System.Range dizin oluşturucu erişimi içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -634,7 +639,7 @@
       </trans-unit>
       <trans-unit id="ERR_IncorrectNullCheckSyntax">
         <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
-        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <target state="translated">Yanlış parametre null denetimi söz dizimi. “!!” olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -699,7 +704,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
         <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
-        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</target>
+        <target state="translated">Dizine alınan örneğe başvurulan düz metin arasına kod ekli dize işleyici dönüştürmeleri, dizin oluşturucu üye başlatıcılarında kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -774,12 +779,12 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
         <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
-        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <target state="translated">Bağlamsal 'var' anahtar sözcüğü, açık lambda dönüş türü olarak kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
-        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
+        <target state="translated">Öznitelikleri olan bir lambda ifadesi bir ifade ağacına dönüştürülemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
@@ -804,7 +809,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
-        <target state="new">Slice patterns may only be used once and directly inside a list pattern.</target>
+        <target state="translated">Dilim desenleri yalnızca bir kez ve doğrudan bir liste deseninin içinde kullanılabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -864,7 +869,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustNullCheckInImplementation">
         <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
-        <target state="new">Parameter '{0}' can only have exclamation-point null checking in implementation methods.</target>
+        <target state="translated">“{0}” parametresi, uygulama yöntemlerinde yalnızca ünlem işareti null denetimine sahip olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -874,7 +879,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
-        <target state="new">Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</target>
+        <target state="translated">Tam olmayan düz metin arasına kod eklenmiş dize içindeki yeni satırlar, C# {0} içinde desteklenmiyor. Lütfen {1} dil sürümünü veya daha üstünü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -909,7 +914,7 @@
       </trans-unit>
       <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
         <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
-        <target state="new">Parameter '{0}' is a non-nullable value type and cannot be null-checked.</target>
+        <target state="translated">“{0}” parametresi, null atanamaz bir değer türüdür ve null denetimi yapılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -954,7 +959,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullCheckingOnByRefParameter">
         <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="new">By-reference parameter '{0}' cannot be null-checked.</target>
+        <target state="translated">Başvuru parametresine göre “{0}” için null denetimi yapılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1108,8 +1113,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
-        <source>A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</source>
-        <target state="new">A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</target>
+        <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
+        <target state="translated">Parametre listesiyle bir “kayıt yapısı”nda bildirilen bir oluşturucu, birincil oluşturucuyu veya açıkça bildirilen bir oluşturucuyu çağıran bir “this” başlatıcısına sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1237,6 +1242,11 @@
         <target state="new">String must start with quote character: "</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="translated">Alan başlatıcılarına sahip bir 'struct' açıkça bildirilen bir oluşturucu içermelidir.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">Desene ulaşılamıyor. switch ifadesinin önceki bir kolu tarafından zaten işlenmiş ya da eşleştirilmesi mümkün değil.</target>
@@ -1319,12 +1329,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">List patterns may not be used for a value of type '{0}'.</target>
+        <target state="translated">Liste desenleri, '{0}' türünde bir değer için kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
         <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
+        <target state="translated">Dilim desenleri, '{0}' türünde bir değer için kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
@@ -1407,11 +1417,6 @@
         <target state="translated">lambda dönüş türü</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLengthPattern">
-        <source>length pattern</source>
-        <target state="new">length pattern</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">satır aralığı yönergesi</target>
@@ -1419,12 +1424,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
-        <target state="new">list pattern</target>
+        <target state="translated">liste deseni</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
-        <target state="new">newlines in interpolations</target>
+        <target state="translated">ilişkilendirmedeki yeni satırlar</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
@@ -1474,7 +1479,7 @@
       </trans-unit>
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
-        <target state="new">parameter null-checking</target>
+        <target state="translated">parametre null denetimi</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1559,12 +1564,12 @@
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">İşlem, çalışma zamanında “{0}” öğesini taşabilir (geçersiz kılmak için “denetlenmemiş” söz dizimini kullanın)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">İşlem, çalışma zamanında taşabilir (geçersiz kılmak için “denetlenmemiş” sözdizimini kullanın)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1589,42 +1594,42 @@
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName">
         <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">“{0}” tür adı yalnızca küçük harfli ascii karakterleri içerir. Bu tür adlar dil için ayrılmış hale gelebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName_Title">
         <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">Tür adı yalnızca küçük harfli ascii karakterleri içerir. Bu tür adlar dil için ayrılmış hale gelebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
-        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <target state="translated">“{0}” yöntem grubunu temsilci olmayan tip “{1}”e dönüştürme. Yöntemi çağırmayı düşündünüz mü?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
-        <target state="new">Converting method group to non-delegate type</target>
+        <target state="translated">Yöntem grubunu temsilci olmayan türe dönüştürme</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckedHasDefaultNull">
         <source>Parameter '{0}' is null-checked but is null by default.</source>
-        <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
+        <target state="translated">“{0}” parametresi null denetimlidir ancak varsayılan olarak null’dürr.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
         <source>Parameter is null-checked but is null by default.</source>
-        <target state="new">Parameter is null-checked but is null by default.</target>
+        <target state="translated">Parametre null denetimlidir ancak varsayılan olarak null’dür.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckingOnNullableType">
         <source>Nullable type '{0}' is null-checked and will throw if null.</source>
-        <target state="new">Nullable type '{0}' is null-checked and will throw if null.</target>
+        <target state="translated">“{0}” boş değer atanabilir tipi null denetimlidir ve null ise atılır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckingOnNullableType_Title">
         <source>Nullable type is null-checked and will throw if null.</source>
-        <target state="new">Nullable type is null-checked and will throw if null.</target>
+        <target state="translated">Boş değer atanabilir tip null denetimlidir ve null ise atılır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1639,7 +1644,7 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
         <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="needs-review-translation">Parametre listesinde parametre {0}, ardından parametre {1} gerçekleşir, ancak düz metin arasına kod eklenmiş dize işleyicisi dönüştürmeleri için bağımsız değişken olarak kullanılır. Bu, çağıranın, çağıran sitede adlandırılmış bağımsız değişkenlerle parametreleri yeniden düzenlemesini gerektirir. Tüm bağımsız değişkenlerin ardından düz metin arasına kod eklenmiş dize işleyicisi parametresini yerleştirmeyi göz önünde bulundurmanız gerekir.</target>
+        <target state="translated">Parametre listesinde parametre {0}, ardından parametre {1} gerçekleşir, ancak düz metin arasına kod eklenmiş dize işleyicisi dönüştürmeleri için bağımsız değişken olarak kullanılır. Bu, çağıranın, çağıran sitede adlandırılmış bağımsız değişkenlerle parametreleri yeniden düzenlemesini gerektirir. Tüm bağımsız değişkenlerin ardından düz metin arasına kod eklenmiş dize işleyicisi parametresini yerleştirmeyi göz önünde bulundurmanız gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
@@ -7196,7 +7201,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadOperatorSyntax">
         <source>Declaration is not valid; use '{0} operator &lt;dest-type&gt; (...' instead</source>
-        <target state="translated">Bildirim geçerli değil; bunun yerine '{0} işleç &lt; hedef-tür&gt; (...' kullanın</target>
+        <target state="translated">Bildirim geçerli değil; bunun yerine '{0} işleç &lt;hedef-tür&gt; (...' kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotFound">
@@ -7791,7 +7796,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
         <source>Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.</source>
-        <target state="translated">Zaman uyumsuz {0}, '{1}' temsilci türüne dönüştürülemez. Zaman uyumsuz {0} void, Task veya Task&lt; T&gt; döndürebilir ve bunların hiçbiri '{1}' türüne dönüştürülemez.</target>
+        <target state="translated">Zaman uyumsuz {0}, '{1}' temsilci türüne dönüştürülemez. Zaman uyumsuz {0} void, Task veya Task&lt;T&gt; döndürebilir ve bunların hiçbiri '{1}' türüne dönüştürülemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalFixedType">
@@ -8994,7 +8999,7 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsyncMethod">
         <source>The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task&lt;{0}&gt;'.</source>
-        <target state="translated">await' işleci yalnızca bir async metot içerisinde kullanılabilir. Bu metodu 'async' değiştiricisi ile işaretlemeyi ve dönüş tipini 'Task&lt;{0}&gt;' olarak değiştirmeyi düşünün.</target>
+        <target state="translated">'await' işleci yalnızca bir async metot içerisinde kullanılabilir. Bu metodu 'async' değiştiricisi ile işaretlemeyi ve dönüş tipini 'Task&lt;{0}&gt;' olarak değiştirmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutVoidAsyncMethod">

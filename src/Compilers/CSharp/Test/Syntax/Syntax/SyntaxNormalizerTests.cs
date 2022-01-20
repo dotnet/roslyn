@@ -822,6 +822,29 @@ namespace goo
             // Note: the literal was formatted as a C# string literal, not as a directive string literal.
         }
 
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveNode()
+        {
+            TestNormalize(
+                SyntaxFactory.LineSpanDirectiveTrivia(
+                    SyntaxFactory.Token(SyntaxKind.HashToken),
+                    SyntaxFactory.Token(SyntaxKind.LineKeyword),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(1), SyntaxFactory.Literal(2)),
+                    SyntaxFactory.Token(SyntaxKind.MinusToken),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(3), SyntaxFactory.Literal(4)),
+                    SyntaxFactory.Literal(5),
+                    SyntaxFactory.Literal("a.txt"),
+                    SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken),
+                    isActive: true),
+                "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+        }
+
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveTrivia()
+        {
+            TestNormalizeTrivia("  #  line( 1,2 )-(3,4)5\"a.txt\"", "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+        }
+
         [WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
         [Fact]
         public void TestNormalizeWithinDirectives()

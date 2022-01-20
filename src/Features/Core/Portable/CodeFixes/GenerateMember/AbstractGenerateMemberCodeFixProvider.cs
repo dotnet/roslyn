@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
         {
             // TODO: https://github.com/dotnet/roslyn/issues/5777
             // Not supported in REPL for now.
-            if (context.Project.IsSubmission)
+            if (context.Document.Project.IsSubmission)
             {
                 return;
             }
