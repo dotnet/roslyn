@@ -2152,14 +2152,12 @@
     <Kind Name="Interpolation"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
-      <Kind Name="RawInterpolationOpenToken"/>
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax"/>
     <Field Name="AlignmentClause" Type="InterpolationAlignmentClauseSyntax" Optional="true"/>
     <Field Name="FormatClause" Type="InterpolationFormatClauseSyntax" Optional="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
-      <Kind Name="RawInterpolationCloseToken"/>
     </Field>
   </Node>
   <Node Name="InterpolationAlignmentClauseSyntax" Base="CSharpSyntaxNode">

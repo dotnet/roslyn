@@ -880,7 +880,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedSingleLineRawStringEndToken = 9081,     // """
         InterpolatedMultiLineRawStringStartToken = 9082,    // $"""<whitespace><newline>
         InterpolatedMultiLineRawStringEndToken = 9083,      // <newline><whitespace>"""
-        RawInterpolationOpenToken = 9084,                   // {{{
-        RawInterpolationCloseToken = 9085,                  // }}}
     }
 }

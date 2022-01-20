@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.InterpolatedSingleLineRawStringStartToken);
                 N(SyntaxKind.Interpolation);
                 {
-                    N(SyntaxKind.RawInterpolationOpenToken);
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.AddExpression);
                     {
                         N(SyntaxKind.NumericLiteralExpression);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.NumericLiteralToken, "1");
                         }
                     }
-                    N(SyntaxKind.RawInterpolationCloseToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.InterpolatedSingleLineRawStringEndToken);
             }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 N(SyntaxKind.Interpolation);
                 {
-                    N(SyntaxKind.RawInterpolationOpenToken);
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.AddExpression);
                     {
                         N(SyntaxKind.NumericLiteralExpression);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.NumericLiteralToken, "1");
                         }
                     }
-                    N(SyntaxKind.RawInterpolationCloseToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.InterpolatedStringText);
                 {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 N(SyntaxKind.Interpolation);
                 {
-                    N(SyntaxKind.RawInterpolationOpenToken);
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.AddExpression);
                     {
                         N(SyntaxKind.NumericLiteralExpression);
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.NumericLiteralToken, "1");
                         }
                     }
-                    N(SyntaxKind.RawInterpolationCloseToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.InterpolatedMultiLineRawStringEndToken);
             }
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 N(SyntaxKind.Interpolation);
                 {
-                    N(SyntaxKind.RawInterpolationOpenToken);
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.AddExpression);
                     {
                         N(SyntaxKind.NumericLiteralExpression);
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.NumericLiteralToken, "1");
                         }
                     }
-                    N(SyntaxKind.RawInterpolationCloseToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.InterpolatedStringText);
                 {
