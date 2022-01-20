@@ -1553,6 +1553,33 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullableValueType()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+class C
+{
+    static void M(int? value)
+    {
+        [|if (value == null)
+            throw new ArgumentNullException(nameof(value));|]
+    }
+}
+",
+                FixedCode = @"using System;
+class C
+{
+    static void M(int? value!!)
+    {
+    }
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestPartialMethod()
         {
             var partialDeclaration = @"
