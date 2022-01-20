@@ -12,16 +12,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Option to turn configure background analysis scope for the current user.
         /// </summary>
-        public static readonly PerLanguageOption2<BackgroundAnalysisScope?> BackgroundAnalysisScopeOption = new(
-            nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: null,
+        public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
+            nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
-
-        /// <summary>
-        /// Feature flag to control the default background analysis scope for the current user.
-        /// </summary>
-        public static readonly Option2<bool> ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag = new(
-            nameof(SolutionCrawlerOptions), nameof(ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag), defaultValue: false,
-            storageLocation: new FeatureFlagStorageLocation("Roslyn.ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag"));
 
         /// <summary>
         /// Option to turn configure background analysis scope for the current solution.
@@ -63,17 +56,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return BackgroundAnalysisScope.FullSolution;
                     }
 
-                    return BackgroundAnalysisScope.Default;
+                    return BackgroundAnalysisScope.OpenFiles;
 
                 default:
-                    var analysisScope = options.GetOption(BackgroundAnalysisScopeOption, language);
-                    if (analysisScope.HasValue)
-                    {
-                        return analysisScope.Value;
-                    }
-
-                    var isActiveFileDefaultScope = options.GetOption(ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag);
-                    return isActiveFileDefaultScope ? BackgroundAnalysisScope.ActiveFile : BackgroundAnalysisScope.Default;
+                    return options.GetOption(BackgroundAnalysisScopeOption, language);
             }
         }
 

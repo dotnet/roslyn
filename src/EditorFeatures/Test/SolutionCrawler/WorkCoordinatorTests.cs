@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [Fact]
-        public async Task Test_BackgroundAnalysisScopeOptionChanged_ActiveFile()
+        public async Task Test_BackgroundAnalysisScopeOptionChanged_OpenFiles()
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
@@ -492,9 +492,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             MakeFirstDocumentActive(workspace.CurrentSolution.Projects.First());
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            Assert.Equal(BackgroundAnalysisScope.Default, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
 
-            var newAnalysisScope = BackgroundAnalysisScope.ActiveFile;
+            var newAnalysisScope = BackgroundAnalysisScope.OpenFiles;
             var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope))));
 
             Assert.Equal(newAnalysisScope, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            Assert.Equal(BackgroundAnalysisScope.Default, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.FullSolution;
             var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope))));

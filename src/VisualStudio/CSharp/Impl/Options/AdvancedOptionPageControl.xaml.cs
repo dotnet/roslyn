@@ -47,11 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             InitializeComponent();
 
-            // Get the default background analysis scope based on the feature flag
-            Func<BackgroundAnalysisScope?> onNullBackgroundAnalysisScope =
-                () => optionStore.GetOption(SolutionCrawlerOptions.ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag) ? BackgroundAnalysisScope.ActiveFile : BackgroundAnalysisScope.Default;
-            BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, onNullBackgroundAnalysisScope);
-
+            BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.CSharp);
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);

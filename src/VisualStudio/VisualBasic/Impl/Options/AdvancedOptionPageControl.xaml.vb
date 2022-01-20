@@ -45,12 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ' Keep this code in sync with the actual order options appear in Tools | Options
 
             ' Analysis
-            Dim onNullBackgroundAnalysisScope = Function()
-                                                    ' Get the default background analysis scope based on the feature flag
-                                                    Return If(optionStore.GetOption(SolutionCrawlerOptions.ActiveFileAsDefaultBackgroundAnalysisScopeFeatureFlag), BackgroundAnalysisScope.ActiveFile, BackgroundAnalysisScope.Default)
-                                                End Function
-            BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, onNullBackgroundAnalysisScope)
-
+            BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic)
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.VisualBasic)
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.VisualBasic)

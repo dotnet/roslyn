@@ -32,6 +32,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         None = 3,
 
         Minimal = None,
-        Default = OpenFiles,
+        Default = ActiveFile,
     }
 }

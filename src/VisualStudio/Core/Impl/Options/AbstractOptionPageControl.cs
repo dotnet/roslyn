@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 Source = new OptionBinding<T>(OptionStore, optionKey),
                 Path = new PropertyPath("Value"),
-                Converter = new ComboBoxItemTagToIndexConverter<T>(),
+                Converter = new ComboBoxItemTagToIndexConverter(),
                 ConverterParameter = comboBox
             };
 
@@ -158,13 +158,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName, Func<T> onNullValue = null)
+        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName)
         {
             var binding = new Binding()
             {
                 Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
                 Path = new PropertyPath("Value"),
-                Converter = new ComboBoxItemTagToIndexConverter<T>(onNullValue),
+                Converter = new ComboBoxItemTagToIndexConverter(),
                 ConverterParameter = comboBox
             };
 
@@ -219,22 +219,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
     }
 
-    public class ComboBoxItemTagToIndexConverter<T> : IValueConverter
+    public class ComboBoxItemTagToIndexConverter : IValueConverter
     {
-        private readonly Func<T> _onNullValue;
-
-        public ComboBoxItemTagToIndexConverter(Func<T> onNullValue = null)
-        {
-            _onNullValue = onNullValue;
-        }
-
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null && _onNullValue != null)
-            {
-                value = _onNullValue();
-            }
-
             var comboBox = (ComboBox)parameter;
 
             for (var index = 0; index < comboBox.Items.Count; index++)
