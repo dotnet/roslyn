@@ -306,6 +306,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
+                case BoundKind.UTF8String: // PROTOTYPE(UTF8StringLiterals) : add special node?
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValue;
                     bool isImplicit = boundNode.WasCompilerGenerated;

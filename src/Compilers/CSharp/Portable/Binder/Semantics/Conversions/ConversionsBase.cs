@@ -1110,10 +1110,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (constantValue?.IsString == true && // PROTOTYPE(UTF8StringLiterals) : confirm if we actually want it to work with 'null' constant value.
                 sourceExpression.Type?.SpecialType == SpecialType.System_String &&
                 (destination is ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte } || // byte[]
-                 ((destinationOriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||             // Span<T>
+                 (destinationOriginalDefinition.TypeKind == TypeKind.Struct && destinationOriginalDefinition.IsRefLikeType &&
+                  (destinationOriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||             // Span<T>
                    destinationOriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)) &&    // ReadOnlySpan<T>
-                   destinationOriginalDefinition.TypeKind == TypeKind.Struct && destinationOriginalDefinition.IsRefLikeType &&
-                   ((NamedTypeSymbol)destination).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().SpecialType == SpecialType.System_Byte)))               // T is byte
+                  ((NamedTypeSymbol)destination).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().SpecialType == SpecialType.System_Byte)))               // T is byte
             {
                 return Conversion.ImplicitUtf8StringLiteral;
             }
@@ -1638,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol expectedAttributeType = corLibrary.GetSpecialType(SpecialType.System_Int32);
             BoundLiteral intMaxValueLiteral = new BoundLiteral(syntaxNode, ConstantValue.Create(int.MaxValue), expectedAttributeType);
 
-            // Below is a dupliucation of relevant parts of ClassifyStandardImplicitConversion method.
+            // Below is a duplication of relevant parts of ClassifyStandardImplicitConversion method.
             // It needs a compilation instance, but we don't have it and the relevant parts actually do not depend on
             // a compilation.
             if (HasImplicitEnumerationConversion(intMaxValueLiteral, destination))

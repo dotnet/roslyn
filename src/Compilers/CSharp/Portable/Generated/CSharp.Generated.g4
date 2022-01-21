@@ -920,6 +920,7 @@ literal_expression
   | character_literal_token
   | numeric_literal_token
   | string_literal_token
+  | utf_8_string_literal_token
   ;
 
 make_ref_expression
@@ -1360,6 +1361,10 @@ string_literal_token
   ;
 
 syntax_token
+  : /* see lexical specification */
+  ;
+
+utf_8_string_literal_token
   : /* see lexical specification */
   ;
 

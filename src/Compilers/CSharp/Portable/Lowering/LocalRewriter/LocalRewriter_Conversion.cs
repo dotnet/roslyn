@@ -81,29 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? value = node.Operand.ConstantValue?.StringValue;
             Debug.Assert(value != null); // PROTOTYPE(UTF8StringLiterals) : Adjust if we actually want it to work with 'null' value.
 
-            var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-            byte[] bytes;
-
-            try
-            {
-                bytes = utf8.GetBytes(value);
-            }
-            catch (Exception ex)
-            {
-                _diagnostics.Add(
-                    ErrorCode.ERR_CannotBeConvertedToUTF8,
-                    node.Operand.Syntax.Location,
-                    ex.Message);
-
-                return BadExpression(node.Syntax, node.Type, ImmutableArray<BoundExpression>.Empty);
-            }
-
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(bytes.Length);
-            foreach (byte b in bytes)
-            {
-                builder.Add(_factory.Literal(b));
-            }
-
             ArrayTypeSymbol byteArray;
 
             if (node.Type is ArrayTypeSymbol array)
@@ -124,11 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 byteArray = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, TypeWithAnnotations.Create(byteType));
             }
 
-            var utf8Bytes = new BoundArrayCreation(
-                                    node.Syntax,
-                                    ImmutableArray.Create<BoundExpression>(_factory.Literal(builder.Count)),
-                                    new BoundArrayInitialization(node.Syntax, builder.ToImmutableAndFree()),
-                                    byteArray);
+            BoundExpression utf8Bytes = CreateUTF8ByteRepresentation(node.Syntax, node.Operand.Syntax, value, byteArray);
 
             if ((object)node.Type == byteArray)
             {
@@ -153,6 +126,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundObjectCreationExpression(node.Syntax, ctor.AsMember((NamedTypeSymbol)node.Type), utf8Bytes);
+        }
+
+        private BoundExpression CreateUTF8ByteRepresentation(SyntaxNode resultSyntax, SyntaxNode valueSyntax, string value, ArrayTypeSymbol byteArray)
+        {
+            Debug.Assert(byteArray.IsSZArray);
+            Debug.Assert(byteArray.ElementType.SpecialType == SpecialType.System_Byte);
+
+            var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+            byte[] bytes;
+
+            try
+            {
+                bytes = utf8.GetBytes(value);
+            }
+            catch (Exception ex)
+            {
+                _diagnostics.Add(
+                    ErrorCode.ERR_CannotBeConvertedToUTF8,
+                    valueSyntax.Location,
+                    ex.Message);
+
+                return BadExpression(resultSyntax, byteArray, ImmutableArray<BoundExpression>.Empty);
+            }
+
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(bytes.Length);
+            foreach (byte b in bytes)
+            {
+                builder.Add(_factory.Literal(b));
+            }
+
+            var utf8Bytes = new BoundArrayCreation(
+                                    resultSyntax,
+                                    ImmutableArray.Create<BoundExpression>(_factory.Literal(builder.Count)),
+                                    new BoundArrayInitialization(resultSyntax, builder.ToImmutableAndFree()),
+                                    byteArray);
+            return utf8Bytes;
+        }
+
+        public override BoundNode VisitUTF8String(BoundUTF8String node)
+        {
+            return CreateUTF8ByteRepresentation(node.Syntax, node.Syntax, node.Value, (ArrayTypeSymbol)node.Type);
         }
 
         private static bool IsFloatingPointExpressionOfUnknownPrecision(BoundExpression rewrittenNode)

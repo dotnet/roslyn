@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.IdentifierToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.UTF8StringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.XmlTextLiteralToken:
@@ -534,6 +535,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.StringLiteralToken:
                     return SyntaxKind.StringLiteralExpression;
+                case SyntaxKind.UTF8StringLiteralToken:
+                    return SyntaxKind.UTF8StringLiteralExpression;
                 case SyntaxKind.CharacterLiteralToken:
                     return SyntaxKind.CharacterLiteralExpression;
                 case SyntaxKind.NumericLiteralToken:

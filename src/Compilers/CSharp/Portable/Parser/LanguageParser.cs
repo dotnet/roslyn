@@ -10161,6 +10161,7 @@ tryAgain:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.UTF8StringLiteralToken:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.CharacterLiteralToken:
@@ -10382,6 +10383,7 @@ tryAgain:
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.StackAllocArrayCreationExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.UTF8StringLiteralExpression:
                 case SyntaxKind.SuppressNullableWarningExpression:
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.TrueLiteralExpression:
@@ -10445,6 +10447,7 @@ tryAgain:
                     case SyntaxKind.TrueKeyword:
                     case SyntaxKind.FalseKeyword:
                     case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.UTF8StringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
                     case SyntaxKind.InterpolatedStringStartToken:
                     case SyntaxKind.InterpolatedStringToken:
                     case SyntaxKind.NumericLiteralToken:
@@ -10880,6 +10883,7 @@ tryAgain:
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.UTF8StringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                     return _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
                 case SyntaxKind.InterpolatedStringStartToken:
