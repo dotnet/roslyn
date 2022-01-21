@@ -1126,6 +1126,13 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_SingleLine_MultiBrace()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $$""""""{{[||]}}"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInRawStringInterpolation_SingleLineIncomplete()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -1138,6 +1145,15 @@ class C
             await VerifyKeywordAsync(AddInsideMethod(
 @"var x = $""""""
 {$$}
+"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_MultiLine_MultiBrace()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $$""""""
+{{[||]}}
 """""""));
         }
 

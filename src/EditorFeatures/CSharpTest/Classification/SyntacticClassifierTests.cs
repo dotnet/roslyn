@@ -5717,7 +5717,7 @@ class C
 {
     public static void M(int x)
     {
-        var s = """"""Hello world""""""
+        var s = """"""Hello world"""""";
     }
 }";
 
@@ -5740,6 +5740,7 @@ class C
                 Local("s"),
                 Operators.Equals,
                 String("\"\"\"Hello world\"\"\""),
+                Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
@@ -5753,7 +5754,7 @@ class C
 {
     public static void M(int x)
     {
-        var s = $""""""{x}""""""
+        var s = $""""""{x}"""""";
     }
 }";
 
@@ -5780,6 +5781,7 @@ class C
                 Identifier("x"),
                 Punctuation.RawInterpolationClose("}"),
                 String("\"\"\""),
+                Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
