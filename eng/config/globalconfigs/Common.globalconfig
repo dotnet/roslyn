@@ -1,12 +1,18 @@
 is_global = true
+global_level = 0
 
 dotnet_diagnostic.CA1067.severity = warning
 dotnet_diagnostic.CA1068.severity = warning
 dotnet_diagnostic.CA1200.severity = warning
+dotnet_diagnostic.CA1802.severity = warning
 dotnet_diagnostic.CA1821.severity = warning
+dotnet_diagnostic.CA2007.severity = warning
 
 # CA2012: Use ValueTasks correctly
 dotnet_diagnostic.CA2012.severity = warning
+
+# CA2016: Forward the 'CancellationToken' parameter to methods
+dotnet_diagnostic.CA2016.severity = warning
 
 dotnet_diagnostic.IDE0055.severity = warning
 
@@ -36,6 +42,7 @@ dotnet_diagnostic.AD0001.severity = error
 
 dotnet_diagnostic.RS0001.severity = warning
 dotnet_diagnostic.RS0002.severity = warning
+dotnet_diagnostic.RS0005.severity = warning
 dotnet_diagnostic.RS0006.severity = error
 dotnet_diagnostic.RS0012.severity = warning
 dotnet_diagnostic.RS0014.severity = warning
