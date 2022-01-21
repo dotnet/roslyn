@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var itemsFromAllAssemblies = await typeImportCompletionService.GetAllTopLevelTypesAsync(
                     completionContext.Document.Project,
                     syntaxContext,
-                    forceCacheCreation: isExpandedCompletion,
+                    forceCacheCreation: false,
                     completionContext.CompletionOptions,
                     cancellationToken).ConfigureAwait(false);
 
