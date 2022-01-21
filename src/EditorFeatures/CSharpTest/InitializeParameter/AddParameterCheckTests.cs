@@ -1686,6 +1686,58 @@ class C
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnDiscardLambdaParameter1()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = ([||]_) => { return 0; };
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = (_!!) => { return 0; };
+    }
+}"
+            }.RunAsync();
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnDiscardLambdaParameter2()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, string, int> f = ([||]_, _) => { return 0; };
+    }
+}";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = testCode,
+                FixedCode = testCode
+            }.RunAsync();
+        }
+
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnAnonymousMethodParameter()
         {
             await VerifyCS.VerifyRefactoringAsync(

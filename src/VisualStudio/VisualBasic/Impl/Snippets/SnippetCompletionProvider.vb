@@ -98,7 +98,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Private Shared ReadOnly s_tupleRules As CompletionItemRules = s_rules.
             WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
 
-        Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), isTupleContext As Boolean) As IEnumerable(Of CompletionItem)
+        Private Shared Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), isTupleContext As Boolean) As IEnumerable(Of CompletionItem)
 
             Return snippets.Select(Function(s) CommonCompletionItem.Create(
                                        s.Shortcut,

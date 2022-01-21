@@ -237,7 +237,7 @@ End Class";
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
 
-        private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
+        private static TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 

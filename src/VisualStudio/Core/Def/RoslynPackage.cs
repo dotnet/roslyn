@@ -309,7 +309,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             base.Dispose(disposing);
         }
 
-        private void ReportSessionWideTelemetry()
+        private static void ReportSessionWideTelemetry()
         {
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
