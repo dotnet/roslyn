@@ -216,6 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsNullChecked(parameter As IParameterSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsNullChecked
+            ' VB does not have null checked parameters
             Return False
         End Function
 
