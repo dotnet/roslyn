@@ -635,7 +635,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
                 case ConversionKind.ImplicitPointerToVoid:
-                case ConversionKind.ImplicitPointer:
 
                 // Added to spec in Roslyn timeframe.
                 case ConversionKind.NullLiteral:
@@ -648,6 +647,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Added for C# 7.1
                 case ConversionKind.DefaultLiteral:
+
+                // Added for C# 9
+                case ConversionKind.ImplicitPointer:
                     return true;
 
                 default:
