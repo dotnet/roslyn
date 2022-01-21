@@ -77,12 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                info.Kind = SyntaxKind.StringLiteralToken;
-
                 if (!inDirective && TextWindow.PeekChar() == 'u' && TextWindow.PeekChar(1) == '8')
                 {
                     info.Kind = SyntaxKind.UTF8StringLiteralToken;
                     TextWindow.AdvanceChar(2);
+                }
+                else
+                {
+                    info.Kind = SyntaxKind.StringLiteralToken;
                 }
 
                 info.Text = TextWindow.GetText(intern: true);
@@ -191,12 +193,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _builder.Append(ch);
             }
 
-            info.Kind = SyntaxKind.StringLiteralToken;
-
             if (TextWindow.PeekChar() == 'u' && TextWindow.PeekChar(1) == '8')
             {
                 info.Kind = SyntaxKind.UTF8StringLiteralToken;
                 TextWindow.AdvanceChar(2);
+            }
+            else
+            {
+                info.Kind = SyntaxKind.StringLiteralToken;
             }
 
             info.Text = TextWindow.GetText(intern: false);
