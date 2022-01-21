@@ -296,5 +296,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        [Fact]
+        public void Interpolation_01()
+        {
+            UsingExpression(@"$""hello""u8",
+                // (1,1): error CS1073: Unexpected token 'u8'
+                // $"hello"u8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"$""hello""").WithArguments("u8").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Interpolation_02()
+        {
+            UsingExpression(@"$@""hello""u8",
+                // (1,1): error CS1073: Unexpected token 'u8'
+                // $@"hello"u8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"$@""hello""").WithArguments("u8").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
     }
 }
