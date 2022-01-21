@@ -2836,8 +2836,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
-                case SyntaxKind.MultiLineRawStringLiteralExpression:
-                case SyntaxKind.SingleLineRawStringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -2861,26 +2859,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return (LiteralExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.LiteralExpression(kind, (Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
         }
-
-        /// <summary>Creates a new LiteralExpressionSyntax instance.</summary>
-        public static LiteralExpressionSyntax LiteralExpression(SyntaxKind kind)
-            => SyntaxFactory.LiteralExpression(kind, SyntaxFactory.Token(GetLiteralExpressionTokenKind(kind)));
-
-        private static SyntaxKind GetLiteralExpressionTokenKind(SyntaxKind kind)
-            => kind switch
-            {
-                SyntaxKind.ArgListExpression => SyntaxKind.ArgListKeyword,
-                SyntaxKind.NumericLiteralExpression => SyntaxKind.NumericLiteralToken,
-                SyntaxKind.StringLiteralExpression => SyntaxKind.StringLiteralToken,
-                SyntaxKind.MultiLineRawStringLiteralExpression => SyntaxKind.MultiLineRawStringLiteralToken,
-                SyntaxKind.SingleLineRawStringLiteralExpression => SyntaxKind.SingleLineRawStringLiteralToken,
-                SyntaxKind.CharacterLiteralExpression => SyntaxKind.CharacterLiteralToken,
-                SyntaxKind.TrueLiteralExpression => SyntaxKind.TrueKeyword,
-                SyntaxKind.FalseLiteralExpression => SyntaxKind.FalseKeyword,
-                SyntaxKind.NullLiteralExpression => SyntaxKind.NullKeyword,
-                SyntaxKind.DefaultLiteralExpression => SyntaxKind.DefaultKeyword,
-                _ => throw new ArgumentOutOfRangeException(),
-            };
 
         /// <summary>Creates a new MakeRefExpressionSyntax instance.</summary>
         public static MakeRefExpressionSyntax MakeRefExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)

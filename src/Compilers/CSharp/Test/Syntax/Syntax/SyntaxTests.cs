@@ -227,8 +227,8 @@ void goo()
 
         [Theory]
         [InlineData(SyntaxKind.StringLiteralToken, SyntaxKind.StringLiteralExpression)]
-        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.SingleLineRawStringLiteralExpression)]
-        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken, SyntaxKind.MultiLineRawStringLiteralExpression)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
         [InlineData(SyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteralExpression)]
         [InlineData(SyntaxKind.NumericLiteralToken, SyntaxKind.NumericLiteralExpression)]
         [InlineData(SyntaxKind.NullKeyword, SyntaxKind.NullLiteralExpression)]

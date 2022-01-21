@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
             Assert.True(spans.Count == 0 || spans.Count == 1);
 
             var token = SyntaxFactory.ParseToken(input);
-            var literal = SyntaxFactory.LiteralExpression(SyntaxKind.MultiLineRawStringLiteralExpression, token);
+            var literal = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, token);
             token = literal.Token;
 
             Assert.Equal(expectedKind, token.Kind());
