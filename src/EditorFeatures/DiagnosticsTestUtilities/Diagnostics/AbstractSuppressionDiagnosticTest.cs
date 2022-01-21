@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
             return await GetDiagnosticAndFixesAsync(
                 filteredDiagnostics, wrapperCodeFixer, testDriver, document,
-                span, annotation, parameters.index);
+                span, CodeActionOptions.Default, annotation, parameters.index);
         }
     }
 }

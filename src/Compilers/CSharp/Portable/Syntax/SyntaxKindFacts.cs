@@ -208,8 +208,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
-                case SyntaxKind.RawInterpolationOpenToken:
-                case SyntaxKind.RawInterpolationCloseToken:
                 case SyntaxKind.LoadKeyword:
                 case SyntaxKind.NullableKeyword:
                 case SyntaxKind.EnableKeyword:

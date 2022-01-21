@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Tagging
 {
     internal sealed class EditorFormatMapChangedEventSource : AbstractTaggerEventSource
     {

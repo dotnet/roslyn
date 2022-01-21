@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 ChangeSignatureDialogViewModel = changeSignatureDialogViewModel;
             }
 
-            private string ValueOrNone(string value)
+            private static string ValueOrNone(string value)
             {
                 return !string.IsNullOrEmpty(value)
                     ? value

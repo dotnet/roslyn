@@ -1001,16 +1001,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        private int GetAttributeArgumentInsertionIndex(int insertionIndex)
+        private static int GetAttributeArgumentInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetAttributeInsertionIndex(int insertionIndex)
+        private static int GetAttributeInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetImportInsertionIndex(int insertionIndex)
+        private static int GetImportInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetParameterInsertionIndex(int insertionIndex)
+        private static int GetParameterInsertionIndex(int insertionIndex)
             => insertionIndex;
 
         protected abstract bool IsCodeModelNode(SyntaxNode node);

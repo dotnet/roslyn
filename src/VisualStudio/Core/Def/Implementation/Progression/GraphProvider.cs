@@ -311,32 +311,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private bool IsOverridable(GraphNode node)
+        private static bool IsOverridable(GraphNode node)
         {
             var modifiers = GetModifiers(node);
             return (modifiers.IsVirtual || modifiers.IsAbstract || modifiers.IsOverride) &&
                 !modifiers.IsSealed;
         }
 
-        private DeclarationModifiers GetModifiers(GraphNode node)
+        private static DeclarationModifiers GetModifiers(GraphNode node)
             => (DeclarationModifiers)node[RoslynGraphProperties.SymbolModifiers];
 
-        private bool CheckAccessibility(GraphNode node, Accessibility accessibility)
+        private static bool CheckAccessibility(GraphNode node, Accessibility accessibility)
             => node[RoslynGraphProperties.DeclaredAccessibility].Equals(accessibility);
 
-        private bool HasExplicitInterfaces(GraphNode node)
+        private static bool HasExplicitInterfaces(GraphNode node)
             => ((IList<SymbolKey>)node[RoslynGraphProperties.ExplicitInterfaceImplementations]).Count > 0;
 
-        private bool IsRoslynNode(GraphNode node)
+        private static bool IsRoslynNode(GraphNode node)
         {
             return node[RoslynGraphProperties.SymbolKind] != null
                 && node[RoslynGraphProperties.TypeKind] != null;
         }
 
-        private bool IsAnySymbolKind(GraphNode node, params SymbolKind[] symbolKinds)
+        private static bool IsAnySymbolKind(GraphNode node, params SymbolKind[] symbolKinds)
             => symbolKinds.Any(k => k.Equals(node[RoslynGraphProperties.SymbolKind]));
 
-        private bool IsAnyTypeKind(GraphNode node, params TypeKind[] typeKinds)
+        private static bool IsAnyTypeKind(GraphNode node, params TypeKind[] typeKinds)
             => typeKinds.Any(k => node[RoslynGraphProperties.TypeKind].Equals(k));
 
         private static readonly GraphCommandDefinition s_overridesCommandDefinition =

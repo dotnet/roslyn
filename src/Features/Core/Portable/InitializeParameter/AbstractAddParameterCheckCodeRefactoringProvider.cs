@@ -269,6 +269,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return false;
             }
 
+            if (parameter.IsDiscard)
+            {
+                return false;
+            }
+
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Look for an existing "if (p == null)" statement, or "p ?? throw" check.  If we already

@@ -514,6 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
                                         addToTempMap(output, outputSlot, type.Type);
+                                        this.State[outputSlot] = NullableFlowState.NotNull; // Slice value is assumed to be never null
                                         break;
                                     }
                                 case BoundDagAssignmentEvaluation e:
