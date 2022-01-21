@@ -76,7 +76,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
+#if NETCOREAPP2_1_OR_GREATER
+                await stream.CopyToAsync(newStream, cancellationToken).ConfigureAwait(false);
+#else
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
+#endif
                 _stream = newStream;
             }
         }

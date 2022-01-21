@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                     solution = solution.AddProject(ProjectInfo.Create(s_addedProjectId, VersionStamp.Create(), s_addedProjectName, s_addedProjectName, LanguageNames.CSharp))
 
                     ' Change a document - This will result in IWpfTextView previews.
-                    solution = solution.WithDocumentSyntaxRoot(_oldDocument.Id, VisualBasicSyntaxTree.ParseText(s_changedDocumentText).GetRoot())
+                    solution = solution.WithDocumentSyntaxRoot(_oldDocument.Id, VisualBasicSyntaxTree.ParseText(s_changedDocumentText, cancellationToken:=cancellationToken).GetRoot(cancellationToken))
 
                     Return Task.FromResult(solution)
                 End Function
