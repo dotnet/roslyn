@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                     var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
                 {
                 }
             }
@@ -85,11 +85,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
             var formattedDoc = await Formatter.FormatAsync(
-                 document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                 options: null,
+                 document,
+                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                 options,
                  CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
                  cancellationToken).ConfigureAwait(false);
 

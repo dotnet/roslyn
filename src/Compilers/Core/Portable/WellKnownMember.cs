@@ -505,6 +505,8 @@ namespace Microsoft.CodeAnalysis
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
 
+        System_ArgumentNullException__ctorString,
+
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
 

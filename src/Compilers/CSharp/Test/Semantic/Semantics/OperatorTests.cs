@@ -11189,7 +11189,7 @@ class M
             {
                 numChildren++;
                 Assert.NotNull(iop);
-                foreach (var child in iop.Children)
+                foreach (var child in iop.ChildOperations)
                 {
                     enumerateChildren(child);
                 }

@@ -1993,6 +1993,9 @@ endRegion:
                 case OperationKind.InterpolatedStringAppendFormatted:
                 case OperationKind.InterpolatedStringAppendLiteral:
                 case OperationKind.InterpolatedStringAppendInvalid:
+                case OperationKind.SlicePattern:
+                case OperationKind.ListPattern:
+                case OperationKind.ImplicitIndexerReference:
                     return true;
             }
 

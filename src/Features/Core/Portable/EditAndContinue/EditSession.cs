@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Telemetry = telemetry;
             InBreakState = inBreakState;
 
+            telemetry.SetBreakState(inBreakState);
+
             BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState ?
                 new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true) :
                 new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
@@ -742,7 +744,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
                         diagnostics.Add((newProject.Id, ImmutableArray.Create(mvidReadError)));
 
-                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, ImmutableArray.Create(mvidReadError.Descriptor.Id), InBreakState);
+                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, ImmutableArray.Create(mvidReadError.Descriptor.Id));
                         isBlocked = true;
                         continue;
                     }
@@ -813,7 +815,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id), InBreakState);
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, moduleDiagnostics.NullToEmpty().SelectAsArray(d => d.Descriptor.Id));
                         continue;
                     }
 
@@ -824,7 +826,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
                         // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
                         diagnostics.Add((newProject.Id, createBaselineDiagnostics));
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineDiagnostics, InBreakState);
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineDiagnostics);
                         isBlocked = true;
                         continue;
                     }
@@ -927,7 +929,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((newProject.Id, emitResult.Diagnostics));
                     }
 
-                    Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, emitResult.Diagnostics, InBreakState);
+                    Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, emitResult.Diagnostics);
                 }
 
                 // log capabilities for edit sessions with changes or reported errors:
@@ -1009,8 +1011,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // when break state was entered and now being updated (regardless of whether the active span changed or not).
                             if (isMethodUpdated)
                             {
-                                var lineDelta = oldSpan.Span.GetLineDelta(newSpan: newSpan.Span);
-                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
+                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, newSpan, isExceptionRegion)));
                             }
                             else if (!isExceptionRegion)
                             {
@@ -1022,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 // That said, we still add a non-remappable region for this active statement, so that we know in future sessions
                                 // that this active statement existed and its span has not changed. We don't report these regions to the debugger,
                                 // but we use them to map active statement spans to the baseline snapshots of following edit sessions.
-                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, lineDelta: 0, isExceptionRegion: false)));
+                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, oldSpan, isExceptionRegion: false)));
                             }
                         }
                         else if (oldSpan.Span != newSpan.Span)
@@ -1078,17 +1079,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     foreach (var region in regionsInMethod)
                     {
                         // We have calculated changes against a base snapshot (last break state):
-                        var baseSpan = region.Span.AddLineDelta(region.LineDelta);
+                        var baseSpan = region.NewSpan;
 
                         NonRemappableRegion newRegion;
                         if (changedNonRemappableSpans.TryGetValue((methodInstance.Method, baseSpan), out var newSpan))
                         {
                             // all spans must be of the same size:
                             Debug.Assert(newSpan.Span.End.Line - newSpan.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
-                            Debug.Assert(region.Span.Span.End.Line - region.Span.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
-                            Debug.Assert(newSpan.Path == region.Span.Path);
+                            Debug.Assert(region.OldSpan.Span.End.Line - region.OldSpan.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
+                            Debug.Assert(newSpan.Path == region.OldSpan.Path);
 
-                            newRegion = region.WithLineDelta(region.Span.Span.GetLineDelta(newSpan: newSpan.Span));
+                            newRegion = region.WithNewSpan(newSpan);
                         }
                         else
                         {
@@ -1121,8 +1122,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 r => r.Region.IsExceptionRegion,
                 r => new ManagedExceptionRegionUpdate(
                     r.Method,
-                    -r.Region.LineDelta,
-                    r.Region.Span.AddLineDelta(r.Region.LineDelta).Span.ToSourceSpan()));
+                    -r.Region.OldSpan.Span.GetLineDelta(r.Region.NewSpan.Span),
+                    r.Region.NewSpan.Span.ToSourceSpan()));
         }
     }
 }

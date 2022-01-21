@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private struct CodeShapeAnalyzer
         {
             private readonly FormattingContext _context;
-            private readonly AnalyzerConfigOptions _options;
+            private readonly SyntaxFormattingOptions _options;
             private readonly TriviaList _triviaList;
 
             private int _indentation;
@@ -106,6 +106,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private static bool OnElastic(SyntaxTrivia trivia)
             {
+                // if this is structured trivia then we need to check for elastic trivia in any descendant
+                if (trivia.GetStructure() is { ContainsAnnotations: true } structure)
+                {
+                    foreach (var t in structure.DescendantTrivia())
+                    {
+                        if (t.IsElastic())
+                        {
+                            return true;
+                        }
+                    }
+                }
+
                 // if it contains elastic trivia, always format
                 return trivia.IsElastic();
             }

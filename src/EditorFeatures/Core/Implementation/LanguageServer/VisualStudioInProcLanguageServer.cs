@@ -330,6 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 // Razor wants to handle all span mapping themselves.  So if we are in razor, return the raw doc spans, and
                 // do not map them.
                 var filePath = diagnosticData.DataLocation.MappedFilePath ?? diagnosticData.DataLocation.OriginalFilePath;
+                Contract.ThrowIfNull(filePath);
                 return ProtocolConversions.GetUriFromFilePath(filePath);
             }
         }

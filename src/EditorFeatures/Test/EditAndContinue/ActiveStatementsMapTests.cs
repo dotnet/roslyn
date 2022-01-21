@@ -125,5 +125,72 @@ S5();
                 "[134..138) -> (6,0)-(6,4) #1"
             }, oldSpans.Select(s => $"{s.UnmappedSpan} -> {s.Statement.Span} #{s.Statement.Ordinal}"));
         }
+
+        [Fact]
+        public void ExpandMultiLineSpan()
+        {
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+
+            var source = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        G(() =>
+        {
+            Console.WriteLine(1);
+        });
+    }
+
+    static void F(Action a)
+    {
+        a();
+    }
+}";
+
+            var solution = workspace.CurrentSolution
+                .AddProject("proj", "proj", LanguageNames.CSharp)
+                .AddDocument("doc", SourceText.From(source, Encoding.UTF8), filePath: "a.cs").Project.Solution;
+
+            var project = solution.Projects.Single();
+            var document = project.Documents.Single();
+            var analyzer = project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+
+            var documentPathMap = new Dictionary<string, ImmutableArray<ActiveStatement>>();
+
+            var moduleId = Guid.NewGuid();
+            var token = 0x06000001;
+            ManagedActiveStatementDebugInfo CreateInfo(int startLine, int startColumn, int endLine, int endColumn)
+                => new(new(new(moduleId, token++, version: 1), ilOffset: 0), "a.cs", new SourceSpan(startLine, startColumn, endLine, endColumn), ActiveStatementFlags.NonLeafFrame);
+
+            var debugInfos = ImmutableArray.Create(
+                CreateInfo(9, 0, 9, 34),                               // Console.WriteLine(1)
+                CreateInfo(7, 0, 10, 12),                              // Lambda
+                CreateInfo(15, 0, 15, 13)                              // a()
+            );
+
+            var remapping = ImmutableDictionary.CreateBuilder<ManagedMethodId, ImmutableArray<NonRemappableRegion>>();
+
+            CreateRegion(0, Span(9, 0, 10, 34), Span(9, 0, 9, 34));    // Current active statement doesn't move
+            CreateRegion(1, Span(7, 0, 10, 12), Span(7, 0, 15, 12));   // Insert 5 lines inside the lambda
+            CreateRegion(2, Span(15, 0, 15, 13), Span(20, 0, 20, 13)); // a() call moves down 5 lines
+
+            var map = ActiveStatementsMap.Create(debugInfos, remapping.ToImmutable());
+
+            AssertEx.Equal(new[]
+            {
+                "(7,0)-(15,12)",
+                "(9,0)-(9,34)",
+                "(20,0)-(20,13)"
+            }, map.DocumentPathMap["a.cs"].OrderBy(s => s.Span.Start.Line).Select(s => $"{s.Span}"));
+
+            void CreateRegion(int ordinal, SourceFileSpan oldSpan, SourceFileSpan newSpan)
+                => remapping.Add(debugInfos[ordinal].ActiveInstruction.Method, ImmutableArray.Create(new NonRemappableRegion(oldSpan, newSpan, isExceptionRegion: false)));
+
+            SourceFileSpan Span(int startLine, int startColumn, int endLine, int endColumn)
+                => new("a.cs", new(new(startLine, startColumn), new(endLine, endColumn)));
+        }
     }
 }

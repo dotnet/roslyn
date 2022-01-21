@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            var willMoveSemicolon = BeforeExecuteCommand(speculative: true, args: args, executionContext: executionContext);
+            var willMoveSemicolon = BeforeExecuteCommand(speculative: true, args, executionContext);
             if (!willMoveSemicolon)
             {
                 // Pass this on without altering the undo stack
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             using var transaction = CaretPreservingEditTransaction.TryCreate(CSharpEditorResources.Complete_statement_on_semicolon, args.TextView, _textUndoHistoryRegistry, _editorOperationsFactoryService);
 
             // Determine where semicolon should be placed and move caret to location
-            BeforeExecuteCommand(speculative: false, args: args, executionContext: executionContext);
+            BeforeExecuteCommand(speculative: false, args, executionContext);
 
             // Insert the semicolon using next command handler
             nextCommandHandler();
@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
-
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+
             if (!TryGetStartingNode(root, caret, out var currentNode, cancellationToken))
             {
                 return false;

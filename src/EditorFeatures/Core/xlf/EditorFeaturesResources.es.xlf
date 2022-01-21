@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Execute_Suggested_Action">
         <source>Execute Suggested Action</source>
-        <target state="new">Execute Suggested Action</target>
+        <target state="translated">Ejecutar acción recomendada</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -119,17 +119,17 @@
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Error">
         <source>Inline Diagnostics - Error</source>
-        <target state="new">Inline Diagnostics - Error</target>
+        <target state="translated">Diagnósticos integrados: error</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Rude_Edit">
         <source>Inline Diagnostics - Rude Edit</source>
-        <target state="new">Inline Diagnostics - Rude Edit</target>
+        <target state="translated">Diagnósticos integrados: edición superficial</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Warning">
         <source>Inline Diagnostics - Warning</source>
-        <target state="new">Inline Diagnostics - Warning</target>
+        <target state="translated">Diagnóstico integrado: advertencia</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Language_client_initialization_failed">
         <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
-        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <target state="translated">No se pudo inicializar {0}. Estado = {1}. Excepción = {2}</target>
         <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Locating_bases">
@@ -265,6 +265,11 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">Tamaño de tabulación</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
+        <source>The results may be incomplete due to the solution still loading projects.</source>
+        <target state="translated">Los resultados pueden estar incompletos porque la solución aún está cargando proyectos.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">

@@ -6,12 +6,18 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class FailFast
     {
+        /// <summary>
+        /// A pre-created delegate to assign to <see cref="FatalError.ErrorReporterHandler" /> if needed.
+        /// </summary>
+        internal static readonly FatalError.ErrorReporterHandler Handler = static (e, _, _) => OnFatalException(e);
+
         [DebuggerHidden]
         [DoesNotReturn]
 #if !NETSTANDARD1_3

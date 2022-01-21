@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
         private static void FixOne(
             SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var localDeclarationStatement = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+            var localDeclarationStatement = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
             // `expr_a = expr_b`;
-            var firstAssignmentStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
-            var secondAssignmentStatment = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[2].FindNode(cancellationToken);
+            var firstAssignmentStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var secondAssignmentStatment = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
             editor.RemoveNode(firstAssignmentStatement);
             editor.RemoveNode(secondAssignmentStatment);

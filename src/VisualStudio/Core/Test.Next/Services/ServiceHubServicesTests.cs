@@ -308,6 +308,54 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact]
+        [WorkItem(52578, "https://github.com/dotnet/roslyn/issues/52578")]
+        public async Task TestIncrementalUpdateHandlesReferenceReversal()
+        {
+            using var workspace = CreateWorkspace();
+
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+            var remoteWorkspace = client.GetRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+            solution = AddProject(solution, LanguageNames.CSharp, documents: Array.Empty<string>(), additionalDocuments: Array.Empty<string>(), p2pReferences: Array.Empty<ProjectId>());
+            var projectId1 = solution.ProjectIds.Single();
+            solution = AddProject(solution, LanguageNames.CSharp, documents: Array.Empty<string>(), additionalDocuments: Array.Empty<string>(), p2pReferences: Array.Empty<ProjectId>());
+            var projectId2 = solution.ProjectIds.Where(id => id != projectId1).Single();
+
+            var project1ToProject2 = new ProjectReference(projectId2);
+            var project2ToProject1 = new ProjectReference(projectId1);
+
+            // Start with projectId1 -> projectId2
+            solution = solution.AddProjectReference(projectId1, project1ToProject2);
+
+            // verify initial setup
+            await UpdatePrimaryWorkspace(client, solution);
+            await VerifyAssetStorageAsync(client, solution, includeProjectCones: false);
+
+            Assert.Equal(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+
+            // reverse project references and incrementally update
+            solution = solution.RemoveProjectReference(projectId1, project1ToProject2);
+            solution = solution.AddProjectReference(projectId2, project2ToProject1);
+            await UpdatePrimaryWorkspace(client, solution);
+
+            Assert.Equal(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+
+            // reverse project references again and incrementally update
+            solution = solution.RemoveProjectReference(projectId2, project2ToProject1);
+            solution = solution.AddProjectReference(projectId1, project1ToProject2);
+            await UpdatePrimaryWorkspace(client, solution);
+
+            Assert.Equal(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+        }
+
+        [Fact]
         public void TestRemoteWorkspaceCircularReferences()
         {
             using var tempRoot = new TempRoot();
