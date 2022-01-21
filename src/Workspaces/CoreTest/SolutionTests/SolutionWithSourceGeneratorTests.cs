@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
-            bool fetchCompilationBeforeAddingGenerator,
+            bool fetchCompilationBeforeAddingAdditionalFile,
             bool useRecoverableTrees)
         {
             // This test is just the sanity test to make sure generators work at all. There's not a special scenario being
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // when the file already exists, and when it is added incrementally.
             Compilation? originalCompilation = null;
 
-            if (fetchCompilationBeforeAddingGenerator)
+            if (fetchCompilationBeforeAddingAdditionalFile)
             {
                 originalCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             }
