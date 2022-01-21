@@ -97,6 +97,16 @@
         <target state="translated">Yönteme dönüştür</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_raw_string">
+        <source>Convert to raw string</source>
+        <target state="new">Convert to raw string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_raw_string_indented">
+        <source>Convert to raw string (indented)</source>
+        <target state="new">Convert to raw string (indented)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
         <target state="translated">Normal dizeye dönüştür</target>

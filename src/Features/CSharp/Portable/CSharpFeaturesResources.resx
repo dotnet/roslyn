@@ -630,4 +630,10 @@
   <data name="Selection_cannot_include_top_level_statements" xml:space="preserve">
     <value>Selection cannot include top-level statements</value>
   </data>
+  <data name="Convert_to_raw_string" xml:space="preserve">
+    <value>Convert to raw string</value>
+  </data>
+  <data name="Convert_to_raw_string_indented" xml:space="preserve">
+    <value>Convert to raw string (indented)</value>
+  </data>
 </root>
