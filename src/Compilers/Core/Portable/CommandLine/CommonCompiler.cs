@@ -1110,11 +1110,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
-            {
-                EmitDeterminismKey(compilation, FileSystem, additionalTextFiles, analyzers, generators, Arguments.PathMap, Arguments.EmitOptions);
-            }
-
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
             if (HasUnsuppressableErrors(diagnostics))
             {
@@ -1147,6 +1142,11 @@ namespace Microsoft.CodeAnalysis
                 if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
                 {
                     emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
+                }
+
+                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
+                {
+                    EmitDeterminismKey(compilation, FileSystem, additionalTextFiles, analyzers, generators, Arguments.PathMap, emitOptions);
                 }
 
                 if (Arguments.SourceLink != null)

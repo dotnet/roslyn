@@ -309,13 +309,14 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void FeatureFlag()
         {
-            var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""");
+            var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""", "-debug:portable");
             var sourceFile = compiler.AddSourceFile("test.vb", @"' this is a test file");
             compiler.AddOutputFile("test.dll");
+            var pdbFile = compiler.AddOutputFile("test.pdb");
             var keyFile = compiler.AddOutputFile("test.dll.key");
             var (result, output) = compiler.Run();
-            Assert.Equal(0, result);
             Assert.True(string.IsNullOrEmpty(output));
+            Assert.Equal(0, result);
 
             var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
             var expected = @$"
@@ -409,9 +410,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""fileAlignment"": 0,
     ""highEntropyVirtualAddressSpace"": false,
     ""baseAddress"": ""0"",
-    ""debugInformationFormat"": ""Pdb"",
-    ""outputNameOverride"": null,
-    ""pdbFilePath"": null,
+    ""debugInformationFormat"": ""PortablePdb"",
+    ""outputNameOverride"": ""test.dll"",
+    ""pdbFilePath"": ""{Roslyn.Utilities.JsonWriter.EscapeString(pdbFile.FilePath)}"",
     ""pdbChecksumAlgorithm"": ""SHA256"",
     ""runtimeMetadataVersion"": null,
     ""defaultSourceFileEncoding"": null,
