@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             };
         }
 
-        private static Task ConvertToMultiLineRawIndentedStringAsync(Document document, SyntaxToken token, string newLine, CancellationToken cancellationToken)
+        private static async Task<SyntaxToken> ConvertToMultiLineRawIndentedStringAsync(Document document, SyntaxToken token, string newLine, CancellationToken cancellationToken)
         {
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
@@ -232,8 +232,25 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             builder.Append('"', quoteDelimeterCount);
             builder.Append(newLine);
 
-            foreach (var ch in characters)
+            var atStartOfLine = true;
+            for (int i = 0, n = characters.Length; i < n; i++)
+            {
+                var ch = characters[i];
+                if (IsNewLine(ch))
+                {
+                    ch.AppendTo(builder);
+                    atStartOfLine = true;
+                    continue;
+                }
+
+                if (atStartOfLine)
+                {
+                    builder.Append(indentation);
+                    atStartOfLine = false;
+                }
+
                 ch.AppendTo(builder);
+            }
 
             builder.Append(newLine);
             builder.Append('"', quoteDelimeterCount);
@@ -305,9 +322,9 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             var longestQuoteSequence = 0;
             for (int i = 0, n = characters.Length; i < n;)
             {
-                int j;
-                for (j = i; j < n && characters[j] == '"'; j++)
-                    ;
+                var j = i;
+                while (j < n && characters[j] == '"')
+                    j++;
 
                 longestQuoteSequence = Math.Max(longestQuoteSequence, j - i);
                 i = j + 1;
