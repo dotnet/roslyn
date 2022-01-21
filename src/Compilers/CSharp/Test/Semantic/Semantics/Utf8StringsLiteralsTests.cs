@@ -318,7 +318,7 @@ class C
         public void InvalidContent_01()
         {
             var source = @"
-using System;
+
 class C
 {
     static void Main()
@@ -327,11 +327,33 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (7,24): error CS8983: The input string cannot be converted into the equivalent UTF8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
                 //         byte[] array = "hello \uD801\uD802";
                 Diagnostic(ErrorCode.ERR_CannotBeConvertedToUTF8, @"""hello \uD801\uD802""").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(7, 24)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void InvalidContent_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        _ = ""hello \uD801\uD802""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS9100: The input string cannot be converted into the equivalent UTF8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
+                //         _ = "hello \uD801\uD802"u8;
+                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUTF8, @"""hello \uD801\uD802""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(6, 13)
                 );
         }
 
