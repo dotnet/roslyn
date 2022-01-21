@@ -289,16 +289,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // First grab any trivia right after the {, it will be trailing trivia for the { token.
             var openTokenTrailingTrivia = tempLexer.LexSyntaxTrailingTrivia().Node;
 
-            var openTokenKind = kind is Lexer.InterpolatedStringKind.Normal or Lexer.InterpolatedStringKind.Verbatim
-                ? SyntaxKind.OpenBraceToken
-                : SyntaxKind.RawInterpolationOpenToken;
-
             // Now create a parser to actually handle the expression portion of the interpolation
             using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
 
             var result = tempParser.ParseInterpolation(
                 text, interpolation, kind,
-                SyntaxFactory.Token(leading: null, openTokenKind, text[interpolation.OpenBraceRange], openTokenTrailingTrivia));
+                SyntaxFactory.Token(leading: null, SyntaxKind.OpenBraceToken, text[interpolation.OpenBraceRange], openTokenTrailingTrivia));
 
             Debug.Assert(text[interpolation.OpenBraceRange.Start..interpolation.CloseBraceRange.End] == result.ToFullString()); // yield from text equals yield from node
             return result;
@@ -354,9 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return TokenOrMissingToken(
                     leading,
-                    kind is Lexer.InterpolatedStringKind.Normal or Lexer.InterpolatedStringKind.Verbatim
-                        ? SyntaxKind.CloseBraceToken
-                        : SyntaxKind.RawInterpolationCloseToken,
+                    SyntaxKind.CloseBraceToken,
                     text[interpolation.CloseBraceRange],
                     trailing: null);
             }

@@ -895,7 +895,6 @@ interpolated_string_text
 
 interpolation
   : '{' expression interpolation_alignment_clause? interpolation_format_clause? '}'
-  | raw_interpolation_open_token expression interpolation_alignment_clause? interpolation_format_clause? raw_interpolation_close_token
   ;
 
 interpolation_alignment_clause
@@ -1377,14 +1376,6 @@ multi_line_raw_string_literal_token
   ;
 
 numeric_literal_token
-  : /* see lexical specification */
-  ;
-
-raw_interpolation_close_token
-  : /* see lexical specification */
-  ;
-
-raw_interpolation_open_token
   : /* see lexical specification */
   ;
 

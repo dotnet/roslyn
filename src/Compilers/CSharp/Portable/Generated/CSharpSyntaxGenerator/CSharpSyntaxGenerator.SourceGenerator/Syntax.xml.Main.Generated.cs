@@ -3789,25 +3789,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new InterpolationSyntax instance.</summary>
         public static InterpolationSyntax Interpolation(SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax? alignmentClause, InterpolationFormatClauseSyntax? formatClause, SyntaxToken closeBraceToken)
         {
-            switch (openBraceToken.Kind())
-            {
-                case SyntaxKind.OpenBraceToken:
-                case SyntaxKind.RawInterpolationOpenToken: break;
-                default: throw new ArgumentException(nameof(openBraceToken));
-            }
+            if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            switch (closeBraceToken.Kind())
-            {
-                case SyntaxKind.CloseBraceToken:
-                case SyntaxKind.RawInterpolationCloseToken: break;
-                default: throw new ArgumentException(nameof(closeBraceToken));
-            }
+            if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
             return (InterpolationSyntax)Syntax.InternalSyntax.SyntaxFactory.Interpolation((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, alignmentClause == null ? null : (Syntax.InternalSyntax.InterpolationAlignmentClauseSyntax)alignmentClause.Green, formatClause == null ? null : (Syntax.InternalSyntax.InterpolationFormatClauseSyntax)formatClause.Green, (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
         /// <summary>Creates a new InterpolationSyntax instance.</summary>
-        public static InterpolationSyntax Interpolation(SyntaxToken openBraceToken, ExpressionSyntax expression, SyntaxToken closeBraceToken)
-            => SyntaxFactory.Interpolation(openBraceToken, expression, default, default, closeBraceToken);
+        public static InterpolationSyntax Interpolation(ExpressionSyntax expression, InterpolationAlignmentClauseSyntax? alignmentClause, InterpolationFormatClauseSyntax? formatClause)
+            => SyntaxFactory.Interpolation(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), expression, alignmentClause, formatClause, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+
+        /// <summary>Creates a new InterpolationSyntax instance.</summary>
+        public static InterpolationSyntax Interpolation(ExpressionSyntax expression)
+            => SyntaxFactory.Interpolation(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), expression, default, default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>Creates a new InterpolationAlignmentClauseSyntax instance.</summary>
         public static InterpolationAlignmentClauseSyntax InterpolationAlignmentClause(SyntaxToken commaToken, ExpressionSyntax value)
