@@ -40,13 +40,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
                     var ticks = Environment.TickCount;
-                    using var nestedTokenSource = new CancellationTokenSource();
-                    using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
                     var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                         ? syntaxContext.InferredTypes
                         : ImmutableArray<ITypeSymbol>.Empty;
 
-                    var getItemsTask = Task.Run(() => ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                    var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
                         completionContext.Position,
                         receiverTypeSymbol,
@@ -54,25 +52,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         inferredTypes,
                         forceIndexCreation: isExpandedCompletion,
                         hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
-                        linkedTokenSource.Token), linkedTokenSource.Token);
+                        cancellationToken).ConfigureAwait(false);
 
-                    var timeoutInMilliseconds = completionContext.CompletionOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion;
-
-                    // Timebox is enabled if timeout value is >= 0 and we are not triggered via expander
-                    if (timeoutInMilliseconds >= 0 && !isExpandedCompletion)
-                    {
-                        // timeout == 0 means immediate timeout (for testing purpose)
-                        if (timeoutInMilliseconds == 0 || await Task.WhenAny(getItemsTask, Task.Delay(timeoutInMilliseconds, linkedTokenSource.Token)).ConfigureAwait(false) != getItemsTask)
-                        {
-                            nestedTokenSource.Cancel();
-                            CompletionProvidersLogger.LogExtensionMethodCompletionTimeoutCount();
-                            return;
-                        }
-                    }
-
-                    // Either the timebox is not enabled, so we need to wait until the operation for complete,
-                    // or there's no timeout, and we now have all completion items ready.
-                    var result = await getItemsTask.ConfigureAwait(false);
                     if (result is null)
                         return;
 

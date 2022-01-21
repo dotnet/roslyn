@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected bool? TargetTypedCompletionFilterFeatureFlag { get; set; }
         protected bool? TypeImportCompletionFeatureFlag { get; set; }
         protected bool? ShowImportCompletionItemsOptionValue { get; set; }
-        protected int? TimeoutInMilliseconds { get; set; }
         protected bool? IsExpandedCompletion { get; set; }
         protected bool? HideAdvancedMembers { get; set; }
         protected bool? ShowNameSuggestions { get; set; }
@@ -73,9 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             if (ShowImportCompletionItemsOptionValue.HasValue)
                 options = options with { ShowItemsFromUnimportedNamespaces = ShowImportCompletionItemsOptionValue.Value };
-
-            if (TimeoutInMilliseconds.HasValue)
-                options = options with { TimeoutInMillisecondsForExtensionMethodImportCompletion = TimeoutInMilliseconds.Value };
 
             if (IsExpandedCompletion.HasValue)
                 options = options with { IsExpandedCompletion = IsExpandedCompletion.Value };

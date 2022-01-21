@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Completion
         bool TypeImportCompletion,
         bool ProvideDateAndTimeCompletions,
         bool ProvideRegexCompletions,
-        int TimeoutInMillisecondsForExtensionMethodImportCompletion,
         bool FilterOutOfScopeLocals = true,
         bool ShowXmlDocCommentCompletion = true)
     {
@@ -48,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion
               TargetTypedCompletionFilter: Metadata.TargetTypedCompletionFilterFeatureFlag.DefaultValue,
               TypeImportCompletion: Metadata.TypeImportCompletionFeatureFlag.DefaultValue,
               ProvideDateAndTimeCompletions: Metadata.ProvideDateAndTimeCompletions.DefaultValue,
-              ProvideRegexCompletions: Metadata.ProvideRegexCompletions.DefaultValue,
-              TimeoutInMillisecondsForExtensionMethodImportCompletion: Metadata.TimeoutInMillisecondsForExtensionMethodImportCompletion.DefaultValue);
+              ProvideRegexCompletions: Metadata.ProvideRegexCompletions.DefaultValue);
 
         public static CompletionOptions From(Project project)
             => From(project.Solution.Options, project.Language);
@@ -70,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion
               TargetTypedCompletionFilter: options.GetOption(Metadata.TargetTypedCompletionFilterFeatureFlag),
               TypeImportCompletion: options.GetOption(Metadata.TypeImportCompletionFeatureFlag),
               ProvideDateAndTimeCompletions: options.GetOption(Metadata.ProvideDateAndTimeCompletions, language),
-              ProvideRegexCompletions: options.GetOption(Metadata.ProvideRegexCompletions, language),
-              TimeoutInMillisecondsForExtensionMethodImportCompletion: options.GetOption(Metadata.TimeoutInMillisecondsForExtensionMethodImportCompletion));
+              ProvideRegexCompletions: options.GetOption(Metadata.ProvideRegexCompletions, language));
 
         public OptionSet WithChangedOptions(OptionSet set, string language)
             => set.
@@ -89,8 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 WithChangedOption(Metadata.TargetTypedCompletionFilterFeatureFlag, TargetTypedCompletionFilter).
                 WithChangedOption(Metadata.TypeImportCompletionFeatureFlag, TypeImportCompletion).
                 WithChangedOption(Metadata.ProvideDateAndTimeCompletions, language, ProvideDateAndTimeCompletions).
-                WithChangedOption(Metadata.ProvideRegexCompletions, language, ProvideRegexCompletions).
-                WithChangedOption(Metadata.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMillisecondsForExtensionMethodImportCompletion);
+                WithChangedOption(Metadata.ProvideRegexCompletions, language, ProvideRegexCompletions);
 
         public RecommendationServiceOptions ToRecommendationServiceOptions()
             => new(
@@ -174,13 +170,6 @@ namespace Microsoft.CodeAnalysis.Completion
             /// </summary>
             public static readonly Option2<bool> IsExpandedCompletion
                 = new("CompletionServiceOptions", nameof(IsExpandedCompletion), defaultValue: false);
-
-            /// <summary>
-            /// Timeout value used for time-boxing completion of unimported extension methods.
-            /// Value less than 0 means no timebox; value == 0 means immediate timeout (for testing purpose)
-            /// </summary>
-            public static readonly Option2<int> TimeoutInMillisecondsForExtensionMethodImportCompletion
-                = new("CompletionServiceOptions", nameof(TimeoutInMillisecondsForExtensionMethodImportCompletion), defaultValue: 500);
 
             // Embedded languages:
 

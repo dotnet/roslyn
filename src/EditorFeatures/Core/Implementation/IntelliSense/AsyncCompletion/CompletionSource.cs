@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string TypeImportCompletionEnabled = nameof(TypeImportCompletionEnabled);
         internal const string TargetTypeFilterExperimentEnabled = nameof(TargetTypeFilterExperimentEnabled);
 
-        private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray =
+        private static readonly ImmutableArray<ImageElement> s_warningImageAttributeImagesArray =
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
 
-        private static readonly EditorOptionKey<bool> NonBlockingCompletionEditorOption = new(NonBlockingCompletion);
+        private static readonly EditorOptionKey<bool> s_nonBlockingCompletionEditorOption = new(NonBlockingCompletion);
 
         // Use CWT to cache data needed to create VSCompletionItem, so the table would be cleared when Roslyn completion item cache is cleared.
         private static readonly ConditionalWeakTable<RoslynCompletionItem, StrongBox<VSCompletionItemData>> s_roslynItemToVsItemData =
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // There could be mixed desired behavior per textView and even per same completion session.
             // The right fix would be to send this information as a result of the method. 
             // Then, the Editor would choose the right behavior for mixed cases.
-            _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, !_globalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, service.Language));
+            _textView.Options.GlobalOptions.SetOptionValue(s_nonBlockingCompletionEditorOption, !_globalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, service.Language));
 
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
@@ -310,6 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var suggestionItemOptions = new AsyncCompletionData.SuggestionItemOptions(
                 completionList.SuggestionModeItem.DisplayText,
                 completionList.SuggestionModeItem.Properties.TryGetValue(Description, out var description) ? description : string.Empty);
+
             return new(items, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters);
 
             static void AddPropertiesToSession(IAsyncCompletionSession session, CompletionList completionList, SnapshotPoint triggerLocation, bool isExpanded, bool expandItemsAvailable)
@@ -428,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution);
-                var attributeImages = supportedPlatforms != null ? s_WarningImageAttributeImagesArray : ImmutableArray<ImageElement>.Empty;
+                var attributeImages = supportedPlatforms != null ? s_warningImageAttributeImagesArray : ImmutableArray<ImageElement>.Empty;
 
                 itemData = new VSCompletionItemData(
                     DisplayText: roslynItem.GetEntireDisplayText(),
