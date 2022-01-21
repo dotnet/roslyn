@@ -80,22 +80,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         private static async Task<string?> GetIndentationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
         {
             var indentationService = document.GetRequiredLanguageService<IIndentationService>();
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var syntacticDocument = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var openBraceLine = sourceText.Lines.GetLineFromPosition(namespaceDeclaration.OpenBraceToken.SpanStart).LineNumber;
-            var closeBraceLine = sourceText.Lines.GetLineFromPosition(namespaceDeclaration.CloseBraceToken.SpanStart).LineNumber;
+            var openBraceLine = syntacticDocument.Text.Lines.GetLineFromPosition(namespaceDeclaration.OpenBraceToken.SpanStart).LineNumber;
+            var closeBraceLine = syntacticDocument.Text.Lines.GetLineFromPosition(namespaceDeclaration.CloseBraceToken.SpanStart).LineNumber;
             if (openBraceLine == closeBraceLine)
                 return null;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var style = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
+            var options = await IndentationOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var indentation = indentationService.GetIndentation(document, openBraceLine + 1, style, cancellationToken);
+            var indentation = indentationService.GetIndentation(syntacticDocument, openBraceLine + 1, options.AutoFormattingOptions.IndentStyle, options, cancellationToken);
 
-            var useTabs = options.GetOption(FormattingOptions.UseTabs);
-            var tabSize = options.GetOption(FormattingOptions.TabSize);
+            var useTabs = options.FormattingOptions.GetOption(FormattingOptions2.UseTabs);
+            var tabSize = options.FormattingOptions.GetOption(FormattingOptions2.TabSize);
 
-            return indentation.GetIndentationString(sourceText, useTabs, tabSize);
+            return indentation.GetIndentationString(syntacticDocument.Text, useTabs, tabSize);
         }
 
         private static async Task<(Document document, TextSpan semicolonSpan)> DedentNamespaceAsync(

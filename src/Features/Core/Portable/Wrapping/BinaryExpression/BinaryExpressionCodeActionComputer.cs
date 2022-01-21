@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,44 +45,63 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
             /// </summary>
             private readonly SyntaxTriviaList _smartIndentTrivia;
 
-            public BinaryExpressionCodeActionComputer(
+            private BinaryExpressionCodeActionComputer(
                 AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options,
+                IndentationOptions options,
+                ImmutableArray<SyntaxNodeOrToken> exprsAndOperators,
+                SyntaxTriviaList indentAndAlignTrivia,
+                SyntaxTriviaList smartIndentTrivia)
+                : base(service, document, originalSourceText, options)
+            {
+                _exprsAndOperators = exprsAndOperators;
+                _preference = options.FormattingOptions.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping);
+                _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
+                _indentAndAlignTrivia = indentAndAlignTrivia;
+                _smartIndentTrivia = smartIndentTrivia;
+            }
+
+            public static async ValueTask<BinaryExpressionCodeActionComputer> CreateAsync(
+                AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> service,
+                Document document,
                 TBinaryExpressionSyntax binaryExpression,
                 ImmutableArray<SyntaxNodeOrToken> exprsAndOperators,
                 CancellationToken cancellationToken)
-                : base(service, document, originalSourceText, options, cancellationToken)
             {
-                _exprsAndOperators = exprsAndOperators;
-                _preference = options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping);
+                var originalSourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var options = await IndentationOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
 
-                _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
+                var useTabs = options.FormattingOptions.GetOption(FormattingOptions2.UseTabs);
+                var tabSize = options.FormattingOptions.GetOption(FormattingOptions2.TabSize);
 
-                _indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    OriginalSourceText.GetOffset(binaryExpression.Span.Start)
-                                      .CreateIndentationString(UseTabs, TabSize)));
+                var indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    originalSourceText.GetOffset(binaryExpression.Span.Start).CreateIndentationString(useTabs, tabSize)));
 
-                _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    GetSmartIndentationAfter(_exprsAndOperators[1])));
+                var smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    await GetSmartIndentationAfterAsync(document, originalSourceText, options, service, exprsAndOperators[1], cancellationToken).ConfigureAwait(false)));
+
+                return new BinaryExpressionCodeActionComputer(service, document, originalSourceText, options, exprsAndOperators, indentAndAlignTrivia, smartIndentTrivia);
             }
 
-            protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
+            protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync(CancellationToken cancellationToken)
                 => ImmutableArray.Create(new WrappingGroup(
                     isInlinable: true, ImmutableArray.Create(
-                        await GetWrapCodeActionAsync(align: false).ConfigureAwait(false),
-                        await GetWrapCodeActionAsync(align: true).ConfigureAwait(false),
-                        await GetUnwrapCodeActionAsync().ConfigureAwait(false))));
+                        await GetWrapCodeActionAsync(align: false, cancellationToken).ConfigureAwait(false),
+                        await GetWrapCodeActionAsync(align: true, cancellationToken).ConfigureAwait(false),
+                        await GetUnwrapCodeActionAsync(cancellationToken).ConfigureAwait(false))));
 
-            private Task<WrapItemsAction> GetWrapCodeActionAsync(bool align)
-                => TryCreateCodeActionAsync(GetWrapEdits(align), FeaturesResources.Wrapping,
-                        align ? FeaturesResources.Wrap_and_align_expression : FeaturesResources.Wrap_expression);
+            private Task<WrapItemsAction> GetWrapCodeActionAsync(bool align, CancellationToken cancellationToken)
+                => TryCreateCodeActionAsync(
+                    GetWrapEdits(align),
+                    FeaturesResources.Wrapping,
+                    align ? FeaturesResources.Wrap_and_align_expression : FeaturesResources.Wrap_expression,
+                    cancellationToken);
 
-            private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
-                => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression);
+            private Task<WrapItemsAction> GetUnwrapCodeActionAsync(CancellationToken cancellationToken)
+                => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression, cancellationToken);
 
             private ImmutableArray<Edit> GetWrapEdits(bool align)
             {

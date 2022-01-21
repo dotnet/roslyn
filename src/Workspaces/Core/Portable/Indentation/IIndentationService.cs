@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Indentation
     /// current line.  With this tuple, both forms can be expressed, and the implementor does not
     /// have to convert from one to the other.
     /// </summary>
-    internal struct IndentationResult
+    internal readonly struct IndentationResult
     {
         /// <summary>
         /// The base position in the document that the indent should be relative to.  This position
@@ -50,9 +51,12 @@ namespace Microsoft.CodeAnalysis.Indentation
         /// <summary>
         /// Determines the desired indentation of a given line.
         /// </summary>
-        IndentationResult GetIndentation(
-            Document document, int lineNumber,
-            FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken);
+        public IndentationResult GetIndentation(
+            SyntacticDocument document,
+            int lineNumber,
+            FormattingOptions.IndentStyle indentStyle,
+            IndentationOptions options,
+            CancellationToken cancellationToken);
     }
 
     internal static class IIndentationServiceExtensions

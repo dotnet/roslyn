@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -119,14 +120,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return false;
             }
 
-            // TODO: read option from textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
-            var indentStyle = document.Project.Solution.Options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
-
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-            var splitter = StringSplitter.TryCreate(document, position, useTabs, tabSize, indentStyle, cancellationToken);
-            if (splitter?.TrySplit(out var newDocument, out var newPosition) != true)
+            // TODO: read options from textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
+            var options = IndentationOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+
+            var (newDocument, newPosition) = StringSplitter.TrySplitSynchronously(document, position, useTabs, tabSize, options.AutoFormattingOptions.IndentStyle, options, cancellationToken);
+            if (newDocument == null)
             {
                 return false;
             }

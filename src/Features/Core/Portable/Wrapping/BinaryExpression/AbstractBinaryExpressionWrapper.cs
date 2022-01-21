@@ -86,11 +86,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
             if (containsUnformattableContent)
                 return null;
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return new BinaryExpressionCodeActionComputer(
-                this, document, sourceText, options, binaryExpr,
-                exprsAndOperators, cancellationToken);
+            return await BinaryExpressionCodeActionComputer.CreateAsync(this, document, binaryExpr, exprsAndOperators, cancellationToken).ConfigureAwait(false);
         }
 
         private ImmutableArray<SyntaxNodeOrToken> GetExpressionsAndOperators(

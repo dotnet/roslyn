@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
@@ -21,8 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             public SimpleStringSplitter(
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText, SyntaxToken token,
-                bool useTabs, int tabSize, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
+                bool useTabs, int tabSize, FormattingOptions.IndentStyle indentStyle,
+                IndentationOptions options)
+                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, options)
             {
                 _token = token;
             }
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             protected override bool CheckToken()
                 => !_token.IsVerbatimStringLiteral();
 
-            protected override SyntaxNode GetNodeToReplace() => _token.Parent;
+            protected override SyntaxNode GetNodeToReplace() => _token.Parent!;
 
             protected override BinaryExpressionSyntax CreateSplitString()
             {

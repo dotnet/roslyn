@@ -34,5 +34,15 @@ namespace Microsoft.CodeAnalysis
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return new SyntacticDocument(document, text, root.SyntaxTree, root);
         }
+
+#if !CODE_STYLE
+        public static SyntacticDocument CreateSynchronously(
+            Document document, CancellationToken cancellationToken)
+        {
+            var text = document.GetTextSynchronously(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            return new SyntacticDocument(document, text, root.SyntaxTree, root);
+        }
+#endif
     }
 }

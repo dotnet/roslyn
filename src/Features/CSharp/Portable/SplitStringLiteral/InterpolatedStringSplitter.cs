@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
@@ -28,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
                 bool useTabs,
                 int tabSize,
                 FormattingOptions.IndentStyle indentStyle,
-                CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
+                IndentationOptions options)
+                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, options)
             {
                 _interpolatedStringExpression = interpolatedStringExpression;
             }

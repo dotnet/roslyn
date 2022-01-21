@@ -5,10 +5,12 @@
 using System;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
@@ -34,10 +36,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public IndentationResult GetIndentation(Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
+        public IndentationResult GetIndentation(SyntacticDocument document, int lineNumber, FormattingOptions.IndentStyle indentStyle, IndentationOptions options, CancellationToken cancellationToken)
         {
             // all F# documents should have a file path
-            if (document.FilePath == null)
+            if (document.Document.FilePath == null)
             {
                 return default;
             }
@@ -45,19 +47,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             FSharpIndentationResult? result;
             if (_service != null)
             {
-                var text = document.GetTextSynchronously(cancellationToken);
-                var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-                var options = new FSharpIndentationOptions(
-                    TabSize: documentOptions.GetOption(FormattingOptions.TabSize, LanguageNames.FSharp),
+                var fsharpOptions = new FSharpIndentationOptions(
+                    TabSize: options.FormattingOptions.Options.GetOption(FormattingOptions2.TabSize),
                     IndentStyle: indentStyle);
 
-                result = _service.GetDesiredIndentation(document.Project.LanguageServices, text, document.Id, document.FilePath, lineNumber, options);
+                result = _service.GetDesiredIndentation(document.Project.LanguageServices, document.Text, document.Document.Id, document.Document.FilePath, lineNumber, fsharpOptions);
             }
             else
             {
                 Contract.ThrowIfNull(_legacyService);
-                result = _legacyService.GetDesiredIndentation(document, lineNumber, cancellationToken);
+                result = _legacyService.GetDesiredIndentation(document.Document, lineNumber, cancellationToken);
             }
 
             return result.HasValue ? new IndentationResult(result.Value.BasePosition, result.Value.Offset) : default;
