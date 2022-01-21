@@ -197,20 +197,53 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             Contract.ThrowIfFalse(span.IntersectsWith(token.Span));
             Contract.ThrowIfFalse(token.Kind() == SyntaxKind.StringLiteralToken);
 
-            return document.WithSyntaxRoot(root.ReplaceToken(
-                token,
-                GetReplacementToken(token, kind, newLine)));
+            var replacement = await GetReplacementTokenAsync(document, token, kind, newLine, cancellationToken).ConfigureAwait(false);
+            return document.WithSyntaxRoot(root.ReplaceToken(token, replacement));
         }
 
-        private static SyntaxToken GetReplacementToken(
-            SyntaxToken token, ConvertToRawKind kind, string newLine)
+        private static async Task<SyntaxToken> GetReplacementTokenAsync(
+            Document document,
+            SyntaxToken token,
+            ConvertToRawKind kind,
+            string newLine,
+            CancellationToken cancellationToken)
         {
             return kind switch
             {
                 ConvertToRawKind.SingleLine => ConvertToSingleLineRawString(token),
                 ConvertToRawKind.MultiLine => ConvertToMultiLineRawString(token, newLine),
+                ConvertToRawKind.MultiLineIndented => await ConvertToMultiLineRawIndentedStringAsync(document, token, newLine, cancellationToken)
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
+        }
+
+        private static Task ConvertToMultiLineRawIndentedStringAsync(Document document, SyntaxToken token, string newLine, CancellationToken cancellationToken)
+        {
+            var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
+            Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
+
+            // Have to make sure we have a delimiter longer than any quote sequence in the string.
+            var longestQuoteSequence = GetLongestQuoteSequence(characters);
+            var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
+            var indentation = await DetermineIndentationAsync(document, token, cancellationToken).ConfigureAwait(false);
+
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            builder.Append('"', quoteDelimeterCount);
+            builder.Append(newLine);
+
+            foreach (var ch in characters)
+                ch.AppendTo(builder);
+
+            builder.Append(newLine);
+            builder.Append('"', quoteDelimeterCount);
+
+            return SyntaxFactory.Token(
+                token.LeadingTrivia,
+                SyntaxKind.MultiLineRawStringLiteralToken,
+                builder.ToString(),
+                characters.CreateString(),
+                token.TrailingTrivia);
         }
 
         private static SyntaxToken ConvertToMultiLineRawString(SyntaxToken token, string newLine)
