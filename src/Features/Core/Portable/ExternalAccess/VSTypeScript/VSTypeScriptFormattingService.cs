@@ -15,13 +15,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
+    [ExportLanguageService(typeof(IFormattingService), InternalLanguageNames.TypeScript), Shared]
     internal sealed class VSTypeScriptFormattingService : IFormattingService
     {
         private readonly IVSTypeScriptFormattingServiceImplementation _impl;
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public VSTypeScriptFormattingService(IVSTypeScriptFormattingServiceImplementation impl)
-            => _impl = impl;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation impl)
+            => _impl = impl ?? throw new ArgumentNullException(nameof(impl));
 
         public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet options, CancellationToken cancellationToken)
         {
