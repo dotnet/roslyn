@@ -96,20 +96,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _persistentFolderRoot.Dispose();
         }
 
-        private string GetData1(Size size)
+        private static string GetData1(Size size)
             => size == Size.Small ? SmallData1 :
                size == Size.Medium ? MediumData1 :
                size == Size.Large ? LargeData1 : ExtraLargeData1;
 
-        private string GetData2(Size size)
+        private static string GetData2(Size size)
             => size == Size.Small ? SmallData2 :
                size == Size.Medium ? MediumData2 :
                size == Size.Large ? LargeData2 : ExtraLargeData2;
 
-        private Checksum? GetChecksum1(bool withChecksum)
+        private static Checksum? GetChecksum1(bool withChecksum)
             => withChecksum ? s_checksum1 : null;
 
-        private Checksum? GetChecksum2(bool withChecksum)
+        private static Checksum? GetChecksum2(bool withChecksum)
             => withChecksum ? s_checksum2 : null;
 
         [Fact]
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        private void DoSimultaneousReads(Func<Task<string>> read, string expectedValue)
+        private static void DoSimultaneousReads(Func<Task<string>> read, string expectedValue)
         {
             var barrier = new Barrier(NumThreads);
             var countdown = new CountdownEvent(NumThreads);
@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(new List<Exception>(), exceptions);
         }
 
-        private void DoSimultaneousWrites(Func<string, Task> write)
+        private static void DoSimultaneousWrites(Func<string, Task> write)
         {
             var barrier = new Barrier(NumThreads);
             var countdown = new CountdownEvent(NumThreads);
