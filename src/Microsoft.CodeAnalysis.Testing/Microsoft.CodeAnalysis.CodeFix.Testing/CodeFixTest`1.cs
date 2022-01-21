@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 var fixAllProvider = effectiveCodeFixProvider?.GetFixAllProvider();
-                if (firstDiagnostic == null || fixAllProvider == null)
+                if (firstDiagnostic == null || fixAllProvider == null || !fixAllProvider.GetSupportedFixAllScopes().Contains(scope))
                 {
                     numberOfIterations++;
                     break;
