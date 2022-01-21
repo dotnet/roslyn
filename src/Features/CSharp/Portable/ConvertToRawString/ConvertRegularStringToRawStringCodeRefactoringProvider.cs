@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -118,11 +119,14 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             }
 
             // a single line raw string cannot contain a newline.
-            if (characters.Any(static ch => SyntaxFacts.IsNewLine((char)ch.Value)))
+            if (characters.Any(static ch => IsNewLine(ch)))
                 return false;
 
             return true;
         }
+
+        private static bool IsNewLine(VirtualChar ch)
+            => ch.Rune.Utf16SequenceLength == 1 && SyntaxFacts.IsNewLine((char)ch.Value);
 
         private static bool AllEscapesAreQuotes(VirtualCharSequence sequence)
         {
@@ -168,6 +172,10 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             // Check if we have an escaped character in the original string.
             if (ch.Span.Length > 1)
             {
+                // An escaped newline is fine to convert (to a multi-line raw string).
+                if (IsNewLine(ch))
+                    return true;
+
                 // Control/formatting unicode escapes should stay as escapes.  The user code will just be enormously
                 // difficult to read/reason about if we convert those to the actual corresponding non-escaped chars.
                 var category = Rune.GetUnicodeCategory(ch.Rune);
@@ -181,6 +189,9 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
         private static async Task<Document> UpdateDocumentAsync(
             Document document, TextSpan span, ConvertToRawKind kind, CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var newLine = options.GetOption(FormattingOptions.NewLine);
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
             Contract.ThrowIfFalse(span.IntersectsWith(token.Span));
@@ -188,16 +199,46 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
 
             return document.WithSyntaxRoot(root.ReplaceToken(
                 token,
-                GetReplacementToken(token, kind)));
+                GetReplacementToken(token, kind, newLine)));
         }
 
-        private static SyntaxToken GetReplacementToken(SyntaxToken token, ConvertToRawKind kind)
+        private static SyntaxToken GetReplacementToken(
+            SyntaxToken token, ConvertToRawKind kind, string newLine)
         {
             return kind switch
             {
                 ConvertToRawKind.SingleLine => ConvertToSingleLineRawString(token),
+                ConvertToRawKind.MultiLine => ConvertToMultiLineRawString(token, newLine),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
+        }
+
+        private static SyntaxToken ConvertToMultiLineRawString(SyntaxToken token, string newLine)
+        {
+            var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
+            Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
+
+            // Have to make sure we have a delimiter longer than any quote sequence in the string.
+            var longestQuoteSequence = GetLongestQuoteSequence(characters);
+            var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
+
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            builder.Append('"', quoteDelimeterCount);
+            builder.Append(newLine);
+
+            foreach (var ch in characters)
+                ch.AppendTo(builder);
+
+            builder.Append(newLine);
+            builder.Append('"', quoteDelimeterCount);
+
+            return SyntaxFactory.Token(
+                token.LeadingTrivia,
+                SyntaxKind.MultiLineRawStringLiteralToken,
+                builder.ToString(),
+                characters.CreateString(),
+                token.TrailingTrivia);
         }
 
         private static SyntaxToken ConvertToSingleLineRawString(SyntaxToken token)
