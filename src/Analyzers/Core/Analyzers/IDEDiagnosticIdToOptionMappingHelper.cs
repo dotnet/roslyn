@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly ConcurrentDictionary<string, ImmutableHashSet<IOption2>> s_diagnosticIdToOptionMap = new();
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption2>>> s_diagnosticIdToLanguageSpecificOptionsMap = new();
 
-        public static bool TryGetMappedOptions(string diagnosticId, string language, out ImmutableHashSet<IOption2> options)
+        public static bool TryGetMappedOptions(string diagnosticId, string language, [NotNullWhen(true)] out ImmutableHashSet<IOption2>? options)
             => s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out options) ||
                (s_diagnosticIdToLanguageSpecificOptionsMap.TryGetValue(language, out var map) &&
                 map.TryGetValue(diagnosticId, out options));
@@ -36,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var options = perLanguageOptions.Cast<IOption2>().ToImmutableHashSet();
             AddOptionMapping(s_diagnosticIdToOptionMap, diagnosticId, options);
         }
+
         public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<ILanguageSpecificOption> languageSpecificOptions, string language)
         {
             diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));

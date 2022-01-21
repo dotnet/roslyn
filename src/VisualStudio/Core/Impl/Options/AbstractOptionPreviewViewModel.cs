@@ -137,10 +137,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var document = project.AddDocument("document", SourceText.From(text, Encoding.UTF8));
             var formatted = Formatter.FormatAsync(document, OptionStore.GetOptions()).WaitAndGetResult(CancellationToken.None);
 
-            var textBuffer = _textBufferFactoryService.CreateTextBuffer(formatted.GetTextAsync().Result.ToString(), _contentType);
+            var textBuffer = _textBufferFactoryService.CreateTextBuffer(formatted.GetTextSynchronously(CancellationToken.None).ToString(), _contentType);
 
             var container = textBuffer.AsTextContainer();
-            var documentBackedByTextBuffer = document.WithText(container.CurrentText);
 
             var projection = _projectionBufferFactory.CreateProjectionBufferWithoutIndentation(_contentTypeRegistryService,
                 _editorOptions.CreateOptions(),
@@ -153,8 +152,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             this.TextViewHost = _textEditorFactoryService.CreateTextViewHost(textView, setFocus: false);
 
-            workspace.TryApplyChanges(documentBackedByTextBuffer.Project.Solution);
-            workspace.OpenDocument(document.Id);
+            workspace.TryApplyChanges(document.Project.Solution);
+            workspace.OpenDocument(document.Id, container);
 
             this.TextViewHost.Closed += (s, a) =>
             {

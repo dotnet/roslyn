@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function IArrayTypeReferenceGetElementType(context As EmitContext) As Cci.ITypeReference Implements Cci.IArrayTypeReference.GetElementType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim customModifiers As ImmutableArray(Of CustomModifier) = AdaptedArrayTypeSymbol.CustomModifiers
-            Dim type = moduleBeingBuilt.Translate(AdaptedArrayTypeSymbol.ElementType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim type = moduleBeingBuilt.Translate(AdaptedArrayTypeSymbol.ElementType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
             If customModifiers.Length = 0 Then
                 Return type

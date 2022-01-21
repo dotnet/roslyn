@@ -2,46 +2,55 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class PackageInstallerService
     {
-        private bool TryInstallAndAddUndoAction(
-            string source, string packageName, string versionOpt, bool includePrerelease,
-            EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
+        private async Task<bool> TryInstallAndAddUndoActionAsync(
+            string source, string packageName, string? version, bool includePrerelease,
+            Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var installed = TryInstallPackage(
-                source, packageName, versionOpt, includePrerelease, dte, dteProject);
+            var installed = await TryInstallPackageAsync(
+                source, packageName, version, includePrerelease,
+                projectGuid, dte, dteProject, progressTracker, cancellationToken).ConfigureAwait(false);
             if (installed)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 undoManager?.Add(new UninstallPackageUndoUnit(
                     this, source, packageName,
-                    versionOpt, includePrerelease,
-                    dte, dteProject, undoManager));
+                    version, includePrerelease,
+                    projectGuid, dte, dteProject, undoManager));
             }
 
             return installed;
         }
 
-        private bool TryUninstallAndAddRedoAction(
-            string source, string packageName, string versionOpt, bool includePrerelease,
-            EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
+        private async Task<bool> TryUninstallAndAddRedoActionAsync(
+            string source, string packageName, string? version, bool includePrerelease,
+            Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var uninstalled = TryUninstallPackage(packageName, dte, dteProject);
+            var uninstalled = await TryUninstallPackageAsync(
+                packageName, projectGuid, dte, dteProject, progressTracker, cancellationToken).ConfigureAwait(false);
             if (uninstalled)
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 undoManager?.Add(new InstallPackageUndoUnit(
                     this, source, packageName,
-                    versionOpt, includePrerelease,
-                    dte, dteProject, undoManager));
+                    version, includePrerelease,
+                    projectGuid, dte, dteProject, undoManager));
             }
 
             return uninstalled;
@@ -49,21 +58,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private abstract class BaseUndoUnit : IOleUndoUnit
         {
+            protected readonly Guid projectGuid;
             protected readonly EnvDTE.DTE dte;
             protected readonly EnvDTE.Project dteProject;
             protected readonly PackageInstallerService packageInstallerService;
             protected readonly string source;
             protected readonly string packageName;
             protected readonly IOleUndoManager undoManager;
-            protected readonly string versionOpt;
+            protected readonly string? version;
             protected readonly bool includePrerelease;
 
             protected BaseUndoUnit(
                 PackageInstallerService packageInstallerService,
                 string source,
                 string packageName,
-                string versionOpt,
+                string? version,
                 bool includePrerelease,
+                Guid projectGuid,
                 EnvDTE.DTE dte,
                 EnvDTE.Project dteProject,
                 IOleUndoManager undoManager)
@@ -71,15 +82,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 this.packageInstallerService = packageInstallerService;
                 this.source = source;
                 this.packageName = packageName;
-                this.versionOpt = versionOpt;
+                this.version = version;
                 this.includePrerelease = includePrerelease;
+                this.projectGuid = projectGuid;
                 this.dte = dte;
                 this.dteProject = dteProject;
                 this.undoManager = undoManager;
             }
 
-            public abstract void Do(IOleUndoManager pUndoManager);
+            protected abstract Task DoWorkerAsync(IOleUndoManager pUndoManager);
             public abstract void GetDescription(out string pBstr);
+
+            public void Do(IOleUndoManager pUndoManager)
+            {
+                var token = this.packageInstallerService._listener.BeginAsyncOperation($"{GetType().Name}.{nameof(Do)}");
+                DoAsync(pUndoManager).CompletesAsyncOperation(token);
+            }
+
+            private async Task DoAsync(IOleUndoManager pUndoManager)
+            {
+                try
+                {
+                    await DoWorkerAsync(pUndoManager).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                {
+                }
+            }
 
             public void GetUnitType(out Guid pClsid, out int plID)
                 => throw new NotImplementedException();
@@ -96,22 +128,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 PackageInstallerService packageInstallerService,
                 string source,
                 string packageName,
-                string versionOpt,
+                string? version,
                 bool includePrerelease,
+                Guid projectGuid,
                 EnvDTE.DTE dte,
                 EnvDTE.Project dteProject,
                 IOleUndoManager undoManager)
                 : base(packageInstallerService, source, packageName,
-                       versionOpt, includePrerelease,
-                       dte, dteProject, undoManager)
+                       version, includePrerelease,
+                       projectGuid, dte, dteProject, undoManager)
             {
             }
 
-            public override void Do(IOleUndoManager pUndoManager)
+            protected override async Task DoWorkerAsync(IOleUndoManager pUndoManager)
             {
-                packageInstallerService.TryUninstallAndAddRedoAction(
-                    source, packageName, versionOpt, includePrerelease,
-                    dte, dteProject, undoManager);
+                var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
+                using var context = this.packageInstallerService._operationExecutor.BeginExecute(NugetTitle, description, allowCancellation: true, showProgress: false);
+                using var scope = context.AddScope(allowCancellation: true, description);
+
+                await packageInstallerService.TryUninstallAndAddRedoActionAsync(
+                    source, packageName, version, includePrerelease,
+                    projectGuid, dte, dteProject, undoManager,
+                    new UIThreadOperationContextProgressTracker(scope),
+                    context.UserCancellationToken).ConfigureAwait(false);
             }
 
             public override void GetDescription(out string pBstr)
@@ -124,24 +163,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 PackageInstallerService packageInstallerService,
                 string source,
                 string packageName,
-                string versionOpt,
+                string? version,
                 bool includePrerelease,
+                Guid projectGuid,
                 EnvDTE.DTE dte,
                 EnvDTE.Project dteProject,
                 IOleUndoManager undoManager)
                 : base(packageInstallerService, source, packageName,
-                       versionOpt, includePrerelease,
-                       dte, dteProject, undoManager)
+                       version, includePrerelease,
+                       projectGuid, dte, dteProject, undoManager)
             {
             }
 
             public override void GetDescription(out string pBstr)
                 => pBstr = string.Format(ServicesVSResources.Install_0, packageName);
 
-            public override void Do(IOleUndoManager pUndoManager)
+            protected override async Task DoWorkerAsync(IOleUndoManager pUndoManager)
             {
-                packageInstallerService.TryInstallAndAddUndoAction(
-                    source, packageName, versionOpt, includePrerelease, dte, dteProject, undoManager);
+                var description = string.Format(ServicesVSResources.Installing_0, packageName);
+                using var context = this.packageInstallerService._operationExecutor.BeginExecute(NugetTitle, description, allowCancellation: true, showProgress: false);
+                using var scope = context.AddScope(allowCancellation: true, description);
+
+                await packageInstallerService.TryInstallAndAddUndoActionAsync(
+                    source, packageName, version, includePrerelease,
+                    projectGuid, dte, dteProject, undoManager,
+                    new UIThreadOperationContextProgressTracker(scope),
+                    context.UserCancellationToken).ConfigureAwait(false);
             }
         }
     }

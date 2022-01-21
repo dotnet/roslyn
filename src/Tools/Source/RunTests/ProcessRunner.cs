@@ -63,17 +63,20 @@ namespace RunTests
             bool displayWindow = true,
             Dictionary<string, string>? environmentVariables = null,
             Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
             CancellationToken cancellationToken = default) =>
             CreateProcess(
                 CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
                 lowPriority: lowPriority,
                 onProcessStartHandler: onProcessStartHandler,
+                onOutputDataReceived: onOutputDataReceived,
                 cancellationToken: cancellationToken);
 
         public static ProcessInfo CreateProcess(
             ProcessStartInfo processStartInfo,
             bool lowPriority = false,
             Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
             CancellationToken cancellationToken = default)
         {
             var errorLines = new List<string>();
@@ -88,6 +91,7 @@ namespace RunTests
                 {
                     if (e.Data != null)
                     {
+                        onOutputDataReceived?.Invoke(e);
                         outputLines.Add(e.Data);
                     }
                 };

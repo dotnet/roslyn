@@ -15,30 +15,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
     /// </summary>
     internal partial class NewTypeDestinationSelection : UserControl
     {
-        public NewTypeDestinationSelectionViewModel ViewModel { get; }
+        // This allows for binding of the ViewModel as a property in XAML 
+        // which can be useful if control is being hosted
+        public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
+            nameof(ViewModel),
+            typeof(NewTypeDestinationSelectionViewModel),
+            typeof(NewTypeDestinationSelection),
+            new PropertyMetadata((s, a) =>
+                {
+                    var control = (NewTypeDestinationSelection)s;
+                    control.DataContext = a.NewValue;
+                })
+        );
+
+        public NewTypeDestinationSelectionViewModel ViewModel
+        {
+            get => (NewTypeDestinationSelectionViewModel)GetValue(ViewModelProperty);
+            set => SetValue(ViewModelProperty, value);
+        }
+
         public string GeneratedName => ServicesVSResources.Generated_name_colon;
         public string SelectDestinationFile => ServicesVSResources.Select_destination;
         public string SelectCurrentFileAsDestination => ServicesVSResources.Add_to_current_file;
         public string SelectNewFileAsDestination => ServicesVSResources.New_file_name_colon;
         public string NewTypeName => ServicesVSResources.New_Type_Name_colon;
-        public NewTypeDestinationSelection(NewTypeDestinationSelectionViewModel viewModel)
+
+        public NewTypeDestinationSelection()
         {
-            ViewModel = viewModel;
+            ViewModel = NewTypeDestinationSelectionViewModel.Default;
             DataContext = ViewModel;
 
-            GotFocus += NewTypeDestinationSelection_GotFocus;
             InitializeComponent();
-        }
-
-        private void NewTypeDestinationSelection_GotFocus(object sender, RoutedEventArgs e)
-        {
-            TypeNameTextBox.Focus();
-            TypeNameTextBox.SelectAll();
         }
 
         private void SelectAllInTextBox(object sender, RoutedEventArgs e)
         {
-            if (e.OriginalSource is TextBox textbox && Mouse.LeftButton == MouseButtonState.Released)
+            if (sender is TextBox textbox
+                && Mouse.LeftButton == MouseButtonState.Released)
             {
                 textbox.SelectAll();
             }

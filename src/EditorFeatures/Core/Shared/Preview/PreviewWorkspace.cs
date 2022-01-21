@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
@@ -49,34 +50,37 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             return true;
         }
 
-        public override void OpenDocument(DocumentId documentId, bool activate = true)
+        // This method signature is the base method signature which should be used for a client of a workspace to
+        // tell the host to open it; in our case we want to open documents directly by passing the known buffer we created
+        // for it.
+        [Obsolete("Do not call the base OpenDocument method; instead call the overload that takes a container.", error: true)]
+        public new void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            if (this.CurrentSolution.ContainsAdditionalDocument(documentId))
+        }
+
+        public void OpenDocument(DocumentId documentId, SourceTextContainer textContainer)
+        {
+            var document = this.CurrentSolution.GetTextDocument(documentId);
+
+            // This could be null if we're previewing a source generated document; we can't wire those up yet
+            // TODO: implement this
+            if (document == null)
             {
-                OpenAdditionalDocument(documentId, activate);
                 return;
             }
 
-            var document = this.CurrentSolution.GetRequiredDocument(documentId);
-            var text = document.GetTextSynchronously(CancellationToken.None);
-
-            this.OnDocumentOpened(documentId, text.Container);
-        }
-
-        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
-        {
-            var document = this.CurrentSolution.GetRequiredAdditionalDocument(documentId);
-            var text = document.GetTextSynchronously(CancellationToken.None);
-
-            this.OnAdditionalDocumentOpened(documentId, text.Container);
-        }
-
-        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
-        {
-            var document = this.CurrentSolution.GetRequiredAnalyzerConfigDocument(documentId);
-            var text = document.GetTextSynchronously(CancellationToken.None);
-
-            this.OnAnalyzerConfigDocumentOpened(documentId, text.Container);
+            if (document is AnalyzerConfigDocument)
+            {
+                this.OnAnalyzerConfigDocumentOpened(documentId, textContainer);
+            }
+            else if (document is Document)
+            {
+                this.OnDocumentOpened(documentId, textContainer);
+            }
+            else
+            {
+                this.OnAdditionalDocumentOpened(documentId, textContainer);
+            }
         }
 
         public override void CloseDocument(DocumentId documentId)

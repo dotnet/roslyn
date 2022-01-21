@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 // A NullReferenceException is happening in this method, but the dumps do not
                 // contain information about this stack frame because this method is async and
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (symbol.IsAnonymousType())
             {
                 return symbol.ToDisplayParts(s_metadataSymbolDisplayFormat)
-                    .WhereAsArray(p => p.Kind != SymbolDisplayPartKind.PropertyName && p.Kind != SymbolDisplayPartKind.FieldName)
+                    .WhereAsArray(p => p.Kind is not SymbolDisplayPartKind.PropertyName and not SymbolDisplayPartKind.FieldName)
                     .ToDisplayString();
             }
             else
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <summary>
         /// Gives the First Location for a given Symbol by ordering the locations using DocumentId first and Location starting position second
         /// </summary>
-        private static async Task<Location> GetSymbolLocationAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+        private static async Task<Location?> GetSymbolLocationAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var locations = symbol.Locations;
 

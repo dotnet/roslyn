@@ -4,7 +4,7 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Test.Extensions
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     internal static class SymbolExtensions
     {

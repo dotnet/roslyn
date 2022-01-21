@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!_fromDialog)
                 {
                     // Generate the actual type declaration.
-                    var namedType = GenerateNamedType();
+                    var namedType = await GenerateNamedTypeAsync().ConfigureAwait(false);
 
                     if (_intoNamespace)
                     {
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
                 else
                 {
-                    var namedType = GenerateNamedType(_generateTypeOptionsResult);
+                    var namedType = await GenerateNamedTypeAsync(_generateTypeOptionsResult).ConfigureAwait(false);
 
                     // Honor the options from the dialog
                     // Check to see if the type is requested to be generated in cross language Project
@@ -293,7 +294,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     newSolution,
                     enclosingNamespace,
                     rootNamespaceOrType,
-                    new CodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
+                    new CodeGenerationContext(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
                     _cancellationToken).ConfigureAwait(false);
 
                 // containers is determined to be
@@ -306,16 +307,18 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         ? containers.ToList()
                         : _semanticDocument.Document.Folders.ToList();
 
+                if (newDocument.Project.Language == _semanticDocument.Document.Project.Language)
+                {
+                    var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
+                    if (formattingService is not null)
+                    {
+                        codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, _cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
                 // Now, take the code that would be generated and actually create an edit that would
                 // produce a document with that code in it.
                 var newRoot = await codeGenResult.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
-
-                if (newDocument.Project.Language == _semanticDocument.Document.Project.Language)
-                {
-                    var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                    var fileBanner = syntaxFacts.GetFileBanner(_semanticDocument.Root);
-                    newRoot = newRoot.WithPrependedLeadingTrivia(fileBanner);
-                }
 
                 return await CreateAddDocumentAndUpdateUsingsOrImportsOperationsAsync(
                     projectToBeUpdated,
@@ -384,9 +387,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     solution,
                     enclosingNamespace,
                     namedType,
-                    new CodeGenerationOptions(
-                        afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span),
-                        options: await _semanticDocument.Document.GetOptionsAsync(_cancellationToken).ConfigureAwait(false)),
+                    new CodeGenerationContext(afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span)),
                     _cancellationToken).ConfigureAwait(false);
 
                 return new CodeActionOperation[] { new ApplyChangesOperation(codeGenResult.Project.Solution) };
@@ -431,9 +432,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     solution,
                     enclosingNamespaceGeneratedTypeToAddAndLocation.Item1,
                     enclosingNamespaceGeneratedTypeToAddAndLocation.Item2,
-                    new CodeGenerationOptions(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3),
-                    _cancellationToken)
-                    .ConfigureAwait(false);
+                    new CodeGenerationContext(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3),
+                    _cancellationToken).ConfigureAwait(false);
                 var newRoot = await codeGenResult.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                 var updatedSolution = solution.WithDocumentSyntaxRoot(generateTypeOptionsResult.ExistingDocument.Id, newRoot, PreservationMode.PreserveIdentity);
 
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     solution,
                     _state.TypeToGenerateInOpt,
                     namedType,
-                    new CodeGenerationOptions(contextLocation: _state.SimpleName.GetLocation()),
+                    new CodeGenerationContext(contextLocation: _state.SimpleName.GetLocation()),
                     _cancellationToken)
                     .ConfigureAwait(false);
 
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return typeSymbol.RemoveUnnamedErrorTypes(compilation);
             }
 
-            private bool FindExistingOrCreateNewMember(
+            private async Task<bool> FindExistingOrCreateNewMemberAsync(
                 ParameterName parameterName,
                 ITypeSymbol parameterType,
                 ImmutableDictionary<string, ISymbol>.Builder parameterToFieldMap,
@@ -599,7 +599,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
+                var fieldNamingRule = await _semanticDocument.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, _cancellationToken).ConfigureAwait(false);
+                var nameToUse = fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
+                parameterToNewFieldMap[parameterName.BestNameForParameter] = nameToUse;
                 return false;
             }
 

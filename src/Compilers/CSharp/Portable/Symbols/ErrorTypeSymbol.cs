@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return this.ErrorInfo;
+            return new UseSiteInfo<AssemblySymbol>(this.ErrorInfo);
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsTupleType)
             {
-                var result = AddOrWrapTupleMembers(ImmutableArray<Symbol>.Empty);
+                var result = MakeSynthesizedTupleMembers(ImmutableArray<Symbol>.Empty);
                 RoslynDebug.Assert(result is object);
                 return result.ToImmutableAndFree();
             }
@@ -431,6 +431,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal override bool IsInterpolatedStringHandlerType => false;
+
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
@@ -544,7 +546,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 
     internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
@@ -598,9 +606,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.ResultKind; }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _originalDefinition.GetUseSiteDiagnostic();
+            return _originalDefinition.GetUseSiteInfo();
         }
 
         public override int GetHashCode()

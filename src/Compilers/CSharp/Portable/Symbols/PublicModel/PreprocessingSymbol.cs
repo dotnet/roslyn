@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         string ISymbol.MetadataName => _name;
 
+        int ISymbol.MetadataToken => 0;
+
         IAssemblySymbol ISymbol.ContainingAssembly => null;
 
         IModuleSymbol ISymbol.ContainingModule => null;

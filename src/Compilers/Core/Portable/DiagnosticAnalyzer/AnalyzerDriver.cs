@@ -10,7 +10,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -148,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Map from non-concurrent analyzers to the gate guarding callback into the analyzer. 
         /// </summary>
-        private ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>? _lazyAnalyzerGateMap;
-        private ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim> AnalyzerGateMap
+        private ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim> _lazyAnalyzerGateMap;
+        private ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim> AnalyzerGateMap
         {
             get
             {
@@ -158,16 +160,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>? _lazyGeneratedCodeAnalysisFlagsMap;
+        private ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _lazyGeneratedCodeAnalysisFlagsMap;
 
         /// <summary>
         /// Map from analyzers to their <see cref="GeneratedCodeAnalysisFlags"/> setting. 
         /// </summary>
-        private ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> GeneratedCodeAnalysisFlagsMap
+        private ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> GeneratedCodeAnalysisFlagsMap
         {
             get
             {
-                Debug.Assert(_lazyGeneratedCodeAnalysisFlagsMap != null);
+                Debug.Assert(!_lazyGeneratedCodeAnalysisFlagsMap.IsDefault);
                 return _lazyGeneratedCodeAnalysisFlagsMap;
             }
         }
@@ -359,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _hasDiagnosticSuppressors = this.Analyzers.Any(a => a is DiagnosticSuppressor);
             _programmaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
             _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
-            _lazyAnalyzerGateMap = ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
+            _lazyAnalyzerGateMap = ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
         }
 
         /// <summary>
@@ -532,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool ComputeShouldSkipAnalysisOnGeneratedCode(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
-            ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap,
+            ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap,
             bool treatAllCodeAsNonGeneratedCode)
         {
             foreach (var analyzer in analyzers)
@@ -549,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if all analyzers need to analyze and report diagnostics in generated code - we can assume all code to be non-generated code.
         /// </summary>
-        private static bool ComputeShouldTreatAllCodeAsNonGeneratedCode(ImmutableHashSet<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap)
+        private static bool ComputeShouldTreatAllCodeAsNonGeneratedCode(ImmutableHashSet<DiagnosticAnalyzer> analyzers, ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap)
         {
             foreach (var analyzer in analyzers)
             {
@@ -570,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool ShouldSkipAnalysisOnGeneratedCode(
             DiagnosticAnalyzer analyzer,
-            ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap,
+            ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> generatedCodeAnalysisFlagsMap,
             bool treatAllCodeAsNonGeneratedCode)
         {
             if (treatAllCodeAsNonGeneratedCode)
@@ -1407,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     await ProcessEventAsync(completedEvent, analysisScope, analysisState, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1466,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 return completedEvent;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1515,7 +1517,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     break;
 
-                case CompilationUnitCompletedEvent compilationUnitCompletedEvent:
+                case CompilationUnitCompletedEvent compilationUnitCompletedEvent when !compilationUnitCompletedEvent.FilterSpan.HasValue:
+                    // Clear the semantic model cache only if we have completed analysis for the entire compilation unit,
+                    // i.e. the event has a null filter span. Compilation unit completed event with a non-null filter span
+                    // indicates a synthesized event for partial analysis of the tree and we avoid clearing the semantic model cache for that case. 
                     SemanticModelProvider.ClearCache(compilationUnitCompletedEvent.CompilationUnit, compilationUnitCompletedEvent.Compilation);
                     break;
 
@@ -1795,6 +1800,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var (analyzer, semanticModelActions) in _lazySemanticModelActions)
                 {
                     if (!analysisScope.Contains(analyzer))
+                    {
+                        continue;
+                    }
+
+                    // Only compiler analyzer supports span-based semantic model action callbacks.
+                    if (completedEvent.FilterSpan.HasValue && !IsCompilerAnalyzer(analyzer))
                     {
                         continue;
                     }
@@ -2140,13 +2151,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>> CreateAnalyzerGateMapAsync(
+        private static async Task<ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim>> CreateAnalyzerGateMapAsync(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor,
             SeverityFilter severityFilter)
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, SemaphoreSlim>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<DiagnosticAnalyzer, SemaphoreSlim>();
             foreach (var analyzer in analyzers)
             {
                 Debug.Assert(!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, severityFilter));
@@ -2163,13 +2174,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>> CreateGeneratedCodeAnalysisFlagsMapAsync(
+        private static async Task<ImmutableSegmentedDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>> CreateGeneratedCodeAnalysisFlagsMapAsync(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor,
             SeverityFilter severityFilter)
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
             foreach (var analyzer in analyzers)
             {
                 Debug.Assert(!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, severityFilter));
@@ -2686,7 +2697,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return GetOperationsToAnalyze(operationBlocksToAnalyze);
                 }
-                catch (Exception ex) when (ex is InsufficientExecutionStackException || FatalError.ReportAndCatchUnlessCanceled(ex))
+#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
+                catch (Exception ex) when (ex is InsufficientExecutionStackException || FatalError.ReportIfNonFatalAndCatchUnlessCanceled(ex, cancellationToken))
+#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
                 {
                     // the exception filter will short-circuit if `ex` is `InsufficientExecutionStackException` (from OperationWalker)
                     // and no non-fatal-watson will be logged as a result.

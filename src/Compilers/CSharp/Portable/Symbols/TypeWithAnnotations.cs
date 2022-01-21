@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
+            Debug.Assert(nullableAnnotation != NullableAnnotation.Ignored || typeSymbol.IsTypeParameter());
             switch (nullableAnnotation)
             {
                 case NullableAnnotation.Oblivious:
@@ -159,11 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(NullableAnnotation);
                 }
             }
-        }
-
-        private static bool IsIndexedTypeParameter(TypeSymbol typeSymbol)
-        {
-            return typeSymbol is IndexedTypeParameterSymbol;
         }
 
         private static TypeWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation, ImmutableArray<CustomModifier> customModifiers)
@@ -418,10 +414,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    Symbol.GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, owner, ref checkedTypes);
         }
 
-        public bool IsAtLeastAsVisibleAs(Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public bool IsAtLeastAsVisibleAs(Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // System.Nullable is public, so it is safe to delegate to the underlying.
-            return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteDiagnostics);
+            return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteInfo);
         }
 
         public TypeWithAnnotations SubstituteType(AbstractTypeMap typeMap) =>
@@ -429,6 +425,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal TypeWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap)
         {
+            // Ignored may only appear on a replacement type and will not survive the substitution (ie. the original annotation wins over Ignored)
+            Debug.Assert(NullableAnnotation != NullableAnnotation.Ignored);
+
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             TypeSymbol typeSymbol = this.Type;
             var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol);
@@ -437,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(newTypeWithModifiers.NullableAnnotation.IsOblivious() || (typeSymbol.IsNullableType() && newTypeWithModifiers.NullableAnnotation.IsAnnotated()));
                 Debug.Assert(newTypeWithModifiers.CustomModifiers.IsEmpty);
+                Debug.Assert(NullableAnnotation != NullableAnnotation.Ignored);
 
                 if (typeSymbol.Equals(newTypeWithModifiers.Type, TypeCompareKind.ConsiderEverything) &&
                     newCustomModifiers == CustomModifiers)
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this; // substitution had no effect on the type or modifiers
             }
-            else if (Is((TypeParameterSymbol)typeSymbol))
+            else if (Is((TypeParameterSymbol)typeSymbol) && newTypeWithModifiers.NullableAnnotation != NullableAnnotation.Ignored)
             {
                 return newTypeWithModifiers;
             }
@@ -468,14 +468,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NullableAnnotation newAnnotation;
-
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
+            Debug.Assert(newTypeWithModifiers.Type is not IndexedTypeParameterSymbol || newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Ignored);
 
             if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
             {
                 newAnnotation = NullableAnnotation.Annotated;
             }
-            else if (IsIndexedTypeParameter(newTypeWithModifiers.Type))
+            else if (newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Ignored)
             {
                 newAnnotation = NullableAnnotation;
             }
@@ -507,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
         }
 
-        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics) =>
+        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics) =>
             _extensions.ReportDiagnosticsIfObsolete(this, binder, syntax, diagnostics);
 
         private bool TypeSymbolEqualsCore(TypeWithAnnotations other, TypeCompareKind comparison)
@@ -515,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Type.Equals(other.Type, comparison);
         }
 
-        private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             binder.ReportDiagnosticsIfObsolete(diagnostics, Type, syntax, hasBaseReceiver: false);
         }
@@ -729,7 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool Equals(object other)
 #pragma warning restore CS0809
         {
-            throw ExceptionUtilities.Unreachable;
+            // It is possible to get here when we compare diagnostic for equality
+            return other is TypeWithAnnotations t && this.Equals(t, TypeCompareKind.ConsiderEverything);
         }
 
 #pragma warning disable CS0809
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal abstract bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison);
             internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap);
-            internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
+            internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics);
 
             internal abstract void TryForceResolve(bool asValueType);
         }
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type.SubstituteTypeCore(typeMap);
             }
 
-            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 type.ReportDiagnosticsIfObsoleteCore(binder, syntax, diagnostics);
             }
@@ -942,8 +942,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_resolved == null)
                 {
-                    Debug.Assert(_underlying.IsSafeToResolve());
-
                     TryForceResolve(asValueType: _underlying.Type.IsValueType);
                 }
 
@@ -1035,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 if ((object)_resolved != null)
                 {

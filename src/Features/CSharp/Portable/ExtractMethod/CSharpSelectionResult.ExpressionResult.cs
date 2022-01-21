@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 OperationStatus status,
                 TextSpan originalSpan,
                 TextSpan finalSpan,
-                OptionSet options,
+                ExtractMethodOptions options,
                 bool selectionInExpression,
                 SemanticDocument document,
                 SyntaxAnnotation firstTokenAnnotation,
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override ITypeSymbol? GetContainingScopeType()
             {
-                if (!(GetContainingScope() is ExpressionSyntax node))
+                if (GetContainingScope() is not ExpressionSyntax node)
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 // use FormattableString if conversion between String and FormattableString
                 if (info.Type?.SpecialType == SpecialType.System_String &&
-                    info.ConvertedType?.IsFormattableString() == true)
+                    info.ConvertedType?.IsFormattableStringOrIFormattable() == true)
                 {
                     return info.GetConvertedTypeWithAnnotatedNullability();
                 }

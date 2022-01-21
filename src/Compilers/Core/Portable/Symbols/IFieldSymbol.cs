@@ -49,6 +49,14 @@ namespace Microsoft.CodeAnalysis
         bool IsFixedSizeBuffer { get; }
 
         /// <summary>
+        /// If IsFixedSizeBuffer is true, the value between brackets in the fixed-size-buffer declaration.
+        /// If IsFixedSizeBuffer is false or there is an error (such as a bad constant value in source), FixedSize is 0.
+        /// Note that for fixed-size buffer declaration, this.Type will be a pointer type, of which
+        /// the pointed-to type will be the declared element type of the fixed-size buffer.
+        /// </summary>
+        int FixedSize { get; }
+
+        /// <summary>
         /// Gets the type of this field.
         /// </summary>
         ITypeSymbol Type { get; }
@@ -92,5 +100,10 @@ namespace Microsoft.CodeAnalysis
         /// to the corresponding default element field such as "Item1"
         /// </remarks>
         IFieldSymbol? CorrespondingTupleField { get; }
+
+        /// <summary>
+        /// Returns true if this field represents a tuple element which was given an explicit name.
+        /// </summary>
+        bool IsExplicitlyNamedTupleElement { get; }
     }
 }

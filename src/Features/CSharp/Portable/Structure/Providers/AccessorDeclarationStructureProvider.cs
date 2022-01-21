@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -14,12 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class AccessorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<AccessorDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             AccessorDeclarationSyntax accessorDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(accessorDeclaration, spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(accessorDeclaration, ref spans, options);
 
             // fault tolerance
             if (accessorDeclaration.Body == null ||
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
             // All accessor kinds are grouped together in Metadata as Source.
-            var compressEmptyLines = optionProvider.IsMetadataAsSource
+            var compressEmptyLines = options.IsMetadataAsSource
                 && (!nextSibling.IsNode || nextSibling.AsNode() is AccessorDeclarationSyntax);
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(

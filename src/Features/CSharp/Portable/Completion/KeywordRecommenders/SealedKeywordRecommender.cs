@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class SealedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validNonInterfaceMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ExternKeyword,
             SyntaxKind.InternalKeyword,
@@ -21,6 +21,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.OverrideKeyword,
             SyntaxKind.PublicKeyword,
             SyntaxKind.ProtectedKeyword,
+            SyntaxKind.UnsafeKeyword,
+        };
+
+        private static readonly ISet<SyntaxKind> s_validInterfaceMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.ExternKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.NewKeyword,
+            SyntaxKind.OverrideKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.StaticKeyword,
             SyntaxKind.UnsafeKeyword,
         };
 
@@ -44,8 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsGlobalStatementContext ||
                 context.IsMemberDeclarationContext(
-                    validModifiers: s_validMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceRecordTypeDeclarations,
+                    validModifiers: s_validNonInterfaceMemberModifiers,
+                    validTypeDeclarations: SyntaxKindSet.ClassRecordTypeDeclarations,
+                    canBePartial: false,
+                    cancellationToken: cancellationToken) ||
+                context.IsMemberDeclarationContext(
+                    validModifiers: s_validInterfaceMemberModifiers,
+                    validTypeDeclarations: SyntaxKindSet.InterfaceOnlyTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken) ||
                 context.IsTypeDeclarationContext(

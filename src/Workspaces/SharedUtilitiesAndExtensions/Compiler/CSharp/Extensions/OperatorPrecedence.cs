@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         Shift,
         Additive,
         Multiplicative,
+        Switch,
         Range,
         Unary,
         Primary

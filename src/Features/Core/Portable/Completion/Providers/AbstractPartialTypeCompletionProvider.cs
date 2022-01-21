@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractPartialTypeCompletionProvider : LSPCompletionProvider
+    internal abstract partial class AbstractPartialTypeCompletionProvider<TSyntaxContext> : LSPCompletionProvider
+        where TSyntaxContext : SyntaxContext
     {
         protected AbstractPartialTypeCompletionProvider()
         {
@@ -32,16 +32,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var position = completionContext.Position;
                 var cancellationToken = completionContext.CancellationToken;
 
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var node = GetPartialTypeSyntaxNode(tree, position, cancellationToken);
 
                 if (node != null)
                 {
                     var semanticModel = await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(false);
-                    var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
-
                     if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)
                     {
+                        var syntaxContextService = document.GetRequiredLanguageService<ISyntaxContextService>();
+                        var syntaxContext = (TSyntaxContext)syntaxContextService.CreateContext(document, semanticModel, position, cancellationToken);
                         var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
                         var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
 
@@ -52,14 +52,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
         }
 
-        private CompletionItem CreateCompletionItem(
-            INamedTypeSymbol symbol, SyntaxContext context)
+        private CompletionItem CreateCompletionItem(INamedTypeSymbol symbol, TSyntaxContext context)
         {
             var (displayText, suffix, insertionText) = GetDisplayAndSuffixAndInsertionText(symbol, context);
 
@@ -73,20 +72,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: CompletionItemRules.Default);
         }
 
-        protected abstract ImmutableDictionary<string, string> GetProperties(
-            INamedTypeSymbol symbol, SyntaxContext context);
+        protected abstract ImmutableDictionary<string, string> GetProperties(INamedTypeSymbol symbol, TSyntaxContext context);
 
-        protected abstract Task<SyntaxContext> CreateSyntaxContextAsync(
-            Document document,
-            SemanticModel semanticModel,
-            int position,
-            CancellationToken cancellationToken);
+        protected abstract SyntaxNode? GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        protected abstract SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
+        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(INamedTypeSymbol symbol, TSyntaxContext context);
 
-        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
-
-        protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
+        protected virtual IEnumerable<INamedTypeSymbol>? LookupCandidateSymbols(TSyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
             if (declaredSymbol == null)
             {
@@ -95,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var semanticModel = context.SemanticModel;
 
-            if (!(declaredSymbol.ContainingSymbol is INamespaceOrTypeSymbol containingSymbol))
+            if (declaredSymbol.ContainingSymbol is not INamespaceOrTypeSymbol containingSymbol)
             {
                 return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
             }
@@ -110,15 +102,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static bool InSameProject(INamedTypeSymbol symbol, Compilation compilation)
             => symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
 
-        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, SyntaxContext context)
+        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, TSyntaxContext context)
         {
             return symbol.DeclaringSyntaxReferences
                          .Select(reference => reference.GetSyntax())
                          .Any(node => !(node.SyntaxTree == context.SyntaxTree && node.Span.IntersectsWith(context.Position)));
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {

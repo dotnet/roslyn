@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             => !left.Equals(right);
 
         /// <summary>
-        /// check whether given persisted version is re-usable
+        /// Check whether given persisted version is re-usable. Used by VS for Mac
         /// </summary>
         internal static bool CanReusePersistedVersion(VersionStamp baseVersion, VersionStamp persistedVersion)
         {

@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
@@ -27,8 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod
         public ExtractMethodCommandHandler(
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
-            IInlineRenameService renameService)
-            : base(threadingContext, undoManager, renameService)
+            IInlineRenameService renameService,
+            IGlobalOptionService globalOptions)
+            : base(threadingContext, undoManager, renameService, globalOptions)
         {
         }
     }

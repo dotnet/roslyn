@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             status As OperationStatus,
             originalSpan As TextSpan,
             finalSpan As TextSpan,
-            options As OptionSet,
+            options As ExtractMethodOptions,
             selectionInExpression As Boolean,
             document As SemanticDocument,
             firstToken As SyntaxToken,
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             status As OperationStatus,
             originalSpan As TextSpan,
             finalSpan As TextSpan,
-            options As OptionSet,
+            options As ExtractMethodOptions,
             selectionInExpression As Boolean,
             document As SemanticDocument,
             firstTokenAnnotation As SyntaxAnnotation,
@@ -195,8 +195,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             ' use FormattableString if conversion between String And FormattableString
-            If (info.Type?.SpecialType = SpecialType.System_String).GetValueOrDefault() AndAlso
-               info.ConvertedType?.IsFormattableString() Then
+            If If(info.Type?.SpecialType = SpecialType.System_String, False) AndAlso
+               info.ConvertedType?.IsFormattableStringOrIFormattable() Then
 
                 Return info.ConvertedType
             End If

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2071,6 +2070,38 @@ NamedOptional();
             VerifyOutputInMain(source, "3 2", "System");
         }
 
+        [Fact, WorkItem(51518, "https://github.com/dotnet/roslyn/issues/51518")]
+        public void OptionalParameterCodeGen()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        LocalFunc();
+        void LocalFunc(int a = 2) { }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedSignatures: new SignatureDescription[]
+            {
+                Signature("C", "Main", ".method public hidebysig static System.Void Main() cil managed"),
+                Signature("C", "<Main>g__LocalFunc|0_0", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig static System.Void <Main>g__LocalFunc|0_0([opt] System.Int32 a = 2) cil managed")
+            });
+        }
+
+        [Fact, WorkItem(53478, "https://github.com/dotnet/roslyn/issues/53478")]
+        public void OptionalParameterCodeGen_Reflection()
+        {
+            VerifyOutputInMain(@"void TestAction(int i = 5) { }
+
+        var d = (Action<int>)TestAction;
+        var p2 = d.Method.GetParameters();
+        Console.WriteLine(p2[0].HasDefaultValue);
+        Console.WriteLine(p2[0].DefaultValue);", @"True
+5", new[] { "System" });
+        }
 
         [Fact]
         [CompilerTrait(CompilerFeature.Dynamic)]
@@ -4477,11 +4508,11 @@ Console.WriteLine(AwaitAwait().Result);
             var source = @"
 using System;
 
-struct async
+struct @async
 {
     public override string ToString() => ""2"";
 }
-struct await
+struct @await
 {
     public override string ToString() => ""2"";
 }
@@ -5305,7 +5336,7 @@ class C
         }
 
         [Fact]
-        public void LocalFunction_DontEmitNullableAttribute()
+        public void LocalFunction_EmitNullableAttribute()
         {
             var source = @"
 #nullable enable
@@ -5328,14 +5359,14 @@ class C
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
                 var attrs1 = localFn1.GetAttributes();
-                Assert.Equal("CompilerGeneratedAttribute", attrs1.Single().AttributeClass.Name);
+                AssertEx.Equal(new[] { "NullableContextAttribute", "CompilerGeneratedAttribute" }, attrs1.Select(a => a.AttributeClass.Name));
 
                 Assert.Empty(localFn1.GetReturnTypeAttributes());
-                Assert.Equal(NullableAnnotation.Oblivious, localFn1.ReturnTypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Annotated, localFn1.ReturnTypeWithAnnotations.NullableAnnotation);
 
                 var param = localFn1.Parameters.Single();
                 Assert.Empty(param.GetAttributes());
-                Assert.Equal(NullableAnnotation.Oblivious, param.TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Annotated, param.TypeWithAnnotations.NullableAnnotation);
             }
         }
 
@@ -5935,6 +5966,132 @@ class C
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
                 Assert.True(localFn1.HasSpecialName);
             }
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_01()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2(Local3()));	
+            static string Local2(dynamic n) => n.ToString();
+        }
+
+        static int Local3() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_02()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2(Local3<object>()));	
+            static string Local2(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_03()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2<object>(Local3<object>()));	
+            static string Local2<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_04()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local1<object>(Local3<object>()));	
+            static string Local1<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_05()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2<object>(Local3<object>()));	
+            static string Local2<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local2<S>() => (int)(dynamic)4;
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)

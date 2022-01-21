@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(FunctionPointerUnmanagedCallingConventionCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(EmbeddedLanguageCompletionProvider))]
+    [ExtensionOrder(After = nameof(AggregateEmbeddedLanguageCompletionProvider))]
     [Shared]
     internal partial class FunctionPointerUnmanagedCallingConventionCompletionProvider : LSPCompletionProvider
     {
@@ -32,10 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         private static readonly ImmutableArray<string> s_predefinedCallingConventions = ImmutableArray.Create("Cdecl", "Fastcall", "Thiscall", "Stdcall");
 
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.AddItems(completionItems);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static void AddTypes(HashSet<CompletionItem> completionItems, int contextPosition, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // We have to find the set of types that meet the criteria listed in
-            // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-9.0/function-pointers.md#mapping-the-calling_convention_specifier-to-a-callkind
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/function-pointers.md#mapping-the-calling_convention_specifier-to-a-callkind
             // We skip the check of an type being in the core assembly since that's not really necessary for our work.
             var compilerServicesNamespace = semanticModel.Compilation.GlobalNamespace.GetQualifiedNamespace("System.Runtime.CompilerServices");
             if (compilerServicesNamespace == null)
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (type.DeclaredAccessibility == Accessibility.Public && type.Name.StartsWith(CallConvPrefix))
                 {
-                    var displayName = type.Name.Substring(CallConvPrefix.Length);
+                    var displayName = type.Name[CallConvPrefix.Length..];
                     completionItems.Add(
                         SymbolCompletionItem.CreateWithSymbolId(
                             displayName,
@@ -118,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         private class CompletionItemComparer : IEqualityComparer<CompletionItem>
         {

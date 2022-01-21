@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -25,8 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         protected abstract CSharpTypeStyleHelper Helper { get; }
 
         protected CSharpTypeStyleDiagnosticAnalyzerBase(
-            string diagnosticId, LocalizableString title, LocalizableString message)
+            string diagnosticId, EnforceOnBuild enforceOnBuild, LocalizableString title, LocalizableString message)
             : base(diagnosticId,
+                   enforceOnBuild,
                    ImmutableHashSet.Create<ILanguageSpecificOption>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
                    LanguageNames.CSharp,
                    title, message)

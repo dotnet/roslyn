@@ -77,8 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 }
 
-                undoHistory = _undoHistoryRegistry.GetHistory(textBuffer);
-                return true;
+                return _undoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
             }
         }
     }

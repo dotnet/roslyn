@@ -10,16 +10,15 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class OnAutoInsertHandler : IRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ProvidesMethod(VSInternalMethods.OnAutoInsertName)]
+    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,22 +26,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnAutoInsertParams request) => request.TextDocument;
+        public override string Method => VSInternalMethods.OnAutoInsertName;
 
-        public async Task<DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
+
+        public override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
-
             var document = context.Document;
             if (document == null)
             {
-                return response.ToArray();
+                return null;
             }
 
             var insertService = document.Project.LanguageServices.GetService<IXamlAutoInsertService>();
             if (insertService == null)
             {
-                return response.ToArray();
+                return null;
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -50,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             var result = await insertService.GetAutoInsertAsync(document, request.Character[0], offset, cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
-                return response.ToArray();
+                return null;
             }
 
             Contract.ThrowIfNull(result.TextChange.NewText);
@@ -62,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 insertText = insertText.Insert(result.CaretOffset.Value, "$0");
             }
 
-            response.Add(new DocumentOnAutoInsertResponseItem
+            return new VSInternalDocumentOnAutoInsertResponseItem
             {
                 TextEditFormat = insertFormat,
                 TextEdit = new TextEdit
@@ -70,9 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                     NewText = insertText,
                     Range = ProtocolConversions.TextSpanToRange(result.TextChange.Span, text)
                 }
-            });
-
-            return response.ToArray();
+            };
         }
     }
 }

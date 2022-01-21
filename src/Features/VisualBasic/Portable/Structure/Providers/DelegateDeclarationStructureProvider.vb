@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -11,11 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class DelegateDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of DelegateStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(delegateDeclaration As DelegateStatementSyntax,
-                                                  spans As ArrayBuilder(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  delegateDeclaration As DelegateStatementSyntax,
+                                                  ByRef spans As TemporaryArray(Of BlockSpan),
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(delegateDeclaration, spans, optionProvider)
+            CollectCommentsRegions(delegateDeclaration, spans, options)
         End Sub
     End Class
 End Namespace

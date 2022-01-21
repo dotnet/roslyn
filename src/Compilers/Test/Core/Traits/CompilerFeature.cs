@@ -42,5 +42,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         AnonymousFunctions,
         ModuleInitializers,
         FunctionPointers,
+        RecordStructs,
     }
 }

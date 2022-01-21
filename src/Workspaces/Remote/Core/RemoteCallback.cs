@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Invokes a remote API that streams results back to the caller.
         /// </summary>
+        /// <inheritdoc cref="BrokeredServiceConnection{TService}.InvokeStreamingServiceAsync"/>
         public async ValueTask<TResult> InvokeAsync<TResult>(
             Func<T, PipeWriter, CancellationToken, ValueTask> invocation,
             Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
@@ -95,7 +96,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     return false;
                 }
 
-                return true;
+                // Log unexpected state where a cancellation exception occurs without being requested.
+                return FatalError.ReportAndCatch(exception);
             }
 
             // When a connection is dropped and CancelLocallyInvokedMethodsWhenConnectionIsClosed is

@@ -173,6 +173,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If IsConversionFromUnderlyingToNullable(conversion) Then
                         Return conversion.Operand
                     End If
+
+                Case Else
+                    Debug.Assert(Not HasValue(expr))
+
+                    If Not _inExpressionLambda AndAlso expr.Type.IsNullableOfBoolean() Then
+
+                        Dim whenNotNull As BoundExpression = Nothing
+                        Dim whenNull As BoundExpression = Nothing
+                        If IsConditionalAccess(expr, whenNotNull, whenNull) AndAlso HasNoValue(whenNull) Then
+                            Debug.Assert(Not HasNoValue(whenNotNull))
+                            Return UpdateConditionalAccess(expr,
+                                                           NullableValueOrDefault(whenNotNull),
+                                                           New BoundLiteral(expr.Syntax, ConstantValue.False, expr.Type.GetNullableUnderlyingType()))
+                        End If
+                    End If
             End Select
 
             Dim getValueOrDefaultMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefault)

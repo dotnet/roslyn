@@ -4,27 +4,25 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.IO.Pipelines;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// Provides solution assets present locally (in the current process) to a remote process where the solution is being replicated to.
+    /// </summary>
     internal sealed class SolutionAssetProvider : ISolutionAssetProvider
     {
-        public const string ServiceName = ServiceDescriptors.ServiceNameTopLevelPrefix + ServiceDescriptors.ServiceNameComponentLevelPrefix + "SolutionAssetProvider";
+        public const string ServiceName = "SolutionAssetProvider";
 
-        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceName, ServiceDescriptors.GetFeatureDisplayName);
+        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
 
         private readonly HostWorkspaceServices _services;
 
@@ -37,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
+            var replicationContext = assetStorage.GetReplicationContext(scopeId);
 
             SolutionAsset? singleAsset = null;
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var stream = localPipe.Writer.AsStream(leaveOpen: false);
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
-                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
+                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -102,8 +101,5 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
         }
-
-        public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
     }
 }

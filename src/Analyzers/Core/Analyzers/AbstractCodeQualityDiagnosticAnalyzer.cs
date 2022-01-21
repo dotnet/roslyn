@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 #if CODE_STYLE
@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
         }
 
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -46,13 +47,14 @@ namespace Microsoft.CodeAnalysis.CodeQuality
 
         protected static DiagnosticDescriptor CreateDescriptor(
             string id,
+            EnforceOnBuild enforceOnBuild,
             LocalizableString title,
             LocalizableString messageFormat,
             bool isUnnecessary,
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
-            LocalizableString description = null,
-            params string[] customTags)
+            LocalizableString? description = null)
+#pragma warning disable RS0030 // Do not used banned APIs
             => new(
                     id, title, messageFormat,
                     DiagnosticCategory.CodeQuality,
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
                     isEnabledByDefault,
                     description,
                     helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
+#pragma warning disable RS0030 // Do not used banned APIs
     }
 }

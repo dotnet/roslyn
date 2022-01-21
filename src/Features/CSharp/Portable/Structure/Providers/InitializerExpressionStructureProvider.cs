@@ -6,7 +6,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class InitializerExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<InitializerExpressionSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             InitializerExpressionSyntax node,
-            ArrayBuilder<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             if (node.Parent is InitializerExpressionSyntax)
@@ -58,7 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 //
                 // However, the hint span should be the entire object creation.
 
-                var previousToken = node.OpenBraceToken.GetPreviousToken();
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
                     textSpan: TextSpan.FromBounds(previousToken.Span.End, node.Span.End),

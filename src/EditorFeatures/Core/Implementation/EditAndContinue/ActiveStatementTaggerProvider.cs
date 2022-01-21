@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -41,23 +40,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ActiveStatementTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
         }
+
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             AssertIsForeground();
 
             return TaggerEventSources.Compose(
-                new EventSource(subjectBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
+                new EventSource(subjectBuffer),
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context)
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<ITextMarkerTag> context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
 
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             var snapshot = spanToTag.SnapshotSpan.Snapshot;
 
-            var activeStatementSpans = await activeStatementTrackingService.GetAdjustedTrackingSpansAsync(document, snapshot, context.CancellationToken).ConfigureAwait(false);
+            var activeStatementSpans = await activeStatementTrackingService.GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
             foreach (var activeStatementSpan in activeStatementSpans)
             {
                 if (activeStatementSpan.IsLeaf)

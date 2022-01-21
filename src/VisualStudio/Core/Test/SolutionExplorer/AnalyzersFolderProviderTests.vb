@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub CreateCollectionSource_NullItem()
             Using environment = New TestEnvironment()
                 Dim provider As IAttachedCollectionSourceProvider =
-                    New AnalyzersFolderItemProvider(environment.Workspace, Nothing)
+                    New AnalyzersFolderItemSourceProvider(environment.Workspace, Nothing)
 
                 Dim collectionSource = provider.CreateCollectionSource(Nothing, KnownRelationships.Contains)
 
@@ -31,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub CreateCollectionSource_NullHierarchyIdentity()
             Using environment = New TestEnvironment()
                 Dim provider As IAttachedCollectionSourceProvider =
-                    New AnalyzersFolderItemProvider(environment.Workspace, Nothing)
+                    New AnalyzersFolderItemSourceProvider(environment.Workspace, Nothing)
 
                 Dim hierarchyItem = New MockHierarchyItem With {.HierarchyIdentity = Nothing}
 
@@ -62,7 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     }
                 }
 
-                Dim provider As IAttachedCollectionSourceProvider = New AnalyzersFolderItemProvider(environment.Workspace, New FakeAnalyzersCommandHandler)
+                Dim provider As IAttachedCollectionSourceProvider = New AnalyzersFolderItemSourceProvider(environment.Workspace, New FakeAnalyzersCommandHandler)
 
                 Dim collectionSource = provider.CreateCollectionSource(hierarchyItem, KnownRelationships.Contains)
 

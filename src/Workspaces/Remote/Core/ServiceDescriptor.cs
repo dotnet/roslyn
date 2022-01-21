@@ -3,13 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.IO.Pipelines;
-using MessagePack;
-using MessagePack.Formatters;
-using MessagePack.Resolvers;
+using System.Diagnostics;
 using Microsoft.ServiceHub.Framework;
-using Nerdbank.Streams;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -20,7 +16,12 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class ServiceDescriptor : ServiceJsonRpcDescriptor
     {
-        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
+        /// <summary>
+        /// Brokered services must be defined in Microsoft.VisualStudio service namespace in order to be considered first party.
+        /// </summary>
+        internal const string ServiceNameTopLevelPrefix = "Microsoft.VisualStudio.";
+
+        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new()
         {
             // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
             NotifyClientOfEvents = false,
@@ -29,51 +30,50 @@ namespace Microsoft.CodeAnalysis.Remote
             AllowNonPublicInvocation = false
         };
 
-        // Enables remote APIs to pass Stream as parameter.
-        private static readonly MultiplexingStream.Options s_multiplexingStreamOptions = new MultiplexingStream.Options
-        {
-            ProtocolMajorVersion = 3
-        }.GetFrozenCopy();
-
-        internal static readonly MessagePackSerializerOptions DefaultOptions = StandardResolverAllowPrivate.Options
-            .WithSecurity(MessagePackSecurity.UntrustedData.WithHashCollisionResistant(false))
-            .WithResolver(MessagePackFormatters.DefaultResolver);
+        internal readonly string ComponentName;
+        internal readonly string SimpleName;
 
         private readonly Func<string, string> _featureDisplayNameProvider;
-        private readonly MessagePackSerializerOptions _options;
+        private readonly RemoteSerializationOptions _serializationOptions;
 
-        private ServiceDescriptor(ServiceMoniker serviceMoniker, MessagePackSerializerOptions options, Func<string, string> displayNameProvider, Type? clientInterface)
-            : base(serviceMoniker, clientInterface, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, s_multiplexingStreamOptions)
+        private ServiceDescriptor(
+            ServiceMoniker serviceMoniker,
+            string componentName,
+            string simpleName,
+            RemoteSerializationOptions serializationOptions,
+            Func<string, string> displayNameProvider,
+            Type? clientInterface)
+            : base(serviceMoniker, clientInterface, serializationOptions.Formatter, serializationOptions.MessageDelimiters, serializationOptions.MultiplexingStreamOptions)
         {
+            ComponentName = componentName;
+            SimpleName = simpleName;
             _featureDisplayNameProvider = displayNameProvider;
-            _options = options;
+            _serializationOptions = serializationOptions;
         }
 
         private ServiceDescriptor(ServiceDescriptor copyFrom)
           : base(copyFrom)
         {
+            ComponentName = copyFrom.ComponentName;
+            SimpleName = copyFrom.SimpleName;
             _featureDisplayNameProvider = copyFrom._featureDisplayNameProvider;
-            _options = copyFrom._options;
+            _serializationOptions = copyFrom._serializationOptions;
         }
 
-        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, MessagePackSerializerOptions options, Func<string, string> featureDisplayNameProvider, Type? clientInterface)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), options, featureDisplayNameProvider, clientInterface);
+        public static ServiceDescriptor CreateRemoteServiceDescriptor(string componentName, string simpleName, string suffix, RemoteSerializationOptions options, Func<string, string> featureDisplayNameProvider, Type? clientInterface)
+            => new(CreateMoniker(componentName, simpleName, suffix), componentName, simpleName, options, featureDisplayNameProvider, clientInterface);
 
-        public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName, Func<string, string> featureDisplayNameProvider)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), DefaultOptions, featureDisplayNameProvider, clientInterface: null);
+        public static ServiceDescriptor CreateInProcServiceDescriptor(string componentName, string simpleName, string suffix, Func<string, string> featureDisplayNameProvider)
+            => new(CreateMoniker(componentName, simpleName, suffix), componentName, simpleName, RemoteSerializationOptions.Default, featureDisplayNameProvider, clientInterface: null);
+
+        private static ServiceMoniker CreateMoniker(string componentName, string simpleName, string suffix)
+            => new(ServiceNameTopLevelPrefix + componentName + "." + simpleName + suffix);
 
         protected override ServiceRpcDescriptor Clone()
             => new ServiceDescriptor(this);
 
         protected override IJsonRpcMessageFormatter CreateFormatter()
-            => ConfigureFormatter((MessagePackFormatter)base.CreateFormatter());
-
-        private MessagePackFormatter ConfigureFormatter(MessagePackFormatter formatter)
-        {
-            // See https://github.com/neuecc/messagepack-csharp.
-            formatter.SetMessagePackSerializerOptions(_options);
-            return formatter;
-        }
+            => _serializationOptions.ConfigureFormatter(base.CreateFormatter());
 
         protected override JsonRpcConnection CreateConnection(JsonRpc jsonRpc)
         {
@@ -84,6 +84,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         internal string GetFeatureDisplayName()
-            => _featureDisplayNameProvider(Moniker.Name);
+            => _featureDisplayNameProvider(SimpleName);
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -19,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     {
         public CSharpUseDefaultLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
+                   EnforceOnBuildValues.UseDefaultLiteral,
                    CSharpCodeStyleOptions.PreferSimpleDefaultExpression,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_default_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -41,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;
             if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, preference.Value, context.SemanticModel, cancellationToken))
-            {
                 return;
-            }
 
             var fadeSpan = TextSpan.FromBounds(defaultExpression.OpenParenToken.SpanStart, defaultExpression.CloseParenToken.Span.End);
 

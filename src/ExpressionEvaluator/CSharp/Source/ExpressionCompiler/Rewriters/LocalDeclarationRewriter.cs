@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundObjectCreationExpression(
                 syntax,
                 guidConstructor,
-                null,
                 new BoundLiteral(syntax, value, guidConstructor.ContainingType));
         }
 

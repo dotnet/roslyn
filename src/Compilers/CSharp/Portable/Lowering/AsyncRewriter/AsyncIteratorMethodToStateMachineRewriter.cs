@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(method, methodOrdinal, asyncMethodBuilderMemberCollection, F,
                   state, builder, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals,
                   slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)

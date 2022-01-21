@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {  LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) }
             };
 
-            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default);
+            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, parseOptions: CSharpParseOptions.Default);
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap);
             var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task MultipleTaggersAndDispose()
         {
-            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, CSharpParseOptions.Default);
+            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A {" }, parseOptions: CSharpParseOptions.Default);
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             // Make two taggers.
             var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported()
         {
-            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class C {" }, CSharpParseOptions.Default);
+            using var workspace = TestWorkspace.CreateCSharp(new string[] { "class C {" }, parseOptions: CSharpParseOptions.Default);
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace, analyzerMap: null, createTaggerProvider: false);
             // First, make sure all diagnostics have been reported.
             await wrapper.WaitForTags();
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             using var workspace = TestWorkspace.CreateCSharp(
                 new string[] { "class A { }" },
-                CSharpParseOptions.Default,
+                parseOptions: CSharpParseOptions.Default,
                 composition: s_compositionWithMockDiagnosticService);
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             using var workspace = TestWorkspace.CreateCSharp(
                 new string[] { "class A { }" },
-                CSharpParseOptions.Default,
+                parseOptions: CSharpParseOptions.Default,
                 composition: s_compositionWithMockDiagnosticService);
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();

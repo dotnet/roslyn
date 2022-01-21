@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
@@ -27,40 +29,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
-                .Add(typeof(ServiceBase).Assembly)
+                .Add(typeof(BrokeredServiceBase).Assembly)
                 .Add(typeof(RemoteWorkspacesResources).Assembly);
 
         private readonly Lazy<RemoteWorkspace> _lazyPrimaryWorkspace;
         internal readonly SolutionAssetCache SolutionAssetCache;
-
-        // TODO: remove
-        private IAssetSource? _solutionAssetSource;
 
         public RemoteWorkspaceManager(SolutionAssetCache assetCache)
         {
             _lazyPrimaryWorkspace = new Lazy<RemoteWorkspace>(CreatePrimaryWorkspace);
             SolutionAssetCache = assetCache;
         }
-
-        // TODO: remove
-        [Obsolete("Supports non-brokered services")]
-        internal IAssetSource GetAssetSource()
-        {
-            Contract.ThrowIfNull(_solutionAssetSource, "Storage not initialized");
-            return _solutionAssetSource;
-        }
-
-        // TODO: remove
-        [Obsolete("Supports non-brokered services")]
-        internal void InitializeAssetSource(IAssetSource assetSource)
-        {
-            Contract.ThrowIfFalse(_solutionAssetSource == null);
-            _solutionAssetSource = assetSource;
-        }
-
-        [Obsolete("To be removed: https://github.com/dotnet/roslyn/issues/43477")]
-        public IAssetSource? TryGetAssetSource()
-            => _solutionAssetSource;
 
         private static ComposableCatalog CreateCatalog(ImmutableArray<Assembly> assemblies)
         {
@@ -88,6 +67,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public virtual RemoteWorkspace GetWorkspace()
             => _lazyPrimaryWorkspace.Value;
+
+        public ValueTask<Solution> GetSolutionAsync(ServiceBrokerClient client, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var assetSource = new SolutionAssetSource(client);
+            var workspace = GetWorkspace();
+            var assetProvider = workspace.CreateAssetProvider(solutionInfo, SolutionAssetCache, assetSource);
+            return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, solutionInfo.ProjectId, cancellationToken);
+        }
 
         private sealed class SimpleAssemblyLoader : IAssemblyLoader
         {

@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public FormattingDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.FormattingDiagnosticId,
+                EnforceOnBuildValues.Formatting,
                 option: null,   // No unique option to configure diagnosticId
                 new LocalizableResourceString(nameof(FeaturesResources.Fix_formatting), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 new LocalizableResourceString(nameof(FeaturesResources.Fix_formatting), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -30,17 +31,17 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            if (!(context.Options is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
+            if (context.Options is not WorkspaceAnalyzerOptions workspaceAnalyzerOptions)
             {
                 return;
             }
 
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetAnalyzerOptionSet(tree, cancellationToken);
+            var options = SyntaxFormattingOptions.Create(optionSet, workspaceAnalyzerOptions.Services, tree.Options.Language);
 
-            var options = context.Options.GetAnalyzerOptionSet(tree, cancellationToken);
-            var workspace = workspaceAnalyzerOptions.Services.Workspace;
-            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, workspace, Descriptor, options);
+            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, workspaceAnalyzerOptions.Services, Descriptor, options);
         }
     }
 }

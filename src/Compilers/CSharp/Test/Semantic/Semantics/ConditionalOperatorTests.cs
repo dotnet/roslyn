@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1252,7 +1251,7 @@ class C
 }}
 
 class D<T> {{ }}
-public enum color {{ Red, Blue, Green }};
+public enum @color {{ Red, Blue, Green }};
 interface I<in T, out U> {{ }}";
 
             var tree = Parse(source, options: parseOptions);

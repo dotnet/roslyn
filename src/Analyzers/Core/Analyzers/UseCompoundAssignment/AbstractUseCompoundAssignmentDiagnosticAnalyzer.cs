@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             ISyntaxFacts syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseCompoundAssignment,
                    CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -45,12 +46,14 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 nameof(AnalyzersResources.Use_increment_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
             _incrementDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                EnforceOnBuildValues.UseCompoundAssignment,
                 useIncrementMessage, useIncrementMessage);
 
             var useDecrementMessage = new LocalizableResourceString(
                 nameof(AnalyzersResources.Use_decrement_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
             _decrementDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                EnforceOnBuildValues.UseCompoundAssignment,
                 useDecrementMessage, useDecrementMessage);
         }
 
@@ -84,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             // has to be of the form:  a = b op c
             // op has to be a form we could convert into op=
-            if (!(assignmentRight is TBinaryExpressionSyntax binaryExpression))
+            if (assignmentRight is not TBinaryExpressionSyntax binaryExpression)
             {
                 return;
             }
@@ -146,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         assignmentToken.GetLocation(),
                         option.Notification.Severity,
                         additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                        properties: ImmutableDictionary.Create<string, string>()
+                        properties: ImmutableDictionary.Create<string, string?>()
                             .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
                     return;
                 }
@@ -157,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         assignmentToken.GetLocation(),
                         option.Notification.Severity,
                         additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                        properties: ImmutableDictionary.Create<string, string>()
+                        properties: ImmutableDictionary.Create<string, string?>()
                             .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
                     return;
                 }

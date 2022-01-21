@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using IVsDebugName = Microsoft.VisualStudio.TextManager.Interop.IVsDebugName;
 using IVsEnumBSTR = Microsoft.VisualStudio.TextManager.Interop.IVsEnumBSTR;
@@ -32,13 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly ILanguageDebugInfoService? _languageDebugInfo;
             private readonly IBreakpointResolutionService? _breakpointService;
             private readonly IProximityExpressionsService? _proximityExpressionsService;
-            private readonly IWaitIndicator _waitIndicator;
+            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
             public VsLanguageDebugInfo(
                 Guid languageId,
                 TLanguageService languageService,
                 HostLanguageServices languageServiceProvider,
-                IWaitIndicator waitIndicator)
+                IUIThreadOperationExecutor uiThreadOperationExecutor)
             {
                 Contract.ThrowIfNull(languageService);
                 Contract.ThrowIfNull(languageServiceProvider);
@@ -48,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageDebugInfo = languageServiceProvider.GetService<ILanguageDebugInfoService>();
                 _breakpointService = languageServiceProvider.GetService<IBreakpointResolutionService>();
                 _proximityExpressionsService = languageServiceProvider.GetService<IProximityExpressionsService>();
-                _waitIndicator = waitIndicator;
+                _uiThreadOperationExecutor = uiThreadOperationExecutor;
             }
 
             public int GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
@@ -73,38 +74,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                     if (_languageDebugInfo != null)
                     {
-                        _waitIndicator.Wait(
-                        title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.Determining_breakpoint_location,
-                        allowCancel: true,
-                        action: waitContext =>
-                        {
-                            var cancellationToken = waitContext.CancellationToken;
-                            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
-                            if (textBuffer != null)
+                        _uiThreadOperationExecutor.Execute(
+                            title: ServicesVSResources.Debugger,
+                            defaultDescription: ServicesVSResources.Determining_breakpoint_location,
+                            allowCancellation: true,
+                            showProgress: false,
+                            action: waitContext =>
                             {
-                                var nullablePoint = textBuffer.CurrentSnapshot.TryGetPoint(iLine, iCol);
-                                if (nullablePoint.HasValue)
+                                var cancellationToken = waitContext.UserCancellationToken;
+                                var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                                if (textBuffer != null)
                                 {
-                                    var point = nullablePoint.Value;
-                                    var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                                    if (document != null)
+                                    var nullablePoint = textBuffer.CurrentSnapshot.TryGetPoint(iLine, iCol);
+                                    if (nullablePoint.HasValue)
                                     {
-                                        // NOTE(cyrusn): We have to wait here because the debuggers' 
-                                        // GetNameOfLocation is a blocking call.  In the future, it 
-                                        // would be nice if they could make it async.
-                                        var debugLocationInfo = _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).WaitAndGetResult(cancellationToken);
+                                        var point = nullablePoint.Value;
+                                        var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-                                        if (!debugLocationInfo.IsDefault)
+                                        if (document != null)
                                         {
-                                            name = debugLocationInfo.Name;
-                                            lineOffset = debugLocationInfo.LineOffset;
+                                            // NOTE(cyrusn): We have to wait here because the debuggers' 
+                                            // GetNameOfLocation is a blocking call.  In the future, it 
+                                            // would be nice if they could make it async.
+                                            var debugLocationInfo = _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                                            if (!debugLocationInfo.IsDefault)
+                                            {
+                                                name = debugLocationInfo.Name;
+                                                lineOffset = debugLocationInfo.LineOffset;
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        });
+                            });
 
                         if (name != null)
                         {
@@ -131,11 +133,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                     if (_proximityExpressionsService != null)
                     {
-                        _waitIndicator.Wait(
+                        _uiThreadOperationExecutor.Execute(
                             title: ServicesVSResources.Debugger,
-                            message: ServicesVSResources.Determining_autos,
-                            allowCancel: true,
-                            action: waitContext =>
+                            defaultDescription: ServicesVSResources.Determining_autos,
+                            allowCancellation: true,
+                            showProgress: false,
+                            action: context =>
                         {
                             var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
 
@@ -149,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                     if (document != null)
                                     {
                                         var point = nullablePoint.Value;
-                                        var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                                        var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, context.UserCancellationToken).WaitAndGetResult(context.UserCancellationToken);
 
                                         if (proximityExpressions != null)
                                         {
@@ -184,13 +187,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     }
 
                     VsEnumDebugName? enumName = null;
-                    _waitIndicator.Wait(
+                    _uiThreadOperationExecutor.Execute(
                         title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.Resolving_breakpoint_location,
-                        allowCancel: true,
+                        defaultDescription: ServicesVSResources.Resolving_breakpoint_location,
+                        allowCancellation: true,
+                        showProgress: false,
                         action: waitContext =>
                     {
-                        var cancellationToken = waitContext.CancellationToken;
+                        var cancellationToken = waitContext.UserCancellationToken;
                         if (dwFlags == (uint)RESOLVENAMEFLAGS.RNF_BREAKPOINT)
                         {
                             var solution = _languageService.Workspace.CurrentSolution;
@@ -233,13 +237,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ValidateBreakpointLocation, CancellationToken.None))
                 {
                     var result = VSConstants.E_NOTIMPL;
-                    _waitIndicator.Wait(
+                    _uiThreadOperationExecutor.Execute(
                         title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.Validating_breakpoint_location,
-                        allowCancel: true,
+                        defaultDescription: ServicesVSResources.Validating_breakpoint_location,
+                        allowCancellation: true,
+                        showProgress: false,
                         action: waitContext =>
                     {
-                        result = ValidateBreakpointLocationWorker(pBuffer, iLine, iCol, pCodeSpan, waitContext.CancellationToken);
+                        result = ValidateBreakpointLocationWorker(pBuffer, iLine, iCol, pCodeSpan, waitContext.UserCancellationToken);
                     });
 
                     return result;

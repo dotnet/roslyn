@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+                   EnforceOnBuildValues.UseCollectionInitializer,
                    CodeStyleOptions2.PreferCollectionInitializer,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -46,6 +47,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
+            if (!AreCollectionInitializersSupported(context.Compilation))
+            {
+                return;
+            }
+
             var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
             if (ienumerableType != null)
             {
@@ -56,15 +62,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
         }
 
-        protected abstract bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context);
+        protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
         {
-            if (!AreCollectionInitializersSupported(context))
-            {
-                return;
-            }
-
             var semanticModel = context.SemanticModel;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;

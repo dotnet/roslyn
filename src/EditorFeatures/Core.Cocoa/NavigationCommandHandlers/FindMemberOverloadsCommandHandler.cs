@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 {
@@ -56,48 +57,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task FindMemberOverloadsAsync(
-                  Document document, int caretPosition,
-                  IStreamingFindUsagesPresenter presenter)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
             try
             {
-                using (var token = _asyncListener.BeginAsyncOperation(nameof(FindMemberOverloadsAsync)))
+                using var token = _asyncListener.BeginAsyncOperation(nameof(FindMemberOverloadsAsync));
+
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
+
+                using (Logger.LogBlock(
+                    FunctionId.CommandHandler_FindAllReference,
+                    KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
+                    cancellationToken))
                 {
-                    // Let the presented know we're starting a search.
-                    var context = presenter.StartSearch(
-                        EditorFeaturesResources.Navigating, supportsReferences: true);
-
-                    using (Logger.LogBlock(
-                        FunctionId.CommandHandler_FindAllReference,
-                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                        context.CancellationToken))
+                    try
                     {
-                        try
+                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
+
+                        // we need to get the containing type (i.e. class)
+                        var symbol = candidateSymbolProjectPair?.symbol;
+
+                        // if we didn't get any symbol, that's it
+                        if (symbol == null || symbol.ContainingType == null)
+                            return;
+
+                        foreach (var curSymbol in symbol.ContainingType.GetMembers()
+                                                        .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                         {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-
-                            // we need to get the containing type (i.e. class)
-                            var symbol = candidateSymbolProjectPair?.symbol;
-
-                            // if we didn't get any symbol, that's it
-                            if (symbol == null || symbol.ContainingType == null)
-                                return;
-
-                            foreach (var curSymbol in symbol.ContainingType.GetMembers()
-                                                            .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
-                            {
-                                var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                                await context.OnDefinitionFoundAsync(definitionItem);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-                            }
+                            var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: true);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                         }
-                        finally
-                        {
-                            await context.OnCompletedAsync().ConfigureAwait(false);
-                        }
+                    }
+                    finally
+                    {
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

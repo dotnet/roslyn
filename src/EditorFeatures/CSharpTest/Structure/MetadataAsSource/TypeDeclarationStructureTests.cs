@@ -82,5 +82,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
                 Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task RecordStructWithCommentsAndAttributes()
+        {
+            const string code = @"
+{|hint:{|textspan:// Summary:
+//     This is a doc comment.
+[Bar, Baz]
+|}{|#0:public record struct $$C|}{|textspan2:
+{
+    void M();
+}|}|#0}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task WithDocComments()
+        {
+            const string code = @"
+{|hint:{|textspan:/// <summary>This is a doc comment.</summary>
+|}{|#0:public class $$C|}{|textspan2:
+{
+    void M();
+}|}|#0}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task WithMultilineDocComments()
+        {
+            const string code = @"
+{|hint:{|textspan:/// <summary>This is a doc comment.</summary>
+/// <remarks>
+/// Comments are cool
+/// </remarks>
+|}{|#0:public class $$C|}{|textspan2:
+{
+    void M();
+}|}|#0}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
     }
 }

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -17,33 +18,41 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
     {
-        private static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
+        protected static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        protected abstract (ITypeSymbol type, TextSpan span)? TryGetTypeHint(
+        private readonly IGlobalOptionService _globalOptions;
+
+        public AbstractInlineTypeHintsService(IGlobalOptionService globalOptions)
+        {
+            _globalOptions = globalOptions;
+        }
+
+        protected abstract TypeHint? TryGetTypeHint(
             SemanticModel semanticModel, SyntaxNode node,
             bool displayAllOverride,
             bool forImplicitVariableTypes,
             bool forLambdaParameterTypes,
+            bool forImplicitObjectCreation,
             CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, InlineTypeHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
 
-            var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
-            var enabledForTypes = options.GetOption(InlineHintsOptions.EnabledForTypes);
+            var enabledForTypes = options.EnabledForTypes;
             if (!enabledForTypes && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var forImplicitVariableTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForImplicitVariableTypes);
-            var forLambdaParameterTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForLambdaParameterTypes);
-            if (!forImplicitVariableTypes && !forLambdaParameterTypes && !displayAllOverride)
+            var forImplicitVariableTypes = enabledForTypes && options.ForImplicitVariableTypes;
+            var forLambdaParameterTypes = enabledForTypes && options.ForLambdaParameterTypes;
+            var forImplicitObjectCreation = enabledForTypes && options.ForImplicitObjectCreation;
+            if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var anonymousTypeService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var anonymousTypeService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -56,38 +65,36 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     displayAllOverride,
                     forImplicitVariableTypes,
                     forLambdaParameterTypes,
+                    forImplicitObjectCreation,
                     cancellationToken);
                 if (hintOpt == null)
                     continue;
 
-                var (type, span) = hintOpt.Value;
+                var (type, span, textChange, prefix, suffix) = hintOpt.Value;
 
                 using var _2 = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
-                var parts = type.ToDisplayParts(s_minimalTypeStyle);
+                finalParts.AddRange(prefix);
 
+                var parts = type.ToDisplayParts(s_minimalTypeStyle);
                 AddParts(anonymousTypeService, finalParts, parts, semanticModel, span.Start);
 
                 // If we have nothing to show, then don't bother adding this hint.
-                if (finalParts.Sum(p => p.ToString().Length) == 0)
+                if (finalParts.All(p => string.IsNullOrWhiteSpace(p.ToString())))
                     continue;
 
-                if (span.Length == 0)
-                {
-                    // if this is a hint that is placed in-situ (i.e. it's not overwriting text like 'var'), then place
-                    // a space after it to make things feel less cramped.
-                    finalParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
-                }
+                finalParts.AddRange(suffix);
+                var taggedText = finalParts.ToTaggedText();
 
                 result.Add(new InlineHint(
-                    span, finalParts.ToTaggedText(),
-                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey())));
+                    span, taggedText, textChange,
+                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
             }
 
             return result.ToImmutable();
         }
 
         private void AddParts(
-            IAnonymousTypeDisplayService anonymousTypeService,
+            IStructuralTypeDisplayService anonymousTypeService,
             ArrayBuilder<SymbolDisplayPart> finalParts,
             ImmutableArray<SymbolDisplayPart> parts,
             SemanticModel semanticModel,

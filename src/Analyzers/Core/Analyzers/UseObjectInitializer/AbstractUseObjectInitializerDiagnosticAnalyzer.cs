@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+                   EnforceOnBuildValues.UseObjectInitializer,
                    CodeStyleOptions2.PreferObjectInitializer,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -41,21 +42,24 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected override void InitializeWorker(AnalysisContext context)
         {
             var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
-            context.RegisterSyntaxNodeAction(
-                AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+            context.RegisterCompilationStartAction(context =>
+            {
+                if (!AreObjectInitializersSupported(context.Compilation))
+                {
+                    return;
+                }
+
+                context.RegisterSyntaxNodeAction(
+                    AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+            });
         }
 
-        protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
+        protected abstract bool AreObjectInitializersSupported(Compilation compilation);
 
         protected abstract bool IsValidContainingStatement(TStatementSyntax node);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (!AreObjectInitializersSupported(context))
-            {
-                return;
-            }
-
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var option = context.GetOption(CodeStyleOptions2.PreferObjectInitializer, language);

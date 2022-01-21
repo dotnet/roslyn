@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
@@ -26,5 +24,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Reference to the value being matching in a property subpattern.
         /// </summary>
         PatternInput,
+        /// <summary>
+        /// Reference to the interpolated string handler instance created as part of a parent interpolated string handler conversion.
+        /// </summary>
+        InterpolatedStringHandler,
     }
 }

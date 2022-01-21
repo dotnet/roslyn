@@ -9,12 +9,17 @@
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
-        <target state="translated">'if' 문을 간단하게 줄일 수 있습니다.</target>
+        <target state="translated">'if' 문을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Imports_statement_is_unnecessary">
         <source>Imports statement is unnecessary.</source>
         <target state="translated">Imports 문은 필요하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">개체 만들기를 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_ByVal">

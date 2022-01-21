@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -32,9 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             RegionDirectiveTriviaSyntax regionDirective,
-            ArrayBuilder<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             var match = regionDirective.GetMatchingDirective(cancellationToken);
@@ -48,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 //   #endregion
                 //
                 // For other files, auto-collapse regions based on the user option.
-                var autoCollapse = optionProvider.IsMetadataAsSource || optionProvider.GetOption(
-                    BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
+                var autoCollapse = options.IsMetadataAsSource || options.CollapseRegionsWhenCollapsingToDefinitions;
 
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     type: BlockTypes.PreprocessorRegion,
                     bannerText: GetBannerText(regionDirective),
                     autoCollapse: autoCollapse,
-                    isDefaultCollapsed: !optionProvider.IsMetadataAsSource));
+                    isDefaultCollapsed: !options.IsMetadataAsSource));
             }
         }
     }

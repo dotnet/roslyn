@@ -671,5 +671,61 @@ end class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestParameterReferencedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            public void Goo(int {|Definition:$$i|})
+            {
+            }
+        }
+        </Document>
+        <DocumentFromSourceGenerator>
+        class D
+        {
+            public void M()
+            {
+                new C().Goo([|i|]: 42);
+            }
+        }
+
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestParameterDefinedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+        class C
+        {
+            public void Goo(int {|Definition:$$i|})
+            {
+            }
+        }
+        </DocumentFromSourceGenerator>
+        <Document>
+        class D
+        {
+            public void M()
+            {
+                new C().Goo([|i|]: 42);
+            }
+        }
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

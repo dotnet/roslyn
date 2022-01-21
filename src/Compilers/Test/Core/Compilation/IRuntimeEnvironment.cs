@@ -197,9 +197,9 @@ namespace Roslyn.Test.Utilities
             EmitOptions emitOptions
         )
         {
-            // A Compilation can appear multiple times in a depnedency graph as both a Compilation and as a MetadataReference
+            // A Compilation can appear multiple times in a dependency graph as both a Compilation and as a MetadataReference
             // value.  Iterate the Compilations eagerly so they are always emitted directly and later references can re-use 
-            // the value.  This gives better, and consistent, diagostic information.
+            // the value.  This gives better, and consistent, diagnostic information.
             var referencedCompilations = FindReferencedCompilations(compilation);
             var fullNameSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -242,6 +242,7 @@ namespace Roslyn.Test.Utilities
             var assembly = default(ImmutableArray<byte>);
             var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
 
+            // Note: don't forget to name the source inputs to get them embedded for debugging
             var embeddedTexts = compilation.SyntaxTrees
                 .Select(t => (filePath: t.FilePath, text: t.GetText()))
                 .Where(t => t.text.CanBeEmbedded && !string.IsNullOrEmpty(t.filePath))
@@ -262,6 +263,7 @@ namespace Roslyn.Test.Utilities
                     debugEntryPoint: null,
                     sourceLinkStream: null,
                     embeddedTexts,
+                    rebuildData: null,
                     testData: testData,
                     cancellationToken: default);
             }

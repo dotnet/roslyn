@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
 {
@@ -25,23 +26,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         private bool _selectAllCheckBoxThreeStateEnable;
         private bool? _selectAllCheckBoxState;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
-        private readonly ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> _symbolToMemberViewMap;
         private bool _okButtonEnabled;
 
         public PullMemberUpDialogViewModel(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             ImmutableArray<PullMemberUpSymbolViewModel> members,
             BaseTypeTreeNodeViewModel destinationTreeViewModel,
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap)
         {
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _symbolToDependentsMap = dependentsMap;
-            _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
 
             MemberSelectionViewModel = new MemberSelectionViewModel(
-                _waitIndicator,
+                _uiThreadOperationExecutor,
                 members,
                 _symbolToDependentsMap);
 
@@ -88,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private void EnableOrDisableOkButton()
         {
             var selectedMembers = MemberSelectionViewModel.CheckedMembers;
-            OkButtonEnabled = SelectedDestination != null && selectedMembers.Any();
+            OkButtonEnabled = SelectedDestination != DestinationTreeNodeViewModel && selectedMembers.Any();
         }
     }
 }

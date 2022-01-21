@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -713,6 +711,22 @@ class a
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FileScopedNamespaceDeclaration_Unqualified()
+        {
+            var markup = @"namespace $$;";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FileScopedNamespaceDeclaration_Qualified()
+        {
+            var markup = @"namespace A.$$;";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PartialClassName()
         {
             var markup = @"partial class $$";
@@ -1398,6 +1412,30 @@ class P
             }
         }
 
+        [InlineData("params string[] x")]
+        [InlineData("string x = null, string y = null")]
+        [InlineData("string x = null, string y = null, params string[] z")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(49656, "https://github.com/dotnet/roslyn/issues/49656")]
+        public async Task FirstArgumentOfInvocation_WithOverloadAcceptEmptyArgumentList(string overloadParameterList)
+        {
+            var markup = $@"
+using System;
+interface Foo
+{{
+    bool Bar({overloadParameterList}) => true;
+    bool Bar(Func<int, bool> predicate) => true;
+}}
+class P
+{{
+    void M(Foo f)
+    {{
+        f.Bar($$)
+    }}
+}}";
+            await VerifyBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
             => await VerifyWorkerAsync(markup, isBuilder: false);
 
@@ -1436,7 +1474,7 @@ class P
             {
                 var completionList = await service.GetTestAccessor().GetContextAsync(
                     provider, document, position, triggerInfo,
-                    options: null, cancellationToken: CancellationToken.None);
+                    options: CompletionOptions.Default, cancellationToken: CancellationToken.None);
 
                 if (isBuilder)
                 {

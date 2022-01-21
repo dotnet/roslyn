@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementToExpression
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
+        ConvertSwitchStatementToExpressionCodeFixProvider>;
+
     public class ConvertSwitchStatementToExpressionFixAllTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -258,7 +259,7 @@ class Program
     public short Value => 0;
     public bool ValueBoolean()
     {
-        var value = (StatusValue()) switch
+        var value = StatusValue() switch
         {
             DayOfWeek.Monday => Value switch
             {
@@ -306,7 +307,7 @@ class C
     
     public bool method(C c)
     {
-        return ((string)c) switch
+        return (string)c switch
         {
             ""A"" => true,
             _ => false,

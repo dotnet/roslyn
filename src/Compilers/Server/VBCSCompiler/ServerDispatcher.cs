@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
@@ -53,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         internal static readonly TimeSpan GCTimeout = TimeSpan.FromSeconds(30);
 
         private readonly ICompilerServerHost _compilerServerHost;
+        private readonly ICompilerServerLogger _logger;
         private readonly IClientConnectionHost _clientConnectionHost;
         private readonly IDiagnosticListener _diagnosticListener;
         private State _state;
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         internal ServerDispatcher(ICompilerServerHost compilerServerHost, IClientConnectionHost clientConnectionHost, IDiagnosticListener? diagnosticListener = null)
         {
             _compilerServerHost = compilerServerHost;
+            _logger = compilerServerHost.Logger;
             _clientConnectionHost = clientConnectionHost;
             _diagnosticListener = diagnosticListener ?? new EmptyDiagnosticListener();
         }
@@ -119,12 +120,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         }
                         catch (Exception ex)
                         {
-                            CompilerServerLogger.LogException(ex, $"Error disposing of {nameof(_listenTask)}");
+                            _logger.LogException(ex, $"Error disposing of {nameof(_listenTask)}");
                         }
                     }
                 }
             }
-            CompilerServerLogger.Log($"End ListenAndDispatchConnections");
+            _logger.Log($"End ListenAndDispatchConnections");
         }
 
         public void ListenAndDispatchConnectionsCore(CancellationToken cancellationToken)
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return;
             }
 
-            CompilerServerLogger.Log($"Shutting down server: {reason}");
+            _logger.Log($"Shutting down server: {reason}");
             Debug.Assert(_state == State.Running);
             Debug.Assert(_clientConnectionHost.IsListening);
 
@@ -229,13 +230,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private void RunGC()
         {
             _gcTask = null;
-            for (int i = 0; i < 10; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-            GC.Collect();
+            GC.GetTotalMemory(forceFullCollection: true);
         }
 
         private void MaybeCreateListenTask()
@@ -290,27 +285,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 switch (completionData.Reason)
                 {
                     case CompletionReason.RequestCompleted:
-                        CompilerServerLogger.Log("Client request completed");
+                        _logger.Log("Client request completed");
 
                         if (completionData.NewKeepAlive is { } keepAlive)
                         {
-                            CompilerServerLogger.Log($"Client changed keep alive to {keepAlive}");
+                            _logger.Log($"Client changed keep alive to {keepAlive}");
                             ChangeKeepAlive(keepAlive);
                         }
 
                         if (completionData.ShutdownRequest)
                         {
-                            CompilerServerLogger.Log("Client requested shutdown");
+                            _logger.Log("Client requested shutdown");
                             shutdown = true;
                         }
 
                         break;
                     case CompletionReason.RequestError:
-                        CompilerServerLogger.LogError("Client request failed");
+                        _logger.LogError("Client request failed");
                         shutdown = true;
                         break;
                     default:
-                        CompilerServerLogger.LogError("Unexpected enum value");
+                        _logger.LogError("Unexpected enum value");
                         shutdown = true;
                         break;
                 }

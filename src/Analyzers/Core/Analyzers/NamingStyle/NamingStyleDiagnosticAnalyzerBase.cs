@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         protected NamingStyleDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.NamingRuleId,
+                   EnforceOnBuildValues.NamingRule,
                    option: null,    // No unique option to configure the diagnosticId
                    s_localizableTitleNamingStyle,
                    s_localizableMessageFormat)
@@ -112,6 +113,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
+            if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsEntryPoint(compilation.TaskType(), compilation.TaskOfTType()))
+            {
+                return null;
+            }
+
             if (ShouldIgnore(symbol))
             {
                 return null;
@@ -153,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            var builder = ImmutableDictionary.CreateBuilder<string, string?>();
             builder[nameof(NamingStyle)] = applicableRule.NamingStyle.CreateXElement().ToString();
             builder["OptionName"] = nameof(NamingStyleOptions.NamingPreferences);
             builder["OptionLanguage"] = compilation.Language;

@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private UseExpressionBodyForOperatorsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForOperators,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_operators), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_operators), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedOperators,

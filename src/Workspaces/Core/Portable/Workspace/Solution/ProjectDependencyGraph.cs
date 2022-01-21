@@ -196,13 +196,10 @@ namespace Microsoft.CodeAnalysis
         {
             var reverseReferencesMap = new Dictionary<ProjectId, HashSet<ProjectId>>();
 
-            foreach (var kvp in _referencesMap)
+            foreach (var (projectId, references) in _referencesMap)
             {
-                var references = kvp.Value;
                 foreach (var referencedId in references)
-                {
-                    reverseReferencesMap.MultiAdd(referencedId, kvp.Key);
-                }
+                    reverseReferencesMap.MultiAdd(referencedId, projectId);
             }
 
             return reverseReferencesMap
@@ -384,7 +381,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns a sequence of sets, where each set contains items with shared interdependency,
-        /// and there is no dependency between sets.
+        /// and there is no dependency between sets.  Each set returned will sorted in topological order.
         /// </summary>
         public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default)
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -49,27 +47,30 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 _useSubMenuName = useSubMenuName;
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var workspace = _document.Project.Solution.Workspace;
-                var declarationService = _document.GetLanguageService<ISymbolDeclarationService>();
+                var services = _document.Project.Solution.Workspace.Services;
+                var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
+                var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+                var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
+
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, workspace);
-                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), workspace)
+                newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, options, cancellationToken);
+                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), options, cancellationToken)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
                 var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
-                return Task.FromResult(_document.WithSyntaxRoot(newRoot));
+                return _document.WithSyntaxRoot(newRoot);
             }
 
             private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
             {
-                var factory = _document.GetLanguageService<SyntaxGenerator>();
+                var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
                 for (var i = 0; i < _missingParameters.Length; ++i)
                 {
                     var memberName = constructorCandidate.MissingMembers[i].Name;
@@ -101,6 +102,16 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     }
                 }
             }
+
+            /// <summary>
+            /// A metadata name used by telemetry to distinguish between the different kinds of this code action.
+            /// This code action will perform 2 different actions depending on if missing parameters can be optional.
+            /// 
+            /// In this case we don't want to use the title as it depends on the class name for the ctor.
+            /// </summary>
+            internal string ActionName => _missingParameters[0].IsOptional
+                ? nameof(FeaturesResources.Add_optional_parameters_to_0)
+                : nameof(FeaturesResources.Add_parameters_to_0);
         }
     }
 }

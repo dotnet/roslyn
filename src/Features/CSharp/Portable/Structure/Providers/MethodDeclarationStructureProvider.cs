@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -14,12 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class MethodDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<MethodDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             MethodDeclarationSyntax methodDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(methodDeclaration, spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(methodDeclaration, ref spans, options);
 
             // fault tolerance
             if (methodDeclaration.Body == null ||
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
             // Whitespace between methods is collapsed in Metadata as Source.
-            var compressEmptyLines = optionProvider.IsMetadataAsSource
+            var compressEmptyLines = options.IsMetadataAsSource
                 && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.MethodDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(

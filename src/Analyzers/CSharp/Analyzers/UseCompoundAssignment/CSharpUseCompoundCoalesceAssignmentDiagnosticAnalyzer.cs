@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -23,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
     {
         public CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseCoalesceCompoundAssignment,
                    CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -53,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var coalesceLeft = coalesceExpression.Left;
             var coalesceRight = coalesceExpression.Right;
 
-            if (!(coalesceRight is ParenthesizedExpressionSyntax parenthesizedExpr))
+            if (coalesceRight is not ParenthesizedExpressionSyntax parenthesizedExpr)
                 return;
 
-            if (!(parenthesizedExpr.Expression is AssignmentExpressionSyntax assignment))
+            if (parenthesizedExpr.Expression is not AssignmentExpressionSyntax assignment)
                 return;
 
             if (assignment.Kind() != SyntaxKind.SimpleAssignmentExpression)

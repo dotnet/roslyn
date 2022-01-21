@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -1239,13 +1238,13 @@ public class ClassC : ClassB {}
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B2.BaseType());
         }
 
-        [Fact]
-        public void NestedNames1()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void NestedNames1(string ob, string cb)
         {
             var text =
 @"
 namespace N
-{
+" + ob + @"
     static class C
     {
         class A<T>
@@ -1254,7 +1253,7 @@ namespace N
             private class D { }
         }
     }
-}
+" + cb + @"
 ";
             var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;

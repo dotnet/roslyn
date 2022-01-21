@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,29 +16,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         internal class PreviewTagger : ITagger<HighlightTag>
         {
             private readonly ITextBuffer _textBuffer;
+            private Span _span;
 
             public PreviewTagger(ITextBuffer textBuffer)
             {
                 _textBuffer = textBuffer;
             }
 
-            public void OnTextBufferChanged()
+            public Span Span
             {
-                if (PreviewUpdater.SpanToShow != default)
+                get
                 {
-                    if (TagsChanged != null)
-                    {
-                        var span = _textBuffer.CurrentSnapshot.GetFullSpan();
-                        TagsChanged(this, new SnapshotSpanEventArgs(span));
-                    }
+                    return _span;
+                }
+
+                set
+                {
+                    _span = value;
+
+                    TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_textBuffer.CurrentSnapshot.GetFullSpan()));
                 }
             }
 
-            public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+            public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
             public IEnumerable<ITagSpan<HighlightTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                var lines = _textBuffer.CurrentSnapshot.Lines.Where(line => line.Extent.OverlapsWith(PreviewUpdater.SpanToShow));
+                var lines = _textBuffer.CurrentSnapshot.Lines.Where(line => line.Extent.OverlapsWith(_span));
 
                 foreach (var line in lines)
                 {

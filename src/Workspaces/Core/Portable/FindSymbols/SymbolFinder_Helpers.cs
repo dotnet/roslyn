@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (symbol.Locations.Any(l => l.IsInMetadata))
             {
                 var accessibility = symbol.DeclaredAccessibility;
-                return accessibility == Accessibility.Public ||
-                    accessibility == Accessibility.Protected ||
-                    accessibility == Accessibility.ProtectedOrInternal;
+                return accessibility is Accessibility.Public or
+                    Accessibility.Protected or
+                    Accessibility.ProtectedOrInternal;
             }
 
             return true;
@@ -42,6 +42,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (searchSymbol == null || symbolToMatch == null)
                 return false;
 
+            // Avoid the expensive checks if we can fast path when the compiler just says these are equal. Also, for the
+            // purposes of symbol finding nullability of symbols doesn't affect things, so just use the default
+            // comparison.
+            if (searchSymbol.Equals(symbolToMatch))
+                return true;
+
             if (await OriginalSymbolsMatchCoreAsync(solution, searchSymbol, symbolToMatch, cancellationToken).ConfigureAwait(false))
                 return true;
 
@@ -54,8 +60,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var namespace2Count = namespace2.ConstituentNamespaces.Length;
                 if (namespace1Count != namespace2Count)
                 {
-                    if ((namespace1Count > 1 && await namespace1.ConstituentNamespaces.AnyAsync(n => NamespaceSymbolsMatchAsync(solution, n, namespace2, cancellationToken)).ConfigureAwait(false)) ||
-                        (namespace2Count > 1 && await namespace2.ConstituentNamespaces.AnyAsync(n2 => NamespaceSymbolsMatchAsync(solution, namespace1, n2, cancellationToken)).ConfigureAwait(false)))
+                    if ((namespace1Count > 1 && await namespace1.ConstituentNamespaces.AnyAsync(static (n, arg) => NamespaceSymbolsMatchAsync(arg.solution, n, arg.namespace2, arg.cancellationToken), (solution, namespace2, cancellationToken)).ConfigureAwait(false)) ||
+                        (namespace2Count > 1 && await namespace2.ConstituentNamespaces.AnyAsync(static (n2, arg) => NamespaceSymbolsMatchAsync(arg.solution, arg.namespace1, n2, arg.cancellationToken), (solution, namespace1, cancellationToken)).ConfigureAwait(false)))
                     {
                         return true;
                     }
@@ -72,12 +78,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             if (searchSymbol == null || symbolToMatch == null)
-            {
                 return false;
-            }
 
             searchSymbol = searchSymbol.GetOriginalUnreducedDefinition();
             symbolToMatch = symbolToMatch.GetOriginalUnreducedDefinition();
+
+            // Avoid the expensive checks if we can fast path when the compiler just says these are equal. Also, for the
+            // purposes of symbol finding nullability of symbols doesn't affect things, so just use the default
+            // comparison.
+            if (searchSymbol.Equals(symbolToMatch, SymbolEqualityComparer.Default))
+                return true;
 
             // We compare the given searchSymbol and symbolToMatch for equivalence using SymbolEquivalenceComparer
             // as follows:

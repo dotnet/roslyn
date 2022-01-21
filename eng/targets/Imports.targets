@@ -56,7 +56,7 @@
           Otherwise, default to 'true'.
   -->
   <PropertyGroup Condition="'$(RunAnalyzersDuringBuild)' == ''">
-    <RunAnalyzersDuringBuild Condition="'$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND !('$(RoslynEnforceCodeStyle)' == 'true' OR '$(RunCodeAnalysis)' == 'true')">false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringBuild Condition="'$(RoslynEnforceCodeStyle)' != 'true' AND '$(RunCodeAnalysis)' != 'true'">false</RunAnalyzersDuringBuild>
     <RunAnalyzersDuringBuild Condition="'$(RunAnalyzersDuringBuild)' == ''">true</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
@@ -167,23 +167,6 @@
     <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
   </Target> 
-
-  <!--
-    Work around missing code fix references causing VBCSCompiler.exe to reject compilations.
-    https://github.com/dotnet/roslyn/issues/46684
-  -->
-  <Target Name="ExcludeCodeFixes"
-          BeforeTargets="CoreCompile"
-          Condition="'$(BuildingProject)' == 'true'">
-    <!--
-      Disable analyzers that only provide code fixes.
-    -->
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)"
-                Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes'
-                  OR '%(Filename)' == 'Microsoft.VisualStudio.Threading.Analyzers.CodeFixes'"/>
-    </ItemGroup>
-  </Target>
 
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 
@@ -384,5 +367,14 @@
     <ItemGroup>
       <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
     </ItemGroup>
+  </Target>
+
+  <!-- Workaround for https://github.com/dotnet/msbuild/issues/7161 -->
+  <Target Name="WorkaroundDotnetMsbuild7161"
+          AfterTargets="_CopyFilesMarkedCopyLocal"
+          Condition="'$(BuildingInsideVisualStudio)' == 'true' AND '@(ReferenceCopyLocalPaths)' != ''">
+    <Touch Files="@(CopyUpToDateMarker)"
+           AlwaysCreate="true"
+           Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
   </Target>
 </Project>

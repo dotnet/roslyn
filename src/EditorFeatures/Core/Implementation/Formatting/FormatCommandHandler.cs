@@ -9,9 +9,11 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Formatting;
 
@@ -48,21 +51,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FormatCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _globalOptions = globalOptions;
         }
 
         private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
-            var formattingService = document.GetRequiredLanguageService<IEditorFormattingService>();
+            var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
-                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
-                if (changes.Count == 0)
+                var changes = formattingService.GetFormattingChangesAsync(
+                    document, selectionOpt, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+                if (changes.IsEmpty)
                 {
                     return;
                 }
@@ -101,7 +107,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         {
             // run next handler first so that editor has chance to put the return into the buffer first.
             nextHandler();
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
 
+            try
+            {
+                ExecuteReturnOrTypeCommandWorker(args, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextHandler().
+            }
+        }
+
+        private void ExecuteReturnOrTypeCommandWorker(EditorCommandArgs args, CancellationToken cancellationToken)
+        {
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
             if (!CanExecuteCommand(subjectBuffer))
@@ -121,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var service = document.GetLanguageService<IEditorFormattingService>();
+            var service = document.GetLanguageService<IFormattingInteractionService>();
             if (service == null)
             {
                 return;
@@ -137,16 +161,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     return;
                 }
 
-                textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+                textChanges = service.GetFormattingChangesOnReturnAsync(
+                    document, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                if (!service.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar))
+                var options = AutoFormattingOptions.From(document.Project);
+                if (!service.SupportsFormattingOnTypedCharacter(document, options, typeCharArgs.TypedChar))
                 {
                     return;
                 }
 
-                textChanges = service.GetFormattingChangesAsync(document, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+                textChanges = service.GetFormattingChangesAsync(
+                    document, typeCharArgs.TypedChar, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {

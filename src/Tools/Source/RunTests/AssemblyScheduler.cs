@@ -168,13 +168,18 @@ namespace RunTests
         /// </summary>
         internal const int DefaultMethodLimit = 2000;
 
+        /// <summary>
+        /// Number of methods to include per Helix work item.
+        /// </summary>
+        internal const int HelixMethodLimit = 500;
+
         private readonly Options _options;
         private readonly int _methodLimit;
 
-        internal AssemblyScheduler(Options options, int methodLimit = DefaultMethodLimit)
+        internal AssemblyScheduler(Options options)
         {
             _options = options;
-            _methodLimit = methodLimit;
+            _methodLimit = options.UseHelix ? AssemblyScheduler.HelixMethodLimit : AssemblyScheduler.DefaultMethodLimit;
         }
 
         public ImmutableArray<PartitionInfo> Schedule(string assemblyPath, bool force = false)
@@ -279,8 +284,8 @@ namespace RunTests
             // The case we still have to consider at this point is a class with 0 defined methods, 
             // inheritting from a class with > 0 defined test methods.  That is a completely valid
             // xunit scenario.  For now we're just going to exclude types that inherit from object
-            // because they clearly don't fit that category.
-            return !(InheritsFromObject(reader, type) ?? false);
+            // or other built-in base types because they clearly don't fit that category.
+            return !InheritsFromFrameworkBaseType(reader, type);
         }
 
         private static int GetMethodCount(MetadataReader reader, TypeDefinition type)
@@ -291,11 +296,6 @@ namespace RunTests
                 var methodDefinition = reader.GetMethodDefinition(handle);
                 if (methodDefinition.GetCustomAttributes().Count == 0 ||
                     !IsValidIdentifier(reader, methodDefinition.Name))
-                {
-                    continue;
-                }
-
-                if (MethodAttributes.Public != (methodDefinition.Attributes & MethodAttributes.Public))
                 {
                     continue;
                 }
@@ -323,17 +323,17 @@ namespace RunTests
             return true;
         }
 
-        private static bool? InheritsFromObject(MetadataReader reader, TypeDefinition type)
+        private static bool InheritsFromFrameworkBaseType(MetadataReader reader, TypeDefinition type)
         {
             if (type.BaseType.Kind != HandleKind.TypeReference)
             {
-                return null;
+                return false;
             }
 
             var typeRef = reader.GetTypeReference((TypeReferenceHandle)type.BaseType);
             return
                 reader.GetString(typeRef.Namespace) == "System" &&
-                reader.GetString(typeRef.Name) == "Object";
+                reader.GetString(typeRef.Name) is "Object" or "ValueType" or "Enum";
         }
 
         private static string GetFullName(MetadataReader reader, TypeDefinition type)

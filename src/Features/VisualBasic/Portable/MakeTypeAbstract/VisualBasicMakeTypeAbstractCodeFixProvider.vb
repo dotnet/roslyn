@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.MakeTypeAbstract
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeTypeAbstract
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicMakeTypeAbstractCodeFixProvider)), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeTypeAbstract), [Shared]>
     Friend NotInheritable Class VisualBasicMakeTypeAbstractCodeFixProvider
-        Inherits AbstractMakeTypeAbstractCodeFixProvider(Of ClassStatementSyntax)
+        Inherits AbstractMakeTypeAbstractCodeFixProvider(Of ClassBlockSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -20,18 +20,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeTypeAbstract
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
-            ImmutableArray.Create(
-                "BC31411"
-            )
+            ImmutableArray.Create("BC31411")
 
-        Protected Overrides Function IsValidRefactoringContext(node As SyntaxNode, ByRef typeDeclaration As ClassStatementSyntax) As Boolean
-            If node Is Nothing OrElse Not (node.IsKind(SyntaxKind.ClassStatement)) Then
+        Protected Overrides Function IsValidRefactoringContext(node As SyntaxNode, ByRef typeDeclaration As ClassBlockSyntax) As Boolean
+            Dim classStatement = TryCast(node, ClassStatementSyntax)
+            If classStatement Is Nothing Then
                 Return False
             End If
 
-            typeDeclaration = CType(node, ClassStatementSyntax)
+            If classStatement.Modifiers.Any(SyntaxKind.MustInheritKeyword) OrElse
+               classStatement.Modifiers.Any(SyntaxKind.StaticKeyword) Then
+                Return False
+            End If
 
-            Return Not (typeDeclaration.Modifiers.Any(SyntaxKind.MustInheritKeyword) OrElse typeDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
+            typeDeclaration = TryCast(classStatement.Parent, ClassBlockSyntax)
+            Return typeDeclaration IsNot Nothing
         End Function
     End Class
 End Namespace

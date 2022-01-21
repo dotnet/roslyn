@@ -33,6 +33,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
+using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -43,22 +44,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #nullable enable
         private static readonly MetadataReference s_mscorlib = TestMetadata.Net451.mscorlib;
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
-
-        private static Workspace CreateWorkspace(Type[]? additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
-
-        private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
-        {
-            var workspace = CreateWorkspace(new[]
-            {
-                typeof(TestProjectCacheService),
-                typeof(TestTemporaryStorageService)
-            });
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
-            return workspace;
-        }
 
         private static Workspace CreateWorkspaceWithProjectAndDocuments()
         {
@@ -424,7 +409,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
-            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Single().Key;
+            var documentId = solution.Projects.Single().AnalyzerConfigDocumentIds.Single();
             var text = SourceText.From("new text");
 
             var newSolution1 = solution.WithAnalyzerConfigDocumentText(documentId, text, PreservationMode.PreserveIdentity);
@@ -446,7 +431,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
-            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Single().Key;
+            var documentId = solution.Projects.Single().AnalyzerConfigDocumentIds.Single();
             var textAndVersion = TextAndVersion.Create(SourceText.From("new text"), VersionStamp.Default);
 
             var newSolution1 = solution.WithAnalyzerConfigDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
@@ -514,7 +499,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
-            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Single().Key;
+            var documentId = solution.Projects.Single().AnalyzerConfigDocumentIds.Single();
             var loader = new TestTextLoader("new text");
 
             var newSolution1 = solution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
@@ -1521,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TestProjectDependencyLoadingAsync()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var solution = workspace.CurrentSolution;
 
             var projectIds = Enumerable.Range(0, 5).Select(i => ProjectId.CreateNewId()).ToArray();
@@ -1847,7 +1832,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                 .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                 .AddDocument(did, "goo.cs", "public class Goo { }");
@@ -1870,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
             // create a solution that evicts from the cache immediately.
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution;
 
             var pid = ProjectId.CreateNewId();
@@ -1944,7 +1929,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2052,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var text = "public class C {}";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2115,7 +2100,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2146,7 +2131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2178,7 +2163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var text = "public class C {}";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2204,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var text = "public class C {}";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2238,7 +2223,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public void Method6() {}
 }";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2268,7 +2253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     End Sub
 End Class";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.VisualBasic)
                                     .AddDocument(did, "goo.vb", text);
@@ -2319,7 +2304,7 @@ End Class";
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2344,7 +2329,7 @@ End Class";
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2582,6 +2567,31 @@ public class C : A {
         }
 
         [Fact]
+        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            var documentToFreeze = project.AddDocument("DocumentToFreeze.cs", SourceText.From(""));
+            var frozenDocument = documentToFreeze.WithFrozenPartialSemantics(CancellationToken.None);
+
+            // Because we had no compilation produced yet, we expect that only the DocumentToFreeze is in the compilation
+            Assert.NotSame(frozenDocument, documentToFreeze);
+            var tree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
+            Assert.Equal("DocumentToFreeze.cs", tree.FilePath);
+
+            // Versions should be different
+            Assert.NotEqual(
+                await documentToFreeze.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.NotEqual(
+                await documentToFreeze.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+        }
+
+        [Fact]
         public void TestFrozenPartialProjectAlwaysIsIncomplete()
         {
             var workspace = new AdhocWorkspace();
@@ -2603,6 +2613,26 @@ public class C : A {
 
             Assert.True(frozenSolution.GetProject(project1.Id).HasSuccessfullyLoadedAsync().Result);
             Assert.True(frozenSolution.GetProject(project2.Id).HasSuccessfullyLoadedAsync().Result);
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSemanticsProjectDoesNotHaveAdditionalDocumentsFromInProgressChange()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
+            // when we freeze.
+            var originalCompilation = await project.GetCompilationAsync();
+            project = project.AddAdditionalDocument("Test.txt", "").Project;
+            GC.KeepAlive(originalCompilation);
+
+            // Freeze semantics -- this should give us a compilation and state that don't include the additional file,
+            // since the compilation won't represent that either
+            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Empty(frozenDocument.Project.AdditionalDocuments);
         }
 
         [Fact]
@@ -2631,22 +2661,30 @@ public class C : A {
             Assert.True(transitivelyDependsOnNormalProjects.HasSuccessfullyLoadedAsync().Result);
         }
 
+        private class TestSmallFileTextLoader : FileTextLoader
+        {
+            public TestSmallFileTextLoader(string path, Encoding encoding)
+                : base(path, encoding)
+            {
+            }
+
+            // set max file length to 1 byte
+            internal override int MaxFileLength => 1;
+        }
+
         [Fact]
         public async Task TestMassiveFileSize()
         {
-            // set max file length to 1 bytes
-            var maxLength = 1;
             var workspace = new AdhocWorkspace();
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength)));
 
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
 
-            var loader = new FileTextLoader(file.Path, Encoding.UTF8);
+            var loader = new TestSmallFileTextLoader(file.Path, Encoding.UTF8);
+
             var textLength = FileUtilities.GetFileLength(file.Path);
 
-            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, maxLength);
+            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, 1);
             var exceptionThrown = false;
 
             try
@@ -2682,7 +2720,7 @@ public class C : A {
         public void TestWithSyntaxTree()
         {
             // get one to get to syntax tree factory
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var solution = workspace.CurrentSolution;
             var dummyProject = solution.AddProject("dummy", "dummy", LanguageNames.CSharp);
 
@@ -2809,7 +2847,7 @@ public class C : A {
 
             solution = solution.RemoveDocument(did5);
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.Create<DocumentId>()));
+            Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.Create<DocumentId>()));
             Assert.Throws<ArgumentNullException>(() => solution = solution.WithProjectDocumentsOrder(pid, null));
             Assert.Throws<InvalidOperationException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did5, did3, did2, did1 })));
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
@@ -2898,7 +2936,7 @@ public class C : A {
         [CombinatorialData]
         public async Task TestChangingAnEditorConfigFile([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
         {
-            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTrees() : CreateWorkspace();
+            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
             var solution = workspace.CurrentSolution;
             var extension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
             var projectId = ProjectId.CreateNewId();
@@ -3197,6 +3235,77 @@ class C
                 using var reader = ObjectReader.TryGetReader(stream);
                 return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
             }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestUpdatedDocumentTextIsObservablyConstantAsync(bool recoverable)
+        {
+            using var workspace = recoverable ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
+            var pid = ProjectId.CreateNewId();
+            var text = SourceText.From("public class C { }");
+            var version = VersionStamp.Create();
+            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, version)));
+            var projInfo = ProjectInfo.Create(
+                pid,
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject.dll",
+                language: LanguageNames.CSharp,
+                documents: new[] { docInfo });
+
+            var solution = workspace.CurrentSolution.AddProject(projInfo);
+            var doc = solution.GetDocument(docInfo.Id);
+
+            // change document
+            var root = await doc.GetSyntaxRootAsync();
+            var newRoot = root.WithAdditionalAnnotations(new SyntaxAnnotation());
+            Assert.NotSame(root, newRoot);
+            var newDoc = doc.Project.Solution.WithDocumentSyntaxRoot(doc.Id, newRoot).GetDocument(doc.Id);
+            Assert.NotSame(doc, newDoc);
+
+            var newDocText = await newDoc.GetTextAsync();
+            var sameText = await newDoc.GetTextAsync();
+            Assert.Same(newDocText, sameText);
+
+            var newDocTree = await newDoc.GetSyntaxTreeAsync();
+            var treeText = newDocTree.GetText();
+            Assert.Same(newDocText, treeText);
+        }
+
+        [Fact]
+        public async Task ReplacingTextMultipleTimesDoesNotRootIntermediateCopiesIfCompilationNotAskedFor()
+        {
+            // This test replicates the pattern of some operation changing a bunch of files, but the files aren't kept open.
+            // In Visual Studio we do large refactorings by opening files with an invisible editor, making changes, and closing
+            // again. This process means we'll queue up intermediate changes to those files, but we don't want to hold onto
+            // the intermediate edits when we don't really need to since the final version will be all that matters.
+
+            using var workspace = CreateWorkspaceWithProjectAndDocuments();
+
+            var solution = workspace.CurrentSolution;
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+
+            // Fetch the compilation, so further edits are going to be incremental updates of this one
+            var originalCompilation = await solution.Projects.Single().GetCompilationAsync();
+
+            // Create a source text we'll release and ensure it disappears. We'll also make sure we don't accidentally root
+            // that solution in the middle.
+            var sourceTextToRelease = ObjectReference.CreateFromFactory(static () => SourceText.From(Guid.NewGuid().ToString()));
+            var solutionWithSourceTextToRelease = sourceTextToRelease.GetObjectReference(
+                static (sourceText, document) => document.Project.Solution.WithDocumentText(document.Id, sourceText, PreservationMode.PreserveIdentity),
+                solution.GetDocument(documentId));
+
+            // Change it again, this time by editing the text loader; this replicates us closing a file, and we don't want to pin the changes from the
+            // prior change.
+            var finalSolution = solutionWithSourceTextToRelease.GetObjectReference(
+                static (s, documentId) => s.WithDocumentTextLoader(documentId, new TestTextLoader(Guid.NewGuid().ToString()), PreservationMode.PreserveValue), documentId).GetReference();
+
+            // The text in the middle shouldn't be held at all, since we replaced it.
+            solutionWithSourceTextToRelease.ReleaseStrongReference();
+            sourceTextToRelease.AssertReleased();
+
+            GC.KeepAlive(finalSolution);
         }
     }
 }

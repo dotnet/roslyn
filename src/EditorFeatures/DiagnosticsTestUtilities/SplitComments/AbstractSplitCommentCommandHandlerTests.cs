@@ -50,12 +50,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
                     Assert.True(expectedOutputMarkup.Contains("\t"));
             }
 
-            using var workspace = this.CreateWorkspace(inputMarkup);
+            using var workspace = CreateWorkspace(inputMarkup);
 
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
             var language = workspace.Projects.Single().Language;
-            workspace.SetOptions(
-                workspace.Options.WithChangedOption(FormattingOptions.UseTabs, language, useTabs)
-                                 .WithChangedOption(SplitCommentOptions.Enabled, language, enabled));
+
+            globalOptions.SetGlobalOption(new OptionKey(SplitCommentOptions.Enabled, language), enabled);
+            workspace.SetOptions(workspace.Options.WithChangedOption(FormattingOptions.UseTabs, language, useTabs));
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();

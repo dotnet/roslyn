@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // If the next token is a semicolon, and we aren't in the initializer of a for-loop, use that token as the end.
 
             var nextToken = lastToken.GetNextToken(includeSkipped: true);
-            if (nextToken.Kind() != SyntaxKind.None && nextToken.Kind() == SyntaxKind.SemicolonToken)
+            if (nextToken.Kind() is not SyntaxKind.None and SyntaxKind.SemicolonToken)
             {
                 var forStatement = nextToken.GetAncestor<ForStatementSyntax>();
                 if (forStatement != null && forStatement.FirstSemicolonToken == nextToken)
@@ -188,20 +188,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         internal static ImmutableArray<BlockSpan> CreateCommentBlockSpan(
             SyntaxTriviaList triviaList)
         {
-            var result = ArrayBuilder<BlockSpan>.GetInstance();
-            CollectCommentBlockSpans(triviaList, result);
-            return result.ToImmutableAndFree();
+            using var result = TemporaryArray<BlockSpan>.Empty;
+            CollectCommentBlockSpans(triviaList, ref result.AsRef());
+            return result.ToImmutableAndClear();
         }
 
         public static void CollectCommentBlockSpans(
-            SyntaxTriviaList triviaList, ArrayBuilder<BlockSpan> spans)
+            SyntaxTriviaList triviaList, ref TemporaryArray<BlockSpan> spans)
         {
             if (triviaList.Count > 0)
             {
                 SyntaxTrivia? startComment = null;
                 SyntaxTrivia? endComment = null;
 
-                void completeSingleLineCommentGroup()
+                void completeSingleLineCommentGroup(ref TemporaryArray<BlockSpan> spans)
                 {
                     if (startComment != null)
                     {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     }
                     else if (trivia.IsMultiLineComment())
                     {
-                        completeSingleLineCommentGroup();
+                        completeSingleLineCommentGroup(ref spans);
 
                         var multilineCommentRegion = CreateCommentBlockSpan(trivia, trivia);
                         spans.Add(multilineCommentRegion);
@@ -233,32 +233,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                                                  SyntaxKind.EndOfLineTrivia,
                                                  SyntaxKind.EndOfFileToken))
                     {
-                        completeSingleLineCommentGroup();
+                        completeSingleLineCommentGroup(ref spans);
                     }
                 }
 
-                completeSingleLineCommentGroup();
+                completeSingleLineCommentGroup(ref spans);
             }
         }
 
         public static void CollectCommentBlockSpans(
             SyntaxNode node,
-            ArrayBuilder<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider)
+            ref TemporaryArray<BlockSpan> spans,
+            in BlockStructureOptions options)
         {
             if (node == null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (optionProvider.IsMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
+            if (options.IsMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
             {
                 spans.Add(span);
             }
             else
             {
                 var triviaList = node.GetLeadingTrivia();
-                CollectCommentBlockSpans(triviaList, spans);
+                CollectCommentBlockSpans(triviaList, ref spans);
             }
 
             return;
@@ -275,9 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     return false;
                 }
 
-                var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia));
+                var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia) || t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
 
-                var startPosition = firstComment.HasValue ? firstComment.Value.SpanStart : startToken.SpanStart;
+                var startPosition = firstComment.HasValue ? firstComment.Value.FullSpan.Start : startToken.SpanStart;
                 var endPosition = endToken.SpanStart;
 
                 // TODO (tomescht): Mark the regions to be collapsed by default.
@@ -352,11 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 {
                     return propertyDeclaration.Modifiers.FirstOrNull() ?? propertyDeclaration.Type.GetFirstToken();
                 }
-                else if (node.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration)
-                    || node.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration)
-                    || node.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration)
-                    || node.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
+                else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration or
+                    SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
                 {
+                    var typeDeclaration = (TypeDeclarationSyntax)node;
                     return typeDeclaration.Modifiers.FirstOrNull() ?? typeDeclaration.Keyword;
                 }
                 else
@@ -371,11 +370,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 {
                     return enumDeclaration.OpenBraceToken.GetPreviousToken();
                 }
-                else if (node.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration)
-                    || node.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration)
-                    || node.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration)
-                    || node.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
+                else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration or
+                    SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
                 {
+                    var typeDeclaration = (TypeDeclarationSyntax)node;
                     return typeDeclaration.OpenBraceToken.GetPreviousToken();
                 }
                 else

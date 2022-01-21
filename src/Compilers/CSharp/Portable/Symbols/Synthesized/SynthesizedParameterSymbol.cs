@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -27,17 +26,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
-            string name = "")
+            string name,
+            bool isNullChecked)
         {
-            RoslynDebug.Assert(type.HasType);
-            RoslynDebug.Assert(name != null);
-            RoslynDebug.Assert(ordinal >= 0);
+            Debug.Assert(type.HasType);
+            Debug.Assert(name != null);
+            Debug.Assert(ordinal >= 0);
 
             _container = container;
             _type = type;
             _ordinal = ordinal;
             _refKind = refKind;
             _name = name;
+            IsNullChecked = isNullChecked;
         }
 
         public override TypeWithAnnotations TypeWithAnnotations => _type;
@@ -84,27 +85,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsIDispatchConstant
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsIUnknownConstant
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerLineNumber
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
@@ -127,6 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<Location>.Empty; }
         }
 
+        public sealed override bool IsNullChecked { get; }
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -143,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // adversely effect the compilation or potentially change overload resolution.  
             var compilation = this.DeclaringCompilation;
             var type = this.TypeWithAnnotations;
-            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
+            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes(BindingDiagnosticBag.Discarded, Location.None) && compilation.CanEmitBoolean())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
@@ -154,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (type.Type.ContainsTupleNames() &&
-                compilation.HasTupleNamesAttributes &&
+                compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None) &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
@@ -171,6 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase
@@ -180,8 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
-            string name)
-            : base(container, type, ordinal, refKind, name)
+            string name,
+            bool IsNullChecked)
+            : base(container, type, ordinal, refKind, name, IsNullChecked)
         {
         }
 
@@ -192,11 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name = "",
             ImmutableArray<CustomModifier> refCustomModifiers = default,
-            SourceComplexParameterSymbol? baseParameterForAttributes = null)
+            SourceComplexParameterSymbol? baseParameterForAttributes = null,
+            bool isNullChecked = false)
         {
             if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null)
             {
-                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
+                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name, isNullChecked);
             }
 
             return new SynthesizedComplexParameterSymbol(
@@ -206,7 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 refKind,
                 name,
                 refCustomModifiers.NullToEmpty(),
-                baseParameterForAttributes);
+                baseParameterForAttributes,
+                isNullChecked);
         }
 
         /// <summary>
@@ -262,8 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
-            SourceComplexParameterSymbol? baseParameterForAttributes)
-            : base(container, type, ordinal, refKind, name)
+            SourceComplexParameterSymbol? baseParameterForAttributes,
+            bool isNullChecked)
+            : base(container, type, ordinal, refKind, name, isNullChecked)
         {
             Debug.Assert(!refCustomModifiers.IsDefault);
             Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object);
@@ -285,5 +301,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool HasEnumeratorCancellationAttribute => _baseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
 
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
+
+        internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional == true;
+
+        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
+
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                Debug.Assert(_baseParameterForAttributes is null);
+                return base.FlowAnalysisAnnotations;
+            }
+        }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get
+            {
+                Debug.Assert(_baseParameterForAttributes is null);
+                return base.NotNullIfParameterNotNull;
+            }
+        }
     }
 }

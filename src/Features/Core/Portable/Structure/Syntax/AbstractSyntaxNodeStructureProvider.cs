@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
@@ -15,27 +13,31 @@ namespace Microsoft.CodeAnalysis.Structure
     {
         public sealed override void CollectBlockSpans(
             SyntaxTrivia trivia,
-            ArrayBuilder<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
         }
 
         public sealed override void CollectBlockSpans(
+            SyntaxToken previousToken,
             SyntaxNode node,
-            ArrayBuilder<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             if (node is TSyntaxNode tSyntax)
             {
-                CollectBlockSpans(tSyntax, spans, optionProvider, cancellationToken);
+                CollectBlockSpans(previousToken, tSyntax, ref spans, options, cancellationToken);
             }
         }
 
         protected abstract void CollectBlockSpans(
-            TSyntaxNode node, ArrayBuilder<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider, CancellationToken cancellationToken);
+            SyntaxToken previousToken,
+            TSyntaxNode node,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
+            CancellationToken cancellationToken);
     }
 }

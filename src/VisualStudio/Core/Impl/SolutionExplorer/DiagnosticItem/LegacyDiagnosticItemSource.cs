@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal partial class LegacyDiagnosticItemSource : BaseDiagnosticItemSource
+    internal partial class LegacyDiagnosticItemSource : BaseDiagnosticAndGeneratorItemSource
     {
         private readonly AnalyzerItem _item;
 
@@ -19,8 +19,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public override object SourceItem => _item;
         public override AnalyzerReference AnalyzerReference => _item.AnalyzerReference;
-
-        protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language)
-            => new LegacyDiagnosticItem(_item, diagnostic, effectiveSeverity, language, CommandHandler.DiagnosticContextMenuController);
     }
 }

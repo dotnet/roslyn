@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private UseExpressionBodyForLocalFunctionHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForLocalFunctionsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForLocalFunctions,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_local_functions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_local_functions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions,

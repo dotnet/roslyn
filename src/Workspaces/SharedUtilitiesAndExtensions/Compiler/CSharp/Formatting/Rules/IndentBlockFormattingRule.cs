@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -31,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             _options = options;
         }
 
-        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
         {
-            var cachedOptions = new CachedOptions(options);
+            var cachedOptions = new CachedOptions(options.Options);
 
             if (cachedOptions == _options)
             {
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
-            if (!(node is SwitchSectionSyntax section))
+            if (node is not SwitchSectionSyntax section)
             {
                 return;
             }
@@ -262,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (node is ElseClauseSyntax elseClause && elseClause.Statement != null)
             {
-                if (!(elseClause.Statement is BlockSyntax || elseClause.Statement is IfStatementSyntax))
+                if (elseClause.Statement is not (BlockSyntax or IfStatementSyntax))
                 {
                     AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
                 }

@@ -8,7 +8,7 @@ $ErrorActionPreference="Stop"
 
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
-$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/master/eng/config/PublishData.json"
+$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
@@ -333,10 +333,25 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
 
   Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -runAnalyzers
   $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
-  Unzip "$dir\$packageFile" $dir
+  Unzip (Join-Path $dir $packageFile.Name) $dir
 
   Write-Host "Cleaning Bootstrap compiler artifacts"
   Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
 
   return $dir
+}
+
+function Subst-TempDir() {
+  if ($ci) {
+    Exec-Command "subst" "T: $TempDir"
+
+    $env:TEMP='T:\'
+    $env:TMP='T:\'
+  }
+}
+
+function Unsubst-TempDir() {
+  if ($ci) {
+    Exec-Command "subst" "T: /d"
+  }
 }

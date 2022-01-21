@@ -38,12 +38,15 @@ param (
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
+  [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
   [switch]$oop64bit = $true,
+  [switch]$oopCoreClr = $false,
+  [switch]$lspEditor = $false,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -59,8 +62,12 @@ param (
   [switch]$testVsi,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
+  [switch]$testCompilerOnly = $false,
   [switch]$testIOperation,
+  [switch]$testUsedAssemblies,
   [switch]$sequential,
+  [switch]$helix,
+  [string]$helixQueueName = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -90,8 +97,10 @@ function Print-Usage() {
   Write-Host "  -test64                   Run units tests in the 64-bit runner"
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
+  Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
+  Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -100,6 +109,7 @@ function Print-Usage() {
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
+  Write-Host "  -skipDocumentation        Skip generation of XML documentation files"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
@@ -176,6 +186,11 @@ function Process-Arguments() {
     exit 1
   }
 
+  if ($testVsi -and $helix) {
+    Write-Host "Cannot run integration tests on Helix"
+    exit 1
+  }
+
   if ($testVsi) {
     # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
     $script:runAnalyzers = $false
@@ -216,12 +231,10 @@ function BuildSolution() {
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
-  $testTargetFrameworks = if ($testCoreClr) { 'net5.0%3Bnetcoreapp3.1' } else { "" }
-  
   $ibcDropName = GetIbcDropName
 
   # Do not set this property to true explicitly, since that would override values set in projects.
-  $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
+  $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" }
 
   # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
   # that MSBuild output as well as ones that custom tasks output.
@@ -233,6 +246,9 @@ function BuildSolution() {
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
+  $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
+  $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -241,7 +257,6 @@ function BuildSolution() {
       /p:RepoRoot=$RepoRoot `
       /p:Restore=$restore `
       /p:Build=$build `
-      /p:Test=$testCoreClr `
       /p:Rebuild=$rebuild `
       /p:Pack=$pack `
       /p:Sign=$sign `
@@ -250,7 +265,6 @@ function BuildSolution() {
       /p:OfficialBuildId=$officialBuildId `
       /p:RunAnalyzersDuringBuild=$runAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
-      /p:TestTargetFrameworks=$testTargetFrameworks `
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
@@ -260,6 +274,8 @@ function BuildSolution() {
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
+      $generateDocumentationFile `
+      $roslynUseHardLinks `
       @properties
   }
   finally {
@@ -305,7 +321,7 @@ function GetIbcDropName() {
     # Bring in the ibc tools
     $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
-    
+
     # Find the matching drop
     $branch = GetIbcSourceBranchName
     Write-Host "Optimization data branch name is '$branch'."
@@ -315,8 +331,27 @@ function GetIbcDropName() {
     return $drop.Name
 }
 
+function GetCompilerTestAssembliesIncludePaths() {
+  $assemblies = " --include '^Microsoft\.CodeAnalysis\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
+  $assemblies += " --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
+  return $assemblies
+}
+
 # Core function for running our unit / integration tests tests
-function TestUsingOptimizedRunner() {
+function TestUsingRunTests() {
 
   # Tests need to locate .NET Core SDK
   $dotnet = InitializeDotNetCli
@@ -331,70 +366,68 @@ function TestUsingOptimizedRunner() {
     }
   }
 
+  if ($ci) {
+    $env:ROSLYN_TEST_CI = "true"
+  }
+
   if ($testIOperation) {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
-  $binDir = Join-Path $ArtifactsDir "bin" 
-  $runTests = GetProjectOutputBinary "RunTests.exe"
+  if ($testUsedAssemblies) {
+    $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
+  }
+
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net6.0"
 
   if (!(Test-Path $runTests)) {
-    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red 
+    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
     ExitWithExitCode 1
   }
 
   $dotnetExe = Join-Path $dotnet "dotnet.exe"
   $args += " --dotnet `"$dotnetExe`""
-  $args += " --out `"$testResultsDir`""
   $args += " --logs `"$LogDir`""
-  $args += " --tfm net472"
+  $args += " --configuration $configuration"
 
-  if ($testDesktop -or $testIOperation) {
-    if ($test32) {
-      $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" $binDir
+  if ($testCoreClr) {
+    $args += " --tfm net6.0"
+    $args += " --timeout 90"
+    if ($testCompilerOnly) {
+      $args += GetCompilerTestAssembliesIncludePaths
     } else {
-      $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" -Exclude "*InteractiveHost*" $binDir
+      $args += " --tfm net6.0-windows"
+      $args += " --include '\.UnitTests'"
     }
+  }
+  elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
+    $args += " --tfm net472"
+    $args += " --timeout 90"
+
+    if ($testCompilerOnly) {
+      $args += GetCompilerTestAssembliesIncludePaths
+    } else {
+      $args += " --include '\.UnitTests'"
+    }
+
+    if (-not $test32) {
+      $args += " --exclude '\.InteractiveHost'"
+    }
+
   } elseif ($testVsi) {
-    # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
-    # integration tests in CI.
-    if ($ci) {
-      $dlls += @(Get-Item (GetProjectOutputBinary "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
-      $args += " --retry"
-    }
+    $args += " --timeout 110"
+    $args += " --tfm net472"
+    $args += " --retry"
+    $args += " --sequential"
+    $args += " --include '\.IntegrationTests'"
+    $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
-    $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
-    $args += " --testvsi"
-  } else {
-    $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
-    $args += " --trait:Feature=NetCore"
-  }
-
-  # Exclude out the multi-targetted netcore app projects
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*net5.0.*") }
-
-  # Exclude out the ref assemblies
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
-
-  if ($configuration -eq 'Debug') {
-    $excludedConfiguration = 'Release'
-  } else {
-    $excludedConfiguration = 'Debug'
-  }
-
-  $dlls = $dlls | ?{ -not (($_.FullName -match ".*\\$excludedConfiguration\\.*") -or ($_.FullName -match ".*/$excludedConfiguration/.*")) }
-
-  if ($ci) {
-    if ($testVsi) {
-      $args += " --timeout 110"
-    } else {
-      $args += " --timeout 90"
+    if ($lspEditor) {
+      $args += " --testfilter Editor=LanguageServerProtocol"
     }
   }
-  else {
+
+  if (-not $ci -and -not $testVsi) {
     $args += " --html"
   }
 
@@ -415,21 +448,57 @@ function TestUsingOptimizedRunner() {
     $args += " --sequential"
   }
 
-  foreach ($dll in $dlls) {
-    $args += " $dll"
+  if ($helix) {
+    $args += " --helix"
+  }
+
+  if ($helixQueueName) {
+    $args += " --helixQueueName $helixQueueName"
   }
 
   try {
-    Exec-Console $runTests $args
+    Write-Host "$runTests $args"
+    Exec-Console $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
+    if ($ci) {
+      Remove-Item env:\ROSLYN_TEST_CI
+    }
+
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
 
+    if ($testUsedAssemblies) {
+      Remove-Item env:\ROSLYN_TEST_USEDASSEMBLIES
+    }
+
     if ($testVsi) {
-      Write-Host "Copying ServiceHub logs to $LogDir"
-      Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
+      $serviceHubLogs = Join-Path $TempDir "servicehub\logs"
+      if (Test-Path $serviceHubLogs) {
+        Write-Host "Copying ServiceHub logs to $LogDir"
+        Copy-Item -Path $serviceHubLogs -Destination (Join-Path $LogDir "servicehub") -Recurse
+      } else {
+        Write-Host "No ServiceHub logs found to copy"
+      }
+
+      if ($lspEditor) {
+        $lspLogs = Join-Path $TempDir "VisualStudio\LSP"
+        $telemetryLog = Join-Path $TempDir "VSTelemetryLog"
+        if (Test-Path $lspLogs) {
+          Write-Host "Copying LSP logs to $LogDir"
+          Copy-Item -Path $lspLogs -Destination (Join-Path $LogDir "LSP") -Recurse
+        } else {
+          Write-Host "No LSP logs found to copy"
+        }
+
+        if (Test-Path $telemetryLog) {
+          Write-Host "Copying telemetry logs to $LogDir"
+          Copy-Item -Path $telemetryLog -Destination (Join-Path $LogDir "Telemetry") -Recurse
+        } else {
+          Write-Host "No telemetry logs found to copy"
+        }
+      }
     }
   }
 }
@@ -452,10 +521,10 @@ function EnablePreviewSdks() {
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
-function Deploy-VsixViaTool() { 
+function Deploy-VsixViaTool() {
   $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
   $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
-  
+
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
     throw "Unable to locate required Visual Studio installation"
@@ -500,6 +569,34 @@ function Deploy-VsixViaTool() {
     Write-Host "`tInstalling $vsixFileName"
     Exec-Console $vsixExe $fullArg
   }
+
+  # Set up registry
+  $vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VsRegEdit.exe'
+
+  # Disable roaming settings to avoid interference from the online user profile
+  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio" RoamingEnabled string "1*System.Boolean*False"
+
+  # Disable IntelliCode line completions to avoid interference with argument completion testing
+  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" wholeLineCompletions string "0*System.Int32*2"
+
+  # Disable background download UI to avoid toasts
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
+
+  # Configure LSP
+  $lspRegistryValue = [int]$lspEditor.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
+
+  # Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
+  # custom handler or fail silently and continue testing.
+  &$vsRegEdit set "$vsDir" $hive HKCU "Text Editor" "Report Exceptions" dword 0
+
+  # Configure RemoteHostOptions.OOP64Bit for testing
+  $oop64bitValue = [int]$oop64bit.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
+
+  # Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
+  $oopCoreClrFeatureFlagValue = [int]$oopCoreClr.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\ServiceHubCore" Value dword $oopCoreClrFeatureFlagValue
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
@@ -568,13 +665,11 @@ function Setup-IntegrationTestRun() {
   }
 
   $env:ROSLYN_OOP64BIT = "$oop64bit"
+  $env:ROSLYN_OOPCORECLR = "$oopCoreClr"
+  $env:ROSLYN_LSPEDITOR = "$lspEditor"
 }
 
 function Prepare-TempDir() {
-  $env:TEMP=$TempDir
-  $env:TMP=$TempDir
-
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\global.json") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
@@ -611,12 +706,14 @@ try {
 
   Push-Location $RepoRoot
 
+  Subst-TempDir
+
   if ($ci) {
     List-Processes
     Prepare-TempDir
     EnablePreviewSdks
     if ($testVsi) {
-      Setup-IntegrationTestRun 
+      Setup-IntegrationTestRun
     }
 
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
@@ -641,14 +738,14 @@ try {
     throw $_
   }
 
-  if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
+  if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish) {
     BuildSolution
   }
 
   try
   {
-    if ($testDesktop -or $testVsi -or $testIOperation) {
-      TestUsingOptimizedRunner
+    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr) {
+      TestUsingRunTests
     }
   }
   catch
@@ -680,5 +777,7 @@ finally {
   if ($ci) {
     Stop-Processes
   }
+
+  Unsubst-TempDir
   Pop-Location
 }

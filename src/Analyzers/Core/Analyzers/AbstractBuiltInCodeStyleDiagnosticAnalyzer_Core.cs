@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -17,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected readonly LocalizableString _localizableMessageFormat;
 
         private AbstractBuiltInCodeStyleDiagnosticAnalyzer(
-            string descriptorId, LocalizableString title,
+            string descriptorId,
+            EnforceOnBuild enforceOnBuild,
+            LocalizableString title,
             LocalizableString? messageFormat,
             bool isUnnecessary,
             bool configurable)
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableTitle = title;
             _localizableMessageFormat = messageFormat ?? title;
 
-            Descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, isUnnecessary: isUnnecessary, isConfigurable: configurable);
+            Descriptor = CreateDescriptorWithId(DescriptorId, enforceOnBuild, _localizableTitle, _localizableMessageFormat, isUnnecessary: isUnnecessary, isConfigurable: configurable);
             SupportedDiagnostics = ImmutableArray.Create(Descriptor);
         }
 
@@ -42,29 +45,38 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableMessageFormat = Descriptor.MessageFormat;
         }
 
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected static DiagnosticDescriptor CreateDescriptorWithId(
             string id,
+            EnforceOnBuild enforceOnBuild,
             LocalizableString title,
-            LocalizableString messageFormat,
+            LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool isConfigurable = true,
-            LocalizableString? description = null,
-            params string[] customTags)
+            LocalizableString? description = null)
+#pragma warning disable RS0030 // Do not used banned APIs
             => new(
-                    id, title, messageFormat,
+                    id, title, messageFormat ?? title,
                     DiagnosticCategory.Style,
                     DiagnosticSeverity.Hidden,
                     isEnabledByDefault: true,
                     description: description,
                     helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
+#pragma warning restore RS0030 // Do not used banned APIs
+
+        /// <summary>
+        /// Flag indicating whether or not analyzer should receive analysis callbacks for generated code.
+        /// By default, code style analyzers should not run on generated code, so the value is false.
+        /// </summary>
+        protected virtual bool ReceiveAnalysisCallbacksForGeneratedCode => false;
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            // Code style analyzers should not run on generated code.
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            var flags = ReceiveAnalysisCallbacksForGeneratedCode ? GeneratedCodeAnalysisFlags.Analyze : GeneratedCodeAnalysisFlags.None;
+            context.ConfigureGeneratedCodeAnalysis(flags);
             context.EnableConcurrentExecution();
 
             InitializeWorker(context);

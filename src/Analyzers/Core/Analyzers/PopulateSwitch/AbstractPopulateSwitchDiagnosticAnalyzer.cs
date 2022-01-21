@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(AnalyzersResources.Add_missing_cases), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(AnalyzersResources.Populate_switch), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        protected AbstractPopulateSwitchDiagnosticAnalyzer(string diagnosticId)
+        protected AbstractPopulateSwitchDiagnosticAnalyzer(string diagnosticId, EnforceOnBuild enforceOnBuild)
             : base(diagnosticId,
+                   enforceOnBuild,
                    option: null,
                    s_localizableTitle, s_localizableMessage)
         {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             var switchOperation = (TSwitchOperation)context.Operation;
-            if (!(switchOperation.Syntax is TSwitchSyntax switchBlock))
+            if (switchOperation.Syntax is not TSwitchSyntax switchBlock)
                 return;
 
             var tree = switchBlock.SyntaxTree;

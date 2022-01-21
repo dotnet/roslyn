@@ -5,7 +5,7 @@
 - We've made a couple of changes to the core DiagnosticAnalyzer APIs: 
     - An *EndAction (`CompilationEndAction` or `CodeBlockEndAction`) can now only be registered from within a *Start context. This eliminates the confusion around being able to register an end action without a start action. 
     - Two new actions have been introduced - `CompilationAction` and `CodeBlockAction`. These are the "stateless" equivalents of the Start\End pair. One would register these actions when they simply need to inspect a compilation or a codeblock without needing any accumulated state. They would instead use the Start\End pair if they need to build up some computational state to report diagnostics after having looked at the entire compilation or codeblock. 
-- A complete description of the semantics of all the actions is available [here](https://github.com/dotnet/roslyn/tree/master/docs/analyzers/Analyzer%20Actions%20Semantics.md)
+- A complete description of the semantics of all the actions is available [here](https://github.com/dotnet/roslyn/tree/main/docs/analyzers/Analyzer%20Actions%20Semantics.md)
 - There is now a property bag on the `Diagnostic` type that can be used to communicate information from an analyzer to some other consumer. For eg. a codefixer for that diagnostic might be able to reuse some compuation from the analysis phase to produce a fix.
 - Some miscellaneous tightening of the APIs like making types sealed, making the `LocalizableString` type exception-safe, ensuring context.ReportDiagnostic filters out diagnostics not reported by the analyzer as supported. 
 

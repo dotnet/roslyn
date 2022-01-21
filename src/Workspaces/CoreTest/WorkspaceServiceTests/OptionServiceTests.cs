@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -90,6 +92,46 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var optionSet = optionService.GetOptions();
             var option = new Option<bool>("Test Feature", "Test Name", false);
             Assert.False(optionSet.GetOption(option));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void GlobalOptions()
+        {
+            using var workspace = new AdhocWorkspace();
+            var optionService = TestOptionService.GetGlobalOptionService(workspace.Services);
+            var option1 = new Option<int>("Feature1", "Name1", defaultValue: 1);
+            var option2 = new Option<int>("Feature2", "Name2", defaultValue: 2);
+            var option3 = new Option<int>("Feature3", "Name3", defaultValue: 3);
+
+            var changedOptions = new List<OptionChangedEventArgs>();
+
+            var handler = new EventHandler<OptionChangedEventArgs>((_, e) => changedOptions.Add(e));
+            optionService.OptionChanged += handler;
+
+            var values = optionService.GetOptions(ImmutableArray.Create<OptionKey>(option1, option2));
+            Assert.Equal(1, values[0]);
+            Assert.Equal(2, values[1]);
+
+            optionService.SetGlobalOptions(
+                ImmutableArray.Create<OptionKey>(option1, option2, option3),
+                ImmutableArray.Create<object?>(5, 6, 3));
+
+            AssertEx.Equal(new[]
+            {
+                "Name1=5",
+                "Name2=6",
+            }, changedOptions.Select(e => $"{e.OptionKey.Option.Name}={e.Value}"));
+
+            values = optionService.GetOptions(ImmutableArray.Create<OptionKey>(option1, option2, option3));
+            Assert.Equal(5, values[0]);
+            Assert.Equal(6, values[1]);
+            Assert.Equal(3, values[2]);
+
+            Assert.Equal(5, optionService.GetOption(option1));
+            Assert.Equal(6, optionService.GetOption(option2));
+            Assert.Equal(3, optionService.GetOption(option3));
+
+            optionService.OptionChanged -= handler;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -272,7 +314,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             using var workspace = new AdhocWorkspace(hostServices);
             var option = TodoCommentOptions.TokenList;
 
-            var provider = ((IMefHostExportProvider)hostServices).GetExportedValues<IOptionProvider>().OfType<TodoCommentOptionsProvider>().FirstOrDefault();
+            var provider = ((IMefHostExportProvider)hostServices).GetExportedValues<IOptionProvider>().OfType<TodoCommentOptions>().FirstOrDefault();
             var optionService = TestOptionService.GetService(workspace, provider);
             var optionSet = optionService.GetOptions();
             var optionKey = new OptionKey(option);
@@ -283,6 +325,36 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             optionService.SetOptions(newOptionSet);
             Assert.Equal(newOptionValue, (string?)optionService.GetOptions().GetOption(optionKey));
+
+            var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
+            var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);
+            var changedOptions = serializableOptionSet.GetChangedOptions();
+            var changedOptionKey = Assert.Single(changedOptions);
+            Assert.Equal(optionKey, changedOptionKey);
+            Assert.Equal(newOptionValue, serializableOptionSet.GetOption(changedOptionKey));
+        }
+
+        [Fact, WorkItem(1128126, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1128126")]
+        public void TestPersistedTodoCommentOptions()
+        {
+            var hostServices = FeaturesTestCompositions.Features.AddParts(typeof(TestOptionsServiceFactory)).GetHostServices();
+
+            using var workspace = new AdhocWorkspace(hostServices);
+            var option = TodoCommentOptions.TokenList;
+            var newOptionValue = option.DefaultValue + "|name:value";
+
+            var persister = new TestOptionService.TestOptionsPersister();
+            var persisted = persister.TryPersist(option, newOptionValue);
+            Assert.True(persisted);
+            Assert.True(persister.TryFetch(option, out var persistedValue));
+            Assert.Equal(newOptionValue, persistedValue);
+
+            var provider = ((IMefHostExportProvider)hostServices).GetExportedValues<IOptionProvider>().OfType<TodoCommentOptions>().FirstOrDefault();
+            var persisterProvider = new TestOptionService.TestOptionsPersisterProvider(persister);
+            var optionService = TestOptionService.GetService(workspace, provider, persisterProvider);
+            var optionSet = optionService.GetOptions();
+            var optionKey = new OptionKey(option);
+            Assert.Equal(newOptionValue, (string?)optionSet.GetOption(optionKey));
 
             var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
             var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);

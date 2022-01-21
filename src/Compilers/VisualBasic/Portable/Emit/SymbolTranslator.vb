@@ -130,11 +130,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Unreported bad types can come through NoPia embedding, for example.
             If namedTypeSymbol.OriginalDefinition.Kind = SymbolKind.ErrorType Then
                 Dim errorType = DirectCast(namedTypeSymbol.OriginalDefinition, ErrorTypeSymbol)
-                Dim diagInfo = If(errorType.GetUseSiteErrorInfo(), errorType.ErrorInfo)
+                Dim diagInfo = If(errorType.GetUseSiteInfo().DiagnosticInfo, errorType.ErrorInfo)
 
                 If diagInfo Is Nothing AndAlso namedTypeSymbol.Kind = SymbolKind.ErrorType Then
                     errorType = DirectCast(namedTypeSymbol, ErrorTypeSymbol)
-                    diagInfo = If(errorType.GetUseSiteErrorInfo(), errorType.ErrorInfo)
+                    diagInfo = If(errorType.GetUseSiteInfo().DiagnosticInfo, errorType.ErrorInfo)
                 End If
 
                 ' Try to decrease noise by not complaining about the same type over and over again.
@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim location = If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())
             If declaredBase IsNot Nothing Then
-                Dim diagnosticInfo = declaredBase.GetUseSiteErrorInfo()
+                Dim diagnosticInfo = declaredBase.GetUseSiteInfo().DiagnosticInfo
                 If diagnosticInfo IsNot Nothing Then
                     diagnostics.Add(diagnosticInfo, location)
                     Return

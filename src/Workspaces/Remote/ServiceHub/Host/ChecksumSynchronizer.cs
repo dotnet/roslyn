@@ -124,11 +124,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void AddIfNeeded(HashSet<Checksum> checksums, Checksum checksum)
         {
-            Debug.Assert(checksum != Checksum.Null);
-
-            if (!_assetProvider.EnsureCacheEntryIfExists(checksum))
+            if (checksum != Checksum.Null)
             {
-                checksums.Add(checksum);
+                if (!_assetProvider.EnsureCacheEntryIfExists(checksum))
+                {
+                    checksums.Add(checksum);
+                }
             }
         }
     }

@@ -2,20 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -28,14 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public KeywordCompletionProvider()
-            : base(GetKeywordRecommenders())
-        {
-        }
-
-        private static ImmutableArray<IKeywordRecommender<CSharpSyntaxContext>> GetKeywordRecommenders()
-        {
-            return new IKeywordRecommender<CSharpSyntaxContext>[]
-            {
+            : base(ImmutableArray.Create<IKeywordRecommender<CSharpSyntaxContext>>(
                 new AbstractKeywordRecommender(),
                 new AddKeywordRecommender(),
                 new AliasKeywordRecommender(),
@@ -45,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new AsKeywordRecommender(),
                 new AssemblyKeywordRecommender(),
                 new AsyncKeywordRecommender(),
-                new AwaitKeywordRecommender(),
                 new BaseKeywordRecommender(),
                 new BoolKeywordRecommender(),
                 new BreakKeywordRecommender(),
@@ -178,38 +166,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new WhereKeywordRecommender(),
                 new WhileKeywordRecommender(),
                 new WithKeywordRecommender(),
-                new YieldKeywordRecommender(),
-            }.ToImmutableArray();
+                new YieldKeywordRecommender()))
+        {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
-
-        protected override async Task<CSharpSyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
-        }
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
-        protected override CompletionItem CreateItem(RecommendedKeyword keyword, CSharpSyntaxContext context)
+        protected override CompletionItem CreateItem(RecommendedKeyword keyword, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var rules = context.IsPossibleTupleContext ? s_tupleRules : CompletionItemRules.Default;
 
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
                 displayTextSuffix: "",
-                description: keyword.DescriptionFactory(CancellationToken.None),
+                description: keyword.DescriptionFactory(cancellationToken),
                 glyph: Glyph.Keyword,
                 rules: rules.WithMatchPriority(keyword.MatchPriority)
                             .WithFormatOnCommit(keyword.ShouldFormatOnCommit));
         }
-
-        internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
-            => CompletionUtilities.GetCompletionItemSpan(text, span.End);
     }
 }

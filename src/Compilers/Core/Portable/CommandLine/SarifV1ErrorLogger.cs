@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 #pragma warning disable RS0013 // We need to invoke Diagnostic.Descriptor here to log all the metadata properties of the diagnostic.
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// Used for logging compiler diagnostics to a stream in the unstandardized SARIF
     /// (Static Analysis Results Interchange Format) v1.0.0 format.
     /// https://github.com/sarif-standard/sarif-spec
-    /// https://rawgit.com/sarif-standard/sarif-spec/master/Static%20Analysis%20Results%20Interchange%20Format%20(SARIF).html
+    /// https://rawgit.com/sarif-standard/sarif-spec/main/Static%20Analysis%20Results%20Interchange%20Format%20(SARIF).html
     /// </summary>
     /// <remarks>
     /// To log diagnostics in the standardized SARIF v2.1.0 format, use the SarifV2ErrorLogger.
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string PrimaryLocationPropertyName => "resultFile";
 
-        public override void LogDiagnostic(Diagnostic diagnostic)
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
@@ -177,11 +178,11 @@ namespace Microsoft.CodeAnalysis
 
                     _writer.Write("isEnabledByDefault", descriptor.IsEnabledByDefault);
 
-                    if (descriptor.CustomTags.Any())
+                    if (descriptor.ImmutableCustomTags.Any())
                     {
                         _writer.WriteArrayStart("tags");
 
-                        foreach (string tag in descriptor.CustomTags)
+                        foreach (string tag in descriptor.ImmutableCustomTags)
                         {
                             _writer.Write(tag);
                         }

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2741,7 +2740,7 @@ class Test
             CreateCompilation(@"
 namespace hidden
 {
-    class unmanaged
+    class @unmanaged
     {
         public void Print()
         {
@@ -2902,7 +2901,7 @@ class Test<U> where U : unmanaged
         public void UnmanagedConstraints_UnmanagedAsTypeConstraintName()
         {
             CreateCompilation(@"
-class Test<unmanaged> where unmanaged : System.IDisposable
+class Test<@unmanaged> where unmanaged : System.IDisposable
 {
     void M<T>(T arg) where T : unmanaged
     {

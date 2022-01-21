@@ -216,7 +216,7 @@ dotnet_diagnostic.cs0169.severity = suppress"
             Dim exitCode = cmd.Run(outWriter)
             Assert.Equal(1, exitCode)
             Assert.Equal(
-                $"vbc : error BC42500: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
+                $"vbc : error BC37317: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
                 outWriter.ToString().TrimEnd())
         End Sub
 
@@ -919,38 +919,38 @@ a.vb
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
             Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToReadUacManifest2, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32icon:\bogus"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32Resource:\bogus"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
 
             args = {"/win32manifest:goo.win32data:bar.win32data2"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToReadUacManifest2, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32icon:goo.win32data:bar.win32data2"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32Resource:goo.win32data:bar.win32data2"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
@@ -962,7 +962,7 @@ a.vb
             Dim parsedArgs = DefaultParse({"/win32icon:" + tmpFileName}, _baseDirectory)
             Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_ErrorCreatingWin32ResourceFile, Integer), errors.First().Code)
             Assert.Equal(1, errors.First().Arguments.Count())
@@ -1500,6 +1500,10 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic16, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:16.9", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic16_9, parsedArgs.ParseOptions.LanguageVersion)
+
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
 
@@ -2023,11 +2027,9 @@ End Module").Path
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
             ' - update the "UpgradeProject" codefixer (not yet supported in VB)
-            ' - update the IDE drop-down for selecting Language Version (not yet supported in VB)
-            ' - update project-system to recognize the new value and pass it through
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "latest"},
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
@@ -2048,7 +2050,8 @@ End Module").Path
                 "15.0",
                 "15.3",
                 "15.5",
-                "16"
+                "16",
+                "16.9"
              }
 
             AssertEx.SetEqual(versions, errorCodes)
@@ -2068,8 +2071,7 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.VisualBasic15_3.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.VisualBasic16_9.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -2092,6 +2094,7 @@ End Module").Path
             InlineData("15.5", True, LanguageVersion.VisualBasic15_5),
             InlineData("16", True, LanguageVersion.VisualBasic16),
             InlineData("16.0", True, LanguageVersion.VisualBasic16),
+            InlineData("16.9", True, LanguageVersion.VisualBasic16_9),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
@@ -3483,6 +3486,12 @@ print Goodbye, World"
             parsedArgs.Errors.Verify()
             Assert.Equal(KeyValuePairUtil.Create("a =,b" & s, "1,= 2" & s), parsedArgs.PathMap(0))
             Assert.Equal(KeyValuePairUtil.Create("x =,y" & s, "3 4" & s), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:C:\temp\=/_1/,C:\temp\a\=/_2/,C:\temp\a\b\=/_3/", "a.cs", "a\b.cs", "a\b\c.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\b\", "/_3/"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\", "/_2/"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePairUtil.Create("C:\temp\", "/_1/"), parsedArgs.PathMap(2))
         End Sub
 
         ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an
@@ -4581,6 +4590,18 @@ End Class
             parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=42", "a.cs"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=42", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=1.0.0", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=1.0.0", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=2.1.0", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=2.1.0", "errorlog", CommandLineParser.ErrorLogOptionFormat))
             Assert.Null(parsedArgs.ErrorLogOptions)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
@@ -7362,14 +7383,22 @@ End Module
             parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/out:com1.exe", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("\\.\com1").WithLocation(1, 1))
+            If ExecutionConditionUtil.OperatingSystemRestrictsFileNames Then
+                parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("\\.\com1").WithLocation(1, 1))
+            Else
+                parsedArgs.Errors.Verify()
+            End If
 
             parsedArgs = DefaultParse({"/doc:..\lpt2.xml", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments("..\lpt2.xml", "The system cannot find the path specified").WithLocation(1, 1))
+            If ExecutionConditionUtil.OperatingSystemRestrictsFileNames Then
+                parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments("..\lpt2.xml", "The system cannot find the path specified").WithLocation(1, 1))
+            Else
+                parsedArgs.Errors.Verify()
+            End If
 
             parsedArgs = DefaultParse({"/SdkPath:..\aux", "com.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_CannotFindStandardLibrary1).WithArguments("System.dll").WithLocation(1, 1),
-                                     Diagnostic(ERRID.ERR_LibNotFound).WithArguments("Microsoft.VisualBasic.dll").WithLocation(1, 1))
+                                 Diagnostic(ERRID.ERR_LibNotFound).WithArguments("Microsoft.VisualBasic.dll").WithLocation(1, 1))
 
         End Sub
 
@@ -9405,13 +9434,14 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/out:{exePath}", srcPath})
-            vbc.FileOpen = Function(filePath, mode, access, share)
-                               If filePath = exePath Then
-                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
-                               End If
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
+                            Function(filePath, mode, access, share)
+                                If filePath = exePath Then
+                                    Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                                End If
 
-                               Return File.Open(filePath, mode, access, share)
-                           End Function
+                                Return File.Open(filePath, mode, access, share)
+                            End Function)
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, vbc.Run(outWriter))
@@ -9424,13 +9454,14 @@ End Module
             Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
             Dim pdbPath = Path.ChangeExtension(exePath, "pdb")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug", $"/out:{exePath}", srcPath})
-            vbc.FileOpen = Function(filePath, mode, access, share)
-                               If filePath = pdbPath Then
-                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
-                               End If
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
+                            Function(filePath, mode, access, share)
+                                If filePath = pdbPath Then
+                                    Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                                End If
 
-                               Return File.Open(filePath, mode, access, share)
-                           End Function
+                                Return File.Open(filePath, mode, access, share)
+                            End Function)
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, vbc.Run(outWriter))
@@ -9442,13 +9473,14 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim xmlPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.xml")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/doc:{xmlPath}", srcPath})
-            vbc.FileOpen = Function(filePath, mode, access, share)
-                               If filePath = xmlPath Then
-                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
-                               End If
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
+                            Function(filePath, mode, access, share)
+                                If filePath = xmlPath Then
+                                    Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                                End If
 
-                               Return File.Open(filePath, mode, access, share)
-                           End Function
+                                Return File.Open(filePath, mode, access, share)
+                            End Function)
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, vbc.Run(outWriter))
@@ -9462,9 +9494,10 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:" & format, $"/sourcelink:{sourceLinkPath}", srcPath})
-            vbc.FileOpen = Function(filePath, mode, access, share)
-                               If filePath = sourceLinkPath Then
-                                   Return New TestStream(
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
+                            Function(filePath, mode, access, share)
+                                If filePath = sourceLinkPath Then
+                                    Return New TestStream(
                                    backingStream:=New MemoryStream(Encoding.UTF8.GetBytes("
 {
   ""documents"": {
@@ -9473,10 +9506,10 @@ End Module
 }
 ")),
                                    dispose:=Sub() Throw New IOException("Fake IOException"))
-                               End If
+                                End If
 
-                               Return File.Open(filePath, mode, access, share)
-                           End Function
+                                Return File.Open(filePath, mode, access, share)
+                            End Function)
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, vbc.Run(outWriter))
@@ -10056,6 +10089,59 @@ End Class")
                 Dim prefix = If(defaultSeverity = DiagnosticSeverity.Warning, "warning", "error")
                 Assert.Contains($"{prefix} {diagnosticId}: {analyzer.Descriptor.MessageFormat}", output)
             End If
+        End Sub
+
+        <WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")>
+        <Theory>
+        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        Public Sub TestWarnAsErrorMinusDoesNotNullifyEditorConfig(warnAsErrorMinus As Boolean,
+                                                                  defaultSeverity As DiagnosticSeverity,
+                                                                  severityInConfigFile As DiagnosticSeverity?,
+                                                                  expectedEffectiveSeverity As DiagnosticSeverity)
+            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=False)
+            Dim diagnosticId = analyzer.Descriptor.Id
+
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+            Dim additionalFlags = {"/warnaserror+"}
+
+            If severityInConfigFile.HasValue Then
+                Dim severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString()
+                Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
+[*.vb]
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}")
+
+                additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray()
+            End If
+
+            If warnAsErrorMinus Then
+                additionalFlags = additionalFlags.Append($"/warnaserror-:{diagnosticId}").ToArray()
+            End If
+
+            Dim expectedWarningCount As Integer = 0, expectedErrorCount As Integer = 0
+            Select Case expectedEffectiveSeverity
+                Case DiagnosticSeverity.Warning
+                    expectedWarningCount = 1
+                Case DiagnosticSeverity.[Error]
+                    expectedErrorCount = 1
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(expectedEffectiveSeverity)
+            End Select
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False,
+                         expectedWarningCount:=expectedWarningCount,
+                         expectedErrorCount:=expectedErrorCount,
+                         additionalFlags:=additionalFlags,
+                         analyzers:=ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
         End Sub
 
         <Fact>

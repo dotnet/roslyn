@@ -16,5 +16,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public RazorRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId underlyingObject)
             => UnderlyingObject = underlyingObject;
+
+        public static implicit operator RazorRemoteServiceCallbackIdWrapper(RemoteServiceCallbackId id)
+            => new(id);
     }
 }

@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
                     LowerDecisionDag(decisionDag);
 
+                if (_whenNodeIdentifierLocal is not null)
+                {
+                    outerVariables.Add(_whenNodeIdentifierLocal);
+                }
+
                 if (produceDetailedSequencePoints)
                 {
                     var syntax = (SwitchExpressionSyntax)node.Syntax;
@@ -138,8 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
                 {
-                    HashSet<DiagnosticInfo>? discarded = null;
-                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discarded);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discardedUseSiteInfo);
                     return c.IsImplicit;
                 }
             }

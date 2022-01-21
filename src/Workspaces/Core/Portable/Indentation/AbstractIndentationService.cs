@@ -5,8 +5,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Indentation
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 
         private Indenter GetIndenter(Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            var options = IndentationOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             var syntacticDoc = SyntacticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             var sourceText = syntacticDoc.Root.SyntaxTree.GetText(cancellationToken);
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             var formattingRules = GetFormattingRules(document, lineToBeIndented.Start, indentStyle);
 
-            return new Indenter(this, syntacticDoc, formattingRules, documentOptions, lineToBeIndented, cancellationToken);
+            return new Indenter(this, syntacticDoc, formattingRules, options, lineToBeIndented, cancellationToken);
         }
 
         /// <summary>

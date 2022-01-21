@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -15,13 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class NamespaceDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<NamespaceDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             NamespaceDeclarationSyntax namespaceDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             // add leading comments
-            CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, ref spans, options);
 
             if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
                 !namespaceDeclaration.CloseBraceToken.IsMissing)
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // add any leading comments before the extern aliases and usings
             if (externsAndUsings.Count > 0)
             {
-                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans, optionProvider);
+                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), ref spans, options);
             }
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!namespaceDeclaration.CloseBraceToken.IsMissing)
             {
                 CSharpStructureHelpers.CollectCommentBlockSpans(
-                    namespaceDeclaration.CloseBraceToken.LeadingTrivia, spans);
+                    namespaceDeclaration.CloseBraceToken.LeadingTrivia, ref spans);
             }
         }
     }

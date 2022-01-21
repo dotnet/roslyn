@@ -19,8 +19,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
         End Sub
 
         Public Async Function FindBraces(document As Document,
-                                   position As Integer,
-                                   Optional cancellationToken As CancellationToken = Nothing) As Task(Of BraceMatchingResult?) Implements IBraceMatcher.FindBracesAsync
+                                         position As Integer,
+                                         options As BraceMatchingOptions,
+                                         cancellationToken As CancellationToken) As Task(Of BraceMatchingResult?) Implements IBraceMatcher.FindBracesAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim token = root.FindToken(position)
 

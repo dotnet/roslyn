@@ -1488,7 +1488,7 @@ class Derived : Base
     void Goo() { }
 
     public override int Prop => throw new System.NotImplementedException();
-}", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
+}", options: Option(ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
 
         [WorkItem(17274, "https://github.com/dotnet/roslyn/issues/17274")]
@@ -1665,7 +1665,7 @@ class C : AbstractClass
     public override int ReadWriteProp { get; set; }
     public override int WriteOnlyProp { set => throw new System.NotImplementedException(); }
 }", parameters: new TestParameters(options: Option(
-    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypeOptions.Metadata.PropertyGenerationBehavior,
     ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
         }
 
@@ -1910,6 +1910,162 @@ record B(int i) : A
         throw new System.NotImplementedException();
     }
 }", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D|] : B<int>
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D : B<int>
+{
+    public override int M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable2()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<T> where T : struct
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<T> where T : struct
+{
+    public override T M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable_Tuple()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<(T, T)>
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<(T, T)>
+{
+    public override (T, T) M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [InlineData("", "T")]
+        [InlineData(" where T : class", "T")]
+        [InlineData("", "T?")]
+        [InlineData(" where T : class", "T?")]
+        [InlineData(" where T : struct", "T?")]
+        public async Task TestUnconstrainedGenericNullable_NoRegression(string constraint, string passToBase)
+        {
+            await TestAllOptionsOffAsync(
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class [|D<T>|] : B<{passToBase}>{constraint}
+{{
+}}",
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class D<T> : B<{passToBase}>{constraint}
+{{
+    public override T? M()
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
+        }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestNullableGenericType()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class C
+{
+    public abstract void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+class [|D|] : C
+{
+}",
+@"abstract class C
+{
+    public abstract void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+class D : C
+{
+    public override void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+        where T1 : default
+        where T3 : default
+    {
+        throw new System.NotImplementedException();
+    }
+}");
         }
     }
 }

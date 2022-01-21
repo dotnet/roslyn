@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                         {
                             builder.WriteUTF8(info.LocalName);
                         }
+
                         builder.WriteByte(0);
                     }
                 });

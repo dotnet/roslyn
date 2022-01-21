@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
@@ -16,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractFormattingAnalyzer()
             : base(
                 IDEDiagnosticIds.FormattingDiagnosticId,
+                EnforceOnBuildValues.Formatting,
                 option: null,
                 new LocalizableResourceString(nameof(CodeStyleResources.Fix_formatting), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)),
                 new LocalizableResourceString(nameof(CodeStyleResources.Fix_formatting), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)))
@@ -35,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var analyzerConfigOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree);
-            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormattingService, Descriptor, analyzerConfigOptions);
+            var options = SyntaxFormattingOptions.Create(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree));
+            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormattingService, Descriptor, options);
         }
     }
 }

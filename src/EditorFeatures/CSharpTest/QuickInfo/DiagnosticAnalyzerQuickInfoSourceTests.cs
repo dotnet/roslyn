@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task ErrorTileIsShownOnDisablePragma()
+        public async Task ErrorTitleIsShownOnDisablePragma()
         {
             await TestInMethodAsync(
 @"
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task ErrorTileIsShownOnRestorePragma()
+        public async Task ErrorTitleIsShownOnRestorePragma()
         {
             await TestInMethodAsync(
 @"
@@ -59,6 +60,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 @"
 #pragma warning disable CS0219$$
 ", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
+        }
+
+        [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("CS0219$$")]
+        [InlineData("219$$")]
+        [InlineData("0219$$")]
+        [InlineData("CS02$$19")]
+        [InlineData("2$$19")]
+        [InlineData("02$$19")]
+        public async Task PragmaWarningCompilerWarningSyntaxKinds(string warning)
+        {
+            // Reference: https://docs.microsoft.com/en-US/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-pragma-warning
+            // "A comma-separated list of warning numbers. The "CS" prefix is optional."
+            await TestInMethodAsync(
+@$"
+#pragma warning disable {warning}
+", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
+        }
+
+        [WorkItem(49102, "https://github.com/dotnet/roslyn/issues/49102")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("#pragma warning $$CS0219", null)]
+        [InlineData("#pragma warning disable$$", null)]
+        [InlineData("#pragma warning disable $$true", null)]
+        [InlineData("#pragma warning disable $$219.0", (int)ErrorCode.WRN_UnreferencedVarAssg)]
+        [InlineData("#pragma warning disable $$219.5", (int)ErrorCode.WRN_UnreferencedVarAssg)]
+        public async Task PragmaWarningDoesNotThrowInBrokenSyntax(string pragma, int? errorCode)
+        {
+            var expectedDescription = errorCode is int errorCodeValue
+                ? GetFormattedErrorTitle((ErrorCode)errorCodeValue)
+                : "";
+            await TestInMethodAsync(
+@$"
+{pragma}
+", expectedDescription);
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
@@ -156,7 +193,8 @@ namespace T
         {
             var diagnosticAnalyzerService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
             var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider(diagnosticAnalyzerService);
-            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
+            var options = SymbolDescriptionOptions.From(document.Project);
+            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, options, CancellationToken.None));
             return info;
         }
 

@@ -135,20 +135,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim report As ReportDiagnostic
             Dim tree = location?.SourceTree
             Dim isSpecified As Boolean = False
+            Dim specifiedWarnAsErrorMinus As Boolean = False
 
             ' Global options depend on other options, so calculate those first
             If caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
                 ' 2. Command line options (/nowarn, /warnaserror)
                 isSpecified = True
-            ElseIf syntaxTreeOptions IsNot Nothing Then
-                If (tree IsNot Nothing AndAlso syntaxTreeOptions.TryGetDiagnosticValue(tree, id, cancellationToken, report)) OrElse
-                   syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, report) Then
-                    ' 3. Editor config options (syntax tree level)
-                    ' 4. Global analyzer config options (compilation level)
+
+                ' 'ReportDiagnostic.Default' is added to SpecificDiagnosticOptions for "/warnaserror-:DiagnosticId",
+                If report = ReportDiagnostic.Default Then
+                    specifiedWarnAsErrorMinus = True
+                End If
+            End If
+
+            ' Apply syntax tree options, if applicable.
+            If syntaxTreeOptions IsNot Nothing AndAlso
+               (Not isSpecified OrElse specifiedWarnAsErrorMinus) Then
+
+                ' 3. Editor config options (syntax tree level)
+                ' 4. Global analyzer config options (compilation level)
+                ' Do not apply config options if it is bumping a warning to an error and "/warnaserror-:DiagnosticId" was specified on the command line.
+                Dim reportFromSyntaxTreeOptions As ReportDiagnostic
+                If ((tree IsNot Nothing AndAlso syntaxTreeOptions.TryGetDiagnosticValue(tree, id, cancellationToken, reportFromSyntaxTreeOptions)) OrElse
+                     syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, reportFromSyntaxTreeOptions)) AndAlso
+                    Not (specifiedWarnAsErrorMinus AndAlso severity = DiagnosticSeverity.Warning AndAlso reportFromSyntaxTreeOptions = ReportDiagnostic.Error) Then
                     isSpecified = True
+                    report = reportFromSyntaxTreeOptions
 
                     ' '/warnaserror' should promote warnings configured in analyzer config to error.
-                    If report = ReportDiagnostic.Warn AndAlso generalDiagnosticOption = ReportDiagnostic.Error Then
+                    If Not specifiedWarnAsErrorMinus AndAlso report = ReportDiagnostic.Warn AndAlso generalDiagnosticOption = ReportDiagnostic.Error Then
                         report = ReportDiagnostic.Error
                     End If
                 End If

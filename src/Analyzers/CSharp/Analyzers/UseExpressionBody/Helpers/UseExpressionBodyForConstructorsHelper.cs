@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private UseExpressionBodyForConstructorsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForConstructors,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_constructors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_constructors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedConstructors,
@@ -25,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
         }
 
-        protected override BlockSyntax GetBody(ConstructorDeclarationSyntax declaration)
+        protected override BlockSyntax? GetBody(ConstructorDeclarationSyntax declaration)
             => declaration.Body;
 
-        protected override ArrowExpressionClauseSyntax GetExpressionBody(ConstructorDeclarationSyntax declaration)
+        protected override ArrowExpressionClauseSyntax? GetExpressionBody(ConstructorDeclarationSyntax declaration)
             => declaration.ExpressionBody;
 
         protected override SyntaxToken GetSemicolonToken(ConstructorDeclarationSyntax declaration)
@@ -37,10 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override ConstructorDeclarationSyntax WithSemicolonToken(ConstructorDeclarationSyntax declaration, SyntaxToken token)
             => declaration.WithSemicolonToken(token);
 
-        protected override ConstructorDeclarationSyntax WithExpressionBody(ConstructorDeclarationSyntax declaration, ArrowExpressionClauseSyntax expressionBody)
+        protected override ConstructorDeclarationSyntax WithExpressionBody(ConstructorDeclarationSyntax declaration, ArrowExpressionClauseSyntax? expressionBody)
             => declaration.WithExpressionBody(expressionBody);
 
-        protected override ConstructorDeclarationSyntax WithBody(ConstructorDeclarationSyntax declaration, BlockSyntax body)
+        protected override ConstructorDeclarationSyntax WithBody(ConstructorDeclarationSyntax declaration, BlockSyntax? body)
             => declaration.WithBody(body);
 
         protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, ConstructorDeclarationSyntax declaration) => false;

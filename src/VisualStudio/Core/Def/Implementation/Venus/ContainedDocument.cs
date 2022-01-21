@@ -45,8 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private const string HTML = nameof(HTML);
         private const string HTMLX = nameof(HTMLX);
+        private const string LegacyRazor = nameof(LegacyRazor);
         private const string Razor = nameof(Razor);
         private const string XOML = nameof(XOML);
+        private const string WebForms = nameof(WebForms);
 
         private const char RazorExplicit = '@';
 
@@ -148,7 +150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             {
                 // RazorCSharp has an HTMLX base type but should not be associated with
                 // the HTML host type, so we check for it first.
-                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor)))
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor) ||
+                    b.ContentType.IsOfType(LegacyRazor)))
                 {
                     return HostType.Razor;
                 }
@@ -156,6 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // For TypeScript hosted in HTML the source buffers will have type names
                 // HTMLX and TypeScript.
                 if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML) ||
+                    b.ContentType.IsOfType(WebForms) ||
                     b.ContentType.IsOfType(HTMLX)))
                 {
                     return HostType.HTML;
@@ -756,11 +760,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
-            var options = _workspace.Options
-                                        .WithChangedOption(FormattingOptions.NewLine, root.Language, editorOptions.GetNewLineCharacter())
-                                        .WithChangedOption(FormattingOptions.UseTabs, root.Language, !editorOptions.IsConvertTabsToSpacesEnabled())
-                                        .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
-                                        .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize());
+            var options = SyntaxFormattingOptions.Create(
+                _workspace.Options
+                    .WithChangedOption(FormattingOptions.NewLine, root.Language, editorOptions.GetNewLineCharacter())
+                    .WithChangedOption(FormattingOptions.UseTabs, root.Language, !editorOptions.IsConvertTabsToSpacesEnabled())
+                    .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
+                    .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize()),
+                _workspace.Services,
+                document.Project.Language);
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -781,7 +788,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         private void AdjustIndentationForSpan(
-            Document document, ITextEdit edit, TextSpan visibleSpan, AbstractFormattingRule baseIndentationRule, OptionSet options)
+            Document document, ITextEdit edit, TextSpan visibleSpan, AbstractFormattingRule baseIndentationRule, SyntaxFormattingOptions options)
         {
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
@@ -796,10 +803,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var workspace = document.Project.Solution.Workspace;
-            var changes = Formatter.GetFormattedTextChanges(
+            var services = document.Project.Solution.Workspace.Services;
+            var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var changes = formatter.GetFormattingResult(
                 root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
-                workspace, options, formattingRules, CancellationToken.None);
+                options, formattingRules, CancellationToken.None).GetTextChanges(CancellationToken.None);
 
             visibleSpans.Add(visibleSpan);
             var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
@@ -834,7 +842,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     if (current.Span.Start < visibleSpan.Start)
                     {
                         var blockType = GetRazorCodeBlockType(visibleSpan.Start);
-                        if (blockType == RazorCodeBlockType.Block || blockType == RazorCodeBlockType.Helper)
+                        if (blockType is RazorCodeBlockType.Block or RazorCodeBlockType.Helper)
                         {
                             var baseIndentation = GetBaseIndentation(root, text, visibleSpan);
                             return new BaseIndentationFormattingRule(root, TextSpan.FromBounds(visibleSpan.Start, end), baseIndentation, _vbHelperFormattingRule);

@@ -23,7 +23,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -43,7 +43,22 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main() 
+    {
+        int i = 0;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -63,7 +78,22 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input, ephemeral:=True)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main() 
+    {
+        int i = 0;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -83,7 +113,22 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Dim output =
+           <Workspace>
+               <Project Language="C#" CommonReferences="true">
+                   <Document>
+class A
+{
+    void Main() 
+    {
+        var (i, j) = (0, "");
+    }
+}
+                    </Document>
+               </Project>
+           </Workspace>
+
+            Await VerifyTypeHints(input, output)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -103,7 +148,22 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        foreach (string j in args) {}
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -123,7 +183,22 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input, ephemeral:=True)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        foreach (string j in args) {}
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -143,7 +218,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -163,7 +238,22 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (args is { Length: int goo }) { }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -183,7 +273,21 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input, ephemeral:=True)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (args is { Length: int goo }) { }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+            Await VerifyTypeHints(input, output, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -203,7 +307,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -224,7 +328,23 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System.Linq;
+class A
+{
+    void Main(string[] args) 
+    {
+        args.Where(a => a.Length > 0);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -245,7 +365,23 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System.Linq;
+class A
+{
+    void Main(string[] args) 
+    {
+        args.Where((string a) => a.Length > 0);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -266,7 +402,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -288,7 +424,24 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (int.TryParse("", out int x))
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -310,7 +463,24 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input, ephemeral:=True)
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (int.TryParse("", out int x))
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -333,7 +503,223 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHints(input, input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_InMethodArgument() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M(int i) { }
+
+    void Main(string[] args) 
+    {
+        M(new{| int:|}())
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M(int i) { }
+
+    void Main(string[] args) 
+    {
+        M(new int())
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_FieldInitializer() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int field = new{| int:|}();
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int field = new int();
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_LocalInitializer() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M()
+    {
+        int i = new{| int:|}();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M()
+    {
+        int i = new int();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_ParameterInitializer() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M(System.Threading.CancellationToken ct = new{| CancellationToken:|}()) { }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M(System.Threading.CancellationToken ct = new CancellationToken()) { }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_Return() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int M()
+    {
+        return new{| int:|}();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int M()
+    {
+        return new int();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_IfExpression() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int M()
+    {
+        return true
+            ? 1
+            : new{| int:|}();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int M()
+    {
+        return true
+            ? 1
+            : new int();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
         End Function
     End Class
 End Namespace

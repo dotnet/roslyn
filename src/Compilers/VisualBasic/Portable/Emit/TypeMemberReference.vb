@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overridable Function GetContainingType(context As EmitContext) As Cci.ITypeReference Implements Cci.ITypeMemberReference.GetContainingType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Return moduleBeingBuilt.Translate(UnderlyingSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(UnderlyingSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property INamedEntityName As String Implements Cci.INamedEntity.Name

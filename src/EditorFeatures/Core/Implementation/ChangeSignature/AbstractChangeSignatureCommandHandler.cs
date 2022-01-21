@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -15,6 +14,8 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 {
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
 
-        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace)
+        private static bool IsAvailable(ITextBuffer subjectBuffer, [NotNullWhen(true)] out Workspace? workspace)
             => subjectBuffer.TryGetWorkspace(out workspace) &&
                workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
                subjectBuffer.SupportsRefactorings();
@@ -70,62 +71,98 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                     return false;
                 }
 
-                var reorderParametersService = document.GetLanguageService<AbstractChangeSignatureService>();
-                var result = reorderParametersService.ChangeSignature(
+                var changeSignatureService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
+
+                var cancellationToken = context.OperationContext.UserCancellationToken;
+
+                // Async operation to determine the change signature
+                var changeSignatureContext = changeSignatureService.GetChangeSignatureContextAsync(
                     document,
                     caretPoint.Value.Position,
-                    (errorMessage, severity) =>
-                    {
-                        // We are about to show a modal UI dialog so we should take over the command execution
-                        // wait context. That means the command system won't attempt to show its own wait dialog 
-                        // and also will take it into consideration when measuring command handling duration.
-                        context.OperationContext.TakeOwnership();
-                        workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity);
-                    },
-                context.OperationContext.UserCancellationToken);
+                    restrictToDeclarations: false,
+                    cancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
 
-                if (result == null || !result.Succeeded)
-                {
-                    return true;
-                }
+                // UI thread bound operation to show the change signature dialog.
+                var changeSignatureOptions = AbstractChangeSignatureService.GetChangeSignatureOptions(changeSignatureContext);
 
-                var finalSolution = result.UpdatedSolution;
+                // Async operation to compute the new solution created from the specified options.
+                var result = changeSignatureService.ChangeSignatureWithContextAsync(changeSignatureContext, changeSignatureOptions, cancellationToken).WaitAndGetResult(cancellationToken);
 
-                var previewService = workspace.Services.GetService<IPreviewDialogService>();
-                if (previewService != null && result.PreviewChanges)
-                {
-                    // We are about to show a modal UI dialog so we should take over the command execution
-                    // wait context. That means the command system won't attempt to show its own wait dialog 
-                    // and also will take it into consideration when measuring command handling duration.
-                    context.OperationContext.TakeOwnership();
-                    finalSolution = previewService.PreviewChanges(
-                        string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
-                        "vs.csharp.refactoring.preview",
-                        EditorFeaturesResources.Change_Signature_colon,
-                        result.Name,
-                        result.Glyph.GetValueOrDefault(),
-                        result.UpdatedSolution,
-                        document.Project.Solution);
-                }
-
-                if (finalSolution == null)
-                {
-                    // User clicked cancel.
-                    return true;
-                }
-
-                using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.Change_signature))
-                {
-                    if (!workspace.TryApplyChanges(finalSolution))
-                    {
-                        // TODO: handle failure
-                        return true;
-                    }
-
-                    workspaceUndoTransaction.Commit();
-                }
+                // UI thread bound operation to show preview changes dialog / show error message, then apply the solution changes (if applicable).
+                HandleResult(result, document.Project.Solution, workspace, context);
 
                 return true;
+            }
+        }
+
+        private static void HandleResult(ChangeSignatureResult result, Solution oldSolution, Workspace workspace, CommandExecutionContext context)
+        {
+            var notificationService = workspace.Services.GetRequiredService<INotificationService>();
+            if (!result.Succeeded)
+            {
+                if (result.ChangeSignatureFailureKind != null)
+                {
+                    ShowError(result.ChangeSignatureFailureKind.Value, context.OperationContext, notificationService);
+                }
+
+                return;
+            }
+
+            if (result.ConfirmationMessage != null && !notificationService.ConfirmMessageBox(result.ConfirmationMessage, severity: NotificationSeverity.Warning))
+            {
+                return;
+            }
+
+            var finalSolution = result.UpdatedSolution;
+
+            var previewService = workspace.Services.GetService<IPreviewDialogService>();
+            if (previewService != null && result.PreviewChanges)
+            {
+                // We are about to show a modal UI dialog so we should take over the command execution
+                // wait context. That means the command system won't attempt to show its own wait dialog 
+                // and also will take it into consideration when measuring command handling duration.
+                context.OperationContext.TakeOwnership();
+                finalSolution = previewService.PreviewChanges(
+                    string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
+                    "vs.csharp.refactoring.preview",
+                    EditorFeaturesResources.Change_Signature_colon,
+                    result.Name,
+                    result.Glyph.GetValueOrDefault(),
+                    result.UpdatedSolution,
+                    oldSolution);
+            }
+
+            if (finalSolution == null)
+            {
+                // User clicked cancel.
+                return;
+            }
+
+            using var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.Change_signature);
+            if (workspace.TryApplyChanges(finalSolution))
+            {
+                workspaceUndoTransaction.Commit();
+            }
+
+            // TODO: handle failure
+        }
+
+        private static void ShowError(ChangeSignatureFailureKind reason, IUIThreadOperationContext operationContext, INotificationService notificationService)
+        {
+            switch (reason)
+            {
+                case ChangeSignatureFailureKind.DefinedInMetadata:
+                    ShowMessage(FeaturesResources.The_member_is_defined_in_metadata, NotificationSeverity.Error, operationContext, notificationService);
+                    break;
+                case ChangeSignatureFailureKind.IncorrectKind:
+                    ShowMessage(FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate, NotificationSeverity.Error, operationContext, notificationService);
+                    break;
+            }
+
+            static void ShowMessage(string errorMessage, NotificationSeverity severity, IUIThreadOperationContext operationContext, INotificationService notificationService)
+            {
+                operationContext.TakeOwnership();
+                notificationService.SendNotification(errorMessage, severity: severity);
             }
         }
     }

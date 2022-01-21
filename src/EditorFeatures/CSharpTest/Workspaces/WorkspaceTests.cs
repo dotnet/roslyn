@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 composition = composition.AddParts(typeof(TestOptionsServiceWithSharedGlobalOptionsServiceFactory));
             }
 
-            return new TestWorkspace(exportProvider: null, composition, workspaceKind, disablePartialSolutions);
+            return new TestWorkspace(exportProvider: null, composition, workspaceKind, disablePartialSolutions: disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
@@ -220,14 +220,14 @@ class D { }
             // Check that a parse tree for a submission has an empty file path.
             var tree1 = await workspace.CurrentSolution
                 .GetProjectState(project1.Id)
-                .GetDocumentState(document1.Id)
+                .DocumentStates.GetState(document1.Id)
                 .GetSyntaxTreeAsync(CancellationToken.None);
             Assert.Equal("", tree1.FilePath);
 
             // Check that a parse tree for a script does not have an empty file path.
             var tree2 = await workspace.CurrentSolution
                 .GetProjectState(project2.Id)
-                .GetDocumentState(document2.Id)
+                .DocumentStates.GetState(document2.Id)
                 .GetSyntaxTreeAsync(CancellationToken.None);
             Assert.Equal("a.csx", tree2.FilePath);
         }
@@ -821,7 +821,7 @@ class D { }
 
             Assert.Equal(1, project.Documents.Count());
             Assert.Equal(1, project.AnalyzerConfigDocuments.Count());
-            Assert.Equal(1, project.State.AnalyzerConfigDocumentIds.Count());
+            Assert.Equal(1, project.State.AnalyzerConfigDocumentStates.Count);
 
             var doc = project.GetDocument(analyzerConfigDoc.Id);
             Assert.Null(doc);

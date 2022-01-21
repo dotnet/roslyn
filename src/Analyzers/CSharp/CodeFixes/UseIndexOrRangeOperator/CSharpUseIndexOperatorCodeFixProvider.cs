@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     using System.Linq;
     using static CodeFixHelpers;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseIndexOperator), Shared]
     internal class CSharpUseIndexOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

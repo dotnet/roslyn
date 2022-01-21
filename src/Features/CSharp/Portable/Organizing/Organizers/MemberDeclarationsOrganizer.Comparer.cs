@@ -170,6 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.EnumDeclaration:
                     case SyntaxKind.DelegateDeclaration:
+                    case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return OuterOrdering.Types;
                     default:
                         return OuterOrdering.Remaining;

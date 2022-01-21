@@ -12,7 +12,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal interface IWorkspaceContextService : IWorkspaceService
     {
         /// <summary>
-        /// Used to determine if running as a client in a cloud connected environment.
+        /// Determines if LSP is being used as the editor.
+        /// Used to disable non-LSP editor feature integration.
+        /// </summary>
+        bool IsInLspEditorContext();
+
+        /// <summary>
+        /// Determines if the VS instance is being as a cloud environment client.
         /// </summary>
         bool IsCloudEnvironmentClient();
     }
@@ -20,24 +26,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     [ExportWorkspaceService(typeof(IWorkspaceContextService), ServiceLayer.Default), Shared]
     internal sealed class DefaultWorkspaceContextService : IWorkspaceContextService
     {
+        /// <summary>
+        /// Roslyn LSP feature flag name, as defined in the PackageRegistraion.pkgdef
+        /// by everything following '$RootKey$\FeatureFlags\' and '\' replaced by '.'
+        /// </summary>
+        public const string LspEditorFeatureFlagName = "Roslyn.LSP.Editor";
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultWorkspaceContextService()
         {
         }
 
+        public bool IsInLspEditorContext() => false;
+
         public bool IsCloudEnvironmentClient() => false;
-    }
-
-    [ExportWorkspaceService(typeof(IWorkspaceContextService), WorkspaceKind.CloudEnvironmentClientWorkspace), Shared]
-    internal sealed class CloudEnvironmentWorkspaceContextService : IWorkspaceContextService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CloudEnvironmentWorkspaceContextService()
-        {
-        }
-
-        public bool IsCloudEnvironmentClient() => true;
     }
 }

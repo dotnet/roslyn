@@ -90,24 +90,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (rootSyntax.Kind())
             {
                 case SyntaxKind.VariableDeclarator:
-                    rootSyntax = ((VariableDeclaratorSyntax)rootSyntax).Initializer.Value;
+                    rootSyntax = ((VariableDeclaratorSyntax)rootSyntax).Initializer;
                     break;
 
                 case SyntaxKind.Parameter:
-                    var paramDefault = ((ParameterSyntax)rootSyntax).Default;
-                    rootSyntax = (paramDefault == null) ? null : paramDefault.Value;
+                    rootSyntax = ((ParameterSyntax)rootSyntax).Default;
                     break;
 
                 case SyntaxKind.EqualsValueClause:
-                    rootSyntax = ((EqualsValueClauseSyntax)rootSyntax).Value;
+                    rootSyntax = ((EqualsValueClauseSyntax)rootSyntax);
                     break;
 
                 case SyntaxKind.EnumMemberDeclaration:
-                    rootSyntax = ((EnumMemberDeclarationSyntax)rootSyntax).EqualsValue.Value;
+                    rootSyntax = ((EnumMemberDeclarationSyntax)rootSyntax).EqualsValue;
                     break;
 
                 case SyntaxKind.PropertyDeclaration:
-                    rootSyntax = ((PropertyDeclarationSyntax)rootSyntax).Initializer.Value;
+                    rootSyntax = ((PropertyDeclarationSyntax)rootSyntax).Initializer;
                     break;
 
                 default:
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetUpperBoundNode(GetBindableSyntaxNode(rootSyntax));
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             EqualsValueClauseSyntax equalsValue = null;
 
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Bind(binder, node, diagnostics);
         }
 
-        private BoundEqualsValue BindEqualsValue(Binder binder, EqualsValueClauseSyntax equalsValue, DiagnosticBag diagnostics)
+        private BoundEqualsValue BindEqualsValue(Binder binder, EqualsValueClauseSyntax equalsValue, BindingDiagnosticBag diagnostics)
         {
             switch (this.MemberSymbol.Kind)
             {
@@ -272,11 +271,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
-#if DEBUG
         protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
         {
             NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
         }
-#endif
+
+#nullable enable
+
+        protected override bool IsNullableAnalysisEnabled()
+        {
+            switch (MemberSymbol.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                    Debug.Assert(MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol);
+                    return MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol type &&
+                        type.IsNullableEnabledForConstructorsAndInitializers(useStatic: MemberSymbol.IsStatic);
+                case SymbolKind.Parameter:
+                    return SourceComplexParameterSymbol.GetDefaultValueSyntaxForIsNullableAnalysisEnabled(Root as ParameterSyntax) is { } value &&
+                        Compilation.IsNullableAnalysisEnabledIn(value);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(MemberSymbol.Kind);
+            }
+        }
     }
 }

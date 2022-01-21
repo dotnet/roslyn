@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -11,7 +9,9 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using FormattingRangeHelper = Microsoft.CodeAnalysis.CSharp.Utilities.FormattingRangeHelper;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
     {
         public CSharpAddBracesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddBracesDiagnosticId,
+                   EnforceOnBuildValues.AddBraces,
                    CSharpCodeStyleOptions.PreferBraces,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Add_braces), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -56,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             }
 
             var embeddedStatement = statement.GetEmbeddedStatement();
+            Contract.ThrowIfNull(embeddedStatement);
+
             switch (embeddedStatement.Kind())
             {
                 case SyntaxKind.Block:
@@ -120,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// </summary>
         private static bool ContainsInterleavedDirective(SyntaxNode statement, StatementSyntax embeddedStatement, CancellationToken cancellationToken)
         {
-            if (statement.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax ifStatementNode))
+            if (statement.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax? ifStatementNode))
             {
                 var elseNode = ifStatementNode.Else;
                 if (elseNode != null && !embeddedStatement.IsMissing)
@@ -264,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             IfStatementSyntax result;
             if (ifStatementOrElseClause.IsKind(SyntaxKind.ElseClause))
             {
-                result = (IfStatementSyntax)ifStatementOrElseClause.Parent;
+                result = (IfStatementSyntax)ifStatementOrElseClause.GetRequiredParent();
             }
             else
             {
@@ -272,15 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 result = (IfStatementSyntax)ifStatementOrElseClause;
             }
 
-            while (result != null)
-            {
-                if (!result.IsParentKind(SyntaxKind.ElseClause))
-                {
-                    break;
-                }
-
-                result = (IfStatementSyntax)result.Parent.Parent;
-            }
+            while (result.IsParentKind(SyntaxKind.ElseClause))
+                result = (IfStatementSyntax)result.GetRequiredParent().GetRequiredParent();
 
             return result;
         }
@@ -289,21 +285,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// Determines if any embedded statement of an <c>if</c>/<c>else if</c>/<c>else</c> sequence uses braces. Only
         /// the embedded statements falling <em>immediately</em> under one of these nodes are checked.
         /// </summary>
-        private static bool AnyPartOfIfSequenceUsesBraces(IfStatementSyntax statement)
+        private static bool AnyPartOfIfSequenceUsesBraces(IfStatementSyntax? statement)
         {
             // Iterative instead of recursive to avoid stack depth problems
             while (statement != null)
             {
                 if (statement.Statement.IsKind(SyntaxKind.Block))
-                {
                     return true;
-                }
 
                 var elseStatement = statement.Else?.Statement;
                 if (elseStatement.IsKind(SyntaxKind.Block))
-                {
                     return true;
-                }
 
                 statement = elseStatement as IfStatementSyntax;
             }

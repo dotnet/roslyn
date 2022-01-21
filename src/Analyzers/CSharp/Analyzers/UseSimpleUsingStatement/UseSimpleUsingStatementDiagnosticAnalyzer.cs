@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -53,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
     {
         public UseSimpleUsingStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId,
+                   EnforceOnBuildValues.UseSimpleUsingStatement,
                    CSharpCodeStyleOptions.PreferSimpleUsingStatement,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_simple_using_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            if (!(outermostUsing.Parent is BlockSyntax parentBlock))
+            if (outermostUsing.Parent is not BlockSyntax parentBlock)
             {
                 // Don't offer on a using statement that is parented by another using statement.
                 // We'll just offer on the topmost using statement.
@@ -143,18 +142,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 // Check if the using statement itself contains variables that will collide
                 // with other variables in the block.
-                var usingOperation = (IUsingOperation)semanticModel.GetOperation(current, cancellationToken);
+                var usingOperation = (IUsingOperation)semanticModel.GetRequiredOperation(current, cancellationToken);
                 if (DeclaredLocalCausesCollision(symbolNameToExistingSymbol, usingOperation.Locals))
-                {
                     return true;
-                }
             }
 
-            var innerUsingOperation = (IUsingOperation)semanticModel.GetOperation(innermostUsing, cancellationToken);
+            var innerUsingOperation = (IUsingOperation)semanticModel.GetRequiredOperation(innermostUsing, cancellationToken);
             if (innerUsingOperation.Body is IBlockOperation innerUsingBlock)
-            {
                 return DeclaredLocalCausesCollision(symbolNameToExistingSymbol, innerUsingBlock.Locals);
-            }
 
             return false;
         }
@@ -211,8 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         }
 
         private static bool IsGotoOrLabeledStatement(StatementSyntax priorStatement)
-            => priorStatement.Kind() == SyntaxKind.GotoStatement ||
-               priorStatement.Kind() == SyntaxKind.LabeledStatement;
+            => priorStatement.Kind() is SyntaxKind.GotoStatement or
+               SyntaxKind.LabeledStatement;
 
         private static bool UsingValueDoesNotLeakToFollowingStatements(
             SyntaxList<StatementSyntax> statements, int index)
@@ -235,8 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             // Not the last statement, get the next statement and examine that.
             var nextStatement = statements[index + 1];
-            if (nextStatement is BreakStatementSyntax ||
-                nextStatement is ContinueStatementSyntax)
+            if (nextStatement is BreakStatementSyntax or
+                ContinueStatementSyntax)
             {
                 // using statement followed by break/continue.  Can convert this as executing 
                 // the break/continue will cause the code to exit the using scope, causing 

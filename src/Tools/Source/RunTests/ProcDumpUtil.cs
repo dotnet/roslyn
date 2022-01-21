@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Principal;
 using Microsoft.Win32;
@@ -35,7 +36,7 @@ namespace RunTests
 
         internal static ProcDumpInfo? ReadFromEnvironment()
         {
-            bool validate(string s) => !string.IsNullOrEmpty(s) && Path.IsPathRooted(s);
+            bool validate([NotNullWhen(true)] string? s) => !string.IsNullOrEmpty(s) && Path.IsPathRooted(s);
 
             var procDumpFilePath = Environment.GetEnvironmentVariable(KeyProcDumpFilePath);
             var dumpDirectory = Environment.GetEnvironmentVariable(KeyProcDumpDirectory);
@@ -51,6 +52,7 @@ namespace RunTests
 
     internal static class DumpUtil
     {
+#pragma warning disable CA1416 // Validate platform compatibility
         internal static void EnableRegistryDumpCollection(string dumpDirectory)
         {
             Debug.Assert(IsAdministrator());
@@ -77,6 +79,7 @@ namespace RunTests
             WindowsPrincipal principal = new WindowsPrincipal(identity);
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
+#pragma warning restore CA1416 // Validate platform compatibility
     }
 
     internal static class ProcDumpUtil

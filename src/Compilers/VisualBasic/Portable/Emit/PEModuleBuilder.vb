@@ -441,9 +441,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Continue For
                 End If
 
+                ' exported types are not emitted in EnC deltas (hence generation 0):
                 Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
                     DirectCast(typeReference, Cci.INamespaceTypeReference).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(DirectCast(typeReference, Cci.INamedTypeReference)))
+                    Cci.MetadataWriter.GetMangledName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
 
                 ' First check against types declared in the primary module
                 If ContainsTopLevelType(fullEmittedName) Then
@@ -584,19 +585,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Function
 
-        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
-            Dim systemTypeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
-
-            Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(systemTypeSymbol)
-            If useSiteError IsNot Nothing Then
-                Binder.ReportDiagnostic(diagnostics,
-                                        If(syntaxOpt IsNot Nothing, syntaxOpt.GetLocation(), NoLocation.Singleton),
-                                        useSiteError)
-            End If
-
-            Return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
-        End Function
-
         Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
                              needDeclaration:=True,
@@ -607,9 +595,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Function GetUntranslatedSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType)
 
-            Dim info = Binder.GetUseSiteErrorForSpecialType(typeSymbol)
-            If info IsNot Nothing Then
-                Binder.ReportDiagnostic(diagnostics, If(syntaxNodeOpt IsNot Nothing, syntaxNodeOpt.GetLocation(), NoLocation.Singleton), info)
+            Dim info = Binder.GetUseSiteInfoForSpecialType(typeSymbol)
+            If info.DiagnosticInfo IsNot Nothing Then
+                Binder.ReportDiagnostic(diagnostics, If(syntaxNodeOpt IsNot Nothing, syntaxNodeOpt.GetLocation(), NoLocation.Singleton), info.DiagnosticInfo)
             End If
 
             Return typeSymbol
@@ -649,6 +637,101 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return container.GetSynthesizedNestedTypes()
         End Function
 
+        Public Overrides Iterator Function GetTypeToDebugDocumentMap(context As EmitContext) As IEnumerable(Of (Cci.ITypeDefinition, ImmutableArray(Of Cci.DebugSourceDocument)))
+            Dim typesToProcess = ArrayBuilder(Of Cci.ITypeDefinition).GetInstance()
+            Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
+            Dim methodDocumentList = PooledHashSet(Of Cci.DebugSourceDocument).GetInstance()
+
+            Dim namespacesAndTopLevelTypesToProcess = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance()
+            namespacesAndTopLevelTypesToProcess.Push(SourceModule.GlobalNamespace)
+
+            While namespacesAndTopLevelTypesToProcess.Count > 0
+                Dim symbol = namespacesAndTopLevelTypesToProcess.Pop()
+
+                If symbol.Locations.Length = 0 Then
+                    Continue While
+                End If
+
+                Select Case symbol.Kind
+                    Case SymbolKind.Namespace
+                        Dim location = GetSmallestSourceLocationOrNull(symbol)
+
+                        ' filtering out synthesized symbols not having real source 
+                        ' locations such as anonymous types, my types, etc...
+                        If location IsNot Nothing Then
+                            For Each member In symbol.GetMembers()
+                                Select Case member.Kind
+                                    Case SymbolKind.Namespace, SymbolKind.NamedType
+                                        namespacesAndTopLevelTypesToProcess.Push(DirectCast(member, NamespaceOrTypeSymbol))
+                                    Case Else
+                                        Throw ExceptionUtilities.UnexpectedValue(member.Kind)
+                                End Select
+                            Next
+                        End If
+
+                    Case SymbolKind.NamedType
+                        ' We only process top level types in this method, and only return documents for types if there are no
+                        ' methods that would refer to the same document, either in the type or in any nested type.
+                        Debug.Assert(debugDocuments.Count = 0)
+                        Debug.Assert(methodDocumentList.Count = 0)
+                        Debug.Assert(typesToProcess.Count = 0)
+
+                        Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
+                        typesToProcess.Push(typeDefinition)
+                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typesToProcess, context)
+
+                        For Each loc In symbol.Locations
+                            If Not loc.IsInSource Then
+                                Continue For
+                            End If
+
+                            Dim span = loc.GetLineSpan()
+                            Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=Nothing)
+
+                            If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
+                                debugDocuments.Add(debugDocument)
+                            End If
+                        Next
+
+                        If debugDocuments.Count > 0 Then
+                            Yield (typeDefinition, debugDocuments.ToImmutable())
+                        End If
+                        debugDocuments.Clear()
+                        methodDocumentList.Clear()
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
+                End Select
+            End While
+
+            namespacesAndTopLevelTypesToProcess.Free()
+            debugDocuments.Free()
+            methodDocumentList.Free()
+            typesToProcess.Free()
+        End Function
+
+        Private Shared Sub GetDocumentsForMethodsAndNestedTypes(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typesToProcess As ArrayBuilder(Of Cci.ITypeDefinition), context As EmitContext)
+            While typesToProcess.Count > 0
+                Dim definition = typesToProcess.Pop()
+
+                Dim typeMethods = definition.GetMethods(context)
+                For Each method In typeMethods
+                    Dim body = method.GetBody(context)
+                    If body Is Nothing Then
+                        Continue For
+                    End If
+
+                    For Each point In body.SequencePoints
+                        documentList.Add(point.Document)
+                    Next
+                Next
+
+                Dim nestedTypes = definition.GetNestedTypes(context)
+                For Each nestedTypeDefinition In nestedTypes
+                    typesToProcess.Push(nestedTypeDefinition)
+                Next
+            End While
+        End Sub
+
         Public Sub SetDisableJITOptimization(methodSymbol As MethodSymbol)
             Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
 
@@ -666,9 +749,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overrides Function GetAdditionalTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
 #If DEBUG Then
-            Return GetAdditionalTopLevelTypes(context.Diagnostics).Select(Function(t) t.GetCciAdapter())
+            Return GetAdditionalTopLevelTypes().Select(Function(t) t.GetCciAdapter())
 #Else
-            Return GetAdditionalTopLevelTypes(context.Diagnostics)
+            Return GetAdditionalTopLevelTypes()
 #End If
         End Function
 

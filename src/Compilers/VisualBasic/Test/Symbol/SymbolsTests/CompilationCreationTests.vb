@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols

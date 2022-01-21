@@ -21,12 +21,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
+    [ExtensionOrder(After = nameof(UnnamedSymbolCompletionProvider))]
     internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
-            new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            new(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeParameters,
                 parameterOptions:
@@ -43,10 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => text[characterPosition] == '.';
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
@@ -131,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (memberString, "");
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         public override Task<TextChange?> GetTextChangeAsync(
             Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // `Contains<T>(string key)<`
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                ch == '(' || ch == '[' || ch == '<'
+                ch is '(' or '[' or '<'
                     ? selectedItem.DisplayText
                     : SymbolCompletionItem.GetInsertionText(selectedItem)));
         }

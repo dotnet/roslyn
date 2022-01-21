@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
@@ -117,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         protected struct VStack
         {
             private readonly ObjectPool<VBuffer> _bufferPool;
+            private readonly VBuffer _firstBuffer;
 
             private VBuffer _currentBuffer;
             private int _depth;
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             public VStack(ObjectPool<VBuffer> bufferPool)
             {
                 _bufferPool = bufferPool;
-                _currentBuffer = bufferPool.Allocate();
+                _currentBuffer = _firstBuffer = bufferPool.Allocate();
                 _depth = 0;
             }
 
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                     yield return (buffer.GetVArray(depth), depth);
                 }
 
-                _bufferPool.Free(_currentBuffer);
+                _bufferPool.Free(_firstBuffer);
                 _currentBuffer = null;
             }
         }
@@ -275,6 +277,11 @@ namespace Microsoft.CodeAnalysis.Differencing
                 x = xStart;
                 y = yStart;
             }
+
+            // make sure we finish the enumeration as it returns the allocated buffers to the pool
+            while (varrays.MoveNext())
+            {
+            }
         }
 
         protected IEnumerable<SequenceEdit> GetEdits(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
@@ -374,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             var max = Math.Max(oldLength, newLength);
             Debug.Assert(lcsLength <= max);
-            return 1.0 - (double)lcsLength / (double)max;
+            return 1.0 - lcsLength / (double)max;
         }
 
         /// <summary>

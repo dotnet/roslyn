@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal partial class CpsDiagnosticItemSource : BaseDiagnosticItemSource, INotifyPropertyChanged
+    internal partial class CpsDiagnosticItemSource : BaseDiagnosticAndGeneratorItemSource, INotifyPropertyChanged
     {
         private readonly IVsHierarchyItem _item;
         private readonly string _projectDirectoryPath;
@@ -43,16 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public override AnalyzerReference? AnalyzerReference => _analyzerReference;
 
-        protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language)
-        {
-            return new CpsDiagnosticItem(this, diagnostic, effectiveSeverity, language);
-        }
-
         private void OnWorkspaceChangedLookForAnalyzer(object sender, WorkspaceChangeEventArgs e)
         {
-            if (e.Kind == WorkspaceChangeKind.SolutionCleared ||
-                e.Kind == WorkspaceChangeKind.SolutionReloaded ||
-                e.Kind == WorkspaceChangeKind.SolutionRemoved)
+            if (e.Kind is WorkspaceChangeKind.SolutionCleared or
+                WorkspaceChangeKind.SolutionReloaded or
+                WorkspaceChangeKind.SolutionRemoved)
             {
                 Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
             }
@@ -72,8 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForAnalyzer;
                 }
-                else if (e.Kind == WorkspaceChangeKind.ProjectAdded
-                         || e.Kind == WorkspaceChangeKind.ProjectChanged)
+                else if (e.Kind is WorkspaceChangeKind.ProjectAdded
+                         or WorkspaceChangeKind.ProjectChanged)
                 {
                     _analyzerReference = TryGetAnalyzerReference(e.NewSolution);
                     if (_analyzerReference != null)

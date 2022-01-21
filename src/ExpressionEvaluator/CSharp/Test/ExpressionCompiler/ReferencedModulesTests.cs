@@ -1546,7 +1546,8 @@ namespace System
                 }
             }
 
-            public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;
+            public override SymbolChanges EncSymbolChanges => _builder.EncSymbolChanges;
+            public override EmitBaseline PreviousGeneration => _builder.PreviousGeneration;
 
             public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _builder.SourceAssemblyOpt;
 

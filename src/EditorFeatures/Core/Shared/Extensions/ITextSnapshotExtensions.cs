@@ -38,25 +38,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return;
             }
 
-            rules = GetFormattingRules(document, rules, span);
+            rules = document.GetFormattingRules(span, rules);
 
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var changes = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(span), document.Project.Solution.Workspace, documentOptions, rules, cancellationToken);
+            var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+
+            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var result = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
+            var changes = result.GetTextChanges(cancellationToken);
 
             using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
             {
                 document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
             }
-        }
-
-        private static IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, IEnumerable<AbstractFormattingRule>? rules, TextSpan span)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-            var position = (span.Start + span.End) / 2;
-
-            return SpecializedCollections.SingletonEnumerable(formattingRuleFactory.CreateRule(document, position)).Concat(rules ?? Formatter.GetDefaultFormattingRules(document));
         }
 
         /// <summary>

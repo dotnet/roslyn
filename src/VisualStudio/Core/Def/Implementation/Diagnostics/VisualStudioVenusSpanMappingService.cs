@@ -12,8 +12,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -134,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         public static LinePosition GetAdjustedLineColumn(Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
         {
-            if (!(workspace is VisualStudioWorkspaceImpl vsWorkspace))
+            if (workspace is not VisualStudioWorkspaceImpl vsWorkspace)
             {
                 return new LinePosition(mappedLine, mappedColumn);
             }

@@ -3,18 +3,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
 
     <!--
-      Disable running the tests on .NET Core while we investigate the core dump issue
-      https://github.com/dotnet/roslyn/issues/29660
-    -->
-    <SkipTests Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(OS)' != 'Windows_NT'">true</SkipTests>
-
-    <!--
       Skipped because we appear to be missing things necessary to compile vb.net.
-      See https://github.com/mono/mono/issues/10679 
+      See https://github.com/mono/mono/issues/10679
     -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
@@ -28,7 +22,7 @@
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'net5.0'" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'net6.0'" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
@@ -36,6 +30,8 @@
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
     <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Threading.Tasks" />
+    <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
@@ -83,5 +79,5 @@
     <Compile Remove="Semantics\OverloadResolutionTestSource.vb" />
     <Compile Remove="Semantics\PrintResultTestSource.vb" />
   </ItemGroup>
-  <Import Project="$(RepositoryEngineeringDir)targets\ILTools.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

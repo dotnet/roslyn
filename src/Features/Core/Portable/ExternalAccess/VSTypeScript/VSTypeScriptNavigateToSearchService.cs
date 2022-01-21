@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
@@ -33,22 +35,58 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public bool CanFilter => _searchService?.CanFilter ?? false;
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public async Task SearchDocumentAsync(
+            Document document,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
-            if (_searchService == null)
-                return ImmutableArray<INavigateToSearchResult>.Empty;
-
-            var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(r => Convert(r));
+            if (_searchService != null)
+            {
+                var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
+            }
         }
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public async Task SearchProjectAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
-            if (_searchService == null)
-                return ImmutableArray<INavigateToSearchResult>.Empty;
+            if (_searchService != null)
+            {
+                var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
+            }
+        }
 
-            var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(r => Convert(r));
+        public Task SearchCachedDocumentsAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching cached documents.
+            return Task.CompletedTask;
+        }
+
+        public Task SearchGeneratedDocumentsAsync(
+            Project project,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            // we don't support searching generated documents.
+            return Task.CompletedTask;
         }
 
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
@@ -117,6 +155,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             public Document Document => _navigableItem.Document;
 
             public TextSpan SourceSpan => _navigableItem.SourceSpan;
+
+            public bool IsStale => false;
 
             public ImmutableArray<INavigableItem> ChildItems
                 => _navigableItem.ChildItems.IsDefault

@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override bool IsPinned => false;
             public override RefKind RefKind => RefKind.None;
             internal override SynthesizedLocalKind SynthesizedKind => throw ExceptionUtilities.Unreachable;
-            internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null) => null;
-            internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue) => ImmutableArray<Diagnostic>.Empty;
+            internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null) => null;
+            internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) => ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
             internal override SyntaxNode GetDeclaratorSyntax() => throw ExceptionUtilities.Unreachable;
             internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) => throw ExceptionUtilities.Unreachable;
             internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;

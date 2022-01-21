@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -14,18 +15,20 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [UseExportProvider]
     public abstract class RecommenderTests : TestBase
     {
         protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
         protected string keywordText;
-        internal Func<int, CSharpSyntaxContext, Task<IEnumerable<RecommendedKeyword>>> RecommendKeywordsAsync;
+        internal Func<int, CSharpSyntaxContext, Task<ImmutableArray<RecommendedKeyword>>> RecommendKeywordsAsync;
 
         internal async Task VerifyWorkerAsync(string markup, bool absent, CSharpParseOptions options = null, int? matchPriority = null)
         {
@@ -55,6 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         private Task CheckResultAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
         {
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+            var solution = workspace.CurrentSolution;
+            var project = solution.AddProject("test", "test", LanguageNames.CSharp);
+            var document = project.AddDocument("test.cs", text);
+
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: options);
             var compilation = CSharpCompilation.Create(
                 "test",
@@ -67,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             }
 
             var semanticModel = compilation.GetSemanticModel(tree);
-            var context = CSharpSyntaxContext.CreateContext_Test(semanticModel, position, CancellationToken.None);
+            var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, CancellationToken.None);
             return CheckResultAsync(absent, position, context, matchPriority);
         }
 
@@ -89,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 }
                 else
                 {
-                    var result = (await RecommendKeywordsAsync(position, context))?.SingleOrDefault();
+                    var result = (await RecommendKeywordsAsync(position, context)).SingleOrDefault();
                     Assert.True(result != null, "No recommended keywords");
                     Assert.Equal(keywordText, result.Keyword);
                     if (matchPriority != null)

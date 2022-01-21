@@ -8,5 +8,6 @@ namespace Microsoft.CodeAnalysis.Storage
     {
         None = 0,
         SQLite = 1,
+        CloudCache = 2,
     }
 }

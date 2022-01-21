@@ -195,12 +195,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                New BoundMeReference(syntax, _topMethod.ContainingType)),
                                             staticLocalBackingFields.Value, isLValue:=True, type:=staticLocalBackingFields.Value.Type)
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
             Dim flagAsObject = New BoundDirectCast(syntax,
                                                    flag.MakeRValue(),
-                                                   Conversions.ClassifyDirectCastConversion(flag.Type, objectType, useSiteDiagnostics),
+                                                   Conversions.ClassifyDirectCastConversion(flag.Type, objectType, useSiteInfo),
                                                    objectType)
-            _diagnostics.Add(syntax, useSiteDiagnostics)
+            _diagnostics.Add(syntax, useSiteInfo)
 
             ' If flag Is Nothing
             '    Interlocked.CompareExchange(flag, New StaticLocalInitFlag, Nothing)  

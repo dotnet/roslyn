@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,16 +14,18 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public static CompletionItem Create(
             string displayText,
-            string displayTextSuffix,
+            string? displayTextSuffix,
             CompletionItemRules rules,
             Glyph? glyph = null,
             ImmutableArray<SymbolDisplayPart> description = default,
-            string sortText = null,
-            string filterText = null,
+            string? sortText = null,
+            string? filterText = null,
             bool showsWarningIcon = false,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
             ImmutableArray<string> tags = default,
-            string inlineDescription = null)
+            string? inlineDescription = null,
+            string? displayTextPrefix = null,
+            bool isComplexTextEdit = false)
         {
             tags = tags.NullToEmpty();
 
@@ -43,18 +43,20 @@ namespace Microsoft.CodeAnalysis.Completion
             properties ??= ImmutableDictionary<string, string>.Empty;
             if (!description.IsDefault && description.Length > 0)
             {
-                properties = properties.Add("Description", EncodeDescription(description));
+                properties = properties.Add("Description", EncodeDescription(description.ToTaggedText()));
             }
 
             return CompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix,
                 filterText: filterText,
                 sortText: sortText,
                 properties: properties,
                 tags: tags,
                 rules: rules,
-                inlineDescription: inlineDescription);
+                inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit);
         }
 
         public static bool HasDescription(CompletionItem item)
@@ -74,23 +76,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static readonly char[] s_descriptionSeparators = new char[] { '|' };
 
-        private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
-            => EncodeDescription(description.ToTaggedText());
-
         private static string EncodeDescription(ImmutableArray<TaggedText> description)
-        {
-            if (description.Length > 0)
-            {
-                return string.Join("|",
-                    description
-                        .SelectMany(d => new string[] { d.Tag, d.Text })
-                        .Select(t => t.Escape('\\', s_descriptionSeparators)));
-            }
-            else
-            {
-                return null;
-            }
-        }
+            => string.Join("|", description.SelectMany(d => new[] { d.Tag, d.Text }).Select(t => t.Escape('\\', s_descriptionSeparators)));
 
         private static CompletionDescription DecodeDescription(string encoded)
         {

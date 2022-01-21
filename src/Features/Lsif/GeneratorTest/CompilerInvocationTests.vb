@@ -162,9 +162,10 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                         ""sourceRootPath"": ""F:\\""
                     }")
 
-            Dim generatedTree = Assert.Single(compilerInvocation.Compilation.SyntaxTrees)
+            Dim generatedTrees = compilerInvocation.Compilation.SyntaxTrees
 
-            Assert.EndsWith(TestSourceGenerator.HelloWorldGenerator.GeneratedClassName + ".cs", generatedTree.FilePath)
+            Assert.Single(generatedTrees, Function(t) t.FilePath.EndsWith(TestSourceGenerator.HelloWorldGenerator.GeneratedEnglishClassName + ".cs"))
+            Assert.Single(generatedTrees, Function(t) t.FilePath.EndsWith(TestSourceGenerator.HelloWorldGenerator.GeneratedSpanishClassName + ".cs"))
         End Function
     End Class
 End Namespace

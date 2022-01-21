@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
     {
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
+                  EnforceOnBuildValues.RemoveUnnecessaryParentheses,
                   new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                   new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                   isUnnecessary: true)
@@ -39,14 +40,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKind());
 
         protected abstract bool CanRemoveParentheses(
-            TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
+            TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel, CancellationToken cancellationToken,
             out PrecedenceKind precedence, out bool clarifiesPrecedence);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            var cancellationToken = context.CancellationToken;
             var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 
-            if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel,
+            if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel, cancellationToken,
                     out var precedence, out var clarifiesPrecedence))
             {
                 return;
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
-                GetDiagnosticSquiggleLocation(parenthesizedExpression, context.CancellationToken),
+                AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<TLanguageKindEnum, TParenthesizedExpressionSyntax>.GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
                 severity,
                 additionalLocations,
                 additionalUnnecessaryLocations));
