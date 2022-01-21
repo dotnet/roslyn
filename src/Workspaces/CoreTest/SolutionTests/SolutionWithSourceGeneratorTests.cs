@@ -69,6 +69,36 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task WithReferencesMethodCorrectlyUpdatesRunningGenerators()
+        {
+            using var workspace = CreateWorkspace();
+
+            // We always have a single generator in this test, and we add or remove a second one. This is critical
+            // to ensuring we correctly update our existing GeneratorDriver we may have from a prior run with the new
+            // generators passed to WithAnalyzerReferences. If we only swap from zero generators to one generator,
+            // we don't have a prior GeneratorDriver to update, since we don't make a GeneratorDriver if we have no generators.
+            // Similarly, once we go from one back to zero, we end up getting rid of our GeneratorDriver entirely since
+            // we have no need for it, as an optimization.
+            var generatorReferenceToKeep = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent", hintName: "generatorReferenceToKeep"));
+            var analyzerReferenceToAddAndRemove = new TestGeneratorReference(new SingleFileTestGenerator2("// More Static Content", hintName: "analyzerReferenceToAddAndRemove"));
+
+            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+                .AddAnalyzerReference(generatorReferenceToKeep);
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Go from one generator to two.
+            project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep, analyzerReferenceToAddAndRemove });
+
+            Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
+
+            // And go back to one
+            project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep });
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+        }
+
+        [Fact]
         public async Task IncrementalSourceGeneratorInvokedCorrectNumberOfTimes()
         {
             using var workspace = CreateWorkspace();
