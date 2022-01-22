@@ -657,7 +657,4 @@
   <data name="Predefined_conversion_from_0_to_1" xml:space="preserve">
     <value>Predefined conversion from {0} to {1}.</value>
   </data>
-  <data name="foo" xml:space="preserve">
-    <value>foo</value>
-  </data>
 </root>
