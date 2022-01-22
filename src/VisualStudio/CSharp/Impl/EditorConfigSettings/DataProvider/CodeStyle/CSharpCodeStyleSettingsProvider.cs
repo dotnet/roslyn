@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;

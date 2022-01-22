@@ -5,9 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -128,10 +127,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Friend Overrides Function AddImports(
                 document As Document,
-                preferences As CodeGenerationPreferences,
+                options As AddImportPlacementOptions,
                 position As Integer,
                 snippetNode As XElement,
-                allowInHiddenRegions As Boolean,
                 cancellationToken As CancellationToken) As Document
             Dim importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName))
             If importsNode Is Nothing OrElse
@@ -154,7 +152,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
 
-            Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, preferences.PlaceSystemNamespaceFirst)
+            Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, options.PlaceSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
             Dim formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)

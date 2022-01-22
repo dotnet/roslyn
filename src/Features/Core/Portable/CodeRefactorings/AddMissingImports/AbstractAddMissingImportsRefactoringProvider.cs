@@ -7,6 +7,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PasteTracking;
@@ -37,7 +39,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Check pasted text span for missing imports
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
 
-            var options = new AddMissingImportsOptions(context.Options.HideAdvancedMembers);
+            var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var options = new AddMissingImportsOptions(context.Options.HideAdvancedMembers, placement);
 
             var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             if (!analysis.CanAddMissingImports)

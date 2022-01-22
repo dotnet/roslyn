@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote
             TextSpan span,
             string diagnosticId,
             int maxResults,
-            bool allowInHiddenRegions,
             AddImportOptions options,
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
@@ -54,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var result = await service.GetFixesAsync(
                     document, span, diagnosticId, maxResults,
-                    allowInHiddenRegions,
                     symbolSearchService, options,
                     packageSources, cancellationToken).ConfigureAwait(false);
 

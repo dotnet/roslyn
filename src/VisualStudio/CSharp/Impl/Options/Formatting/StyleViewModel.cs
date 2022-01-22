@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;

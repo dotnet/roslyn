@@ -15,9 +15,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -132,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc);
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, CodeGenerationPreferences preferences, int position, XElement snippetNode, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        internal abstract Document AddImports(Document document, AddImportPlacementOptions options, int position, XElement snippetNode, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
@@ -1054,10 +1053,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var preferences = CodeGenerationPreferences.FromDocumentAsync(documentWithImports, cancellationToken).WaitAndGetResult(cancellationToken);
-            var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
+            var options = AddImportPlacementOptions.FromDocumentAsync(documentWithImports, cancellationToken).WaitAndGetResult(cancellationToken);
 
-            documentWithImports = AddImports(documentWithImports, preferences, position, snippetNode, allowInHiddenRegions, cancellationToken);
+            documentWithImports = AddImports(documentWithImports, options, position, snippetNode, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 

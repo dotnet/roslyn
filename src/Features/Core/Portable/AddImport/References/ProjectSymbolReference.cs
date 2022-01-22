@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             protected override (string description, bool hasExistingImport) GetDescription(
-                Document document, CodeGenerationPreferences preferences, SyntaxNode node,
+                Document document, AddImportPlacementOptions options, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var (description, hasExistingImport) = base.GetDescription(document, preferences, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = base.GetDescription(document, options, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return (null, false);
