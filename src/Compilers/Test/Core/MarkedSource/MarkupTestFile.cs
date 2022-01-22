@@ -65,8 +65,6 @@ namespace Roslyn.Test.Utilities
             var spanStartStack = new Stack<(int matchIndex, string name)>();
             var namedSpanStartStack = new Stack<(int matchIndex, string name)>();
 
-            bool removePositionMatches = false;
-
             while (true)
             {
                 var matches = new List<(int matchIndex, string name)>();
@@ -106,19 +104,6 @@ namespace Roslyn.Test.Utilities
                     }
                 }
 
-                // If we have both $$ and [||] matches, we'll treat $$ as text. This is to account
-                // for tests invovling raw interpolated strings.
-                if (orderedMatches.Contains(m => m.name.Substring(0, 2) == PositionString) &&
-                    orderedMatches.Contains(m => m.name.Substring(0, 2) == SpanStartString))
-                {
-                    removePositionMatches = true;
-                }
-
-                if (removePositionMatches)
-                {
-                    orderedMatches.RemoveAll(m => m.name.Substring(0, 2) == PositionString);
-                }
-
                 // Order the matches by their index
                 var firstMatch = orderedMatches.First();
 
@@ -143,11 +128,6 @@ namespace Roslyn.Test.Utilities
                         break;
 
                     case SpanStartString:
-                        if (removePositionMatches)
-                        {
-                            position = matchIndexInOutput;
-                        }
-
                         spanStartStack.Push((matchIndexInOutput, string.Empty));
                         break;
 

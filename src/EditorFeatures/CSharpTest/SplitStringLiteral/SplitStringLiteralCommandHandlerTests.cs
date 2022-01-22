@@ -930,5 +930,20 @@ world
     }
 }");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInRawStringLiteralInterpolation_MultiBrace()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ${|#0:|}$""""""Hello[||]there
+world
+"""""";
+    }
+}");
+        }
     }
 }

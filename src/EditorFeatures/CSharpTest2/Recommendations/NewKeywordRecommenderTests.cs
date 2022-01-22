@@ -1129,7 +1129,7 @@ class C
         public async Task TestInRawStringInterpolation_SingleLine_MultiBrace()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var x = $$""""""{{[||]}}"""""""));
+@"var x = ${|#0:|}$""""""{{$$}}"""""""));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -1152,8 +1152,8 @@ class C
         public async Task TestInRawStringInterpolation_MultiLine_MultiBrace()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var x = $$""""""
-{{[||]}}
+@"var x = ${|#0:|}$""""""
+{{$$}}
 """""""));
         }
 
