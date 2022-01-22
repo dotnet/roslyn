@@ -238,13 +238,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
         {
-            var syntaxRefs = parameterSymbol.DeclaringSyntaxReferences;
-            // We never expect multiple declarations for a parameter symbol.
-            // Partial method parameters are distinct symbols on each method declaration
-            Contract.ThrowIfTrue(syntaxRefs.Length > 1);
-            return syntaxRefs.SingleOrDefault() is SyntaxReference syntaxReference
-                && syntaxReference.GetSyntax(cancellationToken) is ParameterSyntax parameterSyntax
-                && parameterSyntax.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken);
+            foreach (var syntaxReference in parameterSymbol.DeclaringSyntaxReferences)
+            {
+                if (syntaxReference.GetSyntax(cancellationToken) is ParameterSyntax parameterSyntax
+                    && parameterSyntax.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(
