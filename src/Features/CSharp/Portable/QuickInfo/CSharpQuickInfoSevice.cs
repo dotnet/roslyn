@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -22,15 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpQuickInfoService(languageServices.WorkspaceServices.Workspace);
-        }
+            => new CSharpQuickInfoService(languageServices);
     }
 
     internal class CSharpQuickInfoService : QuickInfoServiceWithProviders
     {
-        internal CSharpQuickInfoService(Workspace workspace)
-            : base(workspace, LanguageNames.CSharp)
+        internal CSharpQuickInfoService(HostLanguageServices services)
+            : base(services)
         {
         }
     }

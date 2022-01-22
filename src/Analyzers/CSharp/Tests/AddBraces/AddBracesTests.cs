@@ -12,11 +12,17 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
 {
     public partial class AddBracesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public AddBracesTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpAddBracesDiagnosticAnalyzer(), new CSharpAddBracesCodeFixProvider());
 
@@ -352,6 +358,26 @@ class Program
                 expectDiagnostic);
         }
 
+        [WorkItem(57770, "https://github.com/dotnet/roslyn/issues/57770")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfWithoutBracesTopLevel(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+@"
+[|if|] (true) return;
+",
+@"
+if (true)
+{
+    return;
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
@@ -440,9 +466,10 @@ class Program
 {
     static void Main()
     {
-{}
         else
+        {
             return;
+        }
     }
 }",
                 (PreferBracesPreference)bracesPreference,
@@ -655,7 +682,6 @@ class Program
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
-
 
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix - Remove the suppression when https://github.com/dotnet/roslyn/issues/42611 is fixed.
         /// <summary>

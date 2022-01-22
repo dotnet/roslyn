@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -13,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         public readonly Workspace Workspace;
 
-        private string _lazyProjectName;
+        private string? _lazyProjectName;
 
         // Guid.Empty if the item is aggregated, or the item doesn't have an associated project.
         public readonly Guid ProjectGuid;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public readonly string[] ProjectNames;
         public readonly Guid[] ProjectGuids;
 
-        public TableItem(Workspace workspace, string projectName, Guid projectGuid, string[] projectNames, Guid[] projectGuids)
+        public TableItem(Workspace workspace, string? projectName, Guid projectGuid, string[] projectNames, Guid[] projectGuids)
         {
             Contract.ThrowIfNull(workspace);
             Contract.ThrowIfNull(projectNames);
@@ -35,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ProjectGuids = projectGuids;
         }
 
-        internal static void GetProjectNameAndGuid(Workspace workspace, ProjectId projectId, out string projectName, out Guid projectGuid)
+        internal static void GetProjectNameAndGuid(Workspace workspace, ProjectId? projectId, [NotNullIfNotNull("projectId")] out string? projectName, out Guid projectGuid)
         {
             projectName = (projectId == null) ? null : workspace.CurrentSolution.GetProject(projectId)?.Name ?? ServicesVSResources.Unknown2;
             projectGuid = (projectId != null && workspace is VisualStudioWorkspace vsWorkspace) ? vsWorkspace.GetProjectGuid(projectId) : Guid.Empty;
@@ -43,14 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public abstract TableItem WithAggregatedData(string[] projectNames, Guid[] projectGuids);
 
-        public abstract DocumentId DocumentId { get; }
-        public abstract ProjectId ProjectId { get; }
+        public abstract DocumentId? DocumentId { get; }
+        public abstract ProjectId? ProjectId { get; }
 
         public abstract LinePosition GetOriginalPosition();
-        public abstract string GetOriginalFilePath();
+        public abstract string? GetOriginalFilePath();
         public abstract bool EqualsIgnoringLocation(TableItem other);
 
-        public string ProjectName
+        public string? ProjectName
         {
             get
             {
@@ -67,6 +68,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return null;
             }
         }
-
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PickMembers;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
@@ -28,7 +25,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _viableMembers;
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
-            private readonly TextSpan _textSpan;
 
             private bool? _implementIEqutableOptionValue;
             private bool? _generateOperatorsOptionValue;
@@ -36,7 +32,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             public GenerateEqualsAndGetHashCodeWithDialogCodeAction(
                 GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
                 Document document,
-                TextSpan textSpan,
                 SyntaxNode typeDeclaration,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> viableMembers,
@@ -50,10 +45,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _containingType = containingType;
                 _viableMembers = viableMembers;
                 _pickMembersOptions = pickMembersOptions;
-                _textSpan = textSpan;
                 _generateEquals = generateEquals;
                 _generateGetHashCode = generateGetHashCode;
             }
+
+            public override string EquivalenceKey => Title;
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
@@ -86,11 +82,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     _generateOperatorsOptionValue = generateOperatorsOption.Value;
                 }
 
-                var implementIEquatable = (implementIEqutableOption?.Value).GetValueOrDefault();
-                var generatorOperators = (generateOperatorsOption?.Value).GetValueOrDefault();
+                var implementIEquatable = (implementIEqutableOption?.Value ?? false);
+                var generatorOperators = (generateOperatorsOption?.Value ?? false);
 
                 var action = new GenerateEqualsAndGetHashCodeAction(
-                    _document, _textSpan, _typeDeclaration, _containingType, result.Members,
+                    _document, _typeDeclaration, _containingType, result.Members,
                     _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
                 return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             }

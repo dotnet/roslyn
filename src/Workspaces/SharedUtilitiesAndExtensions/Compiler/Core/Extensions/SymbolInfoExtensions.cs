@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class SymbolInfoExtensions
     {
         public static ImmutableArray<ISymbol> GetAllSymbols(this SymbolInfo info)
-        {
-            return GetAllSymbolsWorker(info).Distinct();
-        }
+            => GetAllSymbolsWorker(info).Distinct();
 
         private static ImmutableArray<ISymbol> GetAllSymbolsWorker(this SymbolInfo info)
         {

@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpEditorResources.resx">
     <body>
+      <trans-unit id="Add_Missing_Usings_on_Paste">
+        <source>Add Missing Usings on Paste</source>
+        <target state="translated">在貼上時新增缺少的 Using</target>
+        <note>"usings" is a language specific term and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Adding_missing_usings">
+        <source>Adding missing usings...</source>
+        <target state="translated">正在新增缺少的 using...</target>
+        <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Chosen_version_0">
         <source>Chosen version: '{0}'</source>
         <target state="translated">選擇的版本: '{0}'</target>
@@ -14,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Could_not_find_by_name_0">
         <source>Could not find by name: '{0}'</source>
-        <target state="translated">依名稱找不到結果: '{0}'</target>
+        <target state="translated">依名稱 '{0}' 找不到結果</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
@@ -47,6 +57,11 @@
         <target state="translated">找到單一組件: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">產生事件訂閱</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">載入來源: '{0}'</target>
@@ -55,6 +70,11 @@
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
         <target state="translated">找不到模組!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">位於 namespace 外</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">

@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         internal static int Run(string[] args, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
         {
-            FatalError.Handler = FailFast.OnFatalException;
+            FatalError.Handler = FailFast.Handler;
 
             var responseFile = Path.Combine(buildPaths.ClientDirectory, VisualBasicCompiler.ResponseFileName);
             var compiler = new Vbc(responseFile, buildPaths, args, analyzerLoader);

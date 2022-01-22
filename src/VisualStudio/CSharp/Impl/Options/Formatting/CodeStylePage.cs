@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,9 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
         internal readonly struct TestAccessor
         {
             internal static ImmutableArray<(string feature, ImmutableArray<IOption> options)> GetEditorConfigOptions()
-            {
-                return CodeStylePage.GetEditorConfigOptions();
-            }
+                => CodeStylePage.GetEditorConfigOptions();
         }
     }
 }

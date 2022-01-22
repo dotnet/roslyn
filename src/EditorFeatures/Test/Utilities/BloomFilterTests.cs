@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
     public class BloomFilterTests
     {
-        private IEnumerable<string> GenerateStrings(int count)
+        private static IEnumerable<string> GenerateStrings(int count)
         {
             for (var i = 1; i <= count; i++)
             {
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private string GenerateString(int value)
+        private static string GenerateString(int value)
         {
             const string Alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             var builder = new StringBuilder();
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             return builder.ToString();
         }
 
-        private void Test(bool isCaseSensitive)
+        private static void Test(bool isCaseSensitive)
         {
             var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
             var strings = GenerateStrings(2000).Skip(500).Take(1000).ToSet(comparer);
@@ -80,15 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [Fact]
         public void Test1()
-        {
-            Test(isCaseSensitive: true);
-        }
+            => Test(isCaseSensitive: true);
 
         [Fact]
         public void TestInsensitive()
-        {
-            Test(isCaseSensitive: false);
-        }
+            => Test(isCaseSensitive: false);
 
         [Fact]
         public void TestEmpty()
@@ -183,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private HashSet<long> CreateLongs(List<int> ints)
+        private static HashSet<long> CreateLongs(List<int> ints)
         {
             var result = new HashSet<long>();
 

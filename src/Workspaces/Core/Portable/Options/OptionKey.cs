@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Roslyn.Utilities;
 
@@ -46,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Options
 
             static bool OptionEqual(IOption thisOption, IOption otherOption)
             {
-                if (!(thisOption is IOption2 thisOption2) ||
-                    !(otherOption is IOption2 otherOption2))
+                if (thisOption is not IOption2 thisOption2 ||
+                    otherOption is not IOption2 otherOption2)
                 {
                     // Third party definition of 'IOption'.
                     return thisOption.Equals(otherOption);
@@ -84,13 +82,9 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public static bool operator ==(OptionKey left, OptionKey right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(OptionKey left, OptionKey right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

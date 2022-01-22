@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private void ClassifyXmlTrivia(SyntaxTriviaList triviaList, string? whitespaceClassificationType = null)
+        private void ClassifyXmlTrivia(SyntaxTriviaList triviaList)
         {
             foreach (var t in triviaList)
             {
@@ -73,14 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 {
                     case SyntaxKind.DocumentationCommentExteriorTrivia:
                         ClassifyExteriorTrivia(t);
-                        break;
-
-                    case SyntaxKind.WhitespaceTrivia:
-                        if (whitespaceClassificationType != null)
-                        {
-                            AddClassification(t, whitespaceClassificationType);
-                        }
-
                         break;
 
                     case SyntaxKind.SkippedTokensTrivia:
@@ -138,16 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private void AddXmlClassification(SyntaxToken token, string classificationType)
         {
             if (token.HasLeadingTrivia)
-            {
-                ClassifyXmlTrivia(token.LeadingTrivia, classificationType);
-            }
+                ClassifyXmlTrivia(token.LeadingTrivia);
 
             AddClassification(token, classificationType);
 
             if (token.HasTrailingTrivia)
-            {
-                ClassifyXmlTrivia(token.TrailingTrivia, classificationType);
-            }
+                ClassifyXmlTrivia(token.TrailingTrivia);
         }
 
         private void ClassifyXmlTextTokens(SyntaxTokenList textTokens)
@@ -155,16 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             foreach (var token in textTokens)
             {
                 if (token.HasLeadingTrivia)
-                {
-                    ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
-                }
+                    ClassifyXmlTrivia(token.LeadingTrivia);
 
                 ClassifyXmlTextToken(token);
 
                 if (token.HasTrailingTrivia)
-                {
-                    ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
-                }
+                    ClassifyXmlTrivia(token.TrailingTrivia);
             }
         }
 
@@ -200,19 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyXmlName(XmlNameSyntax node)
         {
-            string classificationType;
-            if (node.Parent is XmlAttributeSyntax)
+            var classificationType = node.Parent switch
             {
-                classificationType = ClassificationTypeNames.XmlDocCommentAttributeName;
-            }
-            else if (node.Parent is XmlProcessingInstructionSyntax)
-            {
-                classificationType = ClassificationTypeNames.XmlDocCommentProcessingInstruction;
-            }
-            else
-            {
-                classificationType = ClassificationTypeNames.XmlDocCommentName;
-            }
+                XmlAttributeSyntax => ClassificationTypeNames.XmlDocCommentAttributeName,
+                XmlProcessingInstructionSyntax => ClassificationTypeNames.XmlDocCommentProcessingInstruction,
+                _ => ClassificationTypeNames.XmlDocCommentName,
+            };
 
             var prefix = node.Prefix;
             if (prefix != null)
@@ -292,9 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private void ClassifyXmlText(XmlTextSyntax node)
-        {
-            ClassifyXmlTextTokens(node.TextTokens);
-        }
+            => ClassifyXmlTextTokens(node.TextTokens);
 
         private void ClassifyXmlComment(XmlCommentSyntax node)
         {

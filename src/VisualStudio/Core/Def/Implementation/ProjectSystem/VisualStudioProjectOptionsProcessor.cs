@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Gate to guard all mutable fields in this class.
         /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
         /// </summary>
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         /// <summary>
         /// A hashed checksum of the last command line we were set to.  We use this
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// temp-storage-service. This is helpful as compiler command-lines can grow extremely large
         /// (especially in cases with many references).
         /// </summary>
-        /// <remarks>Note: this will be null in the case that the command line is an empty string.</remarks>
+        /// <remarks>Note: this will be null in the case that the command line is an empty array.</remarks>
         private ITemporaryStreamStorage? _commandLineStorage;
 
         private CommandLineArguments _commandLineArgumentsForCommandLine;
@@ -59,13 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Silence NRT warning.  This will be initialized by the call below to ReparseCommandLineIfChanged_NoLock.
             _commandLineArgumentsForCommandLine = null!;
-            ReparseCommandLineIfChanged_NoLock(commandLine: "");
+            ReparseCommandLineIfChanged_NoLock(arguments: ImmutableArray<string>.Empty);
         }
 
         /// <returns><see langword="true"/> if the command line was updated.</returns>
-        private bool ReparseCommandLineIfChanged_NoLock(string commandLine)
+        private bool ReparseCommandLineIfChanged_NoLock(ImmutableArray<string> arguments)
         {
-            var checksum = Checksum.Create(commandLine);
+            var checksum = Checksum.Create(arguments);
             if (_commandLineChecksum == checksum)
                 return false;
 
@@ -76,26 +76,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _commandLineStorage?.Dispose();
             _commandLineStorage = null;
-            if (commandLine.Length > 0)
+            if (!arguments.IsEmpty)
             {
                 _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
-                _commandLineStorage.WriteString(commandLine);
+                _commandLineStorage.WriteAllLines(arguments);
             }
 
-            ReparseCommandLine_NoLock(commandLine);
+            ReparseCommandLine_NoLock(arguments);
             return true;
         }
 
+        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         public void SetCommandLine(string commandLine)
         {
             if (commandLine == null)
                 throw new ArgumentNullException(nameof(commandLine));
 
+            var arguments = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false);
+
+            SetCommandLine(arguments.ToImmutableArray());
+        }
+
+        public void SetCommandLine(ImmutableArray<string> arguments)
+        {
             lock (_gate)
             {
                 // If we actually got a new command line, then update the project options, otherwise
                 // we don't need to do anything.
-                if (ReparseCommandLineIfChanged_NoLock(commandLine))
+                if (ReparseCommandLineIfChanged_NoLock(arguments))
                 {
                     UpdateProjectOptions_NoLock();
                 }
@@ -148,9 +156,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void ReparseCommandLine_NoLock(string commandLine)
+        private void ReparseCommandLine_NoLock(ImmutableArray<string> arguments)
         {
-            var arguments = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false);
             _commandLineArgumentsForCommandLine = _commandLineParserService.Parse(arguments, Path.GetDirectoryName(_project.FilePath), isInteractive: false, sdkDirectory: null);
         }
 
@@ -171,21 +178,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            // TODO: #r support, should it include bin path?
-            var referenceSearchPaths = ImmutableArray<string>.Empty;
-
-            // TODO: #load support
-            var sourceSearchPaths = ImmutableArray<string>.Empty;
-
-            var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    _workspaceServices.GetRequiredService<IMetadataService>(),
-                    new RelativePathResolver(referenceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory));
-
             var compilationOptions = _commandLineArgumentsForCommandLine.CompilationOptions
                 .WithConcurrentBuild(concurrent: false)
-                .WithMetadataReferenceResolver(referenceResolver)
                 .WithXmlReferenceResolver(new XmlFileResolver(_commandLineArgumentsForCommandLine.BaseDirectory))
-                .WithSourceReferenceResolver(new SourceFileResolver(sourceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory))
                 .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                 .WithStrongNameProvider(new DesktopStrongNameProvider(_commandLineArgumentsForCommandLine.KeyFileSearchPaths.WhereNotNull().ToImmutableArray()));
 
@@ -196,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // We've computed what the base values should be; we now give an opportunity for any host-specific settings to be computed
             // before we apply them
-            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, this._ruleSetFile?.Target.Value);
+            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, _ruleSetFile?.Target.Value);
             parseOptions = ComputeParseOptionsWithHostValues(parseOptions);
 
             // For managed projects, AssemblyName has to be non-null, but the command line we get might be a partial command line
@@ -204,11 +199,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
             _project.CompilationOptions = compilationOptions;
 
-            var fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
-                                                    ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
-                                                    : _commandLineArgumentsForCommandLine.OutputFileName;
+            var fullOutputFilePath = (_commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null)
+                ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
+                : _commandLineArgumentsForCommandLine.OutputFileName;
 
-            _project.IntermediateOutputFilePath = fullIntermediateOutputPath ?? _project.IntermediateOutputFilePath;
+            _project.CompilationOutputAssemblyFilePath = fullOutputFilePath ?? _project.CompilationOutputAssemblyFilePath;
             _project.ParseOptions = parseOptions;
         }
 
@@ -229,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
                 // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
                 // includes in the IDE so we can be watching for changes again.
-                var commandLine = _commandLineStorage?.ReadString() ?? "";
+                var commandLine = _commandLineStorage == null ? ImmutableArray<string>.Empty : _commandLineStorage.ReadLines();
 
                 DisposeOfRuleSetFile_NoLock();
                 ReparseCommandLine_NoLock(commandLine);
@@ -249,9 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// the command line string.
         /// </summary>
         protected virtual ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
-        {
-            return parseOptions;
-        }
+            => parseOptions;
 
         /// <summary>
         /// Called by a derived class to notify that we need to update the settings in the project system for something that will be provided

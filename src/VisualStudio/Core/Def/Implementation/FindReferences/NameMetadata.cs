@@ -9,11 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal class NameMetadata
     {
-        public string Name { get; }
+        public string? Name { get; }
 
         public NameMetadata(IDictionary<string, object> data)
-        {
-            this.Name = (string)data.GetValueOrDefault(nameof(Name));
-        }
+            => this.Name = (string?)data.GetValueOrDefault(nameof(Name));
     }
 }

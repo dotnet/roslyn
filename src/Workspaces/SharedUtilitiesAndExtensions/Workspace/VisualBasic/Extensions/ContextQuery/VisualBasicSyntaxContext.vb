@@ -45,7 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Public ReadOnly ModifierCollectionFacts As ModifierCollectionFacts
         Public ReadOnly IsPreprocessorStartContext As Boolean
-        Public ReadOnly TouchingToken As SyntaxToken
         Public ReadOnly IsInLambda As Boolean
         Public ReadOnly IsQueryOperatorContext As Boolean
         Public ReadOnly EnclosingNamedType As CancellableLazy(Of INamedTypeSymbol)
@@ -55,16 +54,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsWithinPreprocessorContext As Boolean
 
         Private Sub New(
-            workspace As Workspace,
+            document As Document,
             semanticModel As SemanticModel,
             position As Integer,
             leftToken As SyntaxToken,
             targetToken As SyntaxToken,
-            touchingToken As SyntaxToken,
             isTypeContext As Boolean,
             isNamespaceContext As Boolean,
             isNamespaceDeclarationNameContext As Boolean,
             isPreProcessorDirectiveContext As Boolean,
+            isPreProcessorExpressionContext As Boolean,
             isRightOfNameSeparator As Boolean,
             isSingleLineStatementContext As Boolean,
             isExpressionContext As Boolean,
@@ -81,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         )
 
             MyBase.New(
-                workspace,
+                document,
                 semanticModel,
                 position,
                 leftToken,
@@ -90,6 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isNamespaceContext,
                 isNamespaceDeclarationNameContext,
                 isPreProcessorDirectiveContext,
+                isPreProcessorExpressionContext,
                 isRightOfNameSeparator,
                 isStatementContext:=isSingleLineStatementContext,
                 isAnyExpressionContext:=isExpressionContext,
@@ -98,9 +98,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isNameOfContext:=isNameOfContext,
                 isInQuery:=isInQuery,
                 isInImportsDirective:=isInImportsDirective,
-                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken, cancellationToken),
+                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken),
                 isPossibleTupleContext:=isPossibleTupleContext,
-                isPatternContext:=False,
+                isAtStartOfPattern:=False,
+                isAtEndOfPattern:=False,
                 isRightSideOfNumericType:=False,
                 isOnArgumentListBracketOrComma:=isInArgumentList,
                 cancellationToken:=cancellationToken)
@@ -120,7 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsInterfaceMemberDeclarationKeywordContext = syntaxTree.IsInterfaceMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
 
             Me.ModifierCollectionFacts = New ModifierCollectionFacts(syntaxTree, position, targetToken, cancellationToken)
-            Me.TouchingToken = touchingToken
             Me.IsInLambda = isInLambda
             Me.IsPreprocessorStartContext = ComputeIsPreprocessorStartContext(position, targetToken)
             Me.IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
@@ -129,31 +129,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
 
-            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective(position)
+            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
-        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
 
-        Public Shared Async Function CreateContextAsync(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+        Public Shared Function CreateContext(document As Document, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
             Dim syntaxTree = semanticModel.SyntaxTree
             Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
-            Dim touchingToken = Await syntaxTree.GetTouchingTokenAsync(position, cancellationToken).ConfigureAwait(False)
 
             Return New VisualBasicSyntaxContext(
-                workspace,
+                document,
                 semanticModel,
                 position,
                 leftToken,
                 targetToken,
-                touchingToken,
                 isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceDeclarationNameContext:=syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
                 isPreProcessorDirectiveContext:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
+                isPreProcessorExpressionContext:=syntaxTree.IsInPreprocessorExpressionContext(position, cancellationToken),
                 isRightOfNameSeparator:=syntaxTree.IsRightOfDot(position, cancellationToken),
                 isSingleLineStatementContext:=syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken),
                 isExpressionContext:=syntaxTree.IsExpressionContext(position, targetToken, cancellationToken, semanticModel),
@@ -169,8 +168,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 cancellationToken:=cancellationToken)
         End Function
 
-        Public Shared Function CreateContextAsync_Test(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
-            Return CreateContextAsync(Nothing, semanticModel, position, cancellationToken)
+        Friend Overrides Function IsAwaitKeywordContext() As Boolean
+            If IsAnyExpressionContext OrElse IsSingleLineStatementContext Then
+                If IsInQuery Then
+                    ' There are some places where Await is allowed:
+                    ' BC36929: 'Await' may only be used in a query expression within the first collection expression of the initial 'From' clause or within the collection expression of a 'Join' clause.
+                    If TargetToken.Kind = SyntaxKind.InKeyword Then
+                        Dim collectionRange = TryCast(TargetToken.Parent, CollectionRangeVariableSyntax)
+                        If collectionRange IsNot Nothing Then
+                            If TypeOf collectionRange.Parent Is FromClauseSyntax AndAlso TypeOf collectionRange.Parent.Parent Is QueryExpressionSyntax Then
+                                Dim fromClause = DirectCast(collectionRange.Parent, FromClauseSyntax)
+                                Dim queryExpression = DirectCast(collectionRange.Parent.Parent, QueryExpressionSyntax)
+                                ' Await is only allowed for the first collection in a from clause. There are two forms to consider here:
+                                ' 1. From x In xs From y In ys
+                                ' 2. From x In xs, y In ys
+                                ' 1. and 2. can be combined, but in any combination, Await is only allowed on the very first collection
+                                If fromClause.Variables.FirstOrDefault() Is collectionRange AndAlso queryExpression.Clauses.FirstOrDefault() Is collectionRange.Parent Then
+                                    Return True
+                                End If
+                            ElseIf TypeOf collectionRange.Parent Is SimpleJoinClauseSyntax OrElse TypeOf collectionRange.Parent Is GroupJoinClauseSyntax Then
+                                Return True
+                            End If
+                        End If
+                    End If
+
+                    Return False
+                End If
+                For Each node In TargetToken.GetAncestors(Of SyntaxNode)()
+                    If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression,
+                                   SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression) Then
+                        Return True
+                    End If
+
+                    If node.IsKind(SyntaxKind.FinallyBlock, SyntaxKind.SyncLockBlock, SyntaxKind.CatchBlock) Then
+                        Return False
+                    End If
+                Next
+
+                Return True
+            End If
+
+            Return False
         End Function
 
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
@@ -191,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
-                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 
         Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
@@ -202,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
-                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 
         Public Function IsFollowingParameterListOrAsClauseOfMethodDeclaration() As Boolean
@@ -279,10 +317,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             'operator.
             Return SyntaxTree.IsFollowingCompleteExpression(Of JoinClauseSyntax)(
                 Position, TargetToken, Function(joinOperator) joinOperator.JoinedVariables.LastCollectionExpression(), cancellationToken)
-        End Function
-
-        Friend Overrides Function GetTypeInferenceServiceWithoutWorkspace() As ITypeInferenceService
-            Return New VisualBasicTypeInferenceService()
         End Function
     End Class
 End Namespace

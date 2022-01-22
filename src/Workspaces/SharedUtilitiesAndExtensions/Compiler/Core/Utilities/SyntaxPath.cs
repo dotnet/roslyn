@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -38,7 +39,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private readonly List<PathSegment> _segments = new List<PathSegment>();
+        private readonly List<PathSegment> _segments = new();
         private readonly int _kind;
         private readonly bool _trackKinds;
 
@@ -87,7 +88,7 @@ namespace Roslyn.Utilities
         /// Attempts to recover the node at this path in the provided tree.  If the node is found
         /// then 'true' is returned, otherwise the result is 'false' and 'node' will be null.
         /// </summary>
-        public bool TryResolve(SyntaxNode root, out SyntaxNodeOrToken nodeOrToken)
+        public bool TryResolve(SyntaxNode? root, out SyntaxNodeOrToken nodeOrToken)
         {
             nodeOrToken = default;
 
@@ -132,20 +133,20 @@ namespace Roslyn.Utilities
             return default;
         }
 
-        public bool TryResolve<TNode>(SyntaxTree syntaxTree, CancellationToken cancellationToken, out TNode node)
+        public bool TryResolve<TNode>(SyntaxTree syntaxTree, CancellationToken cancellationToken, [NotNullWhen(true)] out TNode? node)
             where TNode : SyntaxNode
         {
             return TryResolve(syntaxTree.GetRoot(cancellationToken), out node);
         }
 
-        public bool TryResolve<TNode>(SyntaxNode root, out TNode node)
+        public bool TryResolve<TNode>(SyntaxNode? root, [NotNullWhen(true)] out TNode? node)
             where TNode : SyntaxNode
         {
             if (TryResolve(root, out var nodeOrToken) &&
                 nodeOrToken.IsNode &&
-                nodeOrToken.AsNode() is TNode)
+                nodeOrToken.AsNode() is TNode n)
             {
-                node = nodeOrToken.AsNode() as TNode;
+                node = n;
                 return true;
             }
 
@@ -153,17 +154,13 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        public static bool operator ==(SyntaxPath left, SyntaxPath right)
-        {
-            return object.Equals(left, right);
-        }
+        public static bool operator ==(SyntaxPath? left, SyntaxPath? right)
+            => object.Equals(left, right);
 
-        public static bool operator !=(SyntaxPath left, SyntaxPath right)
-        {
-            return !object.Equals(left, right);
-        }
+        public static bool operator !=(SyntaxPath? left, SyntaxPath? right)
+            => !object.Equals(left, right);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             var path = obj as SyntaxPath;
             if (path == null)
@@ -174,7 +171,7 @@ namespace Roslyn.Utilities
             return Equals(path);
         }
 
-        public bool Equals(SyntaxPath other)
+        public bool Equals(SyntaxPath? other)
         {
             if (other == null)
             {
@@ -193,9 +190,7 @@ namespace Roslyn.Utilities
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(_trackKinds, Hash.Combine(_kind, GetSegmentHashCode()));
-        }
+            => Hash.Combine(_trackKinds, Hash.Combine(_kind, GetSegmentHashCode()));
 
         private int GetSegmentHashCode()
         {

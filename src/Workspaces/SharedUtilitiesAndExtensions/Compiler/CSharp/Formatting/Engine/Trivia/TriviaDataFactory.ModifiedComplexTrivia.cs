@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             private readonly ComplexTrivia _original;
 
-            public ModifiedComplexTrivia(AnalyzerConfigOptions options, ComplexTrivia original, int lineBreaks, int space)
+            public ModifiedComplexTrivia(SyntaxFormattingOptions options, ComplexTrivia original, int lineBreaks, int space)
                 : base(options, original.Token1.Language)
             {
                 Contract.ThrowIfNull(original);
@@ -50,9 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
-            {
-                return _original.WithSpace(space, context, formattingRules);
-            }
+                => _original.WithSpace(space, context, formattingRules);
 
             public override TriviaData WithLine(
                 int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
@@ -104,9 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 => throw new NotImplementedException();
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

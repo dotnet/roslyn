@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document,
             int position,
+            BraceMatchingOptions options,
             CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -85,13 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         }
 
         protected virtual bool AllowedForToken(SyntaxToken token)
-        {
-            return true;
-        }
+            => true;
 
         private bool IsBrace(char c)
-        {
-            return _openBrace.Character == c || _closeBrace.Character == c;
-        }
+            => _openBrace.Character == c || _closeBrace.Character == c;
     }
 }

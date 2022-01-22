@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
@@ -154,6 +152,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static string? TryGetAssemblyPath(Assembly assembly)
         {
+#if NETFRAMEWORK
             if (assembly.GlobalAssemblyCache)
             {
                 return null;
@@ -166,6 +165,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return null;
+#else
+            return assembly.Location;
+#endif
         }
 
         /// <summary>

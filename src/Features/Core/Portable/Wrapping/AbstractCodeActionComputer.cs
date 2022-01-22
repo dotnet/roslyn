@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             /// Annotation used so that we can track the top-most node we want to format after
             /// performing all our edits.
             /// </summary>
-            private static readonly SyntaxAnnotation s_toFormatAnnotation = new SyntaxAnnotation();
+            private static readonly SyntaxAnnotation s_toFormatAnnotation = new();
 
             protected readonly TWrapper Wrapper;
 
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             /// The contents of the documents we've created code-actions for.  This is used so that
             /// we can prevent creating multiple code actions that produce the same results.
             /// </summary>
-            private readonly List<SyntaxNode> _seenDocumentRoots = new List<SyntaxNode>();
+            private readonly List<SyntaxNode> _seenDocumentRoots = new();
 
             public AbstractCodeActionComputer(
                 TWrapper service,
@@ -75,13 +78,14 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 OriginalSourceText = originalSourceText;
                 CancellationToken = cancellationToken;
 
-                UseTabs = options.GetOption(FormattingOptions.UseTabs);
-                TabSize = options.GetOption(FormattingOptions.TabSize);
-                NewLine = options.GetOption(FormattingOptions.NewLine);
-                WrappingColumn = options.GetOption(FormattingOptions.PreferredWrappingColumn);
+                UseTabs = options.GetOption(FormattingOptions2.UseTabs);
+                TabSize = options.GetOption(FormattingOptions2.TabSize);
+                NewLine = options.GetOption(FormattingOptions2.NewLine);
+                WrappingColumn = options.GetOption(FormattingOptions2.PreferredWrappingColumn);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                NewLineTrivia = new SyntaxTriviaList(generator.EndOfLine(NewLine));
+                var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(NewLine));
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
@@ -101,13 +105,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     FormattingOptions.IndentStyle.Smart,
                     CancellationToken);
 
-                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
-                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
-
-                var indent = baseOffsetInLine + desiredIndentation.Offset;
-
-                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
-                return indentString;
+                return desiredIndentation.GetIndentationString(newSourceText, UseTabs, TabSize);
             }
 
             /// <summary>

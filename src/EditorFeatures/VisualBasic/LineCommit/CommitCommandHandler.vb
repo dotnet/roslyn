@@ -7,7 +7,10 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
@@ -41,6 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
         Private ReadOnly _smartIndentationService As ISmartIndentationService
         Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
+        Private ReadOnly _globalOptions As IGlobalOptionService
 
         Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
             Get
@@ -54,12 +58,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             bufferManagerFactory As CommitBufferManagerFactory,
             editorOperationsFactoryService As IEditorOperationsFactoryService,
             smartIndentationService As ISmartIndentationService,
-            textUndoHistoryRegistry As ITextUndoHistoryRegistry)
+            textUndoHistoryRegistry As ITextUndoHistoryRegistry,
+            globalOptions As IGlobalOptionService)
 
             _bufferManagerFactory = bufferManagerFactory
             _editorOperationsFactoryService = editorOperationsFactoryService
             _smartIndentationService = smartIndentationService
             _textUndoHistoryRegistry = textUndoHistoryRegistry
+            _globalOptions = globalOptions
         End Sub
 
         Public Sub ExecuteCommand(args As FormatDocumentCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of FormatDocumentCommandArgs).ExecuteCommand
@@ -116,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
-            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.PrettyListing) Then
+            If Not _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic) Then
                 nextHandler()
                 Return
             End If
@@ -188,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim oldCaretPositionInCurrentSnapshot = oldCaretPositionInOldSnapshot.Value.CreateTrackingPoint(PointTrackingMode.Negative).GetPoint(subjectBuffer.CurrentSnapshot)
             Dim bufferManager = _bufferManagerFactory.CreateForBuffer(subjectBuffer)
 
-            If bufferManager.IsMovementBetweenStatements(oldCaretPositionInCurrentSnapshot, newCaretPosition.Value, cancellationToken) Then
+            If CommitBufferManager.IsMovementBetweenStatements(oldCaretPositionInCurrentSnapshot, newCaretPosition.Value, cancellationToken) Then
                 Dim document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
                 If document Is Nothing Then
                     Return False
@@ -228,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Do the paste in the same transaction as the commit/format
                 nextHandler()
 
-                If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) Then
+                If Not _globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, LanguageNames.VisualBasic) Then
                     transaction.Complete()
                     Return
                 End If
@@ -260,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of SaveCommandArgs).ExecuteCommand
-            If args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.FormatOnSave) Then
+            If _globalOptions.GetOption(InternalFeatureOnOffOptions.FormatOnSave) Then
                 Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
                     Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Format_on_Save)
                         _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=context.OperationContext.UserCancellationToken)

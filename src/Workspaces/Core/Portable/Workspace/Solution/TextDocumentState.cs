@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -86,9 +85,7 @@ namespace Microsoft.CodeAnalysis
         public string Name => Attributes.Name;
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
-        {
-            return new ConstantValueSource<TextAndVersion>(text);
-        }
+            => new ConstantValueSource<TextAndVersion>(text);
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services)
         {
@@ -100,7 +97,17 @@ namespace Microsoft.CodeAnalysis
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
         {
-            return new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+
+            // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
+            // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
+            // transitions to a weak reference backed by temporary storage after the first time GetValue (or
+            // GetValueAsync) is called. Since we know we are creating a RecoverableTextAndVersion for the purpose of
+            // avoiding problematic address space overhead, we call GetValue immediately to force the object to weakly
+            // hold its data from the start.
+            result.GetValue();
+
+            return result;
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
@@ -167,23 +174,26 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public bool TryGetTextAndVersion(out TextAndVersion? textAndVersion)
+        public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
             => TextAndVersionSource.TryGetValue(out textAndVersion);
 
-        public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
+        public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
             if (sourceText != null)
             {
-                return sourceText;
+                return new ValueTask<SourceText>(sourceText);
             }
 
             if (TryGetText(out var text))
             {
-                return text;
+                return new ValueTask<SourceText>(text);
             }
 
-            var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
-            return textAndVersion.Text;
+            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+                static (self, cancellationToken) => self.GetTextAndVersionAsync(cancellationToken),
+                static (textAndVersion, _) => textAndVersion.Text,
+                this,
+                cancellationToken);
         }
 
         public SourceText GetTextSynchronously(CancellationToken cancellationToken)
@@ -247,15 +257,15 @@ namespace Microsoft.CodeAnalysis
                 textAndVersionSource: newTextSource);
         }
 
-        private async Task<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
+        private ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
         {
             if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
             {
-                return textAndVersion;
+                return new ValueTask<TextAndVersion>(textAndVersion);
             }
             else
             {
-                return await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return new ValueTask<TextAndVersion>(TextAndVersionSource.GetValueAsync(cancellationToken));
             }
         }
 
@@ -292,8 +302,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         public bool HasInfoChanged(TextDocumentState oldState)
-        {
-            return oldState.Attributes != Attributes;
-        }
+            => oldState.Attributes != Attributes;
     }
 }

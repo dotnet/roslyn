@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private readonly bool _forceIndentation;
             private readonly int _indentation;
             private readonly int _indentationDelta;
-            private readonly AnalyzerConfigOptions _options;
+            private readonly SyntaxFormattingOptions _options;
 
             public DocumentationCommentExteriorCommentRewriter(
                 bool forceIndentation,
                 int indentation,
                 int indentationDelta,
-                AnalyzerConfigOptions options,
+                SyntaxFormattingOptions options,
                 bool visitStructuredTrivia = true)
                 : base(visitIntoStructuredTrivia: visitStructuredTrivia)
             {
@@ -63,14 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return base.VisitTrivia(trivia);
             }
 
-            private bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
+            private static bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
             {
                 var currentParent = trivia.Token.Parent;
 
                 while (currentParent != null)
                 {
-                    if (currentParent.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia ||
-                        currentParent.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia)
+                    if (currentParent.Kind() is SyntaxKind.SingleLineDocumentationCommentTrivia or
+                        SyntaxKind.MultiLineDocumentationCommentTrivia)
                     {
                         if (trivia.Span.End == currentParent.SpanStart ||
                             trivia.Span.End == currentParent.Span.End)

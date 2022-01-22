@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public virtual IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            return new AggregateIncrementalAnalyzer(workspace, this, _providers);
-        }
+            => new AggregateIncrementalAnalyzer(workspace, this, _providers);
     }
 }

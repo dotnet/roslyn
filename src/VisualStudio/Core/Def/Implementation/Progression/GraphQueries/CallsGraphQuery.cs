@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.GraphModel;
-using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
@@ -25,15 +23,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbol = graphBuilder.GetSymbol(node);
+                var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                 if (symbol != null)
                 {
                     foreach (var newSymbol in await GetCalledMethodSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var newNode = await graphBuilder.AddNodeForSymbolAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
-                        graphBuilder.AddLink(node, CodeLinkCategories.Calls, newNode);
+                        var newNode = await graphBuilder.AddNodeAsync(newSymbol, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        graphBuilder.AddLink(node, CodeLinkCategories.Calls, newNode, cancellationToken);
                     }
                 }
             }
@@ -41,9 +39,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return graphBuilder;
         }
 
-        private static async Task<IEnumerable<ISymbol>> GetCalledMethodSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<ISymbol>> GetCalledMethodSymbolsAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var symbols = new List<ISymbol>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             foreach (var reference in symbol.DeclaringSyntaxReferences)
             {
@@ -61,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return symbols;
+            return symbols.ToImmutable();
         }
     }
 }

@@ -76,13 +76,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // https://github.com/JamesNK/Newtonsoft.Json/blob/993215529562866719689206e27e413013d4439c/Src/Newtonsoft.Json/JsonTextReader.cs#L1926
                 // So as to match Newtonsoft.Json's behavior around number parsing.
                 var chars = numberToken.VirtualChars;
-                var firstChar = chars[0].Char;
+                var firstChar = chars[0];
 
-                var singleDigit = char.IsDigit(firstChar) && chars.Length == 1;
+                var singleDigit = firstChar.IsDigit && chars.Length == 1;
                 if (singleDigit)
-                {
                     return null;
-                }
 
                 var nonBase10 =
                     firstChar == '0' && chars.Length > 1 &&
@@ -121,12 +119,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var child in node.Sequence)
                 {
-                    var childNode = child.Node;
-                    if (childNode.Kind == JsonKind.Property)
+                    if (child.IsNode)
                     {
-                        return new EmbeddedDiagnostic(
-                            WorkspacesResources.Properties_not_allowed_in_an_array,
-                            ((JsonPropertyNode)childNode).ColonToken.GetSpan());
+                        var childNode = child.Node;
+                        if (childNode.Kind == JsonKind.Property)
+                        {
+                            return new EmbeddedDiagnostic(
+                                WorkspacesResources.Properties_not_allowed_in_an_array,
+                                ((JsonPropertyNode)childNode).ColonToken.GetSpan());
+                        }
                     }
                 }
 
@@ -150,10 +151,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var vc in nameToken.VirtualChars)
                 {
-                    if (!char.IsLetterOrDigit(vc.Char))
-                    {
+                    if (!vc.IsLetterOrDigit)
                         return false;
-                    }
                 }
 
                 return true;
@@ -165,17 +164,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // a comma.
                 for (int i = 0, n = node.ChildCount - 1; i < n; i++)
                 {
-                    var child = node.ChildAt(i).Node;
-                    if (child.Kind != JsonKind.CommaValue)
+                    var child = node[i];
+                    var nextChild = node[i + 1];
+                    if (child.Kind != JsonKind.CommaValue &&
+                        nextChild.Kind != JsonKind.CommaValue)
                     {
-                        var next = node.ChildAt(i + 1).Node;
-
-                        if (next.Kind != JsonKind.CommaValue)
-                        {
-                            return new EmbeddedDiagnostic(
-                               string.Format(WorkspacesResources._0_expected, ','),
-                               GetFirstToken(next).GetSpan());
-                        }
+                        return new EmbeddedDiagnostic(
+                           string.Format(WorkspacesResources._0_expected, ','),
+                           GetFirstToken(nextChild).GetSpan());
                     }
                 }
 
@@ -186,8 +182,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 for (int i = 0, n = node.Sequence.ChildCount; i < n; i++)
                 {
-                    var child = node.Sequence.ChildAt(i).Node;
-
+                    var child = node.Sequence[i];
                     if (i % 2 == 0)
                     {
                         if (child.Kind != JsonKind.Property)
@@ -237,8 +232,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return true;
             }
 
-            private static bool IsLegalPropertyNameChar(char ch)
-                => char.IsLetterOrDigit(ch) || ch == '_' || ch == '$';
+            private static bool IsLegalPropertyNameChar(VirtualChar ch)
+                => ch.IsLetterOrDigit || ch == '_' || ch == '$';
         }
     }
 }

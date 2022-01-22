@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -20,8 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         {
         }
 
+        protected override bool IsRecordDeclaration(SyntaxNode node)
+            => node is RecordDeclarationSyntax;
+
         protected override bool SupportsDiscard(SyntaxTree tree)
-            => ((CSharpParseOptions)tree.Options).LanguageVersion >= LanguageVersion.CSharp7;
+            => tree.Options.LanguageVersion() >= LanguageVersion.CSharp7;
 
         protected override bool MethodHasHandlesClause(IMethodSymbol method)
             => false;

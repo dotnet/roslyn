@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,14 +18,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
+        public static SyntaxNode GetRequiredParent(this SyntaxNode node)
+            => node.Parent ?? throw new InvalidOperationException("Node's parent was null");
+
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
-        {
-            return SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
-        }
+            => SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
 
         public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxNode node)
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
 
             while (current != null)
             {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<TNode> GetAncestors<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TNode? GetAncestor<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>([NotNullWhen(returnValue: true)] this SyntaxNode? node, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            if (!(node?.Parent is T parentNode))
+            if (node?.Parent is not T parentNode)
             {
                 return false;
             }
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <typeparam name="TParent">The type of the parent node.</typeparam>
         /// <param name="node">The node that we are testing.</param>
         /// <param name="childGetter">A function that, when given the parent node, returns the child token we are interested in.</param>
-        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode> childGetter)
+        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode?> childGetter)
             where TParent : SyntaxNode
         {
             var ancestor = node.GetAncestor<TParent>();
@@ -183,14 +182,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static int Width(this SyntaxNode node)
-        {
-            return node.Span.Length;
-        }
+            => node.Span.Length;
 
         public static int FullWidth(this SyntaxNode node)
-        {
-            return node.FullSpan.Length;
-        }
+            => node.FullSpan.Length;
 
         public static SyntaxNode? FindInnermostCommonNode(this IEnumerable<SyntaxNode> nodes, Func<SyntaxNode, bool> predicate)
             => nodes.FindInnermostCommonNode()?.FirstAncestorOrSelf(predicate);
@@ -370,14 +365,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool OverlapsHiddenPosition(this SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return node.OverlapsHiddenPosition(node.Span, cancellationToken);
-        }
+            => node.OverlapsHiddenPosition(node.Span, cancellationToken);
 
         public static bool OverlapsHiddenPosition(this SyntaxNode node, TextSpan span, CancellationToken cancellationToken)
-        {
-            return node.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken);
-        }
+            => node.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken);
 
         public static bool OverlapsHiddenPosition(this SyntaxNode declaration, SyntaxNode startNode, SyntaxNode endNode, CancellationToken cancellationToken)
         {
@@ -389,9 +380,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<T> GetAnnotatedNodes<T>(this SyntaxNode node, SyntaxAnnotation syntaxAnnotation) where T : SyntaxNode
-        {
-            return node.GetAnnotatedNodesAndTokens(syntaxAnnotation).Select(n => n.AsNode()).OfType<T>();
-        }
+            => node.GetAnnotatedNodesAndTokens(syntaxAnnotation).Select(n => n.AsNode()).OfType<T>();
 
         /// <summary>
         /// Creates a new tree of nodes from the existing tree with the specified old nodes replaced with a newly computed nodes.
@@ -504,29 +493,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         if (nodesToReplace.TryGetValue(span, out var currentNode))
                         {
-                            var original = (SyntaxNode)retryAnnotations.GetAnnotations(currentNode).SingleOrDefault() ?? currentNode;
+                            var original = (SyntaxNode?)retryAnnotations.GetAnnotations(currentNode).SingleOrDefault() ?? currentNode;
                             var newNode = await computeReplacementNodeAsync!(original, currentNode, cancellationToken).ConfigureAwait(false);
                             nodeReplacements[currentNode] = newNode;
                         }
                         else if (tokensToReplace.TryGetValue(span, out var currentToken))
                         {
-                            var original = (SyntaxToken)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault();
-                            if (original == default)
-                            {
-                                original = currentToken;
-                            }
-
+                            var original = (SyntaxToken?)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault() ?? currentToken;
                             var newToken = await computeReplacementTokenAsync!(original, currentToken, cancellationToken).ConfigureAwait(false);
                             tokenReplacements[currentToken] = newToken;
                         }
                         else if (triviaToReplace.TryGetValue(span, out var currentTrivia))
                         {
-                            var original = (SyntaxTrivia)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault();
-                            if (original == default)
-                            {
-                                original = currentTrivia;
-                            }
-
+                            var original = (SyntaxTrivia?)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault() ?? currentTrivia;
                             var newTrivia = await computeReplacementTriviaAsync!(original, currentTrivia, cancellationToken).ConfigureAwait(false);
                             triviaReplacements[currentTrivia] = newTrivia;
                         }
@@ -837,6 +816,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return node.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
         }
 
+        /// <summary>
+        /// Creates a new token with the leading trivia removed.
+        /// </summary>
+        public static SyntaxToken WithoutLeadingTrivia(this SyntaxToken token)
+        {
+            return token.WithLeadingTrivia(default(SyntaxTriviaList));
+        }
+
+        /// <summary>
+        /// Creates a new token with the trailing trivia removed.
+        /// </summary>
+        public static SyntaxToken WithoutTrailingTrivia(this SyntaxToken token)
+        {
+            return token.WithTrailingTrivia(default(SyntaxTriviaList));
+        }
+
         // Copy of the same function in SyntaxNode.cs
         public static SyntaxNode? GetParent(this SyntaxNode node, bool ascendOutOfTrivia)
         {
@@ -875,7 +870,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Gets a list of ancestor nodes (including this node) 
         /// </summary>
         public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
-            => new ValueAncestorsAndSelfEnumerable(syntaxNode, ascendOutOfTrivia);
+            => new(syntaxNode, ascendOutOfTrivia);
 
         public struct ValueAncestorsAndSelfEnumerable
         {
@@ -889,7 +884,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public Enumerator GetEnumerator()
-                => new Enumerator(_syntaxNode, _ascendOutOfTrivia);
+                => new(_syntaxNode, _ascendOutOfTrivia);
 
             public struct Enumerator
             {

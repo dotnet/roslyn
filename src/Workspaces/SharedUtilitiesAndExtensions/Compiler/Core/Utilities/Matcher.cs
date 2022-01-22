@@ -12,40 +12,30 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// Matcher equivalent to (m*)
         /// </summary>
         public static Matcher<T> Repeat<T>(Matcher<T> matcher)
-        {
-            return Matcher<T>.Repeat(matcher);
-        }
+            => Matcher<T>.Repeat(matcher);
 
         /// <summary>
         /// Matcher equivalent to (m+)
         /// </summary>
         public static Matcher<T> OneOrMore<T>(Matcher<T> matcher)
-        {
-            return Matcher<T>.OneOrMore(matcher);
-        }
+            => Matcher<T>.OneOrMore(matcher);
 
         /// <summary>
         /// Matcher equivalent to (m_1|m_2|...|m_n)
         /// </summary>
         public static Matcher<T> Choice<T>(params Matcher<T>[] matchers)
-        {
-            return Matcher<T>.Choice(matchers);
-        }
+            => Matcher<T>.Choice(matchers);
 
         /// <summary>
         /// Matcher equivalent to (m_1 ... m_n)
         /// </summary>
         public static Matcher<T> Sequence<T>(params Matcher<T>[] matchers)
-        {
-            return Matcher<T>.Sequence(matchers);
-        }
+            => Matcher<T>.Sequence(matchers);
 
         /// <summary>
         /// Matcher that matches an element if the provide predicate returns true.
         /// </summary>
         public static Matcher<T> Single<T>(Func<T, bool> predicate, string description)
-        {
-            return Matcher<T>.Single(predicate, description);
-        }
+            => Matcher<T>.Single(predicate, description);
     }
 }

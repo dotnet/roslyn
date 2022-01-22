@@ -3,7 +3,7 @@
     x:ClassModifier="internal"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
     xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp.Options"
@@ -27,10 +27,44 @@
                                               x:Name="Background_analysis_scope_full_solution"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
                     </StackPanel>
+                    <StackPanel>
+                        <CheckBox x:Name="DisplayDiagnosticsInline"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="at_the_end_of_the_line_of_code"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end_of_the_line_of_code}"/>
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="on_the_right_edge_of_the_editor_window"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
+                        </StackPanel>
+                    </StackPanel>
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
-                    <CheckBox x:Name="Use_editorconfig_compatibility_mode"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_editorconfig_compatibility_mode}" />
+                    
+                    <CheckBox x:Name="Enable_pull_diagnostics_experimental_requires_restart"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_pull_diagnostics_experimental_requires_restart}" 
+                              Checked="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
+                              Unchecked="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
+                              Indeterminate="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
+                              IsThreeState="True"/>
+
+                    <CheckBox x:Name="Enable_Razor_pull_diagnostics_experimental_requires_restart"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_Razor_pull_diagnostics_experimental_requires_restart}" 
+                              Checked="Enable_Razor_pull_diagnostics_experimental_requires_restart_Checked"
+                              Unchecked="Enable_Razor_pull_diagnostics_experimental_requires_restart_Unchecked"/>
+
+                    <CheckBox x:Name="Run_code_analysis_in_separate_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
+
+                    <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
+
+                    <CheckBox x:Name="Enable_file_logging_for_diagnostics"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_file_logging_for_diagnostics}" />
+
+                    <CheckBox x:Name="Skip_analyzers_for_implicitly_triggered_builds"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"
@@ -48,6 +82,16 @@
                     <CheckBox x:Name="SuggestForTypesInNuGetPackages"
                               x:Uid="AddImport_SuggestForTypesInNuGetPackages"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_usings_for_types_in_NuGet_packages}" />
+                    <CheckBox x:Name="AddUsingsOnPaste"
+                              x:Uid="AddMissingUsingDirectivesOnPaste"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_using_directives_on_paste}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="QuickActionsBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
+                <StackPanel>
+                    <CheckBox x:Name="ComputeQuickActionsAsynchronouslyExperimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
@@ -94,42 +138,55 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
-            <GroupBox x:Uid="EditorHelpGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
+
+            <GroupBox x:Uid="CommentsGuidesGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleSlash}" />
-                    <CheckBox x:Name="ShowRemarksInQuickInfo"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
+                    <CheckBox x:Name="InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments}"/>
                     <CheckBox x:Name="InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="EditorHelpGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
+                <StackPanel>
+                    <CheckBox x:Name="ShowRemarksInQuickInfo"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                     <CheckBox x:Name="Split_string_literals_on_enter"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
                     <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
+                    <CheckBox x:Name="Underline_reassigned_variables"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
+                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>
             </GroupBox>
 
-          <GroupBox x:Uid="RegularExpressionsGroupBox"
-                    Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
-            <StackPanel>
-              <CheckBox x:Name="Colorize_regular_expressions"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
-              <CheckBox x:Name="Report_invalid_regular_expressions"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
-              <CheckBox x:Name="Highlight_related_components_under_cursor"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
-              <CheckBox x:Name="Show_completion_list"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
-            </StackPanel>
-          </GroupBox>
+            <GroupBox x:Uid="RegularExpressionsGroupBox"
+                        Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
+                <StackPanel>
+                    <CheckBox x:Name="Colorize_regular_expressions"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
+                    <CheckBox x:Name="Report_invalid_regular_expressions"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
+                    <CheckBox x:Name="Highlight_related_components_under_cursor"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
+                    <CheckBox x:Name="Show_completion_list"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
+                </StackPanel>
+            </GroupBox>
 
             <GroupBox x:Uid="ClassificationsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
                 <StackPanel>
-                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false">
+                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Edit_color_scheme}">
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2019}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2019_Tag}" />
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
                     </ComboBox>
@@ -175,6 +232,86 @@
                                               x:Name="prefer_auto_properties"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_prefer_auto_properties}"/>
                     </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="InlineHintsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints}">
+                <StackPanel>
+                    <CheckBox x:Name="DisplayAllHintsWhilePressingAltF1"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_Alt_F1}" />
+
+                    <CheckBox x:Name="ColorHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_hints}" />
+
+                    <CheckBox x:Name="DisplayInlineParameterNameHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
+                              Checked="DisplayInlineParameterNameHints_Checked"
+                              Unchecked="DisplayInlineParameterNameHints_Unchecked"/>
+
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForLiterals"
+                                  x:Name="ShowHintsForLiterals"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_literals}" />
+                        
+                        <CheckBox x:Uid="ShowHintsForNewExpressions"
+                                  x:Name="ShowHintsForNewExpressions"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_new_expressions}" />
+                        
+                        <CheckBox x:Uid="ShowHintsForEverythingElse"
+                                  x:Name="ShowHintsForEverythingElse"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_everything_else}" />
+                        
+                        <CheckBox x:Uid="ShowHintsForIndexers"
+                                  x:Name="ShowHintsForIndexers"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_indexers}" />
+                        
+                        <CheckBox x:Uid="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
+                                  x:Name="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent}" />
+
+                        <CheckBox x:Uid="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
+                                  x:Name="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_differ_only_by_suffix}" />
+
+                        <CheckBox x:Uid="SuppressHintsWhenParameterNamesMatchArgumentNames"
+                                  x:Name="SuppressHintsWhenParameterNamesMatchArgumentNames"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_argument_matches_parameter_name}" />
+                    </StackPanel>
+                    
+                    <CheckBox x:Name="DisplayInlineTypeHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_type_hints}"
+                              Checked="DisplayInlineTypeHints_Checked"
+                              Unchecked="DisplayInlineTypeHints_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Uid="ShowHintsForVariablesWithInferredTypes"
+                                  x:Name="ShowHintsForVariablesWithInferredTypes"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_variables_with_inferred_types}" />
+                        <CheckBox x:Uid="ShowHintsForLambdaParameterTypes"
+                                  x:Name="ShowHintsForLambdaParameterTypes"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_lambda_parameter_types}" />
+                        <CheckBox x:Uid="ShowHintsForImplicitObjectCreation"
+                                  x:Name="ShowHintsForImplicitObjectCreation"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_implicit_object_creation}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="InheritanceMarginGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin}">
+                <StackPanel>
+                    <CheckBox x:Uid="ShowInheritanceMargin"
+                              x:Name="ShowInheritanceMargin"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Show_inheritance_margin}"/>
+                    <CheckBox x:Uid="InheritanceMarginCombinedWithIndicatorMargin"
+                              x:Name="InheritanceMarginCombinedWithIndicatorMargin"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Combine_inheritance_margin_with_indicator_margin}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="StackTraceExplorerGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Stack_Trace_Explorer}">
+                <StackPanel>
+                    <CheckBox x:Uid="AutomaticallyOpenStackTraceExplorer"
+                              x:Name="AutomaticallyOpenStackTraceExplorer"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatically_open_stack_trace_explorer_on_focus}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

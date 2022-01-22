@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -284,16 +286,16 @@ class G : F
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
                 // (41,28): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
-                // (8,9): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (8,9): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"),
-                // (17,9): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (17,9): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"),
-                // (25,9): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (25,9): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"),
 
                 // This is new in Roslyn.  It is reported because F.Finalize is now a runtime finalizer.
 
-                // (57,9): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (57,9): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"));
         }
 
@@ -543,7 +545,7 @@ public class Test
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,6): error CS0577: The Conditional attribute is not valid on 'Test.~Test()' because it is a constructor, destructor, operator, or explicit interface implementation
+                // (5,6): error CS0577: The Conditional attribute is not valid on 'Test.~Test()' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
                 //     [Conditional("Debug")]
                 Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional(""Debug"")").WithArguments("Test.~Test()"));
         }

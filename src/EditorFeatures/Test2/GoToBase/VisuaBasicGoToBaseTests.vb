@@ -6,9 +6,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     <[UseExportProvider]>
     Public Class VisualBasicGoToBaseTests
         Inherits GoToBaseTestsBase
-        Private Overloads Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True,
+        Private Overloads Shared Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True,
                                                    Optional metadataDefinitions As String() = Nothing) As Task
-            Await TestAsync(source, LanguageNames.VisualBasic, shouldSucceed, metadataDefinitions)
+            Await GoToBaseTestsBase.TestAsync(source, LanguageNames.VisualBasic, shouldSucceed, metadataDefinitions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -191,7 +191,7 @@ interface I
     sub [|M|]()
 end interface")
         End Function
-        Public Async Function TestWithOneMethodImplementation_02() As Task
+        Public Shared Async Function TestWithOneMethodImplementation_02() As Task
             Await TestAsync(
 "class C
     implements I
@@ -204,7 +204,7 @@ interface I
     sub [|M|]()
 end interface")
         End Function
-        Public Async Function TestWithOneMethodImplementation_03() As Task
+        Public Shared Async Function TestWithOneMethodImplementation_03() As Task
             Await TestAsync(
 "class C
     implements I

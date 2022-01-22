@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Hosting.Diagnostics.Waiters;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </summary>
     internal abstract class InProcComponent : MarshalByRefObject
     {
-        private static JoinableTaskFactory _joinableTaskFactory;
+        private static JoinableTaskFactory? _joinableTaskFactory;
 
         protected InProcComponent() { }
 
@@ -53,7 +54,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var operation = JoinableTaskFactory.RunAsync(async () =>
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 action(cancellationTokenSource.Token);
             });
@@ -67,7 +67,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var operation = JoinableTaskFactory.RunAsync(async () =>
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 return action(cancellationTokenSource.Token);
             });
@@ -84,6 +83,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected static TService GetComponentModelService<TService>()
             where TService : class
          => InvokeOnUIThread(cancellationToken => GetComponentModel().GetService<TService>());
+
+        protected static TestingOnly_WaitingService GetWaitingService()
+            => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
 
         protected static DTE GetDTE()
             => GetGlobalService<SDTE, DTE>();
@@ -114,6 +116,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         // Ensure InProcComponents live forever
-        public override object InitializeLifetimeService() => null;
+        public override object? InitializeLifetimeService() => null;
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -124,9 +126,9 @@ static void M12() { }
             Assert.True(m12.IsStatic);
 
             comp.VerifyDiagnostics(
-                // (4,16): warning CS0628: 'M3()': new protected member declared in sealed class
+                // (4,16): warning CS0628: 'M3()': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "M3").WithArguments("M3()"),
-                // (6,25): warning CS0628: 'M5()': new protected member declared in sealed class
+                // (6,25): warning CS0628: 'M5()': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "M5").WithArguments("M5()"),
                 // (8,13): warning CS0626: Method, operator, or accessor 'M7()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M7").WithArguments("M7()")

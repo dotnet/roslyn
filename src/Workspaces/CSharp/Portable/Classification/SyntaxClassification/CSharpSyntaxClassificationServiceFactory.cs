@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Classification;
@@ -23,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.SyntaxClassification
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpSyntaxClassificationService(languageServices);
-        }
+            => new CSharpSyntaxClassificationService(languageServices);
     }
 }

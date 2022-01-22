@@ -4,36 +4,38 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class StopKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StopInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Stop")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StopAfterStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub StopInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Stop")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub StopAfterStatementTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x 
 |</MethodBody>, "Stop")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StopMissingInClassBlockTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "Stop")
-        End Function
+        Public Sub StopMissingInClassBlockTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Stop")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StopInSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "Stop")
-        End Function
+        Public Sub StopInSingleLineLambdaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "Stop")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StopNotInSingleLineFunctionLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "Stop")
-        End Function
+        Public Sub StopNotInSingleLineFunctionLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "Stop")
+        End Sub
     End Class
 End Namespace

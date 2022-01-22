@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,13 +12,14 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NamingStyles
 {
-    internal partial struct NamingStyle
+    internal partial struct NamingStyle : IEquatable<NamingStyle>, IObjectWritable
     {
         public Guid ID { get; }
         public string Name { get; }
@@ -61,6 +64,32 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
             return new NamingStyle(this.ID,
                 newName, newPrefix, newSuffix, newWordSeparator, newCapitalizationScheme);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is NamingStyle other
+                && Equals(other);
+        }
+
+        public bool Equals(NamingStyle other)
+        {
+            return ID == other.ID
+                && Name == other.Name
+                && Prefix == other.Prefix
+                && Suffix == other.Suffix
+                && WordSeparator == other.WordSeparator
+                && CapitalizationScheme == other.CapitalizationScheme;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(ID.GetHashCode(),
+                Hash.Combine(Name?.GetHashCode() ?? 0,
+                    Hash.Combine(Prefix?.GetHashCode() ?? 0,
+                        Hash.Combine(Suffix?.GetHashCode() ?? 0,
+                            Hash.Combine(WordSeparator?.GetHashCode() ?? 0,
+                                (int)CapitalizationScheme)))));
         }
 
         public string CreateName(ImmutableArray<string> words)
@@ -177,15 +206,15 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         private WordSpanEnumerable GetWordSpans(string name, TextSpan nameSpan)
-            => new WordSpanEnumerable(name, nameSpan, WordSeparator);
+            => new(name, nameSpan, WordSeparator);
 
         private static string Substring(string name, TextSpan wordSpan)
             => name.Substring(wordSpan.Start, wordSpan.Length);
 
-        private static Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
-        private static Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
 
-        private static Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
+        private static readonly Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {
@@ -198,7 +227,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             return true;
         };
 
-        private static Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
+        private static readonly Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {
@@ -403,12 +432,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 if (words.Count() == 1) // Only Split if words have not been split before 
                 {
                     var isWord = true;
-                    var parts = StringBreaker.GetParts(name, isWord);
+                    using var parts = TemporaryArray<TextSpan>.Empty;
+                    StringBreaker.AddParts(name, isWord, ref parts.AsRef());
                     var newWords = new string[parts.Count];
                     for (var i = 0; i < parts.Count; i++)
                     {
                         newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
                     }
+
                     words = newWords;
                 }
             }
@@ -451,7 +482,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         internal XElement CreateXElement()
-            => new XElement(nameof(NamingStyle),
+            => new(nameof(NamingStyle),
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
@@ -460,12 +491,35 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
 
         internal static NamingStyle FromXElement(XElement namingStyleElement)
-            => new NamingStyle(
+            => new(
                 id: Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
                 name: namingStyleElement.Attribute(nameof(Name)).Value,
                 prefix: namingStyleElement.Attribute(nameof(Prefix)).Value,
                 suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
                 wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
                 capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
+
+        public bool ShouldReuseInSerialization => false;
+
+        public void WriteTo(ObjectWriter writer)
+        {
+            writer.WriteGuid(ID);
+            writer.WriteString(Name);
+            writer.WriteString(Prefix ?? string.Empty);
+            writer.WriteString(Suffix ?? string.Empty);
+            writer.WriteString(WordSeparator ?? string.Empty);
+            writer.WriteInt32((int)CapitalizationScheme);
+        }
+
+        public static NamingStyle ReadFrom(ObjectReader reader)
+        {
+            return new NamingStyle(
+                reader.ReadGuid(),
+                reader.ReadString(),
+                reader.ReadString(),
+                reader.ReadString(),
+                reader.ReadString(),
+                (Capitalization)reader.ReadInt32());
+        }
     }
 }

@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -102,13 +102,15 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 fromBuild: false);
         }
 
-        public static DiagnosticAnalysisResult CreateFromBuild(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        public static DiagnosticAnalysisResult CreateFromBuild(Project project, ImmutableArray<DiagnosticData> diagnostics, IEnumerable<DocumentId> initialDocuments)
         {
             // we can't distinguish locals and non locals from build diagnostics nor determine right snapshot version for the build.
             // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
             var version = VersionStamp.Default;
 
             var documentIds = ImmutableHashSet.CreateBuilder<DocumentId>();
+            documentIds.AddRange(initialDocuments);
+
             var diagnosticsWithDocumentId = PooledDictionary<DocumentId, ArrayBuilder<DiagnosticData>>.GetInstance();
             var diagnosticsWithoutDocumentId = ArrayBuilder<DiagnosticData>.GetInstance();
 
@@ -254,19 +256,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             => (IsAggregatedForm || IsEmpty) ? ImmutableArray<DiagnosticData>.Empty : _others;
 
         public DiagnosticAnalysisResult ToAggregatedForm()
-        {
-            return new DiagnosticAnalysisResult(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
-        }
+            => new(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
 
         public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId, bool fromBuild)
-        {
-            return new DiagnosticAnalysisResult(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false, fromBuild: fromBuild);
-        }
+            => new(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false, fromBuild: fromBuild);
 
         public DiagnosticAnalysisResult Reset()
-        {
-            return new DiagnosticAnalysisResult(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty, FromBuild);
-        }
+            => new(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty, FromBuild);
 
         public DiagnosticAnalysisResult DropExceptSyntax()
         {
@@ -324,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             foreach (var documentId in map.Keys)
             {
-                Debug.Assert(project.GetDocument(documentId)?.SupportsDiagnostics() == true);
+                Debug.Assert(project.GetTextDocument(documentId)?.SupportsDiagnostics() == true);
             }
         }
     }

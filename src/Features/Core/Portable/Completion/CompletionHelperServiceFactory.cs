@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -21,55 +22,54 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service(workspaceServices.Workspace);
-        }
+            => new Service(workspaceServices.Workspace);
 
-        private class Service : ICompletionHelperService, IWorkspaceService
+        private sealed class Service : ICompletionHelperService, IWorkspaceService
         {
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
-            private CompletionHelper _caseSensitiveInstance;
-            private CompletionHelper _caseInsensitiveInstance;
+            private CompletionHelper? _lazyCaseSensitiveInstance;
+            private CompletionHelper? _lazyCaseInsensitiveInstance;
 
             public Service(Workspace workspace)
-            {
-                workspace.WorkspaceChanged += OnWorkspaceChanged;
-            }
+                => workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             public CompletionHelper GetCompletionHelper(Document document)
             {
                 lock (_gate)
                 {
                     // Don't bother creating instances unless we actually need them
-                    if (_caseSensitiveInstance == null)
+                    if (_lazyCaseSensitiveInstance == null)
                     {
                         CreateInstances();
                     }
+
+                    Contract.ThrowIfNull(_lazyCaseSensitiveInstance);
+                    Contract.ThrowIfNull(_lazyCaseInsensitiveInstance);
 
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                     var caseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
 
                     return caseSensitive
-                        ? _caseSensitiveInstance
-                        : _caseInsensitiveInstance;
+                        ? _lazyCaseSensitiveInstance
+                        : _lazyCaseInsensitiveInstance;
                 }
             }
 
             private void CreateInstances()
             {
-                _caseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
-                _caseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
+                _lazyCaseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
+                _lazyCaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
             }
 
-            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
             {
                 if (e.Kind == WorkspaceChangeKind.SolutionRemoved)
                 {
                     lock (_gate)
                     {
                         // Solution was unloaded, clear caches if we were caching anything
-                        if (_caseSensitiveInstance != null)
+                        if (_lazyCaseSensitiveInstance != null)
                         {
                             CreateInstances();
                         }

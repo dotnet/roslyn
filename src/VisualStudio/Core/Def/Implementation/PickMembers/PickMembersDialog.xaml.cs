@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,6 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                 Deselect_All_Click));
         }
 
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _viewModel.Filter(SearchTextBox.Text);
+            Members.Items.Refresh();
+        }
+
         private void OK_Click(object sender, RoutedEventArgs e)
             => DialogResult = true;
 
@@ -98,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         {
             if (Members.SelectedIndex >= 0)
             {
-                if (!(Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is ListViewItem row))
+                if (Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is not ListViewItem row)
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;
@@ -137,16 +145,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
             private readonly PickMembersDialog _dialog;
 
             public TestAccessor(PickMembersDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public Button OKButton => _dialog.OKButton;
 

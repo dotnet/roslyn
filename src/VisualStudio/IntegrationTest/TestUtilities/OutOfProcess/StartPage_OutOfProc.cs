@@ -9,12 +9,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public class StartPage_OutOfProc : OutOfProcComponent
     {
         private readonly StartPage_InProc _inProc;
-        private readonly VisualStudioInstance _instance;
 
         public StartPage_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<StartPage_InProc>(visualStudioInstance);
         }
 

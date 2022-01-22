@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.Api;
@@ -20,9 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LegacyCodeAnalysisVisualStudioDiagnosticListSuppressionStateServiceAccessor(IVisualStudioDiagnosticListSuppressionStateService implementation)
-        {
-            _implementation = implementation;
-        }
+            => _implementation = implementation;
 
         public bool CanSuppressSelectedEntries => _implementation.CanSuppressSelectedEntries;
         public bool CanSuppressSelectedEntriesInSource => _implementation.CanSuppressSelectedEntriesInSource;

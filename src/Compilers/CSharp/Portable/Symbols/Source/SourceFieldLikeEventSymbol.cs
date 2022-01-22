@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -26,13 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedEventAccessorSymbol _addMethod;
         private readonly SynthesizedEventAccessorSymbol _removeMethod;
 
-        internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag diagnostics)
+        internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, BindingDiagnosticBag diagnostics)
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
                    nameTokenSyntax: declaratorSyntax.Identifier, diagnostics: diagnostics)
         {
+            Debug.Assert(declaratorSyntax.Parent is object);
+
             _name = declaratorSyntax.Identifier.ValueText;
 
-            var declaratorDiagnostics = DiagnosticBag.GetInstance();
+            var declaratorDiagnostics = BindingDiagnosticBag.GetInstance();
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
             _type = BindEventType(binder, declarationSyntax.Type, declaratorDiagnostics);
 
@@ -93,7 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (inInterfaceType)
             {
-                if (this.IsExtern || this.IsStatic)
+                if (IsAbstract && IsStatic)
+                {
+                    if (!ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, this.Locations[0]);
+                    }
+                }
+                else if (this.IsExtern || this.IsStatic)
                 {
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {
@@ -169,9 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SourceEventFieldSymbol MakeAssociatedField(VariableDeclaratorSyntax declaratorSyntax)
         {
-            DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
-            var field = new SourceEventFieldSymbol(this, declaratorSyntax, discardedDiagnostics);
-            discardedDiagnostics.Free();
+            var field = new SourceEventFieldSymbol(this, declaratorSyntax, BindingDiagnosticBag.Discarded);
 
             Debug.Assert(field.Name == _name);
             return field;

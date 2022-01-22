@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -9,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,15 +23,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly RegexEmbeddedLanguage _language;
 
         public RegexDocumentHighlightsService(RegexEmbeddedLanguage language)
-        {
-            _language = language;
-        }
+            => _language = language;
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
-            var option = document.Project.Solution.Workspace.Options.GetOption(RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
-            if (!option)
+            if (!options.HighlightRelatedRegexComponentsUnderCursor)
             {
                 return default;
             }
@@ -101,16 +99,16 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return ImmutableArray<HighlightSpan>.Empty;
         }
 
-        private ImmutableArray<HighlightSpan> CreateHighlights(
+        private static ImmutableArray<HighlightSpan> CreateHighlights(
             RegexEscapeNode node, TextSpan captureSpan)
         {
             return ImmutableArray.Create(CreateHighlightSpan(node.GetSpan()), CreateHighlightSpan(captureSpan));
         }
 
-        private HighlightSpan CreateHighlightSpan(TextSpan textSpan)
-            => new HighlightSpan(textSpan, HighlightSpanKind.None);
+        private static HighlightSpan CreateHighlightSpan(TextSpan textSpan)
+            => new(textSpan, HighlightSpanKind.None);
 
-        private RegexToken GetCaptureToken(RegexEscapeNode node)
+        private static RegexToken GetCaptureToken(RegexEscapeNode node)
             => node switch
             {
                 RegexBackreferenceEscapeNode backReference => backReference.NumberToken,
@@ -121,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {
-            if (node.Kind == RegexKind.BackreferenceEscape ||
-                node.Kind == RegexKind.CaptureEscape ||
-                node.Kind == RegexKind.KCaptureEscape)
+            if (node.Kind is RegexKind.BackreferenceEscape or
+                RegexKind.CaptureEscape or
+                RegexKind.KCaptureEscape)
             {
                 if (node.Contains(virtualChar))
                 {

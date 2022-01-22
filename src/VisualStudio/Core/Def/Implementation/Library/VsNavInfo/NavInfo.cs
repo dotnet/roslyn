@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -109,7 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 nodes = builder.ToImmutable();
             }
 
-
             return new NavInfoNodeEnum(nodes);
         }
 
@@ -135,9 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         }
 
         public void GetPreferredLanguage(out uint pLanguage)
-        {
-            pLanguage = (uint)_factory.LibraryService.PreferredLanguage;
-        }
+            => pLanguage = (uint)_factory.LibraryService.PreferredLanguage;
 
         public int GetSymbolType(out uint pdwType)
         {

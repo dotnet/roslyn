@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -25,14 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService)
-        {
-            _differenceSelectorService = differenceSelectorService;
-        }
+            => _differenceSelectorService = differenceSelectorService;
 
         public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-        {
-            return GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
-        }
+            => GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
 
         public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
         {
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
                     newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString())).ToImmutableArray();
         }
 
-        private StringDifferenceOptions GetDifferenceOptions(TextDifferenceTypes differenceTypes)
+        private static StringDifferenceOptions GetDifferenceOptions(TextDifferenceTypes differenceTypes)
         {
             StringDifferenceTypes stringDifferenceTypes = default;
 

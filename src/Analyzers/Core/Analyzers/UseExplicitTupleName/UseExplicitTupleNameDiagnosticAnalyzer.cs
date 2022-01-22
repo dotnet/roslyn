@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 
         public UseExplicitTupleNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
+                   EnforceOnBuildValues.UseExplicitTupleName,
                    CodeStyleOptions2.PreferExplicitTupleNames,
                    title: new LocalizableResourceString(nameof(AnalyzersResources.Use_explicitly_provided_tuple_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    messageFormat: new LocalizableResourceString(nameof(AnalyzersResources.Prefer_explicitly_provided_tuple_element_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -55,10 +56,10 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                     if (namedField != null)
                     {
                         var memberAccessSyntax = fieldReferenceOperation.Syntax;
-                        var nameNode = memberAccessSyntax.ChildNodesAndTokens().Reverse().FirstOrDefault();
+                        var nameNode = memberAccessSyntax.ChildNodesAndTokens().Reverse().FirstOrDefault().AsNode();
                         if (nameNode != null)
                         {
-                            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                            var properties = ImmutableDictionary<string, string?>.Empty.Add(
                                 nameof(ElementName), namedField.Name);
                             context.ReportDiagnostic(DiagnosticHelper.Create(
                                 Descriptor,
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             }
         }
 
-        private IFieldSymbol GetNamedField(
+        private static IFieldSymbol? GetNamedField(
             INamedTypeSymbol containingType, IFieldSymbol unnamedField, CancellationToken cancellationToken)
         {
             foreach (var member in containingType.GetMembers())

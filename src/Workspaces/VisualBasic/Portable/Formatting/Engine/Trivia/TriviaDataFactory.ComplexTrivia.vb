@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
@@ -18,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Class ComplexTrivia
             Inherits AbstractComplexTrivia
 
-            Public Sub New(options As AnalyzerConfigOptions, treeInfo As TreeData, token1 As SyntaxToken, token2 As SyntaxToken)
+            Public Sub New(options As SyntaxFormattingOptions, treeInfo As TreeData, token1 As SyntaxToken, token2 As SyntaxToken)
                 MyBase.New(options, treeInfo, token1, token2)
                 Contract.ThrowIfNull(treeInfo)
             End Sub

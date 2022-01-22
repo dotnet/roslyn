@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Roslyn.Test.Utilities
@@ -19,11 +20,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 category:="Test",
                 defaultSeverity:=DiagnosticSeverity.Error,
                 isEnabledByDefault:=True)
-            Dim diagnosticItem = New LegacyDiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error, LanguageNames.VisualBasic, Nothing)
+            Dim diagnosticItem = New DiagnosticItem(Nothing, Nothing, descriptor, ReportDiagnostic.Error, LanguageNames.VisualBasic, Nothing)
 
-            Dim handler = New AnalyzersCommandHandler(Nothing, Nothing, Nothing)
+            Dim handler = New AnalyzersCommandHandler(Nothing, Nothing, Nothing, AsynchronousOperationListenerProvider.NullProvider, Nothing)
             Dim shown = handler.DiagnosticContextMenuController.ShowContextMenu({diagnosticItem}, Nothing)
-            Debug.Assert(Not shown)
+            Assert.False(shown)
         End Sub
     End Class
 End Namespace

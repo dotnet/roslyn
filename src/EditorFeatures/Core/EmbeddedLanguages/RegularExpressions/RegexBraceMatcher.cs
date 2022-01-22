@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -9,9 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
@@ -26,16 +26,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly RegexEmbeddedLanguage _language;
 
         public RegexBraceMatcher(RegexEmbeddedLanguage language)
-        {
-            _language = language;
-        }
+            => _language = language;
 
         public async Task<BraceMatchingResult?> FindBracesAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            var option = document.Project.Solution.Workspace.Options.GetOption(
-                RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
-            if (!option)
+            if (!options.HighlightRelatedRegexComponentsUnderCursor)
             {
                 return null;
             }
@@ -53,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
 
             var ch = virtualChar.Value;
-            switch (ch)
+            switch (ch.Value)
             {
                 case '(':
                 case ')':
@@ -68,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private static BraceMatchingResult? CreateResult(RegexToken open, RegexToken close)
             => open.IsMissing || close.IsMissing
-                ? (BraceMatchingResult?)null
+                ? null
                 : new BraceMatchingResult(open.VirtualChars[0].Span, close.VirtualChars[0].Span);
 
         private static BraceMatchingResult? FindCommentBraces(RegexTree tree, VirtualChar ch)
@@ -82,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var firstChar = trivia.Value.VirtualChars[0];
             var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
             return firstChar != '(' || lastChar != ')'
-                ? (BraceMatchingResult?)null
+                ? null
                 : new BraceMatchingResult(firstChar.Span, lastChar.Span);
         }
 

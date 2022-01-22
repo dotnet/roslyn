@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     ''' <summary>
@@ -17,13 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
         Inherits AbstractTriviaDataFactory
 
-        Private Const s_lineBreakCacheSize = 5
-        Private Const s_indentationLevelCacheSize = 20
         Private Const s_lineContinuationCacheSize = 80
 
         Private ReadOnly _lineContinuations(s_lineContinuationCacheSize) As LineContinuationTrivia
 
-        Public Sub New(treeInfo As TreeData, options As AnalyzerConfigOptions)
+        Public Sub New(treeInfo As TreeData, options As SyntaxFormattingOptions)
             MyBase.New(treeInfo, options)
         End Sub
 
@@ -127,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Private Function ContainsOnlyLineContinuation(result As Analyzer.AnalysisResult) As Boolean
+        Private Shared Function ContainsOnlyLineContinuation(result As Analyzer.AnalysisResult) As Boolean
             Return result.HasLineContinuation AndAlso
                    Not result.HasComments AndAlso
                    Not result.HasColonTrivia AndAlso
@@ -137,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                    Not result.HasConflictMarker
         End Function
 
-        Private Function ContainsOnlyWhitespace(result As Analyzer.AnalysisResult) As Boolean
+        Private Shared Function ContainsOnlyWhitespace(result As Analyzer.AnalysisResult) As Boolean
             Return Not result.HasComments AndAlso
                    Not result.HasColonTrivia AndAlso
                    Not result.HasPreprocessor AndAlso
@@ -214,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return ValueTuple.Create(True, result.LineBreaks, indentation)
         End Function
 
-        Private Function GetSpaceOnSingleLine(result As Analyzer.AnalysisResult) As Integer
+        Private Shared Function GetSpaceOnSingleLine(result As Analyzer.AnalysisResult) As Integer
             If result.HasTrailingSpace OrElse result.HasUnknownWhitespace OrElse result.LineBreaks > 0 OrElse result.Tab > 0 Then
                 Return -1
             End If

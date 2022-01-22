@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,9 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static ProjectId CreateNewId(string? debugName = null)
-        {
-            return new ProjectId(Guid.NewGuid(), debugName);
-        }
+            => new(Guid.NewGuid(), debugName);
 
         public static ProjectId CreateFromSerialized(Guid id, string? debugName = null)
         {
@@ -52,19 +48,13 @@ namespace Microsoft.CodeAnalysis
         internal string? DebugName => _debugName;
 
         private string GetDebuggerDisplay()
-        {
-            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
-        }
+            => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
 
         public override string ToString()
-        {
-            return GetDebuggerDisplay();
-        }
+            => GetDebuggerDisplay();
 
         public override bool Equals(object? obj)
-        {
-            return this.Equals(obj as ProjectId);
-        }
+            => this.Equals(obj as ProjectId);
 
         public bool Equals(ProjectId? other)
         {
@@ -74,19 +64,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool operator ==(ProjectId? left, ProjectId? right)
-        {
-            return EqualityComparer<ProjectId?>.Default.Equals(left, right);
-        }
+            => EqualityComparer<ProjectId?>.Default.Equals(left, right);
 
         public static bool operator !=(ProjectId? left, ProjectId? right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public override int GetHashCode()
-        {
-            return this.Id.GetHashCode();
-        }
+            => this.Id.GetHashCode();
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 

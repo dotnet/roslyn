@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -17,6 +15,9 @@ namespace Microsoft.CodeAnalysis
         /// An anonymous method or lambda expression
         /// </summary>
         AnonymousFunction = 0,
+        /// <summary>
+        /// <inheritdoc cref="AnonymousFunction"/>
+        /// </summary>
         LambdaMethod = 0,  // VB term
 
         /// <summary>
@@ -88,6 +89,9 @@ namespace Microsoft.CodeAnalysis
         /// Method is a static constructor.
         /// </summary>
         StaticConstructor = 14,
+        /// <summary>
+        /// <inheritdoc cref="StaticConstructor"/>
+        /// </summary>
         SharedConstructor = 14, // VB Term
 
         /// <summary>
@@ -103,6 +107,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Method is declared inside of another method.
         /// </summary>
-        LocalFunction = 17
+        LocalFunction = 17,
+
+        /// <summary>
+        /// Method represents the signature of a function pointer type.
+        /// </summary>
+        FunctionPointerSignature = 18,
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +13,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// <summary>
         /// Annotation to mark the namespace encapsulating the type that has been moved
         /// </summary>
-        public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new SyntaxAnnotation(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
+        public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
 
         public abstract Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
         public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
@@ -100,9 +105,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return ImmutableArray<CodeAction>.Empty;
             }
 
-            var actions = new List<CodeAction>();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
             var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
             var isNestedType = IsNestedType(state.TypeNode);
+
+            var syntaxFacts = state.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var isClassNextToGlobalStatements = manyTypes
+                ? false
+                : ClassNextToGlobalStatements(state.SemanticDocument.Root, syntaxFacts);
 
             var suggestedFileNames = GetSuggestedFileNames(
                 state.TypeNode,
@@ -117,7 +127,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             // case 2: This is a nested type, offer to move to new file.
             // case 3: If there is a single type decl in current file, *do not* offer move to new file,
             //         rename actions are sufficient in this case.
-            if (manyTypes || isNestedType)
+            // case 4: If there are top level statements(Global statements) offer to move even
+            //         in cases where there are only one class in the file.
+            if (manyTypes || isNestedType || isClassNextToGlobalStatements)
             {
                 foreach (var fileName in suggestedFileNames)
                 {
@@ -146,13 +158,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             Debug.Assert(actions.Count != 0, "No code actions found for MoveType Refactoring");
 
-            return actions.ToImmutableArray();
+            return actions.ToImmutable();
         }
+
+        private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)
+            => syntaxFacts.ContainsGlobalStatement(root);
 
         private CodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind) =>
             new MoveTypeCodeAction((TService)this, state, operationKind, fileName);
 
-        private bool IsNestedType(TTypeDeclarationSyntax typeNode) =>
+        private static bool IsNestedType(TTypeDeclarationSyntax typeNode) =>
             typeNode.Parent is TTypeDeclarationSyntax;
 
         /// <summary>
@@ -161,14 +176,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// <remarks>
         /// optimized for perf, uses Skip(1).Any() instead of Count() > 1
         /// </remarks>
-        private bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root) =>
+        private static bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root) =>
             TopLevelTypeDeclarations(root).Skip(1).Any();
 
         private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root) =>
-            root.DescendantNodes(n => n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax)
+            root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax)
                 .OfType<TTypeDeclarationSyntax>();
 
-        private bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
+        private static bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
         {
             var root = state.SemanticDocument.Root;
             var semanticModel = state.SemanticDocument.SemanticModel;
@@ -212,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return namesMatch;
         }
 
-        private IEnumerable<string> GetSuggestedFileNames(
+        private static ImmutableArray<string> GetSuggestedFileNames(
             TTypeDeclarationSyntax typeNode,
             bool isNestedType,
             string typeName,
@@ -230,11 +245,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode, semanticModel, cancellationToken);
                 var dottedName = typeNameParts.Join(".") + fileExtension;
 
-                return new List<string> { standaloneName, dottedName };
+                return ImmutableArray.Create(standaloneName, dottedName);
             }
             else
             {
-                return SpecializedCollections.SingletonEnumerable(standaloneName);
+                return ImmutableArray.Create(standaloneName);
             }
         }
 

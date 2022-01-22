@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -26,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
         protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
 
         protected override bool CanRefactorToContainBlockStatements(SyntaxNode parent)
-        {
-            return parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
-        }
+            => parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
 
         protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround)
         {

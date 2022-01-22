@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -48,17 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             return span.IntersectsWith(position) ? typeDeclaration : null;
         }
 
-        internal override string GetGeneratedNameTypeParameterSuffix(IList<ITypeParameterSymbol> typeParameters, Workspace workspace)
-        {
-            if (typeParameters.IsEmpty())
-            {
-                return string.Empty;
-            }
-
-            var typeParameterList = SyntaxFactory.TypeParameterList(SyntaxFactory.SeparatedList(typeParameters.Select(p => SyntaxFactory.TypeParameter(p.Name))));
-            return Formatter.Format(typeParameterList, workspace).ToString();
-        }
-
         internal override string GetContainingNamespaceDisplay(INamedTypeSymbol typeSymbol, CompilationOptions compilationOptions)
         {
             return typeSymbol.ContainingNamespace.IsGlobalNamespace
@@ -67,9 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         }
 
         internal override bool IsExtractableMember(ISymbol m)
-        {
-            return base.IsExtractableMember(m) && !m.ExplicitInterfaceImplementations().Any();
-        }
+            => base.IsExtractableMember(m) && !m.ExplicitInterfaceImplementations().Any();
 
         internal override bool ShouldIncludeAccessibilityModifier(SyntaxNode typeNode)
         {
@@ -80,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         protected override Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
             Solution unformattedSolution, IReadOnlyList<DocumentId> documentIds,
             INamedTypeSymbol extractedInterface, INamedTypeSymbol typeToExtractFrom,
-            IEnumerable<ISymbol> includedMembers, Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap,
+            IEnumerable<ISymbol> includedMembers, ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap,
             CancellationToken cancellationToken)
         {
             // In C#, member implementations do not always need

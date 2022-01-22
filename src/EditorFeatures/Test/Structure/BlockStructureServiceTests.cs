@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -95,8 +97,9 @@ class C
             var hostDocument = workspace.Documents.First();
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
             var outliningService = document.GetLanguageService<BlockStructureService>();
+            var options = BlockStructureOptions.From(document.Project);
 
-            var structure = await outliningService.GetBlockStructureAsync(document, CancellationToken.None);
+            var structure = await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None);
             return structure.Spans;
         }
     }

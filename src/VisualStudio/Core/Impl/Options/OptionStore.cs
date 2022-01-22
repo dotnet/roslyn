@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
@@ -26,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public object GetOption(OptionKey optionKey) => _optionSet.GetOption(optionKey);
+        public T GetOption<T>(OptionKey optionKey) => _optionSet.GetOption<T>(optionKey);
         public T GetOption<T>(Option<T> option) => _optionSet.GetOption(option);
         internal T GetOption<T>(Option2<T> option) => _optionSet.GetOption(option);
         public T GetOption<T>(PerLanguageOption<T> option, string language) => _optionSet.GetOption(option, language);
@@ -68,23 +71,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public IEnumerable<IOption> GetRegisteredOptions()
-        {
-            return _registeredOptions;
-        }
+            => _registeredOptions;
 
         public void SetOptions(OptionSet optionSet)
-        {
-            _optionSet = optionSet;
-        }
+            => _optionSet = optionSet;
 
         public void SetRegisteredOptions(IEnumerable<IOption> registeredOptions)
-        {
-            _registeredOptions = registeredOptions;
-        }
+            => _registeredOptions = registeredOptions;
 
         private void OnOptionChanged(OptionKey optionKey)
-        {
-            OptionChanged?.Invoke(this, optionKey);
-        }
+            => OptionChanged?.Invoke(this, optionKey);
     }
 }

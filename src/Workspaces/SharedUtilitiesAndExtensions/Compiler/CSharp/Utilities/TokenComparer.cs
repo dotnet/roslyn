@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private readonly bool _specialCaseSystem;
 
         private TokenComparer(bool specialCaseSystem)
-        {
-            _specialCaseSystem = specialCaseSystem;
-        }
+            => _specialCaseSystem = specialCaseSystem;
 
         public int Compare(SyntaxToken x, SyntaxToken y)
         {
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return CompareWorker(x, y);
         }
 
-        private int CompareWorker(SyntaxToken x, SyntaxToken y)
+        private static int CompareWorker(SyntaxToken x, SyntaxToken y)
         {
             if (x == y)
             {

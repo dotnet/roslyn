@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the parameter specifies a default value to be passed
         /// when no value is provided as an argument to a call. The default value
-        /// can be obtained with the DefaultValue property.
+        /// can be obtained with the <see cref="ExplicitDefaultValue"/> property.
         /// </summary>
         bool HasExplicitDefaultValue { get; }
 
@@ -93,5 +91,10 @@ namespace Microsoft.CodeAnalysis
         /// source or metadata.
         /// </summary>
         new IParameterSymbol OriginalDefinition { get; }
+
+        /// <summary>
+        /// True if the compiler will synthesize a null check for this parameter (the parameter is declared in source with a <c>!!</c> following the parameter name).
+        /// </summary>
+        bool IsNullChecked { get; }
     }
 }

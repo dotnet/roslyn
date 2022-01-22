@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private SyntaxNode? TryGetDeclaration(
+        private static SyntaxNode? TryGetDeclaration(
             UseExpressionBodyHelper helper, SourceText text, SyntaxNode node, int position)
         {
             var declaration = GetDeclaration(node, helper);
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return declaration;
         }
 
-        private bool TryComputeRefactoring(
+        private static bool TryComputeRefactoring(
             CodeRefactoringContext context, SyntaxNode root, SyntaxNode declaration,
             OptionSet optionSet, UseExpressionBodyHelper helper)
         {
@@ -108,8 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 succeeded = true;
             }
 
-            var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
-            if (canOffer)
+            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false, out _, out _))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(
@@ -124,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return succeeded;
         }
 
-        private SyntaxNode? GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
+        private static SyntaxNode? GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
         {
-            for (SyntaxNode? current = node; current != null; current = current.Parent)
+            for (var current = node; current != null; current = current.Parent)
             {
                 if (helper.SyntaxKinds.Contains(current.Kind()))
                     return current;
@@ -135,12 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return null;
         }
 
-        private async Task<Document> UpdateDocumentAsync(
+        private static async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
             UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
 
             var parent = declaration is AccessorDeclarationSyntax
@@ -157,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

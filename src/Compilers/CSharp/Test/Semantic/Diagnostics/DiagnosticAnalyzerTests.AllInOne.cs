@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,9 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // Add nodes that are not yet in AllInOneCSharpCode to this list.
             var missingSyntaxKinds = new HashSet<SyntaxKind>();
+            // https://github.com/dotnet/roslyn/issues/44682 Add to all in one
+            missingSyntaxKinds.Add(SyntaxKind.WithExpression);
+            missingSyntaxKinds.Add(SyntaxKind.RecordDeclaration);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
+            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
+            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxKinds);
@@ -90,8 +96,10 @@ public class C
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
+            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
+
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
-                compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null));
+                compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options));
         }
 
         [Fact]
@@ -107,21 +115,6 @@ public class C
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
             compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();
-        }
-
-        private sealed class TestAdditionalText : AdditionalText
-        {
-            private readonly SourceText _text;
-
-            public TestAdditionalText(string path, SourceText text)
-            {
-                this.Path = path;
-                _text = text;
-            }
-
-            public override string Path { get; }
-
-            public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken)) => _text;
         }
     }
 }

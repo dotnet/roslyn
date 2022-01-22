@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -126,6 +124,11 @@ namespace Microsoft.CodeAnalysis
         public string? DocumentationPath { get; internal set; }
 
         /// <summary>
+        /// Absolute path of the directory to place generated files in, or <c>null</c> to not emit any generated files.
+        /// </summary>
+        public string? GeneratedFilesOutputDirectory { get; internal set; }
+
+        /// <summary>
         /// Options controlling the generation of a SARIF log file containing compilation or
         /// analysis diagnostics, or null if no log file is desired.
         /// </summary>
@@ -177,6 +180,11 @@ namespace Microsoft.CodeAnalysis
         /// Report additional information related to analyzers, such as analyzer execution time.
         /// </value>
         public bool ReportAnalyzer { get; internal set; }
+
+        /// <value>
+        /// Skip execution of <see cref="DiagnosticAnalyzer"/>s.
+        /// </value>
+        public bool SkipAnalyzers { get; internal set; }
 
         /// <summary>
         /// If true, prepend the command line header logo during 
@@ -454,13 +462,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+        internal void ResolveAnalyzersFromArguments(
             string language,
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
-            IAnalyzerAssemblyLoader analyzerLoader)
+            IAnalyzerAssemblyLoader analyzerLoader,
+            bool skipAnalyzers,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<ISourceGenerator> generators)
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -477,6 +489,9 @@ namespace Microsoft.CodeAnalysis
                         break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                         diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_NoAnalyzerInAssembly, analyzerReference.FullPath);
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerReferencesFramework, analyzerReference.FullPath, e.TypeName!);
                         break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
                     default:
@@ -509,17 +524,22 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // All analyzer references are registered now, we can start loading them:
+            // All analyzer references are registered now, we can start loading them.
             foreach (var resolvedReference in resolvedReferences)
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
-                resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                resolvedReference.AddAnalyzers(analyzerBuilder, language, shouldIncludeAnalyzer);
+                resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
 
-            return analyzerBuilder.ToImmutable();
+            generators = generatorBuilder.ToImmutable();
+            analyzers = analyzerBuilder.ToImmutable();
+
+            // If we are skipping analyzers, ensure that we only add suppressors.
+            bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
         }
 
         private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)

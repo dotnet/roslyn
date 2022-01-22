@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 #if CODE_STYLE
@@ -39,27 +37,27 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <summary>
         /// Notification option to disable or suppress an option with <see cref="ReportDiagnostic.Suppress"/>.
         /// </summary>
-        public static readonly NotificationOption2 None = new NotificationOption2(WorkspacesResources.None, ReportDiagnostic.Suppress);
+        public static readonly NotificationOption2 None = new(WorkspacesResources.None, ReportDiagnostic.Suppress);
 
         /// <summary>
         /// Notification option for a silent or hidden option with <see cref="ReportDiagnostic.Hidden"/>.
         /// </summary>
-        public static readonly NotificationOption2 Silent = new NotificationOption2(WorkspacesResources.Refactoring_Only, ReportDiagnostic.Hidden);
+        public static readonly NotificationOption2 Silent = new(WorkspacesResources.Refactoring_Only, ReportDiagnostic.Hidden);
 
         /// <summary>
         /// Notification option for a suggestion or an info option with <see cref="ReportDiagnostic.Info"/>.
         /// </summary>
-        public static readonly NotificationOption2 Suggestion = new NotificationOption2(WorkspacesResources.Suggestion, ReportDiagnostic.Info);
+        public static readonly NotificationOption2 Suggestion = new(WorkspacesResources.Suggestion, ReportDiagnostic.Info);
 
         /// <summary>
         /// Notification option for a warning option with <see cref="ReportDiagnostic.Warn"/>.
         /// </summary>
-        public static readonly NotificationOption2 Warning = new NotificationOption2(WorkspacesResources.Warning, ReportDiagnostic.Warn);
+        public static readonly NotificationOption2 Warning = new(WorkspacesResources.Warning, ReportDiagnostic.Warn);
 
         /// <summary>
         /// Notification option for an error option with <see cref="ReportDiagnostic.Error"/>.
         /// </summary>
-        public static readonly NotificationOption2 Error = new NotificationOption2(WorkspacesResources.Error, ReportDiagnostic.Error);
+        public static readonly NotificationOption2 Error = new(WorkspacesResources.Error, ReportDiagnostic.Error);
 
         private NotificationOption2(string name, ReportDiagnostic severity)
         {
@@ -70,14 +68,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public override string ToString() => Name;
 
         public override bool Equals(object? obj)
-        {
-            return ReferenceEquals(this, obj);
-        }
+            => ReferenceEquals(this, obj);
 
         public bool Equals(NotificationOption2? notificationOption2)
-        {
-            return ReferenceEquals(this, notificationOption2);
-        }
+            => ReferenceEquals(this, notificationOption2);
 
         public override int GetHashCode()
         {

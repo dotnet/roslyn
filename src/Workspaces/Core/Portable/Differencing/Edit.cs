@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -62,9 +64,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         public TNode NewNode => _newNode;
 
         public override bool Equals(object obj)
-        {
-            return obj is Edit<TNode> && Equals((Edit<TNode>)obj);
-        }
+            => obj is Edit<TNode> && Equals((Edit<TNode>)obj);
 
         public bool Equals(Edit<TNode> other)
         {
@@ -113,8 +113,6 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         private string DisplayPosition(TNode node)
-        {
-            return "@" + _comparer.GetSpan(node).Start;
-        }
+            => "@" + _comparer.GetSpan(node).Start;
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         }
 
         public static readonly SymbolDisplayFormat MemberNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         public static readonly SymbolDisplayFormat ContainingTypeFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         public static readonly SymbolDisplayFormat ContainingNamespaceFormat =
-           new SymbolDisplayFormat(
+           new(
                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         private readonly Workspace _workspace;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -12,12 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 {
     internal abstract partial class AbstractLegacyProject : IProjectSiteEx
     {
-        private readonly Stack<VisualStudioProject.BatchScope> _batchScopes = new Stack<VisualStudioProject.BatchScope>();
+        private readonly Stack<VisualStudioProject.BatchScope> _batchScopes = new();
 
         public void StartBatch()
-        {
-            _batchScopes.Push(VisualStudioProject.CreateBatchScope());
-        }
+            => _batchScopes.Push(VisualStudioProject.CreateBatchScope());
 
         public void EndBatch()
         {

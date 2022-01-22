@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using System;
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                 if (bType == PrivateKeyBlobId)
                 {
                     privateKey = ToRSAParameters(blob.AsSpan(), true);
-                    // For snKey, rewrite some of the the parameters
+                    // For snKey, rewrite some of the parameters
                     algId = AlgorithmId.RsaSign;
                     magic = RSA1;
                 }

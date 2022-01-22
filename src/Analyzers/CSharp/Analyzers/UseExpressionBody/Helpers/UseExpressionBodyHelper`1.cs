@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -29,23 +31,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override LocalizableString UseExpressionBodyTitle { get; }
         public override LocalizableString UseBlockBodyTitle { get; }
         public override string DiagnosticId { get; }
+        public override EnforceOnBuild EnforceOnBuild { get; }
         public override ImmutableArray<SyntaxKind> SyntaxKinds { get; }
 
         protected UseExpressionBodyHelper(
             string diagnosticId,
+            EnforceOnBuild enforceOnBuild,
             LocalizableString useExpressionBodyTitle,
             LocalizableString useBlockBodyTitle,
             Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
             ImmutableArray<SyntaxKind> syntaxKinds)
         {
             DiagnosticId = diagnosticId;
+            EnforceOnBuild = enforceOnBuild;
             Option = option;
             UseExpressionBodyTitle = useExpressionBodyTitle;
             UseBlockBodyTitle = useBlockBodyTitle;
             SyntaxKinds = syntaxKinds;
         }
 
-        protected static AccessorDeclarationSyntax GetSingleGetAccessor(AccessorListSyntax accessorList)
+        protected static AccessorDeclarationSyntax? GetSingleGetAccessor(AccessorListSyntax? accessorList)
         {
             if (accessorList != null &&
                 accessorList.Accessors.Count == 1 &&
@@ -58,20 +63,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return null;
         }
 
-        protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
+        protected static BlockSyntax? GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
             => GetSingleGetAccessor(accessorList)?.Body;
 
-        public override BlockSyntax GetBody(SyntaxNode declaration)
+        public override BlockSyntax? GetBody(SyntaxNode declaration)
             => GetBody((TDeclaration)declaration);
 
-        public override ArrowExpressionClauseSyntax GetExpressionBody(SyntaxNode declaration)
+        public override ArrowExpressionClauseSyntax? GetExpressionBody(SyntaxNode declaration)
             => GetExpressionBody((TDeclaration)declaration);
 
         public override bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseExpressionBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
-        public override (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
-            => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer);
+        public override bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody)
+            => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer, out fixesError, out expressionBody);
 
         public sealed override SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody)
             => Update(semanticModel, (TDeclaration)declaration, useExpressionBody);
@@ -80,7 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             => GetDiagnosticLocation((TDeclaration)declaration);
 
         protected virtual Location GetDiagnosticLocation(TDeclaration declaration)
-            => GetBody(declaration).Statements[0].GetLocation();
+        {
+            var body = GetBody(declaration);
+            Contract.ThrowIfNull(body);
+            return body.Statements[0].GetLocation();
+        }
 
         public bool CanOfferUseExpressionBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
@@ -101,10 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     // They don't have an expression body.  See if we could convert the block they
                     // have into one.
 
-                    var options = declaration.SyntaxTree.Options;
                     var conversionPreference = forAnalyzer ? preference : ExpressionBodyPreference.WhenPossible;
 
-                    return TryConvertToExpressionBody(declaration, options, conversionPreference,
+                    return TryConvertToExpressionBody(declaration, conversionPreference,
                         expressionWhenOnSingleLine: out _, semicolonWhenOnSingleLine: out _);
                 }
             }
@@ -114,35 +122,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected virtual bool TryConvertToExpressionBody(
             TDeclaration declaration,
-            ParseOptions options, ExpressionBodyPreference conversionPreference,
-            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine,
+            ExpressionBodyPreference conversionPreference,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionWhenOnSingleLine,
             out SyntaxToken semicolonWhenOnSingleLine)
         {
             return TryConvertToExpressionBodyWorker(
-                declaration, options, conversionPreference,
+                declaration, conversionPreference,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
         private bool TryConvertToExpressionBodyWorker(
-            SyntaxNode declaration, ParseOptions options, ExpressionBodyPreference conversionPreference,
-            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
+            SyntaxNode declaration, ExpressionBodyPreference conversionPreference,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
         {
             var body = GetBody(declaration);
+            if (body is null)
+            {
+                expressionWhenOnSingleLine = null;
+                semicolonWhenOnSingleLine = default;
+                return false;
+            }
+
+            var languageVersion = body.SyntaxTree.Options.LanguageVersion();
 
             return body.TryConvertToArrowExpressionBody(
-                declaration.Kind(), options, conversionPreference,
+                declaration.Kind(), languageVersion, conversionPreference,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
         protected bool TryConvertToExpressionBodyForBaseProperty(
-            BasePropertyDeclarationSyntax declaration, ParseOptions options,
+            BasePropertyDeclarationSyntax declaration,
             ExpressionBodyPreference conversionPreference,
-            out ArrowExpressionClauseSyntax arrowExpression,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            if (TryConvertToExpressionBodyWorker(
-                    declaration, options, conversionPreference,
-                    out arrowExpression, out semicolonToken))
+            if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, out arrowExpression, out semicolonToken))
             {
                 return true;
             }
@@ -159,64 +173,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return false;
         }
 
-        public (bool canOffer, bool fixesError) CanOfferUseBlockBody(
-            OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
+        public bool CanOfferUseBlockBody(
+            OptionSet optionSet,
+            TDeclaration declaration,
+            bool forAnalyzer,
+            out bool fixesError,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody)
         {
             var currentOptionValue = optionSet.GetOption(Option);
             var preference = currentOptionValue.Value;
             var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
             var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
 
-            var expressionBodyOpt = GetExpressionBody(declaration);
-            var canOffer = expressionBodyOpt?.TryConvertToBlock(
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, block: out _) == true;
-            if (!canOffer)
+            expressionBody = GetExpressionBody(declaration);
+            if (expressionBody?.TryConvertToBlock(
+                SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, block: out _) != true)
             {
-                return (canOffer, fixesError: false);
+                fixesError = false;
+                return false;
             }
 
-            var languageVersion = ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion;
-            if (expressionBodyOpt.Expression.IsKind(SyntaxKind.ThrowExpression) &&
-                languageVersion < LanguageVersion.CSharp7)
+            var languageVersion = declaration.GetLanguageVersion();
+            if (languageVersion < LanguageVersion.CSharp7)
             {
-                // If they're using a throw expression in a declaration and it's prior to C# 7
-                // then always mark this as something that can be fixed by the analyzer.  This way
-                // we'll also get 'fix all' working to fix all these cases.
-                return (canOffer, fixesError: true);
+                if (expressionBody!.Expression.IsKind(SyntaxKind.ThrowExpression))
+                {
+                    // If they're using a throw expression in a declaration and it's prior to C# 7
+                    // then always mark this as something that can be fixed by the analyzer.  This way
+                    // we'll also get 'fix all' working to fix all these cases.
+                    fixesError = true;
+                    return true;
+                }
+
+                if (declaration is AccessorDeclarationSyntax or ConstructorDeclarationSyntax)
+                {
+                    // If they're using expression bodies for accessors/constructors and it's prior to C# 7
+                    // then always mark this as something that can be fixed by the analyzer.  This way
+                    // we'll also get 'fix all' working to fix all these cases.
+                    fixesError = true;
+                    return true;
+                }
             }
 
-            var isAccessorOrConstructor = declaration is AccessorDeclarationSyntax ||
-                                          declaration is ConstructorDeclarationSyntax;
-            if (isAccessorOrConstructor &&
-                languageVersion < LanguageVersion.CSharp7)
-            {
-                // If they're using expression bodies for accessors/constructors and it's prior to C# 7
-                // then always mark this as something that can be fixed by the analyzer.  This way
-                // we'll also get 'fix all' working to fix all these cases.
-                return (canOffer, fixesError: true);
-            }
-            else if (languageVersion < LanguageVersion.CSharp6)
+            if (languageVersion < LanguageVersion.CSharp6)
             {
                 // If they're using expression bodies prior to C# 6, then always mark this as something
                 // that can be fixed by the analyzer.  This way we'll also get 'fix all' working to fix
                 // all these cases.
-                return (canOffer, fixesError: true);
+                fixesError = true;
+                return true;
             }
 
             // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
             // If the user does not like block bodies then we offer block bodies from the refactoring provider.
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
-            canOffer = userPrefersBlockBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled);
-            return (canOffer, fixesError: false);
+            fixesError = false;
+            return userPrefersBlockBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled);
         }
 
         public TDeclaration Update(SemanticModel semanticModel, TDeclaration declaration, bool useExpressionBody)
         {
             if (useExpressionBody)
             {
-                TryConvertToExpressionBody(
-                    declaration, declaration.SyntaxTree.Options, ExpressionBodyPreference.WhenPossible,
-                    out var expressionBody, out var semicolonToken);
+                TryConvertToExpressionBody(declaration, ExpressionBodyPreference.WhenPossible, out var expressionBody, out var semicolonToken);
 
                 var trailingTrivia = semicolonToken.TrailingTrivia
                                                    .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
@@ -239,17 +258,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        protected abstract BlockSyntax GetBody(TDeclaration declaration);
+        protected abstract BlockSyntax? GetBody(TDeclaration declaration);
 
-        protected abstract ArrowExpressionClauseSyntax GetExpressionBody(TDeclaration declaration);
+        protected abstract ArrowExpressionClauseSyntax? GetExpressionBody(TDeclaration declaration);
 
         protected abstract bool CreateReturnStatementForExpression(SemanticModel semanticModel, TDeclaration declaration);
 
         protected abstract SyntaxToken GetSemicolonToken(TDeclaration declaration);
 
         protected abstract TDeclaration WithSemicolonToken(TDeclaration declaration, SyntaxToken token);
-        protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax expressionBody);
-        protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax body);
+        protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax? expressionBody);
+        protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax? body);
 
         protected virtual TDeclaration WithGenerateBody(SemanticModel semanticModel, TDeclaration declaration)
         {
@@ -295,8 +314,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected virtual TDeclaration WithAccessorList(TDeclaration declaration, AccessorListSyntax accessorListSyntax)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

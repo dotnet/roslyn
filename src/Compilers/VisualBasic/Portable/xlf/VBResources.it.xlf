@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">La proprietà di sola inizializzazione '{0}' può essere assegnata solo da un inizializzatore di membro di oggetto oppure in 'Me', 'MyClass' o 'MyBase' in un costruttore di istanza.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">Impossibile accedere a un membro di interfaccia abstract condiviso.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Errore di sintassi della riga di comando: '{0}' non è un valore valido per l'opzione '{1}'. Il valore deve essere espresso nel formato '{2}'.</target>
@@ -22,6 +32,16 @@
         <target state="translated">La stessa directory ('{0}') non può contenere più file di configurazione dell'analizzatore.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">'{0}' non può eseguire l'override della proprietà di sola inizializzazione '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">Non è possibile implementare la proprietà di sola inizializzazione '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Non è possibile incorporare il tipo '{0}' perché contiene una nuova astrazione di un membro dell'interfaccia di base. Provare a impostare la proprietà 'Incorpora tipi di interoperabilità' su false.</target>
@@ -37,9 +57,34 @@
         <target state="translated">Il runtime di destinazione non supporta l'accessibilità 'Protected', 'Protected Friend' o 'Private Protected' per un membro di un'interfaccia.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">Gli eventi di variabili WithEvents condivise non possono essere gestiti da metodi in un tipo diverso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0} '{1}' non può implementare l'interfaccia '{3}' perché contiene l'abstract condiviso '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">L'attributo 'UnmanagedCallersOnly' non è supportato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">espressione passata come argomento del chiamante</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">commenti dopo la continuazione di riga</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">assegnazione o passaggio di proprietà 'ByRef' con i setter di sola inizializzazione</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -127,6 +172,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -239,14 +285,14 @@
                                   specificato. Forma breve: -r
 -analyzer:&lt;elenco_file&gt;             Esegue gli analizzatori dall'assembly.
                                   Forma breve: -a
--additionalfile:&lt;file list&gt;       File aggiuntivi che non influiscono
+-additionalfile:&lt;elenco file&gt;       File aggiuntivi che non influiscono
                               direttamente sulla generazione del codice ma possono essere usati
                               dagli analizzatori per produrre errori o avvisi.
 
                                   - RISORSE -
 -linkresource:&lt;info_risorsa&gt;           Collega il file specificato come
                                   risorsa di assembly esterna.
-                                  resinfo:&lt;file&gt;[,&lt;nome&gt;[,public|private]] 
+                                  resinfo:&lt;file&gt;[,&lt;nome&gt;[,public|private]]
                                   Forma breve: -linkres
 -nowin32manifest                  Il manifesto predefinito non deve essere incorporato nella
                                   sezione manifesto del file PE di output.
@@ -260,7 +306,7 @@
                                   del file PE di output.
 -win32resource:&lt;file&gt;             Consente di specificare un file di risorse Win32 (.res).
 
-                                  - GENERAZIONE CODICE -
+                                  - GENERAZIONE DEL CODICE -
 -optimize[+|-]                    Abilita le ottimizzazioni.
 -removeintchecks[+|-]             Rimuove il controllo dei numeri interi. Per impostazione predefinita, è disattivato.
 -debug[+|-]                       Crea le informazioni di debug.
@@ -290,6 +336,7 @@
                                   si riferiscono entrambi a SARIF versione 2.1.0.
 -reportanalyzer                   Restituisce informazioni aggiuntive dell'analizzatore, ad
                                   esempio il tempo di esecuzione.
+-skipanalyzers[+|-]               Ignora l'esecuzione degli analizzatore diagnostici.
 
                                   - LINGUAGGIO -
 -define:&lt;elenco_simboli&gt;             Dichiara simboli di compilazione condizionale 
@@ -326,9 +373,9 @@
                                   - AVANZATE -
 -baseaddress:&lt;numero&gt;             Indirizzo di base di una libreria o di un modulo
                                   (hex).
--checksumalgorithm:&lt;alg&gt;          Consente di specificare l'algoritmo per calcolare il checksum
+-checksumalgorithm:&lt;alg&gt;          Consente di specificare l'algoritmo per calcolare il checksum 
                                   del file di origine archiviato nel file PDB. I valori supportati sono:
-                                  SHA1 o SHA256 (predefinito).
+                                  SHA1 o SHA256 (impostazione predefinita).
 -codepage:&lt;numero&gt;                Consente di specificare la tabella codici da usare all'apertura dei file
                                   di origine.
 -delaysign[+|-]               Ritarda la firma dell'assembly usando solo la parte pubblica della
@@ -374,6 +421,16 @@
 -vbruntime:&lt;file&gt;                 Compila con il runtime di Visual Basic alternativo 
                                   in &lt;file&gt;.
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">Non ci sono tipi puntatore a funzione in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="translated">Non ci sono tipi Integer nativi in VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -451,6 +508,70 @@
         <target state="translated">L'argomento di tipo non può essere Nothing</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly '{0}' che contiene il tipo '{1}' fa riferimento a .NET Framework, che non è supportato.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly caricato fa riferimento a .NET Framework, che non è supportato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro '{0}' non avrà alcun effetto. È applicato con un nome di parametro non valido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro non avrà alcun effetto. È applicato con un nome di parametro non valido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro '{0}' non avrà alcun effetto perché è autoreferenziale.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro non avrà alcun effetto perché è autoreferenziale.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Il generatore '{0}' non è riuscito a generare l'origine. Non verrà aggiunto come contributo all'output e potrebbero verificarsi errori di compilazione. Eccezione di tipo '{1}'. Messaggio '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Il generatore dell'analizzatore ha generato l'eccezione seguente:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">Il generatore non è riuscito a generare l'origine.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Non è stato possibile inizializzare il generatore '{0}'. Non verrà aggiunto come contributo all'output e potrebbero verificarsi errori di compilazione. Eccezione di tipo '{1}'. Messaggio '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Il generatore dell'analizzatore ha generato l'eccezione seguente:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">Non è stato possibile inizializzare il generatore.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
         <source>Wrong number of type arguments</source>
         <target state="translated">Il numero di argomenti di tipo è errato</target>
@@ -458,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_FileNotFound">
         <source>file '{0}' could not be found</source>
-        <target state="translated">Il file '{0}' non è stato trovato.</target>
+        <target state="translated">Il file '{0}' non è stato trovato</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoResponseFile">
@@ -778,7 +899,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">è stato specificato l'argomento stdin '-', ma l'input non è stato reindirizzato dal flusso di input standard.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
@@ -3211,7 +3332,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousWidestType3">
         <source>Type of '{0}' is ambiguous because the loop bounds and the step clause do not convert to the same type.</source>
-        <target state="translated">{0}' è di tipo ambiguo perché i limiti del ciclo e la clausola step non eseguono la conversione nello stesso tipo.</target>
+        <target state="translated">'{0}' è di tipo ambiguo perché i limiti del ciclo e la clausola step non eseguono la conversione nello stesso tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedAssignmentOperatorInInit">
@@ -4131,7 +4252,7 @@
       </trans-unit>
       <trans-unit id="ERR_SynthMemberShadowsMustOverride5">
         <source>'{0}', implicitly declared for {1} '{2}', cannot shadow a 'MustOverride' method in the base {3} '{4}'.</source>
-        <target state="translated">'{0}, dichiarato in modo implicito per {1} '{2}', non può nascondere un metodo 'MustOverride' nell'elemento {3} base '{4}'.</target>
+        <target state="translated">'{0}', dichiarato in modo implicito per {1} '{2}', non può nascondere un metodo 'MustOverride' nell'elemento {3} base '{4}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotOverrideInAccessibleMember">
@@ -6194,7 +6315,7 @@
       </trans-unit>
       <trans-unit id="WRN_NonCLSMemberInCLSInterface1">
         <source>Non CLS-compliant '{0}' is not allowed in a CLS-compliant interface.</source>
-        <target state="translated">{0}' non conforme a CLS non è consentito in un'interfaccia conforme a CLS.</target>
+        <target state="translated">'{0}' non conforme a CLS non è consentito in un'interfaccia conforme a CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NonCLSMemberInCLSInterface1_Title">
@@ -7426,7 +7547,7 @@
       </trans-unit>
       <trans-unit id="ERR_PublicSignNoKey">
         <source>Public sign was specified and requires a public key, but no public key was specified</source>
-        <target state="translated">È stata specificata la firma pubblica per la quale è necessaria una chiave pubblica, che però non è stata specificata.</target>
+        <target state="translated">È stata specificata la firma pubblica per la quale è necessaria una chiave pubblica, che però non è stata specificata</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PublicSignNetModule">
@@ -8346,7 +8467,7 @@
       </trans-unit>
       <trans-unit id="WRN_ConflictingMachineAssembly_Title">
         <source>Referenced assembly targets a different processor</source>
-        <target state="translated">L'assembly di riferimento ha come destinazione un processore diverso.</target>
+        <target state="translated">L'assembly di riferimento ha come destinazione un processore diverso</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CryptoHashFailed">
@@ -8466,7 +8587,7 @@
       </trans-unit>
       <trans-unit id="IDS_TheSystemCannotFindThePathSpecified">
         <source>The system cannot find the path specified</source>
-        <target state="translated">Il percorso specificato non è stato trovato.</target>
+        <target state="translated">Il percorso specificato non è stato trovato</target>
         <note />
       </trans-unit>
       <trans-unit id="ThereAreNoPointerTypesInVB">

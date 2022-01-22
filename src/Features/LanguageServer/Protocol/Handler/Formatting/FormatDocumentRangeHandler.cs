@@ -11,9 +11,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentRangeFormattingName)]
-    internal class FormatDocumentRangeHandler : FormatDocumentHandlerBase, IRequestHandler<DocumentRangeFormattingParams, TextEdit[]>
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(Methods.TextDocumentRangeFormattingName)]
+    internal class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -21,10 +21,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities,
+        public override string Method => Methods.TextDocumentRangeFormattingName;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
+
+        public override Task<TextEdit[]?> HandleRequestAsync(
+            DocumentRangeFormattingParams request,
+            RequestContext context,
             CancellationToken cancellationToken)
-        {
-            return await GetTextEditsAsync(solution, request.TextDocument.Uri, cancellationToken, range: request.Range).ConfigureAwait(false);
-        }
+            => GetTextEditsAsync(context, request.Options, cancellationToken, range: request.Range);
     }
 }

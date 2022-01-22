@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IDynamicIndexerAccessExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -458,7 +460,7 @@ Block[B1] - Block
                   Expression: 
                     IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid, IsImplicit) (Syntax: 'C')
                       Children(1):
-                          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C')
+                          IOperation:  (OperationKind.None, Type: C, IsInvalid) (Syntax: 'C')
                   Arguments(1):
                       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
                   ArgumentNames(0)

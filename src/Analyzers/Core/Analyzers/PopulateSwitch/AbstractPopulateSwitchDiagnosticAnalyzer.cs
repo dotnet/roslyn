@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -21,8 +19,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(AnalyzersResources.Add_missing_cases), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(AnalyzersResources.Populate_switch), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        protected AbstractPopulateSwitchDiagnosticAnalyzer(string diagnosticId)
+        protected AbstractPopulateSwitchDiagnosticAnalyzer(string diagnosticId, EnforceOnBuild enforceOnBuild)
             : base(diagnosticId,
+                   enforceOnBuild,
                    option: null,
                    s_localizableTitle, s_localizableMessage)
         {
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             var switchOperation = (TSwitchOperation)context.Operation;
-            if (!(switchOperation.Syntax is TSwitchSyntax switchBlock))
+            if (switchOperation.Syntax is not TSwitchSyntax switchBlock)
                 return;
 
             var tree = switchBlock.SyntaxTree;
@@ -53,15 +52,18 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 !tree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
             {
                 Debug.Assert(missingCases || missingDefaultCase);
-                var properties = ImmutableDictionary<string, string>.Empty
+                var properties = ImmutableDictionary<string, string?>.Empty
                     .Add(PopulateSwitchStatementHelpers.MissingCases, missingCases.ToString())
                     .Add(PopulateSwitchStatementHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
+#pragma warning disable CS8620 // Mismatch in nullability of 'properties' parameter and argument types - Parameter type for 'properties' has been updated to 'ImmutableDictionary<string, string?>?' in newer version of Microsoft.CodeAnalysis (3.7.x).
                 var diagnostic = Diagnostic.Create(
                     Descriptor,
                     GetDiagnosticLocation(switchBlock),
                     properties: properties,
                     additionalLocations: new[] { switchBlock.GetLocation() });
+#pragma warning restore CS8620
+
                 context.ReportDiagnostic(diagnostic);
             }
         }

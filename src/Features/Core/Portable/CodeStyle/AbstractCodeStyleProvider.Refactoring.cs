@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
@@ -77,9 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             public readonly TCodeStyleProvider _codeStyleProvider;
 
             protected CodeRefactoringProvider()
-            {
-                _codeStyleProvider = new TCodeStyleProvider();
-            }
+                => _codeStyleProvider = new TCodeStyleProvider();
 
             public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
                 => _codeStyleProvider.ComputeRefactoringsAsync(context);

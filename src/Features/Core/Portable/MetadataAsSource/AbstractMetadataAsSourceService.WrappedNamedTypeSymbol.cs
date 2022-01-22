@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,17 +28,17 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 var allMembers = _symbol.GetMembers();
                 var filteredMembers = from m in allMembers
                                       where !m.HasUnsupportedMetadata
-                                      where m.DeclaredAccessibility == Accessibility.Public ||
-                                            m.DeclaredAccessibility == Accessibility.Protected ||
-                                            m.DeclaredAccessibility == Accessibility.ProtectedOrInternal
-                                      where m.Kind == SymbolKind.Event ||
-                                            m.Kind == SymbolKind.Field ||
-                                            m.Kind == SymbolKind.Method ||
-                                            m.Kind == SymbolKind.NamedType ||
-                                            m.Kind == SymbolKind.Property
+                                      where m.DeclaredAccessibility is Accessibility.Public or
+                                            Accessibility.Protected or
+                                            Accessibility.ProtectedOrInternal
+                                      where m.Kind is SymbolKind.Event or
+                                            SymbolKind.Field or
+                                            SymbolKind.Method or
+                                            SymbolKind.NamedType or
+                                            SymbolKind.Property
                                       select WrapMember(m, canImplementImplicitly, docCommentFormattingService);
 
-                _members = ImmutableArray.CreateRange<ISymbol>(filteredMembers);
+                _members = ImmutableArray.CreateRange(filteredMembers);
             }
 
             private static ISymbol WrapMember(ISymbol m, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
@@ -84,76 +86,48 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ImmutableArray<IFieldSymbol> TupleElements => _symbol.TupleElements;
 
             public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-            {
-                return _symbol.GetTypeArgumentCustomModifiers(ordinal);
-            }
+                => _symbol.GetTypeArgumentCustomModifiers(ordinal);
 
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
-            {
-                return _symbol.Construct(typeArguments);
-            }
+                => _symbol.Construct(typeArguments);
 
             public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
-            {
-                return _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
-            }
+                => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public INamedTypeSymbol ConstructUnboundGenericType()
-            {
-                return _symbol.ConstructUnboundGenericType();
-            }
+                => _symbol.ConstructUnboundGenericType();
 
             public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
-            {
-                return _symbol.FindImplementationForInterfaceMember(interfaceMember);
-            }
+                => _symbol.FindImplementationForInterfaceMember(interfaceMember);
 
             public override ImmutableArray<ISymbol> GetMembers()
-            {
-                return _members;
-            }
+                => _members;
 
             public IEnumerable<string> MemberNames => throw new NotImplementedException();
 
             public override ImmutableArray<ISymbol> GetMembers(string name)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             ITypeSymbol ITypeSymbol.OriginalDefinition => _symbol.OriginalDefinition;
             public new INamedTypeSymbol OriginalDefinition => this;
@@ -166,12 +140,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsReadOnly => _symbol.IsReadOnly;
 
-            NullableAnnotation ITypeSymbol.NullableAnnotation => throw new System.NotImplementedException();
+            public bool IsRecord => _symbol.IsRecord;
+
+            public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
+
+            public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;
+
+            NullableAnnotation ITypeSymbol.NullableAnnotation => throw new NotImplementedException();
 
             ITypeSymbol ITypeSymbol.WithNullableAnnotation(NullableAnnotation nullableAnnotation)
-            {
-                throw new System.NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

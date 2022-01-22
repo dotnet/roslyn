@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -26,22 +27,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             switch (value)
             {
-                case long v: return HasOneBitSet((long)v);
+                case long v: return HasOneBitSet(v);
                 case ulong v: return HasOneBitSet(unchecked((long)v));
-                case int v: return HasOneBitSet((long)v);
-                case uint v: return HasOneBitSet((long)v);
-                case short v: return HasOneBitSet((long)v);
-                case ushort v: return HasOneBitSet((long)v);
-                case sbyte v: return HasOneBitSet((long)v);
-                case byte v: return HasOneBitSet((long)v);
+                case int v: return HasOneBitSet(v);
+                case uint v: return HasOneBitSet(v);
+                case short v: return HasOneBitSet(v);
+                case ushort v: return HasOneBitSet(v);
+                case sbyte v: return HasOneBitSet(v);
+                case byte v: return HasOneBitSet(v);
                 default: return false;
             }
         }
 
         public static bool HasOneBitSet(long v)
-        {
-            return CountOfBitsSet(v) == 1;
-        }
+            => CountOfBitsSet(v) == 1;
 
         public static int LogBase2(long v)
         {
@@ -71,18 +70,26 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             };
 
         public static ulong ToUnsigned(long v)
-        {
-            return unchecked((ulong)v);
-        }
+            => unchecked((ulong)v);
 
-        public static ulong ToUInt64(object o)
-        {
-            return o is ulong ? (ulong)o : unchecked((ulong)System.Convert.ToInt64(o));
-        }
+        public static ulong ToUInt64(object? o)
+            => o is ulong ? (ulong)o : unchecked((ulong)System.Convert.ToInt64(o));
 
-        public static long ToInt64(object o)
-        {
-            return o is ulong ? unchecked((long)(ulong)o) : System.Convert.ToInt64(o);
-        }
+        public static long ToInt64(object? o)
+            => o is ulong ul ? unchecked((long)ul) : System.Convert.ToInt64(o);
+
+        public static bool IsIntegral([NotNullWhen(true)] object? value)
+            => value switch
+            {
+                sbyte _ => true,
+                byte _ => true,
+                short _ => true,
+                ushort _ => true,
+                int _ => true,
+                uint _ => true,
+                long _ => true,
+                ulong _ => true,
+                _ => false,
+            };
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
         private readonly IPullMemberUpOptionsService _service;
-        private const int None = 0;
 
         protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
 
@@ -25,16 +26,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         /// Test purpose only
         /// </summary>
         protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService service)
-        {
-            _service = service;
-        }
+            => _service = service;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             // Currently support to pull field, method, event, property and indexer up,
             // constructor, operator and finalizer are excluded.
             var (document, _, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
             if (selectedMemberNode == null)
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             context.RegisterRefactoring(nestedCodeAction, selectedMemberNode.Span);
         }
 
-        private ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
+        private static ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
             ISymbol selectedMember,
             Solution solution,
             CancellationToken cancellationToken)
@@ -85,6 +83,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
         }
-
     }
 }

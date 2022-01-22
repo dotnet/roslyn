@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -123,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // nodes and tokens we want to treat as individual elements.  i.e. an 
             // element that would be kept together.  For example, the arg-list of an
             // invocation is an element we do not want to ever break-up/wrap. 
-            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var pieces);
+            using var _1 = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var pieces);
             Decompose(node, pieces);
 
             // Now that we have the pieces, find 'chunks' similar to the form:
@@ -134,9 +137,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // 
             // Here 'remainder' is everything up to the next <c>. Name (...)</c> chunk.
 
-            var chunks = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance();
+            using var _2 = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance(out var chunks);
             BreakPiecesIntoChunks(pieces, chunks);
-            return chunks.ToImmutableAndFree();
+            return chunks.ToImmutable();
         }
 
         private void BreakPiecesIntoChunks(
@@ -219,19 +222,19 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             return -1;
         }
 
-        private bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsNode &&
                piece.AsNode() is TNode;
 
-        private bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsToken &&
                piece.AsToken().RawKind == tokenKind;
 
-        private ImmutableArray<SyntaxNodeOrToken> GetSubRange(
+        private static ImmutableArray<SyntaxNodeOrToken> GetSubRange(
             ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
         {
             using var resultDisposer = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);
@@ -257,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
             if (node != null)
             {
-                return _syntaxFacts.IsAnyMemberAccessExpression(node)
+                return _syntaxFacts.IsMemberAccessExpression(node)
                        || _syntaxFacts.IsInvocationExpression(node)
                        || _syntaxFacts.IsElementAccessExpression(node)
                        || _syntaxFacts.IsPostfixUnaryExpression(node)
@@ -269,38 +272,47 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         }
 
         /// <summary>
-        /// Recursively walks down <paramref name="node"/> decomposing it into the individual 
-        /// tokens and nodes we want to look for chunks in. 
+        /// Walks down <paramref name="node"/> decomposing it into the individual tokens and nodes we want to look for chunks in. 
         /// </summary>
         private void Decompose(SyntaxNode node, ArrayBuilder<SyntaxNodeOrToken> pieces)
         {
             // Ignore null nodes, they are never relevant when building up the sequence of
             // pieces in this chained expression.
             if (node is null)
-            {
                 return;
-            }
 
-            // We've hit some node that can't be decomposed further (like an argument list,
-            // or name node).  Just add directly to the pieces list.
-            if (!IsDecomposableChainPart(node))
+            var stack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
+            stack.Push(node);
+            try
             {
-                pieces.Add(node);
-                return;
-            }
+                while (stack.Count > 0)
+                {
+                    var nodeOrToken = stack.Pop();
+                    if (nodeOrToken.IsToken)
+                    {
+                        // tokens can't be decomposed.  just add to the result list.
+                        pieces.Add(nodeOrToken.AsToken());
+                        continue;
+                    }
 
-            // For everything else that is a chain part, just decompose into its constituent 
-            // parts and add to the pieces array.
-            foreach (var child in node.ChildNodesAndTokens())
+                    var currentNode = nodeOrToken.AsNode();
+                    if (!IsDecomposableChainPart(currentNode))
+                    {
+                        // We've hit some node that can't be decomposed further (like an argument list, or name node).
+                        // Just add directly to the pieces list.
+                        pieces.Add(currentNode);
+                        continue;
+                    }
+
+                    // Hit something that can be decomposed.  Push it onto the stack in reverse so that we continue to
+                    // traverse the node from right to left as we pop things off the end of the stack.
+                    foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
+                        stack.Push(child);
+                }
+            }
+            finally
             {
-                if (child.IsNode)
-                {
-                    Decompose(child.AsNode(), pieces);
-                }
-                else
-                {
-                    pieces.Add(child.AsToken());
-                }
+                SharedPools.Default<Stack<SyntaxNodeOrToken>>().Free(stack);
             }
         }
     }

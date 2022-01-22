@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private sealed class CSharpSyntaxFactsService : CSharpSyntaxFacts, ISyntaxFactsService
         {
-            internal static readonly new CSharpSyntaxFactsService Instance = new CSharpSyntaxFactsService();
+            internal static new readonly CSharpSyntaxFactsService Instance = new();
 
             public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return syntaxTree.IsInNonUserCode(position, cancellationToken);
             }
 
-            private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+            private static readonly SyntaxAnnotation s_annotation = new();
 
             public void AddFirstMissingCloseBrace<TContextNode>(
                 SyntaxNode root, TContextNode contextNode,
@@ -67,9 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private bool _addedFirstCloseCurly = false;
 
                 public AddFirstMissingCloseBraceRewriter(SyntaxNode contextNode)
-                {
-                    _contextNode = contextNode;
-                }
+                    => _contextNode = contextNode;
 
                 public override SyntaxNode Visit(SyntaxNode node)
                 {

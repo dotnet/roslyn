@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly IList<INamespaceOrTypeSymbol> _members;
 
         public CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members)
-            : base(null, default, Accessibility.NotApplicable, default, name)
+            : base(null, null, default, Accessibility.NotApplicable, default, name)
         {
             _members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
         }
@@ -24,36 +26,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsType => false;
 
         protected override CodeGenerationSymbol Clone()
-        {
-            return new CodeGenerationNamespaceSymbol(this.Name, _members);
-        }
+            => new CodeGenerationNamespaceSymbol(this.Name, _members);
 
         public override SymbolKind Kind => SymbolKind.Namespace;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitNamespace(this);
-        }
+            => visitor.VisitNamespace(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitNamespace(this);
-        }
+            => visitor.VisitNamespace(this);
 
         public new IEnumerable<INamespaceOrTypeSymbol> GetMembers()
-        {
-            return _members;
-        }
+            => _members;
 
         IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers(string name)
-        {
-            return GetMembers().Where(m => m.Name == name);
-        }
+            => GetMembers().Where(m => m.Name == name);
 
         public IEnumerable<INamespaceSymbol> GetNamespaceMembers()
-        {
-            return GetMembers().OfType<INamespaceSymbol>();
-        }
+            => GetMembers().OfType<INamespaceSymbol>();
 
         public bool IsGlobalNamespace
         {
@@ -67,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public Compilation ContainingCompilation => null;
 
-        public INamedTypeSymbol ImplicitType => null;
+        public static INamedTypeSymbol ImplicitType => null;
 
         public ImmutableArray<INamespaceSymbol> ConstituentNamespaces
         {

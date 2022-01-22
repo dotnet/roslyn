@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private readonly List<CompletionItem> _items;
 
-        internal IReadOnlyList<CompletionItem> Items => _items;
+        private CompletionItem? _suggestionModeItem;
+        private OptionSet? _lazyOptionSet;
 
         internal CompletionProvider Provider { get; }
 
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Not used anymore. Use CompletionListSpan instead.", error: true)]
         public TextSpan DefaultItemSpan { get; }
 
+#pragma warning disable RS0030 // Do not used banned APIs
         /// <summary>
         /// The span of the document the completion list corresponds to.  It will be set initially to
         /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion
         ///        item is committed.
         /// </summary>
         public TextSpan CompletionListSpan { get; set; }
+#pragma warning restore RS0030 // Do not used banned APIs
 
         /// <summary>
         /// The triggering action that caused completion to be started.
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The options that completion was started with.
         /// </summary>
-        public OptionSet Options { get; }
+        internal CompletionOptions CompletionOptions { get; }
 
         /// <summary>
         /// The cancellation token to use for this operation.
@@ -91,16 +94,46 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionTrigger trigger,
             OptionSet options,
             CancellationToken cancellationToken)
+            : this(provider ?? throw new ArgumentNullException(nameof(provider)),
+                   document ?? throw new ArgumentNullException(nameof(document)),
+                   position,
+                   defaultSpan,
+                   trigger,
+                   CompletionOptions.From(options ?? throw new ArgumentNullException(nameof(options)), document.Project.Language),
+                   cancellationToken)
         {
-            Provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            Document = document ?? throw new ArgumentNullException(nameof(document));
+            _lazyOptionSet = options;
+        }
+
+        /// <summary>
+        /// Creates a <see cref="CompletionContext"/> instance.
+        /// </summary>
+        internal CompletionContext(
+            CompletionProvider provider,
+            Document document,
+            int position,
+            TextSpan defaultSpan,
+            CompletionTrigger trigger,
+            in CompletionOptions options,
+            CancellationToken cancellationToken)
+        {
+            Provider = provider;
+            Document = document;
             Position = position;
             CompletionListSpan = defaultSpan;
             Trigger = trigger;
-            Options = options ?? throw new ArgumentException(nameof(options));
+            CompletionOptions = options;
             CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
         }
+
+        /// <summary>
+        /// The options that completion was started with.
+        /// </summary>
+        public OptionSet Options
+            => _lazyOptionSet ??= CompletionOptions.ToSet(Document.Project.Language);
+
+        internal IReadOnlyList<CompletionItem> Items => _items;
 
         public void AddItem(CompletionItem item)
         {
@@ -126,8 +159,6 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private CompletionItem _suggestionModeItem;
-
         /// <summary>
         /// An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.
         /// 
@@ -138,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// No text is ever inserted when this item is completed, leaving the text the user typed instead.
         /// </summary>
-        public CompletionItem SuggestionModeItem
+        public CompletionItem? SuggestionModeItem
         {
             get
             {
@@ -147,12 +178,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
             set
             {
-                _suggestionModeItem = value;
-
-                if (_suggestionModeItem != null)
+                if (value != null)
                 {
-                    _suggestionModeItem = FixItem(_suggestionModeItem);
+                    value = FixItem(value);
                 }
+
+                _suggestionModeItem = value;
             }
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -54,12 +56,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             modifiersListView = CreateAutomationDelegatingListView(nameof(SymbolSpecificationViewModel.ModifierList));
             modifiersContentControl.Content = modifiersListView;
 
+#pragma warning disable IDE0004 // Remove unnecessary cast - without the cast the delegate type would be Action<object, KeyEventArgs>.
             symbolKindsListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleSymbolKindsPreviewKeyDown, true);
             accessibilitiesListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleAccessibilitiesPreviewKeyDown, true);
             modifiersListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleModifiersPreviewKeyDown, true);
+#pragma warning restore
         }
 
-        private AutomationDelegatingListView CreateAutomationDelegatingListView(string itemsSourceName)
+        private static AutomationDelegatingListView CreateAutomationDelegatingListView(string itemsSourceName)
         {
             var listView = new AutomationDelegatingListView();
             listView.SelectionMode = SelectionMode.Extended;
@@ -69,21 +73,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         private void HandleSymbolKindsPreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            HandlePreviewKeyDown(e, symbolKindsListView.SelectedItems.OfType<SymbolSpecificationViewModel.SymbolKindViewModel>());
-        }
+            => HandlePreviewKeyDown(e, symbolKindsListView.SelectedItems.OfType<SymbolSpecificationViewModel.SymbolKindViewModel>());
 
         private void HandleAccessibilitiesPreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            HandlePreviewKeyDown(e, accessibilitiesListView.SelectedItems.OfType<SymbolSpecificationViewModel.AccessibilityViewModel>());
-        }
+            => HandlePreviewKeyDown(e, accessibilitiesListView.SelectedItems.OfType<SymbolSpecificationViewModel.AccessibilityViewModel>());
 
         private void HandleModifiersPreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            HandlePreviewKeyDown(e, modifiersListView.SelectedItems.OfType<SymbolSpecificationViewModel.ModifierViewModel>());
-        }
+            => HandlePreviewKeyDown(e, modifiersListView.SelectedItems.OfType<SymbolSpecificationViewModel.ModifierViewModel>());
 
-        private void HandlePreviewKeyDown<T>(KeyEventArgs e, IEnumerable<T> selectedItems) where T : SymbolSpecificationViewModel.ISymbolSpecificationViewModelPart
+        private static void HandlePreviewKeyDown<T>(KeyEventArgs e, IEnumerable<T> selectedItems) where T : SymbolSpecificationViewModel.ISymbolSpecificationViewModelPart
         {
             if (e.Key == Key.Space)
             {
@@ -154,8 +152,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
     }
 }

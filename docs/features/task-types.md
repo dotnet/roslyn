@@ -10,7 +10,7 @@ The _task type_ may be non-generic, for async methods that do not return a value
 
 To support `await`, the _task type_ must have a corresponding, accessible `GetAwaiter()` method
 that returns an instance of an _awaiter type_ (see _C# 7.7.7.1 Awaitable expressions_).
-```
+```cs
 [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
 class MyTask<T>
 {
@@ -26,9 +26,10 @@ class Awaiter<T> : INotifyCompletion
 ```
 ## Builder Type
 The _builder type_ is a `class` or `struct` that corresponds to the specific _task type_.
+The _builder type_ can have at most 1 type parameter and must not be nested in a generic type.
 The _builder type_ has the following `public` methods.
 For non-generic _builder types_, `SetResult()` has no parameters.
-```
+```cs
 class MyTaskMethodBuilder<T>
 {
     public static MyTaskMethodBuilder<T> Create();

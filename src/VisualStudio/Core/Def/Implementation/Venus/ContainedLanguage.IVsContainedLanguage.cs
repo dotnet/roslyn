@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text.Editor;
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return null;
             }
 
-            if (!(field.GetValue(intellisenseHost) is IVsTextView view))
+            if (field.GetValue(intellisenseHost) is not IVsTextView view)
             {
                 return null;
             }
@@ -64,9 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         public int Refresh(uint refreshMode)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int SetBufferCoordinator(IVsTextBufferCoordinator pBC)
         {
@@ -93,8 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         public int WaitForReadyState()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
     }
 }

@@ -1,12 +1,15 @@
 Microsoft.CodeAnalysis.VisualBasic.AggregateClauseSymbolInfo
+Microsoft.CodeAnalysis.VisualBasic.AggregateClauseSymbolInfo.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.AggregateClauseSymbolInfo.Select1() -> Microsoft.CodeAnalysis.SymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.AggregateClauseSymbolInfo.Select2() -> Microsoft.CodeAnalysis.SymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.AwaitExpressionInfo
 Microsoft.CodeAnalysis.VisualBasic.AwaitExpressionInfo.GetAwaiterMethod() -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.VisualBasic.AwaitExpressionInfo.GetResultMethod() -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.VisualBasic.AwaitExpressionInfo.IsCompletedProperty() -> Microsoft.CodeAnalysis.IPropertySymbol
+Microsoft.CodeAnalysis.VisualBasic.AwaitExpressionInfo.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo.AsClauseConversion() -> Microsoft.CodeAnalysis.SymbolInfo
+Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo.SelectMany() -> Microsoft.CodeAnalysis.SymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo.ToQueryableCollectionConversion() -> Microsoft.CodeAnalysis.SymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.Conversion
@@ -27,6 +30,7 @@ Microsoft.CodeAnalysis.VisualBasic.Conversion.IsUserDefined() -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Conversion.IsValueType() -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Conversion.IsWidening() -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Conversion.MethodSymbol() -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.VisualBasic.Conversion.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.Conversion.ToCommonConversion() -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo
 Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.CurrentConversion() -> Microsoft.CodeAnalysis.VisualBasic.Conversion
@@ -36,6 +40,7 @@ Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.ElementConversion() -> M
 Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.ElementType() -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.GetEnumeratorMethod() -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.MoveNextMethod() -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.GeneratedExtensionSyntaxFacts
 Microsoft.CodeAnalysis.VisualBasic.GeneratedExtensionSyntaxFacts.GetText(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> String
 Microsoft.CodeAnalysis.VisualBasic.GlobalImport
@@ -68,6 +73,7 @@ Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveV
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.LocalizableErrorArgument
+Microsoft.CodeAnalysis.VisualBasic.LocalizableErrorArgument.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.LocalizableErrorArgument.ToString_IFormattable(format As String, formatProvider As System.IFormatProvider) -> String
 Microsoft.CodeAnalysis.VisualBasic.OptionStrict
 Microsoft.CodeAnalysis.VisualBasic.OptionStrict.Custom = 1 -> Microsoft.CodeAnalysis.VisualBasic.OptionStrict
@@ -3229,6 +3235,7 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSourceRefer
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSpecificDiagnosticOptions(value As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Microsoft.CodeAnalysis.ReportDiagnostic))) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSpecificDiagnosticOptions(value As System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic)) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithStrongNameProvider(provider As Microsoft.CodeAnalysis.StrongNameProvider) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithSyntaxTreeOptionsProvider(provider As Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithXmlReferenceResolver(resolver As Microsoft.CodeAnalysis.XmlReferenceResolver) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter.New() -> Void
@@ -5532,7 +5539,8 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(text As 
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseToken(text As String, offset As Integer = 0, startStatement As Boolean = False) -> Microsoft.CodeAnalysis.SyntaxToken
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTokens(text As String, offset As Integer = 0, initialTokenPosition As Integer = 0, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing) -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxToken)
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTrailingTrivia(text As String, offset As Integer = 0) -> Microsoft.CodeAnalysis.SyntaxTriviaList
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTypeName(text As String, offset As Integer = 0, consumeFullText As Boolean = True) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTypeName(text As String, offset As Integer = 0, options As Microsoft.CodeAnalysis.ParseOptions = Nothing, consumeFullText As Boolean = True) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTypeName(text As String, offset As Integer, consumeFullText As Boolean) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.PartitionClause(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind, skipOrTakeKeyword As Microsoft.CodeAnalysis.SyntaxToken, count As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionClauseSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.PartitionWhileClause(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind, skipOrTakeKeyword As Microsoft.CodeAnalysis.SyntaxToken, condition As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionWhileClauseSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.PartitionWhileClause(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind, skipOrTakeKeyword As Microsoft.CodeAnalysis.SyntaxToken, whileKeyword As Microsoft.CodeAnalysis.SyntaxToken, condition As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionWhileClauseSyntax

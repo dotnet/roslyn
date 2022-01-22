@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
     internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
     {
-        public static readonly NameSimplifier Instance = new NameSimplifier();
+        public static readonly NameSimplifier Instance = new();
 
         private NameSimplifier()
         {
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     name, replacementNode, semanticModel, cancellationToken);
             }
 
-            if (!(symbol is INamespaceOrTypeSymbol))
+            if (symbol is not INamespaceOrTypeSymbol)
             {
                 return false;
             }
@@ -548,7 +549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         break;
 
                     case SyntaxKind.NamespaceDeclaration:
-                        var namespaceDeclaration = (NamespaceDeclarationSyntax)parent;
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)parent;
                         return object.Equals(namespaceDeclaration.Name, node);
 
                     default:

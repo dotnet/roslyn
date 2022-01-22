@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal static class SimplificationHelpers
     {
-        public static readonly SyntaxAnnotation DontSimplifyAnnotation = new SyntaxAnnotation();
-        public static readonly SyntaxAnnotation SimplifyModuleNameAnnotation = new SyntaxAnnotation();
+        public static readonly SyntaxAnnotation DontSimplifyAnnotation = new();
+        public static readonly SyntaxAnnotation SimplifyModuleNameAnnotation = new();
 
         public static TNode CopyAnnotations<TNode>(SyntaxNode from, TNode to) where TNode : SyntaxNode
         {
@@ -129,13 +131,9 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
         internal static bool PreferPredefinedTypeKeywordInDeclarations(OptionSet optionSet, string language)
-        {
-            return optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language).Value;
-        }
+            => optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language).Value;
 
         internal static bool PreferPredefinedTypeKeywordInMemberAccess(OptionSet optionSet, string language)
-        {
-            return optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language).Value;
-        }
+            => optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language).Value;
     }
 }

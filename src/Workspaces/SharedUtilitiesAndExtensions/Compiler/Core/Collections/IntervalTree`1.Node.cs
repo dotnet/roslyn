@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             internal T Value { get; }
 
-            internal Node Left { get; private set; }
-            internal Node Right { get; private set; }
+            internal Node? Left { get; private set; }
+            internal Node? Right { get; private set; }
 
             internal int Height { get; private set; }
             internal Node MaxEndNode { get; private set; }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 this.MaxEndNode = this;
             }
 
-            internal void SetLeftRight<TIntrospector>(Node left, Node right, in TIntrospector introspector)
+            internal void SetLeftRight<TIntrospector>(Node? left, Node? right, in TIntrospector introspector)
                 where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 this.Left = left;
@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             internal Node RightRotation<TIntrospector>(in TIntrospector introspector)
                 where TIntrospector : struct, IIntervalIntrospector<T>
             {
+                RoslynDebug.AssertNotNull(Left);
+
                 var oldLeft = this.Left;
                 this.SetLeftRight(this.Left.Right, this.Right, in introspector);
                 oldLeft.SetLeftRight(oldLeft.Left, this, in introspector);
@@ -87,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             internal Node LeftRotation<TIntrospector>(in TIntrospector introspector)
                 where TIntrospector : struct, IIntervalIntrospector<T>
             {
+                RoslynDebug.AssertNotNull(Right);
+
                 var oldRight = this.Right;
                 this.SetLeftRight(this.Left, this.Right.Left, in introspector);
                 oldRight.SetLeftRight(this, oldRight.Right, in introspector);
@@ -104,6 +108,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             internal Node InnerRightOuterLeftRotation<TIntrospector>(in TIntrospector introspector)
                 where TIntrospector : struct, IIntervalIntrospector<T>
             {
+                RoslynDebug.AssertNotNull(Right);
+                RoslynDebug.AssertNotNull(Right.Left);
+
                 var newTop = this.Right.Left;
                 var oldRight = this.Right;
 
@@ -125,6 +132,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             internal Node InnerLeftOuterRightRotation<TIntrospector>(in TIntrospector introspector)
                 where TIntrospector : struct, IIntervalIntrospector<T>
             {
+                RoslynDebug.AssertNotNull(Left);
+                RoslynDebug.AssertNotNull(Left.Right);
+
                 var newTop = this.Left.Right;
                 var oldLeft = this.Left;
 

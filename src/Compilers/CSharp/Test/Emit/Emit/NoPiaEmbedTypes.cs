@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if !NET472
 #pragma warning disable IDE0055 // Fix formatting
 #endif
@@ -1817,7 +1819,7 @@ class UsePia
 }";
 
             DiagnosticDescription[] expected = {
-                // (10,16): error CS0144: Cannot create an instance of the abstract class or interface 'ITest28'
+                // (10,16): error CS0144: Cannot create an instance of the abstract type or interface 'ITest28'
                 //         return new ITest28();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new ITest28()").WithArguments("ITest28")
                                                };
@@ -2056,10 +2058,10 @@ class UsePia
 
 
             DiagnosticDescription[] expected = {
-                // (10,27): error CS1729: 'ITest28' does not contain a constructor that takes 1 arguments
+                // (10,20): error CS1729: 'ITest28' does not contain a constructor that takes 1 arguments
                 //         return new ITest28(1);
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(1)").WithArguments("ITest28", "1")
-                                               };
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ITest28").WithArguments("ITest28", "1").WithLocation(10, 20)
+            };
 
             var compilation = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });

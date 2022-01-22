@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,14 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ObjectCreationCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ObjectCreationCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(ObjectCreationCompletionProvider);
-        }
+            => typeof(ObjectCreationCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InObjectCreation()
@@ -212,7 +207,7 @@ class Program
         D d=  new D(
     }
 }";
-            await VerifyProviderCommitAsync(markup, "D", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "D", expected, '(');
         }
 
         [WorkItem(1090377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
@@ -330,7 +325,7 @@ class C
     }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '(');
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
@@ -359,7 +354,7 @@ class C
     void M2(object o) { }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '(');
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
@@ -384,7 +379,7 @@ class C
     }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '{', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '{');
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
@@ -413,7 +408,7 @@ class C
     void M2(object o) { }
 }";
 
-            await VerifyProviderCommitAsync(markup, "object", expected, '{', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '{');
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
@@ -681,6 +676,122 @@ namespace ConsoleApplication1
 }
 ";
             await VerifyItemExistsAsync(markup, "List<object?>");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CreateObjectAndCommitWithCustomizedCommitChar(char commitChar)
+        {
+            var markup = @"
+class Program
+{
+    void Bar()
+    {
+        object o = new $$
+    }
+}";
+            var expectedMark = $@"
+class Program
+{{
+    void Bar()
+    {{
+        object o = new object(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "object", expectedMark, commitChar: commitChar);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CreateNullableObjectAndCommitWithCustomizedCommitChar(char commitChar)
+        {
+            var markup = @"
+class Program
+{
+    void Bar()
+    {
+        object? o = new $$
+    }
+}";
+            var expectedMark = $@"
+class Program
+{{
+    void Bar()
+    {{
+        object? o = new object(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "object", expectedMark, commitChar: commitChar);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CreateStringAsLocalAndCommitWithCustomizedCommitChar(char commitChar)
+        {
+            var markup = @"
+class Program
+{
+    void Bar()
+    {
+        string o = new $$
+    }
+}";
+            var expectedMark = $@"
+class Program
+{{
+    void Bar()
+    {{
+        string o = new string(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "string", expectedMark, commitChar: commitChar);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CreateGenericListAsLocalAndCommitWithCustomizedChar(char commitChar)
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Program
+{
+    void Bar()
+    {
+        List<int> o = new $$
+    }
+}";
+            var expectedMark = $@"
+using System.Collections.Generic;
+class Program
+{{
+    void Bar()
+    {{
+        List<int> o = new List<int>(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "List<int>", expectedMark, commitChar: commitChar);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CreateGenericListAsFieldAndCommitWithSemicolon()
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Program
+{
+    private List<int> o = new $$
+}";
+            var expectedMark = @"
+using System.Collections.Generic;
+class Program
+{
+    private List<int> o = new List<int>();
+}";
+            await VerifyProviderCommitAsync(markup, "List<int>", expectedMark, commitChar: ';');
         }
     }
 }

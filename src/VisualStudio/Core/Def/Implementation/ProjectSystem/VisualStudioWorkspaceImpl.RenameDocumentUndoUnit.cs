@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -40,14 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public void GetDescription(out string pBstr)
-            {
-                pBstr = string.Format(ServicesVSResources.Rename_0_to_1, _fromName, _toName);
-            }
+                => pBstr = string.Format(ServicesVSResources.Rename_0_to_1, _fromName, _toName);
 
             public void GetUnitType(out Guid pClsid, out int plID)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public void OnNextAdd()
             {

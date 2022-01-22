@@ -7,7 +7,6 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
@@ -27,32 +26,27 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Async Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+        Protected Overrides Async Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of Rewriter)
             Return Await AddMissingTokensRewriter.CreateAsync(document, spans, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Class AddMissingTokensRewriter
             Inherits AbstractTokensCodeCleanupProvider.Rewriter
 
-            Private ReadOnly _document As Document
-            Private ReadOnly _modifiedSpan As TextSpan
+            Private ReadOnly _model As SemanticModel
 
-            Private _model As SemanticModel = Nothing
-
-            Private Sub New(document As Document, semanticModel As SemanticModel, spans As ImmutableArray(Of TextSpan), modifiedSpan As TextSpan, cancellationToken As CancellationToken)
+            Private Sub New(semanticModel As SemanticModel, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
-                Me._document = document
-                Me._modifiedSpan = modifiedSpan
                 Me._model = semanticModel
             End Sub
 
             Public Shared Async Function CreateAsync(document As Document, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of AddMissingTokensRewriter)
                 Dim modifiedSpan = spans.Collapse()
                 Dim semanticModel = If(document Is Nothing, Nothing,
-                    Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
+                    Await document.ReuseExistingSpeculativeModelAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
-                Return New AddMissingTokensRewriter(document, semanticModel, spans, modifiedSpan, cancellationToken)
+                Return New AddMissingTokensRewriter(semanticModel, spans, cancellationToken)
             End Function
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
@@ -127,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 Dim symbols = Me._model.GetSymbolInfo(expression, _cancellationToken).GetAllSymbols()
                 Return symbols.Any() AndAlso symbols.All(
-                    Function(s) (TryCast(s, IMethodSymbol)?.MethodKind).GetValueOrDefault() = MethodKind.Ordinary)
+                    Function(s) If(TryCast(s, IMethodSymbol)?.MethodKind = MethodKind.Ordinary, False))
             End Function
 
             Private Function IsDelegateType(expression As ExpressionSyntax) As Boolean
@@ -224,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return AddParameterListTransform(node, rewrittenLambdaHeader, Function(n) True)
             End Function
 
-            Private Function TryFixupTrivia(Of T As SyntaxNode)(node As T, previousToken As SyntaxToken, lastToken As SyntaxToken, ByRef newNode As T) As Boolean
+            Private Shared Function TryFixupTrivia(Of T As SyntaxNode)(node As T, previousToken As SyntaxToken, lastToken As SyntaxToken, ByRef newNode As T) As Boolean
                 ' initialize to initial value
                 newNode = Nothing
 
@@ -257,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                       Return lastTokenWithTrailingTrivia
                                                   End If
 
-                                                  throw ExceptionUtilities.UnexpectedValue(o)
+                                                  Throw ExceptionUtilities.UnexpectedValue(o)
                                               End Function)
 
                 Return True
@@ -270,6 +264,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                          If n.ParameterList.HasLeadingTrivia Then
                                                              newParamList = newParamList.WithLeadingTrivia(n.ParameterList.GetLeadingTrivia)
                                                          End If
+
                                                          If n.ParameterList.HasTrailingTrivia Then
                                                              newParamList = newParamList.WithTrailingTrivia(n.ParameterList.GetTrailingTrivia)
                                                          End If
@@ -286,6 +281,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                                                      Return nodeWithParams
                                                  End Function
+
                 Return AddParenthesesTransform(node, newNode, nameChecker, Function(n) n.ParameterList, transform)
             End Function
 
@@ -364,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return DirectCast(node, T)
             End Function
 
-            Private Function CheckSkippedTriviaForMissingToken(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
+            Private Shared Function CheckSkippedTriviaForMissingToken(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
                 Dim lastToken = node.GetLastToken(includeZeroWidth:=True)
                 If lastToken.TrailingTrivia.Count = 0 Then
                     Return True
@@ -468,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return ProcessMissingToken(originalToken, token)
             End Function
 
-            Private Function ReplaceOrSetToken(Of T As SyntaxNode)(originalParent As T, tokenToFix As SyntaxToken, replacementToken As SyntaxToken) As T
+            Private Shared Function ReplaceOrSetToken(Of T As SyntaxNode)(originalParent As T, tokenToFix As SyntaxToken, replacementToken As SyntaxToken) As T
                 If Not IsOmitted(tokenToFix) Then
                     Return originalParent.ReplaceToken(tokenToFix, replacementToken)
                 Else
@@ -476,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
             End Function
 
-            Private Function SetOmittedToken(originalParent As SyntaxNode, newToken As SyntaxToken) As SyntaxNode
+            Private Shared Function SetOmittedToken(originalParent As SyntaxNode, newToken As SyntaxToken) As SyntaxNode
                 Select Case newToken.Kind
                     Case SyntaxKind.ThenKeyword
                         ' this can be regular If, an If directive, or an ElseIf
@@ -522,12 +518,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return originalParent
             End Function
 
-
-            Private Function IsOmitted(token As SyntaxToken) As Boolean
+            Private Shared Function IsOmitted(token As SyntaxToken) As Boolean
                 Return token.Kind = SyntaxKind.None
             End Function
 
-            Private Function ProcessOmittedToken(originalToken As SyntaxToken, token As SyntaxToken, parent As SyntaxNode) As SyntaxToken
+            Private Shared Function ProcessOmittedToken(originalToken As SyntaxToken, token As SyntaxToken, parent As SyntaxNode) As SyntaxToken
                 ' multiline if statement with missing then keyword case
                 If TypeOf parent Is IfStatementSyntax Then
                     Dim ifStatement = DirectCast(parent, IfStatementSyntax)
@@ -547,7 +542,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return token
             End Function
 
-            Private Function InvalidOmittedToken(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
+            Private Shared Function InvalidOmittedToken(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
                 ' if previous token has a problem, don't bother
                 If previousToken.IsMissing OrElse previousToken.IsSkipped OrElse previousToken.Kind = 0 Then
                     Return True
@@ -568,43 +563,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return False
             End Function
 
-            Private Function GetPreviousAndNextToken(token As SyntaxToken) As ValueTuple(Of SyntaxToken, SyntaxToken)
-                ' we need this special method because we can't use regular previous/next token on the omitted token since
-                ' omitted token logically doesn't exist in the tree
-                Debug.Assert(token.Span.IsEmpty)
-                Dim node = token.GetAncestors(Of SyntaxNode).FirstOrDefault(Function(n) n.FullSpan.IntersectsWith(token.Span))
-                If node Is Nothing Then
-                    Return ValueTuple.Create(Of SyntaxToken, SyntaxToken)(Nothing, Nothing)
-                End If
-
-                Dim previousToken = token
-                Dim nextToken = token
-                For Each current In node.DescendantTokens()
-                    If token = current Then
-                        Continue For
-                    End If
-
-                    If token.Span.End <= current.SpanStart Then
-                        nextToken = current
-                        Exit For
-                    End If
-
-                    If current.Span.End <= token.SpanStart Then
-                        previousToken = current
-                    End If
-                Next
-
-                previousToken = If(previousToken.Kind = 0, node.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True), previousToken)
-                nextToken = If(nextToken.Kind = 0, node.GetLastToken(includeZeroWidth:=True).GetNextToken(includeZeroWidth:=True), nextToken)
-
-                Return ValueTuple.Create(previousToken, nextToken)
-            End Function
-
-            Private Function Exist(node As SyntaxNode) As Boolean
+            Private Shared Function Exist(node As SyntaxNode) As Boolean
                 Return node IsNot Nothing AndAlso node.Span.Length > 0
             End Function
 
-            Private Function ProcessMissingToken(originalToken As SyntaxToken, token As SyntaxToken) As SyntaxToken
+            Private Shared Function ProcessMissingToken(originalToken As SyntaxToken, token As SyntaxToken) As SyntaxToken
                 ' auto insert missing "Of" keyword in type argument list
                 If TryCast(originalToken.Parent, TypeArgumentListSyntax)?.OfKeyword = originalToken Then
                     Return CreateMissingToken(token)
@@ -617,11 +580,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return token
             End Function
 
-            Private Function CreateMissingToken(token As SyntaxToken) As SyntaxToken
+            Private Shared Function CreateMissingToken(token As SyntaxToken) As SyntaxToken
                 Return CreateToken(token, token.Kind)
             End Function
 
-            Private Function CreateOmittedToken(token As SyntaxToken, kind As SyntaxKind) As SyntaxToken
+            Private Shared Function CreateOmittedToken(token As SyntaxToken, kind As SyntaxKind) As SyntaxToken
                 Return CreateToken(token, kind)
             End Function
         End Class

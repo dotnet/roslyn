@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -10,8 +12,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -23,9 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioVenusSpanMappingService(VisualStudioWorkspaceImpl workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public void GetAdjustedDiagnosticSpan(
             DocumentId documentId, Location location,
@@ -122,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return startChanged || endChanged;
         }
 
-        private LinePositionSpan GetLinePositionSpan(LinePosition position1, LinePosition position2)
+        private static LinePositionSpan GetLinePositionSpan(LinePosition position1, LinePosition position2)
         {
             if (position1 <= position2)
             {
@@ -134,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         public static LinePosition GetAdjustedLineColumn(Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
         {
-            if (!(workspace is VisualStudioWorkspaceImpl vsWorkspace))
+            if (workspace is not VisualStudioWorkspaceImpl vsWorkspace)
             {
                 return new LinePosition(mappedLine, mappedColumn);
             }
@@ -217,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return true;
             }
 
-            if (TryFixUpNearestVisibleSpan(containedLanguageHost, bufferCoordinator, nearestVisibleSpanOnSecondaryBuffer.iStartLine, nearestVisibleSpanOnSecondaryBuffer.iStartIndex, out var adjustedPosition))
+            if (TryFixUpNearestVisibleSpan(bufferCoordinator, nearestVisibleSpanOnSecondaryBuffer.iStartLine, nearestVisibleSpanOnSecondaryBuffer.iStartIndex, out var adjustedPosition))
             {
                 // span has changed yet again, re-calculate span
                 return TryAdjustSpanIfNeededForVenus(workspace, documentId, adjustedPosition.Line, adjustedPosition.Character, out mappedSpan);
@@ -228,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         }
 
         private static bool TryFixUpNearestVisibleSpan(
-            TextManager.Interop.IVsContainedLanguageHost containedLanguageHost, TextManager.Interop.IVsTextBufferCoordinator bufferCoordinator,
+            TextManager.Interop.IVsTextBufferCoordinator bufferCoordinator,
             int originalLine, int originalColumn, out LinePosition adjustedPosition)
         {
             // GetNearestVisibleToken gives us the position right at the end of visible span.

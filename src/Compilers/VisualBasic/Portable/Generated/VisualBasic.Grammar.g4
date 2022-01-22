@@ -136,11 +136,11 @@ case_equals_clause
   ;
 
 case_greater_than_clause
-  : 'Is'? '>=' expression
+  : 'Is'? '>' expression
   ;
 
 case_greater_than_or_equal_clause
-  : 'Is'? '<=' expression
+  : 'Is'? '>=' expression
   ;
 
 case_less_than_clause
@@ -148,7 +148,7 @@ case_less_than_clause
   ;
 
 case_less_than_or_equal_clause
-  : 'Is'? '>' expression
+  : 'Is'? '<=' expression
   ;
 
 case_not_equals_clause
@@ -851,15 +851,15 @@ continue_statement
   ;
 
 continue_do_statement
-  : 'Continue' 'For'
+  : 'Continue' 'Do'
   ;
 
 continue_for_statement
-  : 'Continue' 'While'
+  : 'Continue' 'For'
   ;
 
 continue_while_statement
-  : 'Continue' 'Do'
+  : 'Continue' 'While'
   ;
 
 do_loop_block
@@ -1267,7 +1267,7 @@ and_expression
   ;
 
 concatenate_expression
-  : expression '>>' expression
+  : expression '&' expression
   ;
 
 divide_expression
@@ -1275,7 +1275,7 @@ divide_expression
   ;
 
 equals_expression
-  : expression '<>' expression
+  : expression '=' expression
   ;
 
 exclusive_or_expression
@@ -1287,7 +1287,7 @@ exponentiate_expression
   ;
 
 greater_than_expression
-  : expression 'Is' expression
+  : expression '>' expression
   ;
 
 greater_than_or_equal_expression
@@ -1299,31 +1299,31 @@ integer_divide_expression
   ;
 
 is_expression
-  : expression 'IsNot' expression
+  : expression 'Is' expression
   ;
 
 is_not_expression
-  : expression 'Like' expression
+  : expression 'IsNot' expression
   ;
 
 left_shift_expression
-  : expression 'Mod' expression
+  : expression '<<' expression
   ;
 
 less_than_expression
-  : expression '<=' expression
+  : expression '<' expression
   ;
 
 less_than_or_equal_expression
-  : expression '>' expression
+  : expression '<=' expression
   ;
 
 like_expression
-  : expression '&' expression
+  : expression 'Like' expression
   ;
 
 modulo_expression
-  : expression '=' expression
+  : expression 'Mod' expression
   ;
 
 multiply_expression
@@ -1331,7 +1331,7 @@ multiply_expression
   ;
 
 not_equals_expression
-  : expression '<' expression
+  : expression '<>' expression
   ;
 
 or_else_expression
@@ -1343,7 +1343,7 @@ or_expression
   ;
 
 right_shift_expression
-  : expression '<<' expression
+  : expression '>>' expression
   ;
 
 subtract_expression

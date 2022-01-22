@@ -6,9 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -43,10 +47,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly bool _failOnOverloadResolutionFailuresInOriginalCode;
         private readonly bool _isNewSemanticModelSpeculativeModel;
 
-        private SyntaxNode _lazySemanticRootOfOriginalExpression;
-        private TExpressionSyntax _lazyReplacedExpression;
-        private SyntaxNode _lazySemanticRootOfReplacedExpression;
-        private SemanticModel _lazySpeculativeSemanticModel;
+        private SyntaxNode? _lazySemanticRootOfOriginalExpression;
+        private TExpressionSyntax? _lazyReplacedExpression;
+        private SyntaxNode? _lazySemanticRootOfReplacedExpression;
+        private SemanticModel? _lazySpeculativeSemanticModel;
 
         /// <summary>
         /// Creates a semantic analyzer for speculative syntax replacement.
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (_lazySemanticRootOfOriginalExpression == null)
                 {
                     _lazySemanticRootOfOriginalExpression = GetSemanticRootForSpeculation(this.OriginalExpression);
-                    Debug.Assert(_lazySemanticRootOfOriginalExpression != null);
+                    RoslynDebug.AssertNotNull(_lazySemanticRootOfOriginalExpression);
                 }
 
                 return _lazySemanticRootOfOriginalExpression;
@@ -158,10 +162,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         protected abstract SyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
 
         protected virtual SyntaxNode GetSemanticRootOfReplacedExpression(SyntaxNode semanticRootOfOriginalExpression, TExpressionSyntax annotatedReplacedExpression)
-        {
-            return semanticRootOfOriginalExpression.ReplaceNode(this.OriginalExpression, annotatedReplacedExpression);
-        }
+            => semanticRootOfOriginalExpression.ReplaceNode(this.OriginalExpression, annotatedReplacedExpression);
 
+        [MemberNotNull(nameof(_lazySemanticRootOfReplacedExpression), nameof(_lazyReplacedExpression))]
         private void EnsureReplacedExpressionAndSemanticRoot()
         {
             if (_lazySemanticRootOfReplacedExpression == null)
@@ -172,13 +175,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 var annotation = new SyntaxAnnotation();
                 var annotatedExpression = _newExpressionForReplace.WithAdditionalAnnotations(annotation);
                 _lazySemanticRootOfReplacedExpression = GetSemanticRootOfReplacedExpression(this.SemanticRootOfOriginalExpression, annotatedExpression);
-                _lazyReplacedExpression = (TExpressionSyntax)_lazySemanticRootOfReplacedExpression.GetAnnotatedNodesAndTokens(annotation).Single().AsNode();
+                _lazyReplacedExpression = (TExpressionSyntax)_lazySemanticRootOfReplacedExpression.GetAnnotatedNodesAndTokens(annotation).Single().AsNode()!;
+            }
+            else
+            {
+                RoslynDebug.AssertNotNull(_lazyReplacedExpression);
             }
         }
 
         [Conditional("DEBUG")]
         protected abstract void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate);
 
+        [MemberNotNull(nameof(_lazySpeculativeSemanticModel))]
         private void EnsureSpeculativeSemanticModel()
         {
             if (_lazySpeculativeSemanticModel == null)
@@ -193,11 +201,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         #region Semantic comparison helpers
 
-        private bool ReplacementIntroducesErrorType(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
+        protected virtual bool ReplacementIntroducesErrorType(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
         {
-            Debug.Assert(originalExpression != null);
+            RoslynDebug.AssertNotNull(originalExpression);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
-            Debug.Assert(newExpression != null);
+            RoslynDebug.AssertNotNull(newExpression);
             Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newExpression));
 
             var originalTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression);
@@ -213,9 +221,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         protected bool TypesAreCompatible(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
         {
-            Debug.Assert(originalExpression != null);
+            RoslynDebug.AssertNotNull(originalExpression);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
-            Debug.Assert(newExpression != null);
+            RoslynDebug.AssertNotNull(newExpression);
             Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newExpression));
 
             var originalTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression);
@@ -225,9 +233,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         protected bool ConvertedTypesAreCompatible(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
         {
-            Debug.Assert(originalExpression != null);
+            RoslynDebug.AssertNotNull(originalExpression);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
-            Debug.Assert(newExpression != null);
+            RoslynDebug.AssertNotNull(newExpression);
             Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newExpression));
 
             var originalTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression);
@@ -237,9 +245,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         protected bool ImplicitConversionsAreCompatible(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
         {
-            Debug.Assert(originalExpression != null);
+            RoslynDebug.AssertNotNull(originalExpression);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
-            Debug.Assert(newExpression != null);
+            RoslynDebug.AssertNotNull(newExpression);
             Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newExpression));
 
             return ConversionsAreCompatible(this.OriginalSemanticModel, originalExpression, this.SpeculativeSemanticModel, newExpression);
@@ -247,12 +255,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private bool ImplicitConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
-            Debug.Assert(originalExpression != null);
+            RoslynDebug.AssertNotNull(originalExpression);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
-            Debug.Assert(newExpression != null);
+            RoslynDebug.AssertNotNull(newExpression);
             Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newExpression));
-            Debug.Assert(originalTargetType != null);
-            Debug.Assert(newTargetType != null);
+            RoslynDebug.AssertNotNull(originalTargetType);
+            RoslynDebug.AssertNotNull(newTargetType);
 
             return ConversionsAreCompatible(originalExpression, originalTargetType, newExpression, newTargetType);
         }
@@ -262,9 +270,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         protected bool SymbolsAreCompatible(SyntaxNode originalNode, SyntaxNode newNode, bool requireNonNullSymbols = false)
         {
-            Debug.Assert(originalNode != null);
+            RoslynDebug.AssertNotNull(originalNode);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalNode));
-            Debug.Assert(newNode != null);
+            RoslynDebug.AssertNotNull(newNode);
             Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newNode));
 
             var originalSymbolInfo = this.OriginalSemanticModel.GetSymbolInfo(originalNode);
@@ -279,16 +287,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         protected bool SymbolInfosAreCompatible(SymbolInfo originalSymbolInfo, SymbolInfo newSymbolInfo, bool requireNonNullSymbols = false)
-        {
-            return SymbolInfosAreCompatible(originalSymbolInfo, newSymbolInfo, performEquivalenceCheck: !_isNewSemanticModelSpeculativeModel, requireNonNullSymbols: requireNonNullSymbols);
-        }
+            => SymbolInfosAreCompatible(originalSymbolInfo, newSymbolInfo, performEquivalenceCheck: !_isNewSemanticModelSpeculativeModel, requireNonNullSymbols: requireNonNullSymbols);
 
-        protected bool SymbolsAreCompatible(ISymbol symbol, ISymbol newSymbol, bool requireNonNullSymbols = false)
-        {
-            return SymbolsAreCompatibleCore(symbol, newSymbol, performEquivalenceCheck: !_isNewSemanticModelSpeculativeModel, requireNonNullSymbols: requireNonNullSymbols);
-        }
+        protected bool SymbolsAreCompatible(ISymbol? symbol, ISymbol? newSymbol, bool requireNonNullSymbols = false)
+            => SymbolsAreCompatibleCore(symbol, newSymbol, performEquivalenceCheck: !_isNewSemanticModelSpeculativeModel, requireNonNullSymbols: requireNonNullSymbols);
 
-        private static bool SymbolsAreCompatibleCore(ISymbol symbol, ISymbol newSymbol, bool performEquivalenceCheck, bool requireNonNullSymbols = false)
+        private static bool SymbolsAreCompatibleCore(
+            ISymbol? symbol,
+            ISymbol? newSymbol,
+            bool performEquivalenceCheck,
+            bool requireNonNullSymbols = false)
         {
             if (symbol == null && newSymbol == null)
             {
@@ -302,12 +310,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             if (symbol.IsReducedExtension())
             {
-                symbol = ((IMethodSymbol)symbol).GetConstructedReducedFrom();
+                symbol = ((IMethodSymbol)symbol).GetConstructedReducedFrom()!;
             }
 
             if (newSymbol.IsReducedExtension())
             {
-                newSymbol = ((IMethodSymbol)newSymbol).GetConstructedReducedFrom();
+                newSymbol = ((IMethodSymbol)newSymbol).GetConstructedReducedFrom()!;
             }
 
             // TODO: Lambda function comparison performs syntax equality, hence is non-trivial to compare lambda methods across different compilations.
@@ -321,38 +329,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 // We are comparing symbols across two semantic models (where neither is the speculative model of other one).
                 // We will use the SymbolEquivalenceComparer to check if symbols are equivalent.
-
-                switch (symbol.Kind)
-                {
-                    // SymbolEquivalenceComparer performs Location equality checks for Locals, Labels and RangeVariables.
-                    // As we are comparing symbols from different semantic models, locations will differ.
-                    // Hence perform minimal checks for these symbol kinds.
-                    case SymbolKind.Local:
-                        return newSymbol.Kind == SymbolKind.Local &&
-                            newSymbol.IsImplicitlyDeclared == symbol.IsImplicitlyDeclared &&
-                            string.Equals(symbol.Name, newSymbol.Name, StringComparison.Ordinal) &&
-                            ((ILocalSymbol)newSymbol).Type.Equals(((ILocalSymbol)symbol).Type);
-
-                    case SymbolKind.Label:
-                    case SymbolKind.RangeVariable:
-                        return newSymbol.Kind == symbol.Kind && string.Equals(newSymbol.Name, symbol.Name, StringComparison.Ordinal);
-
-                    case SymbolKind.Parameter:
-                        if (newSymbol.Kind == SymbolKind.Parameter && symbol.ContainingSymbol.IsAnonymousFunction())
-                        {
-                            var param = (IParameterSymbol)symbol;
-                            var newParam = (IParameterSymbol)newSymbol;
-                            return param.IsRefOrOut() == newParam.IsRefOrOut() &&
-                                param.Name == newParam.Name &&
-                                SymbolEquivalenceComparer.Instance.Equals(param.Type, newParam.Type) &&
-                                newSymbol.ContainingSymbol.IsAnonymousFunction();
-                        }
-
-                        goto default;
-
-                    default:
-                        return SymbolEquivalenceComparer.Instance.Equals(symbol, newSymbol);
-                }
+                return CompareAcrossSemanticModels(symbol, newSymbol);
             }
 
             if (symbol.Equals(newSymbol, SymbolEqualityComparer.IncludeNullability))
@@ -360,12 +337,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            // Handle equivalence of special built-in comparison operators between enum types and 
-            // it's underlying enum type.
-            if (symbol.Kind == SymbolKind.Method && newSymbol.Kind == SymbolKind.Method)
+            if (symbol is IMethodSymbol methodSymbol && newSymbol is IMethodSymbol newMethodSymbol)
             {
-                var methodSymbol = (IMethodSymbol)symbol;
-                var newMethodSymbol = (IMethodSymbol)newSymbol;
+                // If we have local functions, we can't use normal symbol equality for them (since that checks locations).
+                // Have to defer to SymbolEquivalence instead.
+                if (methodSymbol.MethodKind == MethodKind.LocalFunction && newMethodSymbol.MethodKind == MethodKind.LocalFunction)
+                    return CompareAcrossSemanticModels(methodSymbol, newMethodSymbol);
+
+                // Handle equivalence of special built-in comparison operators between enum types and 
+                // it's underlying enum type.
                 if (methodSymbol.TryGetPredefinedComparisonOperator(out var originalOp) &&
                     newMethodSymbol.TryGetPredefinedComparisonOperator(out var newOp) &&
                     originalOp == newOp)
@@ -384,6 +364,53 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             return false;
+        }
+
+        private static bool CompareAcrossSemanticModels(ISymbol symbol, ISymbol newSymbol)
+        {
+            // SymbolEquivalenceComparer performs Location equality checks for locals, labels, range-variables and local
+            // functions. As we are comparing symbols from different semantic models, locations will differ. Hence
+            // perform minimal checks for these symbol kinds.
+
+            if (symbol.Kind != newSymbol.Kind)
+                return false;
+
+            if (symbol is ILocalSymbol localSymbol && newSymbol is ILocalSymbol newLocalSymbol)
+            {
+                return newSymbol.IsImplicitlyDeclared == symbol.IsImplicitlyDeclared &&
+                       symbol.Name == newSymbol.Name &&
+                       CompareAcrossSemanticModels(localSymbol.Type, newLocalSymbol.Type);
+            }
+
+            if (symbol is ILabelSymbol && newSymbol is ILabelSymbol)
+                return symbol.Name == newSymbol.Name;
+
+            if (symbol is IRangeVariableSymbol && newSymbol is IRangeVariableSymbol)
+                return symbol.Name == newSymbol.Name;
+
+            if (symbol is IParameterSymbol parameterSymbol &&
+                newSymbol is IParameterSymbol newParameterSymbol &&
+                parameterSymbol.ContainingSymbol.IsAnonymousOrLocalFunction() &&
+                newParameterSymbol.ContainingSymbol.IsAnonymousOrLocalFunction())
+            {
+                return symbol.Name == newSymbol.Name &&
+                       parameterSymbol.IsRefOrOut() == newParameterSymbol.IsRefOrOut() &&
+                       CompareAcrossSemanticModels(parameterSymbol.Type, newParameterSymbol.Type);
+            }
+
+            if (symbol is IMethodSymbol methodSymbol &&
+                newSymbol is IMethodSymbol newMethodSymbol &&
+                methodSymbol.IsLocalFunction() &&
+                newMethodSymbol.IsLocalFunction())
+            {
+                return symbol.Name == newSymbol.Name &&
+                       methodSymbol.Parameters.Length == newMethodSymbol.Parameters.Length &&
+                       CompareAcrossSemanticModels(methodSymbol.ReturnType, newMethodSymbol.ReturnType) &&
+                       methodSymbol.Parameters.Zip(newMethodSymbol.Parameters, (p1, p2) => (p1, p2)).All(
+                           t => CompareAcrossSemanticModels(t.p1, t.p2));
+            }
+
+            return SymbolEquivalenceComparer.Instance.Equals(symbol, newSymbol);
         }
 
         private static bool EnumTypesAreCompatible(INamedTypeSymbol type1, INamedTypeSymbol type2)
@@ -414,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 skipVerificationForCurrentNode: _skipVerificationForReplacedNode);
         }
 
-        protected abstract bool IsParenthesizedExpression(SyntaxNode node);
+        protected abstract bool IsParenthesizedExpression([NotNullWhen(true)] SyntaxNode? node);
 
         protected bool ReplacementChangesSemantics(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode originalRoot, bool skipVerificationForCurrentNode)
         {
@@ -424,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            SyntaxNode previousOriginalNode = null, previousReplacedNode = null;
+            SyntaxNode? previousOriginalNode = null, previousReplacedNode = null;
 
             while (true)
             {
@@ -440,6 +467,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     break;
                 }
+
+                RoslynDebug.AssertNotNull(currentOriginalNode.Parent);
+                RoslynDebug.AssertNotNull(currentReplacedNode.Parent);
 
                 previousOriginalNode = currentOriginalNode;
                 previousReplacedNode = currentReplacedNode;
@@ -466,12 +496,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return SymbolsAreCompatible(this.OriginalExpression, this.ReplacedExpression, requireNonNullSymbols: true);
         }
 
-        protected abstract bool ReplacementChangesSemanticsForNodeLanguageSpecific(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode);
+        protected abstract bool ReplacementChangesSemanticsForNodeLanguageSpecific(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode? previousOriginalNode, SyntaxNode? previousReplacedNode);
 
-        private bool ReplacementChangesSemanticsForNode(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
+        private bool ReplacementChangesSemanticsForNode(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode? previousOriginalNode, SyntaxNode? previousReplacedNode)
         {
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
+
+            if (!OperationsAreCompatible(currentOriginalNode, currentReplacedNode))
+                return true;
 
             if (ExpressionMightReferenceMember(currentOriginalNode))
             {
@@ -528,11 +561,36 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return false;
         }
 
+        private bool OperationsAreCompatible(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode)
+        {
+            var originalOperation = this._semanticModel.GetOperation(currentOriginalNode, CancellationToken);
+            var currentOperation = this.SpeculativeSemanticModel.GetOperation(currentReplacedNode, CancellationToken);
+
+            if (originalOperation is IInvocationOperation originalInvocation)
+            {
+                // Invocations must stay invocations after update.
+                if (currentOperation is not IInvocationOperation currentInvocation)
+                    return false;
+
+                // An instance call must stay an instance call (and a static call must stay a static call).
+                if (IsNullOrNone(originalInvocation.Instance) != IsNullOrNone(currentInvocation.Instance))
+                    return false;
+
+                // Add more invocation tests here.
+            }
+
+            // Add more operation tests here.
+            return true;
+        }
+
+        private static bool IsNullOrNone(IOperation? instance)
+            => instance is null || instance.Kind == OperationKind.None;
+
         /// <summary>
         /// Determine if removing the cast could cause the semantics of System.Object method call to change.
         /// E.g. Dim b = CStr(1).GetType() is necessary, but the GetType method symbol info resolves to the same with or without the cast.
         /// </summary>
-        private bool ReplacementBreaksSystemObjectMethodResolution(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
+        private bool ReplacementBreaksSystemObjectMethodResolution(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, [NotNullWhen(true)] SyntaxNode? previousOriginalNode, [NotNullWhen(true)] SyntaxNode? previousReplacedNode)
         {
             if (previousOriginalNode != null && previousReplacedNode != null)
             {
@@ -556,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Determines if the symbol is a non-overridable, non static method on System.Object (e.g. GetType)
         /// </summary>
-        private static bool IsSymbolSystemObjectInstanceMethod(ISymbol symbol)
+        private static bool IsSymbolSystemObjectInstanceMethod([NotNullWhen(true)] ISymbol? symbol)
         {
             return symbol != null
                 && symbol.IsKind(SymbolKind.Method)
@@ -588,8 +646,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // inferred variable type compatible
             if (IsForEachTypeInferred(forEachStatement, _semanticModel))
             {
-                var local = (ILocalSymbol)_semanticModel.GetDeclaredSymbol(forEachStatement);
-                var newLocal = (ILocalSymbol)this.SpeculativeSemanticModel.GetDeclaredSymbol(newForEachStatement);
+                var local = (ILocalSymbol)_semanticModel.GetRequiredDeclaredSymbol(forEachStatement, _cancellationToken);
+                var newLocal = (ILocalSymbol)this.SpeculativeSemanticModel.GetRequiredDeclaredSymbol(newForEachStatement, _cancellationToken);
                 if (!SymbolsAreCompatible(local.Type, newLocal.Type))
                 {
                     return true;
@@ -673,7 +731,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             var symbol = this.OriginalSemanticModel.GetSymbolInfo(type).Symbol;
 
-            ISymbol newSymbol;
+            ISymbol? newSymbol;
             if (useSpeculativeModel)
             {
                 newSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(newType, _cancellationToken).Symbol;
@@ -687,7 +745,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return symbol != null && !SymbolsAreCompatible(symbol, newSymbol);
         }
 
-        protected abstract bool ExpressionMightReferenceMember(SyntaxNode node);
+        protected abstract bool ExpressionMightReferenceMember([NotNullWhen(true)] SyntaxNode? node);
 
         private static bool IsDelegateInvoke(ISymbol symbol)
         {
@@ -738,21 +796,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             if (newSymbol.IsOverride)
             {
-                var overriddenMember = newSymbol.OverriddenMember();
-
-                while (overriddenMember != null)
+                for (var overriddenMember = newSymbol.GetOverriddenMember(); overriddenMember != null; overriddenMember = overriddenMember.GetOverriddenMember())
                 {
                     if (symbol.Equals(overriddenMember))
-                    {
                         return !SymbolsHaveCompatibleParameterLists(symbol, newSymbol, expression);
-                    }
-
-                    overriddenMember = overriddenMember.OverriddenMember();
                 }
             }
 
             if (symbol.IsImplementableMember() &&
-                IsCompatibleInterfaceMemberImplementation(symbol, newSymbol, expression, newExpression, this.SpeculativeSemanticModel))
+                IsCompatibleInterfaceMemberImplementation(
+                    symbol, newSymbol, expression, newExpression, this.SpeculativeSemanticModel))
             {
                 return false;
             }
@@ -787,7 +840,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 var newTargetType = this.SpeculativeSemanticModel.GetTypeInfo(newLeft).Type;
                 return !SymbolsAreCompatible(originalTargetType, newTargetType) ||
-                    !ImplicitConversionsAreCompatible(originalRight, originalTargetType, newRight, newTargetType);
+                    !ImplicitConversionsAreCompatible(originalRight, originalTargetType, newRight, newTargetType!);
             }
 
             return false;
@@ -802,107 +855,56 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             TExpressionSyntax newExpression,
             SemanticModel speculativeSemanticModel)
         {
-            // If this is an interface member, we have to be careful. In general,
-            // we have to treat an interface member as incompatible with the new member
-            // due to virtual dispatch. I.e. A member in a sub class may be preferred
-            // at runtime and we have no way of knowing that at compile-time.
+            // In general, we don't want to remove casts to interfaces.  It may have subtle changes in behavior,
+            // especially if the types in question change in the future.  For example, if a type becomes non-sealed or a
+            // new interface impl is introduced, we may subtly break things.
             //
-            // However, there are special circumstances where we can be sure
-            // that the interface member won't result in virtual dispatch:
+            // The only cases where we feel confident enough to elide the cast are:
             //
-            //     * The new member is on an effectively sealed class, i.e. at least one of the following is true for the containing type:
-            //          (a) It is a sealed class.
-            //          (b) It has no nested classes and no accessible instance constructors.
-            //          (c) It is a private class with no nested or sibling classes.
-            //     * The new member is on System.Array.
-            //     * The new member is on System.Delegate.
-            //     * The new member is on System.Enum.
-            //     * The member is on a struct that we are sure we have a unique copy
-            //       of (for example, if it's returned to us by an invocation,
-            //       object-creation, element-access or member-access expression.
+            // 1. When we have an Array/Delegate/Enum. These are such core types, and cannot be changed by teh user,
+            //    that we can trust their impls to not change.
+            // 2. We have one of the builtin structs (like int). These are such core types, and cannot be changed by teh
+            //    user, that we can trust their impls to not change.
+            // 3. if we have a struct and we know we have a fresh copy of it.  In that case, boxing the struct to the
+            //    interface doesn't serve any purpose.
 
             var newSymbolContainingType = newSymbol.ContainingType;
             if (newSymbolContainingType == null)
-            {
                 return false;
-            }
 
             var newReceiver = GetReceiver(newExpression);
-            var newReceiverType = newReceiver != null ?
-                speculativeSemanticModel.GetTypeInfo(newReceiver).ConvertedType :
-                newSymbolContainingType;
+            var newReceiverType = newReceiver != null
+                ? speculativeSemanticModel.GetTypeInfo(newReceiver).ConvertedType
+                : newSymbolContainingType;
 
             if (newReceiverType == null)
-            {
                 return false;
-            }
-
-            if (newReceiverType.IsReferenceType &&
-                !IsEffectivelySealedClass(newReceiverType) &&
-                newSymbolContainingType.SpecialType != SpecialType.System_Array &&
-                newSymbolContainingType.SpecialType != SpecialType.System_Delegate &&
-                newSymbolContainingType.SpecialType != SpecialType.System_Enum &&
-                !IsReceiverUniqueInstance(newReceiver, speculativeSemanticModel))
-            {
-                return false;
-            }
-
-            if (newReceiverType.IsValueType && newReceiverType.SpecialType == SpecialType.None)
-            {
-                if (newReceiver == null ||
-                    !IsReceiverUniqueInstance(newReceiver, speculativeSemanticModel))
-                {
-                    return false;
-                }
-            }
 
             var implementationMember = newSymbolContainingType.FindImplementationForInterfaceMember(symbol);
             if (implementationMember == null)
-            {
                 return false;
-            }
 
             if (!newSymbol.Equals(implementationMember))
-            {
                 return false;
-            }
 
-            return SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalExpression);
-        }
-
-        private static bool IsEffectivelySealedClass(ITypeSymbol type)
-        {
-            var namedType = type as INamedTypeSymbol;
-            if (namedType == null)
-            {
+            if (!SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalExpression))
                 return false;
-            }
 
-            if (namedType.IsSealed)
+            if (newReceiverType.IsValueType)
             {
-                return true;
+                // Presume builtin value types are all immutable, and thus will have the same semantics when you call
+                // interface members on them directly instead of through a boxed copy.
+                if (newReceiverType.SpecialType != SpecialType.None)
+                    return true;
+
+                // For non-builtins, only remove the boxing if we know we have a copy already.
+                return newReceiver != null && IsReceiverUniqueInstance(newReceiver, speculativeSemanticModel);
             }
 
-            if (!namedType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class))
-            {
-                // No nested classes.
-
-                // A class with no nested classes and no accessible instance constructors is effectively sealed.
-                if (namedType.InstanceConstructors.All(ctor => ctor.DeclaredAccessibility == Accessibility.Private))
-                {
-                    return true;
-                }
-
-                // A private class with no nested or sibling classes is effectively sealed.
-                if (namedType.DeclaredAccessibility == Accessibility.Private &&
-                    namedType.ContainingType != null &&
-                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && !Equals(namedType, nestedType)))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return newSymbolContainingType.SpecialType is SpecialType.System_Array or
+                   SpecialType.System_Delegate or
+                   SpecialType.System_Enum or
+                   SpecialType.System_String;
         }
 
         private bool IsReceiverNonUniquePossibleValueTypeParam(TExpressionSyntax invocation, SemanticModel semanticModel)
@@ -920,21 +922,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return false;
         }
 
-        // Returns true if the given receiver expression for an invocation represents a unique copy of the underlying object
-        // that is not referenced by any other variable.
-        // For example, if the receiver expression is an invocation, object-creation, element-access or member-access expression.
+        // Returns true if the given receiver expression for an invocation represents a unique copy of the underlying
+        // object that is not referenced by any other variable. For example, if the receiver expression is produced by a
+        // method call, property, or indexer, then it will be a fresh receiver in the case of value types.
         private static bool IsReceiverUniqueInstance(TExpressionSyntax receiver, SemanticModel semanticModel)
         {
-            var receiverSymbol = semanticModel.GetSymbolInfo(receiver).Symbol;
+            var receiverSymbol = semanticModel.GetSymbolInfo(receiver).GetAnySymbol();
 
             if (receiverSymbol == null)
-            {
                 return false;
-            }
 
             return receiverSymbol.IsKind(SymbolKind.Method) ||
-                receiverSymbol.IsIndexer() ||
-                (receiverSymbol.IsKind(SymbolKind.Field) && ((IFieldSymbol)receiverSymbol).IsReadOnly);
+                   receiverSymbol.IsIndexer() ||
+                   receiverSymbol.IsKind(SymbolKind.Property);
         }
 
         protected abstract ImmutableArray<TArgumentSyntax> GetArguments(TExpressionSyntax expression);
@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var name = GetNamedArgumentIdentifierValueText(argument);
 
                     var parameter1 = signature1Parameters.FirstOrDefault(p => p.Name == name);
-                    Debug.Assert(parameter1 != null);
+                    RoslynDebug.AssertNotNull(parameter1);
 
                     var parameter2 = signature2Parameters.FirstOrDefault(p => p.Name == name);
                     if (parameter2 == null)
@@ -1061,6 +1061,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                     if (object.Equals(parameter1.ExplicitDefaultValue, 0.0))
                     {
+                        RoslynDebug.Assert(object.Equals(parameter2.ExplicitDefaultValue, 0.0));
+
                         var isParam1DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter1.ExplicitDefaultValue);
                         var isParam2DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter2.ExplicitDefaultValue);
                         if (isParam1DefaultValueNegativeZero != isParam2DefaultValueNegativeZero)

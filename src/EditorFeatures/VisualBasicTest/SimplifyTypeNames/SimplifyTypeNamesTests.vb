@@ -5,10 +5,10 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
 
@@ -21,28 +21,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
                     New SimplifyTypeNamesCodeFixProvider())
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeEverywhere() As IDictionary(Of OptionKey2, Object)
+        Private Function PreferIntrinsicPredefinedTypeEverywhere() As OptionsCollection
             Dim language = GetLanguage()
 
-            Return OptionsSet(
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error),
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language))
+            Return New OptionsCollection(language) From {
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error},
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError}
+                }
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As IDictionary(Of OptionKey2, Object)
+        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As OptionsCollection
             Dim language = GetLanguage()
 
-            Return OptionsSet(
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error),
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent, language))
+            Return New OptionsCollection(language) From {
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error},
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent}
+                }
         End Function
 
-        Private Function PreferIntrinsicTypeInMemberAccess() As IDictionary(Of OptionKey2, Object)
+        Private Function PreferIntrinsicTypeInMemberAccess() As OptionsCollection
             Dim language = GetLanguage()
 
-            Return OptionsSet(
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption2.Error),
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithSilent, language))
+            Return New OptionsCollection(language) From {
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption2.Error},
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithSilent}
+                }
         End Function
 
         Private ReadOnly onWithError As New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)
@@ -974,7 +977,7 @@ End Namespace")
         Public Async Function TestSimplifyTypeInScriptCode() As Task
             Await TestAsync(
 "Imports System
-[|System.Console.WriteLine(0)|]",
+[|System.Console|].WriteLine(0)",
 "Imports System
 Console.WriteLine(0)",
         parseOptions:=TestOptions.Script)
@@ -1862,7 +1865,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
@@ -1911,7 +1914,7 @@ End Namespace
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
@@ -1946,7 +1949,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""goo"")", StringComparison.Ordinal))
@@ -2401,7 +2404,7 @@ End Module
 </Code>
 
             Dim parameters As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters)
+            Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -2417,7 +2420,7 @@ End Module
 </Code>
 
             Dim parameters2 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters2)
+            Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters2)
                 workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)

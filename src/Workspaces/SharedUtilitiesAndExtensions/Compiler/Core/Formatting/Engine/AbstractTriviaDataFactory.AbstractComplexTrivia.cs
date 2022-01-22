@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private readonly bool _treatAsElastic;
 
-            public AbstractComplexTrivia(AnalyzerConfigOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
+            public AbstractComplexTrivia(SyntaxFormattingOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
                 : base(options, token1.Language)
             {
                 Contract.ThrowIfNull(treeInfo);
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return CreateComplexTrivia(lineBreaks, spaces, indentation);
             }
 
-            private string CreateString(TriviaDataWithList triviaData, CancellationToken cancellationToken)
+            private static string CreateString(TriviaDataWithList triviaData, CancellationToken cancellationToken)
             {
                 // create string from given trivia data
                 var sb = StringBuilderPool.Allocate();

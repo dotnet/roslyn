@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,27 +26,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
     {
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpSyncNamespaceCodeRefactoringProvider();
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-        {
-            return TestWorkspace.IsWorkspaceElement(initialMarkup)
-                ? TestWorkspace.Create(initialMarkup)
-                : TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
-        }
-
-        protected string ProjectRootPath
+        protected static string ProjectRootPath
             => PathUtilities.IsUnixLikePlatform
             ? @"/ProjectA/"
             : @"C:\ProjectA\";
 
-        protected string ProjectFilePath
+        protected static string ProjectFilePath
             => PathUtilities.CombineAbsoluteAndRelativePaths(ProjectRootPath, "ProjectA.csproj");
 
-        protected (string folder, string filePath) CreateDocumentFilePath(string[] folder, string fileName = "DocumentA.cs")
+        protected static (string folder, string filePath) CreateDocumentFilePath(string[] folder, string fileName = "DocumentA.cs")
         {
             if (folder == null || folder.Length == 0)
             {
@@ -58,10 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
             }
         }
 
-        protected string CreateFolderPath(params string[] folders)
-        {
-            return string.Join(PathUtilities.DirectorySeparatorStr, folders);
-        }
+        protected static string CreateFolderPath(params string[] folders)
+            => string.Join(PathUtilities.DirectorySeparatorStr, folders);
 
         protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
         {
@@ -103,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
                     if (actions.Length > 0)
                     {
-                        var renameFileAction = actions.Any(action => !(action is CodeAction.SolutionChangeAction));
+                        var renameFileAction = actions.Any(action => action is not CodeAction.SolutionChangeAction);
                         Assert.False(renameFileAction, "Move File to match namespace code action was not expected, but shows up.");
                     }
                 }
@@ -117,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                 var results = new List<Tuple<Solution, Solution>>();
 
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                var moveFileActions = actions.Where(a => !(a is CodeAction.SolutionChangeAction));
+                var moveFileActions = actions.Where(a => a is not CodeAction.SolutionChangeAction);
 
                 foreach (var action in moveFileActions)
                 {
@@ -229,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                 var changeNamespaceAction = actions.Single(a => a is CodeAction.SolutionChangeAction);
                 var operations = await changeNamespaceAction.GetOperationsAsync(CancellationToken.None);
 
-                return ApplyOperationsAndGetSolution(workspace, operations);
+                return await ApplyOperationsAndGetSolutionAsync(workspace, operations);
             }
         }
     }

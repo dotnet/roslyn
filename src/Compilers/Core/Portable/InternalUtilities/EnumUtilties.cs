@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -69,6 +67,11 @@ namespace Roslyn.Utilities
                 }
             }
             return true;
+        }
+
+        internal static bool ContainsValue<T>(T value) where T : struct, Enum
+        {
+            return Array.IndexOf(GetValues<T>(), value) >= 0;
         }
 #endif
     }

@@ -10,50 +10,17 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-
-#if DEBUG
-using System.Linq.Expressions;
-#endif
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Roslyn.Utilities
 {
     [SuppressMessage("ApiDesign", "CA1068", Justification = "Matching TPL Signatures")]
     internal static partial class TaskExtensions
     {
-#if DEBUG
-        private static readonly Lazy<Func<Thread, bool>> s_isThreadPoolThread = new Lazy<Func<Thread, bool>>(
-            () =>
-            {
-                var property = typeof(Thread).GetTypeInfo().GetDeclaredProperty("IsThreadPoolThread");
-                if (property is null)
-                {
-                    return null;
-                }
-
-                var threadParameter = Expression.Parameter(typeof(Thread), "thread");
-                var expression = Expression.Lambda<Func<Thread, bool>>(
-                    Expression.Call(threadParameter, property.GetMethod),
-                    threadParameter);
-
-                return expression.Compile();
-            });
-
-        public static bool IsThreadPoolThread(Thread thread)
-        {
-            if (s_isThreadPoolThread.Value is null)
-            {
-                // This platform doesn't support IsThreadPoolThread
-                return false;
-            }
-
-            return s_isThreadPoolThread.Value(thread);
-        }
-#endif
-
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)
         {
 #if DEBUG
-            if (IsThreadPoolThread(Thread.CurrentThread))
+            if (Thread.CurrentThread.IsThreadPoolThread)
             {
                 // If you hit this when running tests then your code is in error.  WaitAndGetResult
                 // should only be called from a foreground thread.  There are a few ways you may 
@@ -86,8 +53,9 @@ namespace Roslyn.Utilities
             }
             catch (AggregateException ex)
             {
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                ExceptionDispatchInfo.Capture(ex.InnerException ?? ex).Throw();
             }
+
             return task.Result;
         }
 
@@ -127,17 +95,6 @@ namespace Roslyn.Utilities
             }
 
             return task.SafeContinueWith(continuationFunction, cancellationToken, continuationOptions, scheduler);
-        }
-
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<TResult> SafeContinueWith<TInput, TResult>(
-            this Task<TInput> task,
-            Func<Task<TInput>, TResult> continuationFunction,
-            CancellationToken cancellationToken,
-            TaskScheduler scheduler)
-        {
-            return SafeContinueWith<TInput, TResult>(
-                task, continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
         }
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
@@ -202,7 +159,7 @@ namespace Roslyn.Utilities
                 {
                     return continuationFunction(t);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -210,16 +167,6 @@ namespace Roslyn.Utilities
 
             // This is the only place in the code where we're allowed to call ContinueWith.
             return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
-        }
-
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<TResult> SafeContinueWith<TResult>(
-            this Task task,
-            Func<Task, TResult> continuationFunction,
-            CancellationToken cancellationToken,
-            TaskScheduler scheduler)
-        {
-            return task.SafeContinueWith(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
         }
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
@@ -232,24 +179,6 @@ namespace Roslyn.Utilities
         }
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task SafeContinueWith<TInput>(
-            this Task<TInput> task,
-            Action<Task<TInput>> continuationFunction,
-            TaskScheduler scheduler)
-        {
-            return task.SafeContinueWith(continuationFunction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
-        }
-
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<TResult> SafeContinueWith<TInput, TResult>(
-            this Task<TInput> task,
-            Func<Task<TInput>, TResult> continuationFunction,
-            TaskScheduler scheduler)
-        {
-            return task.SafeContinueWith(continuationFunction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
-        }
-
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task SafeContinueWith(
             this Task task,
             Action<Task> continuationAction,
@@ -257,75 +186,6 @@ namespace Roslyn.Utilities
             TaskScheduler scheduler)
         {
             return task.SafeContinueWith(continuationAction, cancellationToken, TaskContinuationOptions.None, scheduler);
-        }
-
-        // Code provided by Stephen Toub.
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<TResult> ContinueWithAfterDelay<TInput, TResult>(
-            this Task<TInput> task,
-            Func<Task<TInput>, TResult> continuationFunction,
-            CancellationToken cancellationToken,
-            int millisecondsDelay,
-            TaskContinuationOptions taskContinuationOptions,
-            TaskScheduler scheduler)
-        {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-            return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
-                    _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
-                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
-        }
-
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<TNResult> ContinueWithAfterDelay<TNResult>(
-            this Task task,
-            Func<TNResult> continuationFunction,
-            CancellationToken cancellationToken,
-            int millisecondsDelay,
-            TaskContinuationOptions taskContinuationOptions,
-            TaskScheduler scheduler)
-        {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-            return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
-                    _ => continuationFunction(), cancellationToken, TaskContinuationOptions.None, scheduler),
-                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
-        }
-
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<TNResult> ContinueWithAfterDelay<TNResult>(
-            this Task task,
-            Func<Task, TNResult> continuationFunction,
-            CancellationToken cancellationToken,
-            int millisecondsDelay,
-            TaskContinuationOptions taskContinuationOptions,
-            TaskScheduler scheduler)
-        {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-            return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
-                    _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
-                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
-        }
-
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task ContinueWithAfterDelay(
-            this Task task,
-            Action continuationAction,
-            CancellationToken cancellationToken,
-            int millisecondsDelay,
-            TaskContinuationOptions taskContinuationOptions,
-            TaskScheduler scheduler)
-        {
-            Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
-
-            return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
-                    _ => continuationAction(), cancellationToken, TaskContinuationOptions.None, scheduler),
-                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
         public static Task<TResult> SafeContinueWithFromAsync<TInput, TResult>(
@@ -368,7 +228,7 @@ namespace Roslyn.Utilities
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
 
-            nextTask.ContinueWith(ReportFatalError, continuationFunction,
+            nextTask.ContinueWith(ReportNonFatalError, continuationFunction,
                CancellationToken.None,
                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                TaskScheduler.Default);
@@ -411,17 +271,8 @@ namespace Roslyn.Utilities
             // the behavior we want.
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
-            ReportFatalError(nextTask, continuationFunction);
+            ReportNonFatalError(nextTask, continuationFunction);
             return nextTask;
-        }
-
-        public static Task SafeContinueWithFromAsync<TInput>(
-           this Task<TInput> task,
-           Func<Task<TInput>, Task> continuationFunction,
-           CancellationToken cancellationToken,
-           TaskScheduler scheduler)
-        {
-            return task.SafeContinueWithFromAsync(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
         }
 
         public static Task SafeContinueWithFromAsync<TInput>(
@@ -450,88 +301,41 @@ namespace Roslyn.Utilities
             // the behavior we want.
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
-            ReportFatalError(nextTask, continuationFunction);
+            ReportNonFatalError(nextTask, continuationFunction);
             return nextTask;
-        }
-
-        public static Task<TNResult> ContinueWithAfterDelayFromAsync<TNResult>(
-            this Task task,
-            Func<Task<TNResult>> continuationFunction,
-            CancellationToken cancellationToken,
-            int millisecondsDelay,
-            TaskContinuationOptions taskContinuationOptions,
-            TaskScheduler scheduler)
-        {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-            return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
-                    _ => continuationFunction(), cancellationToken, TaskContinuationOptions.None, scheduler),
-                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
-        }
-
-        public static Task<TNResult> ContinueWithAfterDelayFromAsync<TNResult>(
-            this Task task,
-            Func<Task, Task<TNResult>> continuationFunction,
-            CancellationToken cancellationToken,
-            int millisecondsDelay,
-            TaskContinuationOptions taskContinuationOptions,
-            TaskScheduler scheduler)
-        {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-            return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
-                    _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
-                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
-        }
-
-        public static Task ContinueWithAfterDelayFromAsync(
-            this Task task,
-            Func<Task> continuationFunction,
-            CancellationToken cancellationToken,
-            int millisecondsDelay,
-            TaskContinuationOptions taskContinuationOptions,
-            TaskScheduler scheduler)
-        {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-            return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
-                    _ => continuationFunction(), cancellationToken, TaskContinuationOptions.None, scheduler),
-                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
         public static Task ContinueWithAfterDelayFromAsync(
             this Task task,
             Func<Task, Task> continuationFunction,
             CancellationToken cancellationToken,
-            int millisecondsDelay,
+            TimeSpan delay,
+            IExpeditableDelaySource delaySource,
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
             Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
 
             return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
+                delaySource.Delay(delay, cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
-        internal static void ReportFatalError(Task task, object continuationFunction)
+        internal static void ReportNonFatalError(Task task, object? continuationFunction)
         {
-            task.ContinueWith(ReportFatalErrorWorker, continuationFunction,
+            task.ContinueWith(ReportNonFatalErrorWorker, continuationFunction,
                CancellationToken.None,
                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                TaskScheduler.Default);
         }
 
         [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
-        private static void ReportFatalErrorWorker(Task task, object continuationFunction)
+        private static void ReportNonFatalErrorWorker(Task task, object? continuationFunction)
         {
-            var exception = task.Exception;
-            var methodInfo = ((Delegate)continuationFunction).GetMethodInfo();
-            exception.Data["ContinuationFunction"] = methodInfo.DeclaringType.FullName + "::" + methodInfo.Name;
+            var exception = task.Exception!;
+            var methodInfo = ((Delegate)continuationFunction!).GetMethodInfo();
+            exception.Data["ContinuationFunction"] = (methodInfo?.DeclaringType?.FullName ?? "?") + "::" + (methodInfo?.Name ?? "?");
 
             // In case of a crash with ExecutionEngineException w/o call stack it might be possible to get the stack trace using WinDbg:
             // > !threads // find thread with System.ExecutionEngineException
@@ -540,12 +344,12 @@ namespace Roslyn.Utilities
             //   ...
             // > ~67s     // switch to thread 67
             // > !dso     // dump stack objects
-            FatalError.Report(exception);
+            FatalError.ReportAndCatch(exception);
         }
 
         public static Task ReportNonFatalErrorAsync(this Task task)
         {
-            task.ContinueWith(p => FatalError.ReportWithoutCrashUnlessCanceled(p.Exception),
+            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);

@@ -29,20 +29,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             _containPredicate = (value, start, end) => Contains(value, start, end, in Introspector);
         }
 
-        public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
-        {
-            return GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);
-        }
+        public T? GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
+            => GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);
 
-        public T GetSmallestEdgeInclusivelyContainingInterval(int start, int length)
-        {
-            return GetSmallestContainingIntervalWorker(start, length, _edgeInclusivePredicate);
-        }
+        public T? GetSmallestEdgeInclusivelyContainingInterval(int start, int length)
+            => GetSmallestContainingIntervalWorker(start, length, _edgeInclusivePredicate);
 
-        public T GetSmallestContainingInterval(int start, int length)
-        {
-            return GetSmallestContainingIntervalWorker(start, length, _containPredicate);
-        }
+        public T? GetSmallestContainingInterval(int start, int length)
+            => GetSmallestContainingIntervalWorker(start, length, _containPredicate);
 
         private bool ContainsEdgeExclusive(T value, int start, int length)
         {
@@ -66,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return thisStart <= otherStart && otherEnd <= thisEnd;
         }
 
-        private T GetSmallestContainingIntervalWorker(int start, int length, Func<T, int, int, bool> predicate)
+        private T? GetSmallestContainingIntervalWorker(int start, int length, Func<T, int, int, bool> predicate)
         {
             var result = default(T);
             if (root == null || MaxEndValue(root) < start)
@@ -125,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                     if (predicate(currentNode.Value, start, length))
                     {
                         // hold onto best answer
-                        if (EqualityComparer<T>.Default.Equals(result, default) ||
-                            (Introspector.GetStart(result) <= Introspector.GetStart(currentNode.Value) &&
-                             Introspector.GetLength(currentNode.Value) < Introspector.GetLength(result)))
+                        if (EqualityComparer<T/*??*/>.Default.Equals(result!, default!) ||
+                            (Introspector.GetStart(result!) <= Introspector.GetStart(currentNode.Value) &&
+                             Introspector.GetLength(currentNode.Value) < Introspector.GetLength(result!)))
                         {
                             result = currentNode.Value;
                         }
@@ -156,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         {
                             // right side tree doesn't have any answer or if the right side has
                             // an answer but left side can have better answer then try left side
-                            if (EqualityComparer<T>.Default.Equals(result, default) ||
+                            if (EqualityComparer<T/*??*/>.Default.Equals(result!, default!) ||
                                 Introspector.GetStart(parentNode.Value) == Introspector.GetStart(currentNode.Value))
                             {
                                 // put left as new root, and break out inner loop

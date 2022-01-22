@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public void StopListening(Workspace workspace)
-        {
-            DiagnosticProvider.Disable(workspace);
-        }
+            => DiagnosticProvider.Disable(workspace);
     }
 }

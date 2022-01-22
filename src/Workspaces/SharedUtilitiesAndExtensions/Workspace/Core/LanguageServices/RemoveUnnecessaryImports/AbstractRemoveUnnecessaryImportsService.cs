@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
 
-        protected SyntaxToken StripNewLines(Document document, SyntaxToken token)
+        protected static SyntaxToken StripNewLines(Document document, SyntaxToken token)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
@@ -64,13 +66,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         bool IEqualityComparer<T>.Equals(T x, T y)
-        {
-            return x.Span == y.Span;
-        }
+            => x.Span == y.Span;
 
         int IEqualityComparer<T>.GetHashCode(T obj)
-        {
-            return obj.Span.GetHashCode();
-        }
+            => obj.Span.GetHashCode();
     }
 }

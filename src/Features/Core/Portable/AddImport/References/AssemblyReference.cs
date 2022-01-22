@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -25,10 +27,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(
-                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    document, node, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
 
                 var title = $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
                 var fullyQualifiedTypeName = string.Join(
@@ -46,9 +48,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(_referenceAssemblyWithType.AssemblyName, base.GetHashCode());
-            }
+                => Hash.Combine(_referenceAssemblyWithType.AssemblyName, base.GetHashCode());
         }
     }
 }

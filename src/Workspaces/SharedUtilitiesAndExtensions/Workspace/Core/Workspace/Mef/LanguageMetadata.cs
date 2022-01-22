@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
@@ -15,13 +17,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         public string Language { get; }
 
         public LanguageMetadata(IDictionary<string, object> data)
-        {
-            this.Language = (string)data.GetValueOrDefault("Language");
-        }
+            => this.Language = (string)data.GetValueOrDefault("Language");
 
         public LanguageMetadata(string language)
-        {
-            this.Language = language;
-        }
+            => this.Language = language;
     }
 }

@@ -8,30 +8,30 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class CompilationUnitSyntaxExtensions
     {
-        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, CancellationToken cancellationToken)
+        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, Document document, CancellationToken cancellationToken)
+            => CanAddUsingDirectives(contextNode, document.CanAddImportsInHiddenRegions(), cancellationToken);
+
+        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
-            if ((usingDirectiveAncestor != null) && (usingDirectiveAncestor.GetAncestor<NamespaceDeclarationSyntax>() == null))
+            if (usingDirectiveAncestor?.Parent is CompilationUnitSyntax)
             {
                 // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
                 return false;
             }
 
-            if (contextNode.SyntaxTree.HasHiddenRegions())
+            if (!allowInHiddenRegions && contextNode.SyntaxTree.HasHiddenRegions())
             {
                 var namespaceDeclaration = contextNode.GetInnermostNamespaceDeclarationWithUsings();
-                var root = contextNode.GetAncestorOrThis<CompilationUnitSyntax>();
+                var root = (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);
                 var span = GetUsingsSpan(root, namespaceDeclaration);
 
                 if (contextNode.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken))
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        private static TextSpan GetUsingsSpan(CompilationUnitSyntax root, NamespaceDeclarationSyntax namespaceDeclaration)
+        private static TextSpan GetUsingsSpan(CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax? namespaceDeclaration)
         {
             if (namespaceDeclaration != null)
             {
@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var firstOuterNamespaceWithUsings = contextNode.GetInnermostNamespaceDeclarationWithUsings();
-
             if (firstOuterNamespaceWithUsings == null)
             {
                 return root.AddUsingDirectives(usingDirectives, placeSystemNamespaceFirst, annotations);
@@ -136,11 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return root.WithUsings(
                 usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToSyntaxList());
-        }
-
-        private static bool IsDocCommentOrElastic(SyntaxTrivia t)
-        {
-            return t.IsDocComment() || t.IsElastic();
         }
 
         private static List<UsingDirectiveSyntax> AddUsingDirectives(

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -13,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         private static readonly Encoding s_throwingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-        public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default)
+        public SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default)
         {
             // this API is for a case where user wants us to figure out encoding from the given stream.
             // if defaultEncoding is given, we will use it if we couldn't figure out encoding used in the stream ourselves.
-            Debug.Assert(stream != null);
-            Debug.Assert(stream.CanSeek);
-            Debug.Assert(stream.CanRead);
+            RoslynDebug.Assert(stream != null);
+            RoslynDebug.Assert(stream.CanSeek);
+            RoslynDebug.Assert(stream.CanRead);
 
             if (defaultEncoding == null)
             {
@@ -65,11 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             }
             catch (DecoderFallbackException)
             {
-                return null;
+                // TODO: the callers do not expect null (https://github.com/dotnet/roslyn/issues/43040)
+                return null!;
             }
         }
 
-        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default)
+        public SourceText CreateText(TextReader reader, Encoding? encoding, CancellationToken cancellationToken = default)
         {
             // this API is for a case where user just wants to create a source text with explicit encoding.
             var buffer = CreateTextBuffer(reader);
@@ -79,9 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         }
 
         private ITextBuffer CreateTextBuffer(TextReader reader)
-        {
-            return _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
-        }
+            => _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
 
         private SourceText CreateTextInternal(Stream stream, Encoding encoding, CancellationToken cancellationToken)
         {

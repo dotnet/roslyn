@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -66,9 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.AddItem(CreateItemWithNoSelections());
-        }
+            => _viewModel.AddItem(CreateItemWithNoSelections());
 
         private void ManageSpecificationsButton_Click(object sender, RoutedEventArgs e)
         {
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             if (CodeStyleMembers.SelectedIndex >= 0)
             {
-                if (!(CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) is DataGridRow row))
+                if (CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) is not DataGridRow row)
                 {
                     CodeStyleMembers.ScrollIntoView(CodeStyleMembers.SelectedItem);
                     row = CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) as DataGridRow;
@@ -196,13 +196,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         }
 
         internal bool ContainsErrors()
-        {
-            return _viewModel.CodeStyleItems.Any(i => !i.IsComplete());
-        }
+            => _viewModel.CodeStyleItems.Any(i => !i.IsComplete());
 
         private void CodeStyleMembers_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            _viewModel.SelectedIndex = CodeStyleMembers.SelectedIndex;
-        }
+            => _viewModel.SelectedIndex = CodeStyleMembers.SelectedIndex;
     }
 }

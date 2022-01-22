@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -55,9 +57,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract int DetermineConstantInsertPosition(TTypeDeclarationSyntax oldDeclaration, TTypeDeclarationSyntax newDeclaration);
 
         protected virtual bool BlockOverlapsHiddenPosition(SyntaxNode block, CancellationToken cancellationToken)
-        {
-            return block.OverlapsHiddenPosition(cancellationToken);
-        }
+            => block.OverlapsHiddenPosition(cancellationToken);
 
         public async Task<CodeAction> IntroduceVariableAsync(
             Document document,
@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         private (string title, ImmutableArray<CodeAction>) CreateActions(State state, CancellationToken cancellationToken)
         {
-            var actions = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
             var title = AddActionsAndGetTitle(state, actions, cancellationToken);
 
-            return (title, actions.ToImmutableAndFree());
+            return (title, actions.ToImmutable());
         }
 
         private string AddActionsAndGetTitle(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
 
             if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
-                typeInfo.ConvertedType?.IsFormattableString() == true)
+                typeInfo.ConvertedType?.IsFormattableStringOrIFormattable() == true)
             {
                 return typeInfo.ConvertedType;
             }
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                 newSemanticDocument.Document,
                                 expandInsideNode: node =>
                                 {
-                                    return !(node is TExpressionSyntax expression)
+                                    return node is not TExpressionSyntax expression
                                         || !newMatches.Contains(expression);
                                 },
                                 cancellationToken: ct)

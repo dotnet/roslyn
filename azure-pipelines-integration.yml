@@ -1,69 +1,84 @@
 # Branches that trigger a build on commit
 trigger:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*
 
 # Branches that trigger builds on PR
 pr:
-- master
-- master-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .github/*
 
 jobs:
-- job: VS_Integration
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - job: VS_Integration_Debug_32
+    pool:
+      name: $(poolName)
+      demands: ImageOverride -equals $(queueName)
+    timeoutInMinutes: 135
+    variables:
+      - name: XUNIT_LOGS
+        value: $(Build.SourcesDirectory)\artifacts\log\Debug
+    steps:
+      - template: eng/pipelines/test-integration-job.yml
+        parameters:
+          configuration: Debug
+          oop64bit: false
+          lspEditor: false
+
+- job: VS_Integration_Debug_64
   pool:
-    name: NetCorePublic-Pool
-    queue: buildpool.windows.10.amd64.vs2019.pre.open
-  strategy:
-    maxParallel: 2
-    matrix:
-      debug_async:
-        _configuration: Debug
-      release_async:
-        _configuration: Release
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
   timeoutInMinutes: 135
-
+  variables:
+    - name: XUNIT_LOGS
+      value: $(Build.SourcesDirectory)\artifacts\log\Debug
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testVsi
-      displayName: Build and Test
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: Debug
+        oop64bit: true
+        lspEditor: false
 
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml
-        mergeTestResults: true
-        testRunTitle: '$(System.JobAttempt)-Integration $(_configuration)'
-      condition: always()
+- job: VS_Integration_Release_32
+  pool:
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
+  timeoutInMinutes: 135
+  variables:
+    - name: XUNIT_LOGS
+      value: $(Build.SourcesDirectory)\artifacts\log\Release
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: Release
+        oop64bit: false
+        lspEditor: false
 
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
-        ArtifactName: '$(System.JobAttempt)-Logs $(_configuration) $(Build.BuildNumber)'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Secondary Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log2\$(_configuration)'
-        ArtifactName: '$(System.JobAttempt)-Secondary Logs $(_configuration) $(Build.BuildNumber)'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Screenshots
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\$(_configuration)\net472\xUnitResults'
-        ArtifactName: '$(System.JobAttempt)-Screenshots $(_configuration) $(Build.BuildNumber)'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - job: VS_Integration_Release_64
+    pool:
+      name: $(poolName)
+      demands: ImageOverride -equals $(queueName)
+    timeoutInMinutes: 135
+    variables:
+      - name: XUNIT_LOGS
+        value: $(Build.SourcesDirectory)\artifacts\log\Release
+    steps:
+      - template: eng/pipelines/test-integration-job.yml
+        parameters:
+          configuration: Release
+          oop64bit: true
+          lspEditor: false

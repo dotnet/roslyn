@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
@@ -19,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         protected Color _graphicsTagColor;
 
         protected GraphicsTag(IEditorFormatMap editorFormatMap)
-        {
-            _editorFormatMap = editorFormatMap;
-        }
+            => _editorFormatMap = editorFormatMap;
 
         protected virtual void Initialize(IWpfTextView view)
         {
@@ -45,6 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// <summary>
         /// This method allows corresponding adornment manager to ask for a graphical glyph.
         /// </summary>
-        public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds);
+        public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format);
     }
 }

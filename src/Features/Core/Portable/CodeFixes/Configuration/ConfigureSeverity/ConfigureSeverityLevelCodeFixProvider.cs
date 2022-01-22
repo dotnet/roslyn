@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -12,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
-using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -20,17 +17,17 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {
-    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.Suppression)]
+    [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(After = PredefinedConfigurationFixProviderNames.Suppression)]
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
-        private static readonly ImmutableArray<(string name, string value)> s_editorConfigSeverityStrings =
+        private static readonly ImmutableArray<(string value, string title)> s_editorConfigSeverityStrings =
             ImmutableArray.Create(
-                (nameof(EditorConfigSeverityStrings.None), EditorConfigSeverityStrings.None),
-                (nameof(EditorConfigSeverityStrings.Silent), EditorConfigSeverityStrings.Silent),
-                (nameof(EditorConfigSeverityStrings.Suggestion), EditorConfigSeverityStrings.Suggestion),
-                (nameof(EditorConfigSeverityStrings.Warning), EditorConfigSeverityStrings.Warning),
-                (nameof(EditorConfigSeverityStrings.Error), EditorConfigSeverityStrings.Error));
+                (EditorConfigSeverityStrings.None, WorkspacesResources.None),
+                (EditorConfigSeverityStrings.Silent, FeaturesResources.Silent),
+                (EditorConfigSeverityStrings.Suggestion, WorkspacesResources.Suggestion),
+                (EditorConfigSeverityStrings.Warning, WorkspacesResources.Warning),
+                (EditorConfigSeverityStrings.Error, WorkspacesResources.Error));
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -54,22 +51,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            // Bail out if NativeEditorConfigSupport experiment is not enabled.
-            if (!EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
-            {
-                return ImmutableArray<CodeFix>.Empty;
-            }
-
             var result = ArrayBuilder<CodeFix>.GetInstance();
             var analyzerDiagnosticsByCategory = new SortedDictionary<string, ArrayBuilder<Diagnostic>>();
             using var disposer = ArrayBuilder<Diagnostic>.GetInstance(out var analyzerDiagnostics);
             foreach (var diagnostic in diagnostics)
             {
                 var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var (name, value) in s_editorConfigSeverityStrings)
+                foreach (var (value, title) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
-                        new SolutionChangeAction(name, solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken)));
+                        new SolutionChangeAction(
+                            title,
+                            solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
+                            value));
                 }
 
                 var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
@@ -104,14 +98,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             void AddBulkConfigurationCodeFixes(ImmutableArray<Diagnostic> diagnostics, string? category)
             {
                 var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var (name, value) in s_editorConfigSeverityStrings)
+                foreach (var (value, title) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
                         new SolutionChangeAction(
-                            name,
+                            title,
                             solution => category != null
                                 ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken)
-                                : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken)));
+                                : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken),
+                            value));
                 }
 
                 var codeAction = new TopLevelBulkConfigureSeverityCodeAction(nestedActions.ToImmutableAndFree(), category);

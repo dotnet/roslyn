@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     /// </summary>
     internal interface ILanguageServiceReferenceFinder : ILanguageService
     {
-        Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId, Project project, CancellationToken cancellationToken);
+        Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            ISymbol symbol, Project project, CancellationToken cancellationToken);
     }
 }

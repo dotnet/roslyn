@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,7 +42,7 @@ namespace BuildBoss
                 { "p|primary=", "Primary solution file name (which contains all projects)", value => primarySolution = value },
             };
 
-            if (configuration != "Debug" && configuration != "Release")
+            if (configuration is not "Debug" and not "Release")
             {
                 Console.Error.WriteLine($"Invalid configuration: '{configuration}'");
                 return false;

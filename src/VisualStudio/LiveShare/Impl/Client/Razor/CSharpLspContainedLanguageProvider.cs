@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
-using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging;
 using Microsoft.VisualStudio.LiveShare.WebEditors.ContainedLanguage;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -37,9 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
         }
 
         public IContentType GetContentType(string filePath)
-        {
-            return _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpLspContentTypeName);
-        }
+            => _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);
 
         public IVsContainedLanguage GetLanguage(string filePath, IVsTextBufferCoordinator bufferCoordinator)
         {
@@ -53,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
                 projectId,
                 project: null,
                 filePath,
-                CSharpLspLanguageService.LanguageServiceGuid);
+                Guids.CSharpLanguageServiceId);
         }
     }
 }

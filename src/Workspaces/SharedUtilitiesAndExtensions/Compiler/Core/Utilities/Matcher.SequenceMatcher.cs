@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private readonly Matcher<T>[] _matchers;
 
             public SequenceMatcher(params Matcher<T>[] matchers)
-            {
-                _matchers = matchers;
-            }
+                => _matchers = matchers;
 
             public override bool TryMatch(IList<T> sequence, ref int index)
             {
@@ -33,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             public override string ToString()
-            {
-                return string.Format("({0})", string.Join(",", (object[])_matchers));
-            }
+                => string.Format("({0})", string.Join(",", (object[])_matchers));
         }
     }
 }

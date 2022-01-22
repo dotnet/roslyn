@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public bool IsForeground()
-        {
-            return _threadingContext.JoinableTaskContext.IsOnMainThread;
-        }
+            => _threadingContext.JoinableTaskContext.IsOnMainThread;
 
         public void AssertIsForeground()
         {
@@ -58,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public void AssertIsBackground()
-        {
-            Contract.ThrowIfTrue(IsForeground());
-        }
+            => Contract.ThrowIfTrue(IsForeground());
 
         /// <summary>
         /// A helpful marker method that can be used by deriving classes to indicate that a 
@@ -68,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// This is useful so that every method in deriving class can have some sort of marker
         /// on each method stating the threading constraints (FG-only/BG-only/Any-thread).
         /// </summary>
-        public void ThisCanBeCalledOnAnyThread()
+        public static void ThisCanBeCalledOnAnyThread()
         {
             // Does nothing.
         }
@@ -89,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                     async () =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        cancellationToken.ThrowIfCancellationRequested();
 
                         action();
                     },
@@ -101,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// <summary>
         /// Returns true if any keyboard or mouse button input is pending on the message queue.
         /// </summary>
-        protected bool IsInputPending()
+        protected static bool IsInputPending()
         {
             // The code below invokes into user32.dll, which is not available in non-Windows.
             if (PlatformInformation.IsUnix)

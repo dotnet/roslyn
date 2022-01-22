@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Rename
 {
@@ -19,9 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         private readonly ConflictingIdentifierTracker _tracker;
 
         public LocalConflictVisitor(SyntaxToken tokenBeingRenamed)
-        {
-            _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
-        }
+            => _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
 
         public override void DefaultVisit(SyntaxNode node)
         {
@@ -40,9 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         }
 
         public override void VisitBlock(BlockSyntax node)
-        {
-            VisitBlockStatements(node, node.Statements);
-        }
+            => VisitBlockStatements(node, node.Statements);
 
         private void VisitBlockStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
         {
@@ -131,9 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         }
 
         public override void VisitQueryExpression(QueryExpressionSyntax node)
-        {
-            VisitQueryInternal(node.FromClause, node.Body);
-        }
+            => VisitQueryInternal(node.FromClause, node.Body);
 
         private void VisitQueryInternal(FromClauseSyntax fromClause, QueryBodySyntax body)
         {

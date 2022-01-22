@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
@@ -13,12 +11,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private readonly DocumentationComment _underlyingObject;
 
         public VSTypeScriptDocumentationCommentWrapper(DocumentationComment underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public static VSTypeScriptDocumentationCommentWrapper FromXmlFragment(string xml)
-            => new VSTypeScriptDocumentationCommentWrapper(DocumentationComment.FromXmlFragment(xml));
+            => new(DocumentationComment.FromXmlFragment(xml));
 
         public bool IsDefault
             => _underlyingObject == null;

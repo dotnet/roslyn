@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -30,14 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsSimpleLibrary2.CreateNavInfo(SYMBOL_DESCRIPTION_NODE[] rgSymbolNodes, uint ulcNodes, out IVsNavInfo ppNavInfo)
-        {
-            return CreateNavInfo(rgSymbolNodes, ulcNodes, out ppNavInfo);
-        }
+            => CreateNavInfo(rgSymbolNodes, ulcNodes, out ppNavInfo);
 
         int IVsSimpleLibrary2.GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual)
-        {
-            throw new NotImplementedException();
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleLibrary2.GetGuid(out Guid pguidLib)
         {
@@ -73,19 +71,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsSimpleLibrary2.LoadState(IStream pIStream, LIB_PERSISTTYPE lptType)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleLibrary2.RemoveBrowseContainer(uint dwReserved, string pszLibName)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleLibrary2.SaveState(IStream pIStream, LIB_PERSISTTYPE lptType)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleLibrary2.UpdateCounter(out uint pCurUpdate)
         {

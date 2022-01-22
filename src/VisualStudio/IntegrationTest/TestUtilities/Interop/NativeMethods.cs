@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Setup.Configuration;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 {

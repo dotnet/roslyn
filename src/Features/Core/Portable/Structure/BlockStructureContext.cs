@@ -7,24 +7,24 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
-    internal class BlockStructureContext
+    internal sealed class BlockStructureContext
     {
         private readonly ImmutableArray<BlockSpan>.Builder _spans = ImmutableArray.CreateBuilder<BlockSpan>();
 
-        public Document Document { get; }
+        public SyntaxTree SyntaxTree { get; }
+        public BlockStructureOptions Options { get; }
         public CancellationToken CancellationToken { get; }
 
         internal ImmutableArray<BlockSpan> Spans => _spans.ToImmutable();
 
-        public BlockStructureContext(Document document, CancellationToken cancellationToken)
+        public BlockStructureContext(SyntaxTree syntaxTree, BlockStructureOptions options, CancellationToken cancellationToken)
         {
-            Document = document;
+            SyntaxTree = syntaxTree;
+            Options = options;
             CancellationToken = cancellationToken;
         }
 
         public void AddBlockSpan(BlockSpan span)
-        {
-            _spans.Add(span);
-        }
+            => _spans.Add(span);
     }
 }

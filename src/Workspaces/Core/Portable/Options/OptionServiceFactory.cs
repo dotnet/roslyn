@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,14 +23,10 @@ namespace Microsoft.CodeAnalysis.Options
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OptionServiceFactory(IGlobalOptionService globalOptionService)
-        {
-            _globalOptionService = globalOptionService;
-        }
+            => _globalOptionService = globalOptionService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new OptionService(_globalOptionService, workspaceServices);
-        }
+            => new OptionService(_globalOptionService, workspaceServices);
 
         /// <summary>
         /// Wraps an underlying <see cref="IGlobalOptionService"/> and exposes its data to workspace
@@ -49,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Options
             /// <summary>
             /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
             /// </summary>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
                 ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;
@@ -122,10 +116,10 @@ namespace Microsoft.CodeAnalysis.Options
             public SerializableOptionSet GetOptions() => GetSerializableOptionsSnapshot(ImmutableHashSet<string>.Empty);
             public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages) => _globalOptionService.GetSerializableOptionsSnapshot(languages, this);
             public object? GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
-            [return: MaybeNull] public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
-            [return: MaybeNull] public T GetOption<T>(Option2<T> option) => _globalOptionService.GetOption(option);
-            [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
-            [return: MaybeNull] public T GetOption<T>(PerLanguageOption2<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
+            public T? GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
+            public T? GetOption<T>(Option2<T> option) => _globalOptionService.GetOption(option);
+            public T? GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
+            public T? GetOption<T>(PerLanguageOption2<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
             public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey) => _globalOptionService.TryMapEditorConfigKeyToOption(key, language, out storageLocation, out optionKey);
             public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
@@ -191,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
 
                 [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-                public override object? GetOption(OptionKey optionKey)
+                private protected override object? GetOptionCore(OptionKey optionKey)
                 {
                     // If we already know the document specific value, we're done
                     if (_values.TryGetValue(optionKey, out var value))
@@ -213,9 +207,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
 
                 public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-                {
-                    return new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
-                }
+                    => new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
 
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
                 {

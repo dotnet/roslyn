@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicRenameRewriterLanguageService(provider)
+            Return VisualBasicRenameRewriterLanguageService.Instance
         End Function
     End Class
 End Namespace

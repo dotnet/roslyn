@@ -40,34 +40,22 @@ namespace Microsoft.CodeAnalysis.Formatting
             IIntervalIntrospector<RelativeIndentationData>
         {
             int IIntervalIntrospector<AnchorData>.GetStart(AnchorData value)
-            {
-                return value.TextSpan.Start;
-            }
+                => value.TextSpan.Start;
 
             int IIntervalIntrospector<AnchorData>.GetLength(AnchorData value)
-            {
-                return value.TextSpan.Length;
-            }
+                => value.TextSpan.Length;
 
             int IIntervalIntrospector<IndentationData>.GetStart(IndentationData value)
-            {
-                return value.TextSpan.Start;
-            }
+                => value.TextSpan.Start;
 
             int IIntervalIntrospector<IndentationData>.GetLength(IndentationData value)
-            {
-                return value.TextSpan.Length;
-            }
+                => value.TextSpan.Length;
 
             int IIntervalIntrospector<RelativeIndentationData>.GetStart(RelativeIndentationData value)
-            {
-                return value.InseparableRegionSpan.Start;
-            }
+                => value.InseparableRegionSpan.Start;
 
             int IIntervalIntrospector<RelativeIndentationData>.GetLength(RelativeIndentationData value)
-            {
-                return value.InseparableRegionSpan.Length;
-            }
+                => value.InseparableRegionSpan.Length;
         }
     }
 }

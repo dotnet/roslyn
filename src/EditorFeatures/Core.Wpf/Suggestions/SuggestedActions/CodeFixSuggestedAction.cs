@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -15,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Represents light bulb menu item for code fixes.
     /// </summary>
-    internal sealed class CodeFixSuggestedAction : SuggestedActionWithNestedFlavors, ITelemetryDiagnosticID<string>
+    internal sealed class CodeFixSuggestedAction : SuggestedActionWithNestedFlavors, ICodeFixSuggestedAction, ITelemetryDiagnosticID<string>
     {
-        private readonly CodeFix _fix;
+        public CodeFix CodeFix { get; }
 
         public CodeFixSuggestedAction(
             IThreadingContext threadingContext,
@@ -31,17 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    provider, action, fixAllFlavors)
         {
-            _fix = fix;
+            CodeFix = fix;
         }
 
         public string GetDiagnosticID()
-        {
-            return _fix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
-        }
+            => CodeFix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
 
         protected override DiagnosticData GetDiagnostic()
-        {
-            return _fix.GetPrimaryDiagnosticData();
-        }
+            => CodeFix.GetPrimaryDiagnosticData();
     }
 }

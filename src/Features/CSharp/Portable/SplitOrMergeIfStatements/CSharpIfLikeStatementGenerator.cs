@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -119,9 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
         }
 
         public SyntaxNode WithElseIfAndElseClausesOf(SyntaxNode ifStatement, SyntaxNode otherIfStatement)
-        {
-            return ((IfStatementSyntax)ifStatement).WithElse(((IfStatementSyntax)otherIfStatement).Else);
-        }
+            => ((IfStatementSyntax)ifStatement).WithElse(((IfStatementSyntax)otherIfStatement).Else);
 
         public SyntaxNode ToIfStatement(SyntaxNode ifOrElseIf)
             => ifOrElseIf;

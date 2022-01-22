@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         [Export(typeof(ErrorTypeDefinition))]
         [Name(Name)]
-        internal static ErrorTypeDefinition Definition;
+        internal static ErrorTypeDefinition? Definition;
     }
 }

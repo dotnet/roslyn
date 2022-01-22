@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -38,8 +36,16 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        public override FixAllProvider GetFixAllProvider()
-            => new ConflictMarkerFixAllProvider(this);
+        /// <summary>
+        /// 'Fix merge conflict markers' gets special privileges.  A core user scenario around them is that a user does
+        /// a source control merge, gets conflicts, and then wants to open and edit them in the IDE very quickly.
+        /// Forcing their fixes to be gated behind the set of normal fixes (which also involves semantic analysis) just
+        /// slows the user down.  As we can compute this syntactically, and the user is almost certainly trying to fix
+        /// them if they bring up the lightbulb on a <c>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</c> line, it should run ahead of
+        /// normal fix providers else so the user can quickly fix the conflict and move onto the next conflict.
+        /// </summary>
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -93,7 +99,9 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 // issue there.
                 if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia ||
                     middleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
+                {
                     return false;
+                }
             }
 
             return true;
@@ -184,17 +192,17 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             return true;
         }
 
-        private void RegisterCodeFixes(
+        private static void RegisterCodeFixes(
             CodeFixContext context, TextLine startLine, TextLine middleLine, TextLine endLine)
         {
             var document = context.Document;
 
-            var topText = startLine.ToString().Substring(s_mergeConflictLength).Trim();
+            var topText = startLine.ToString()[s_mergeConflictLength..].Trim();
             var takeTopText = string.IsNullOrWhiteSpace(topText)
                 ? FeaturesResources.Take_top
                 : string.Format(FeaturesResources.Take_0, topText);
 
-            var bottomText = endLine.ToString().Substring(s_mergeConflictLength).Trim();
+            var bottomText = endLine.ToString()[s_mergeConflictLength..].Trim();
             var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
                 ? FeaturesResources.Take_bottom
                 : string.Format(FeaturesResources.Take_0, bottomText);
@@ -289,14 +297,14 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         private static int GetEndIncludingLineBreak(SourceText text, int position)
             => text.Lines.GetLineFromPosition(position).SpanIncludingLineBreak.End;
 
-        private async Task<SyntaxNode> FixAllAsync(
+        private async Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            string equivalenceKey, CancellationToken cancellationToken)
+            string? equivalenceKey, CancellationToken cancellationToken)
         {
             Debug.Assert(
-                equivalenceKey == TakeTopEquivalenceKey ||
-                equivalenceKey == TakeBottomEquivalenceKey ||
-                equivalenceKey == TakeBothEquivalenceKey);
+                equivalenceKey is TakeTopEquivalenceKey or
+                TakeBottomEquivalenceKey or
+                TakeBothEquivalenceKey);
 
             // Process diagnostics in order so we produce edits in the right order.
             var orderedDiagnostics = diagnostics.OrderBy(
@@ -343,8 +351,12 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var finalText = text.WithChanges(edits);
             var finalDoc = document.WithText(finalText);
 
-            return await finalDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return finalDoc;
         }
+
+        public override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
+                await this.FixAllAsync(document, diagnostics, context.CodeActionEquivalenceKey, context.CancellationToken).ConfigureAwait(false));
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

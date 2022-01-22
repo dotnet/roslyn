@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
 #pragma warning disable CS0618 // Type or member is obsolete
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
@@ -17,9 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
         private readonly ContainedDocument _underlyingObject;
 
         public VSTypeScriptContainedDocumentWrapper(ContainedDocument underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public bool IsDefault => _underlyingObject == null;
 
@@ -38,14 +37,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
             return false;
         }
 
+        public void Dispose()
+            => _underlyingObject.Dispose();
+
+        public ITextBuffer SubjectBuffer
+            => _underlyingObject.SubjectBuffer;
+
+        public IVsContainedLanguageHost Host
+            => _underlyingObject.ContainedLanguageHost;
+
+        [Obsolete("Remove once TypeScript has stopped using this.")]
         internal AbstractProject Project
             => _underlyingObject.Project;
 
+        [Obsolete("Remove once TypeScript has stopped using this.")]
         internal IVisualStudioHostDocument HostDocument
             => _underlyingObject;
-
-        internal IVsContainedLanguageHost Host
-            => _underlyingObject.ContainedLanguageHost;
-
     }
 }

@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         protected abstract bool IncludePrerelease { get; }
 
-        public override abstract FixAllProvider GetFixAllProvider();
+        public abstract override FixAllProvider GetFixAllProvider();
 
         protected async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
             CodeFixContext context, ISet<string> assemblyNames)
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
             var language = document.Project.Language;
 
-            var options = workspaceServices.Workspace.Options;
+            var options = document.Project.Solution.Options;
             var searchNugetPackages = options.GetOption(
                 SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
 
@@ -58,18 +61,20 @@ namespace Microsoft.CodeAnalysis.AddPackage
                 searchNugetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
-                foreach (var packageSource in installerService.GetPackageSources())
+                var packageSources = PackageSourceHelper.GetPackageSources(installerService.TryGetPackageSources());
+
+                foreach (var (name, source) in packageSources)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var sortedPackages = await FindMatchingPackagesAsync(
-                        packageSource, symbolSearchService,
+                        name, symbolSearchService,
                         assemblyNames, cancellationToken).ConfigureAwait(false);
 
                     foreach (var package in sortedPackages)
                     {
                         codeActions.Add(new InstallPackageParentCodeAction(
-                            installerService, packageSource.Source,
+                            installerService, source,
                             package.PackageName, IncludePrerelease, document));
                     }
                 }
@@ -78,8 +83,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
             return codeActions.ToImmutableAndFree();
         }
 
-        private async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
-            PackageSource source,
+        private static async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
+            string sourceName,
             ISymbolSearchService searchService,
             ISet<string> assemblyNames,
             CancellationToken cancellationToken)
@@ -90,7 +95,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             foreach (var assemblyName in assemblyNames)
             {
                 var packagesWithAssembly = await searchService.FindPackagesWithAssemblyAsync(
-                    source.Name, assemblyName, cancellationToken).ConfigureAwait(false);
+                    sourceName, assemblyName, cancellationToken).ConfigureAwait(false);
 
                 result.AddRange(packagesWithAssembly);
             }

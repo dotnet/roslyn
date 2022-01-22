@@ -4,50 +4,51 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ExitKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInSubBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInSubBodyTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Sub Goo()
 |
 End Sub</ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInFunctionTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInFunctionTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Sub Goo()
 |
 End Sub</ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInPropertyGetTest() As Task
+        Public Sub ExitInPropertyGetTest()
             ' We can always exit a Sub/Function, so it should be there
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+            VerifyRecommendationsContain(<ClassDeclaration>
 ReadOnly Property Goo
 Get
 |
 End Get
 End Property
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInPropertySetTest() As Task
+        Public Sub ExitInPropertySetTest()
             ' We can always exit a Sub/Function, so it should be there
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+            VerifyRecommendationsContain(<ClassDeclaration>
 WriteOnly Property Goo
 Set
 |
 End Set
 End Property
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitNotInAddHandlerTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub ExitNotInAddHandlerTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
         |
@@ -60,11 +61,11 @@ Custom Event Click As EventHandler
     End RaiseEvent
 End Event
                                                </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInLambdaInAddHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInLambdaInAddHandlerTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
         Dim x = Sub()
@@ -79,11 +80,11 @@ Custom Event Click As EventHandler
     End RaiseEvent
 End Event
                                                </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitNotInRemoveHandlerTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub ExitNotInRemoveHandlerTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
     End AddHandler
@@ -97,11 +98,11 @@ Custom Event Click As EventHandler
 End Event
 
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInLambdaInRemoveHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInLambdaInRemoveHandlerTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
     End AddHandler
@@ -117,11 +118,11 @@ Custom Event Click As EventHandler
 End Event
 
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitNotInRaiseEventTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub ExitNotInRaiseEventTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
     End AddHandler
@@ -135,11 +136,11 @@ Custom Event Click As EventHandler
 End Event
 
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInLambdaInRaiseEventTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInLambdaInRaiseEventTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
     End AddHandler
@@ -155,11 +156,11 @@ Custom Event Click As EventHandler
 End Event
 
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInLoopInAddHandler1Test() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInLoopInAddHandler1Test()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
         Do
@@ -177,11 +178,11 @@ Custom Event Click As EventHandler
     End RaiseEvent
 End Event
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInLoopInAddHandler2Test() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInLoopInAddHandler2Test()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
         Do
@@ -196,11 +197,11 @@ Custom Event Click As EventHandler
     End RaiseEvent
 End Event
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInLoopInAddHandler3Test() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInLoopInAddHandler3Test()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
         Do Until True
@@ -215,11 +216,11 @@ Custom Event Click As EventHandler
     End RaiseEvent
 End Event
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInForLoopInAddHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInForLoopInAddHandlerTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
         For i = 1 To 10
@@ -234,11 +235,11 @@ Custom Event Click As EventHandler
     End RaiseEvent
 End Event
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInForEachLoopInAddHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInForEachLoopInAddHandlerTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
         For Each x In y
@@ -253,11 +254,11 @@ Custom Event Click As EventHandler
     End RaiseEvent
 End Event
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInTryInAddHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInTryInAddHandlerTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
         Try
@@ -273,11 +274,11 @@ Custom Event Click As EventHandler
     End RaiseEvent
 End Event
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInCatchInAddHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInCatchInAddHandlerTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
     AddHandler(ByVal value As EventHandler)
         Try
@@ -293,31 +294,31 @@ Custom Event Click As EventHandler
     End RaiseEvent
 End Event
 </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitNotInOperatorTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub ExitNotInOperatorTest()
+            VerifyRecommendationsMissing(<File>
 Class Goo
     Public Shared Operator +(value1 As Goo, value2 as Goo) As Goo
         |
     End Operator
 End Class
 </File>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInWhileLoopInAddHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub ExitInWhileLoopInAddHandlerTest()
+            VerifyRecommendationsContain(<MethodBody>
 While True
 |
 End While
                                                </MethodBody>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInLoopInClassDeclarationLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInLoopInClassDeclarationLambdaTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
 Do
 |
@@ -325,26 +326,26 @@ Loop
 End Sub
                                                </ClassDeclaration>, "Exit")
 
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInClassDeclarationLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInClassDeclarationLambdaTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
 |
 End Sub
                                          </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitInClassDeclarationSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub ExitInClassDeclarationSingleLineLambdaTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub() |
                                                </ClassDeclaration>, "Exit")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ExitNotInFinallyBlockTest() As Task
+        Public Sub ExitNotInFinallyBlockTest()
             Dim code =
 <MethodBody>
 Try
@@ -352,7 +353,7 @@ Finally
     |
 </MethodBody>
 
-            Await VerifyRecommendationsMissingAsync(code, "Exit")
-        End Function
+            VerifyRecommendationsMissing(code, "Exit")
+        End Sub
     End Class
 End Namespace

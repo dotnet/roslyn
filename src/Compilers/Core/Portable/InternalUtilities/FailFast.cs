@@ -2,19 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class FailFast
     {
+        /// <summary>
+        /// A pre-created delegate to assign to <see cref="FatalError.ErrorReporterHandler" /> if needed.
+        /// </summary>
+        internal static readonly FatalError.ErrorReporterHandler Handler = static (e, _, _) => OnFatalException(e);
+
         [DebuggerHidden]
         [DoesNotReturn]
+#if !NETSTANDARD1_3
+        [MethodImpl(MethodImplOptions.Synchronized)]
+#endif
         internal static void OnFatalException(Exception exception)
         {
             // EDMAURER Now using the managed API to fail fast so as to default
@@ -27,8 +35,7 @@ namespace Microsoft.CodeAnalysis
 
 #if !NET20
             // don't fail fast with an aggregate exception that is masking true exception
-            var aggregate = exception as AggregateException;
-            if (aggregate != null && aggregate.InnerExceptions.Count == 1)
+            if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1)
             {
                 exception = aggregate.InnerExceptions[0];
             }
@@ -42,6 +49,9 @@ namespace Microsoft.CodeAnalysis
 
         [DebuggerHidden]
         [DoesNotReturn]
+#if !NETSTANDARD1_3
+        [MethodImpl(MethodImplOptions.Synchronized)]
+#endif
         internal static void Fail(string message)
         {
             DumpStackTrace(message: message);
@@ -65,11 +75,10 @@ namespace Microsoft.CodeAnalysis
             if (exception is object)
             {
                 Console.WriteLine("Exception info");
-                for (Exception? current = exception; current is object; current = current!.InnerException)
+                for (Exception? current = exception; current is object; current = current.InnerException)
                 {
                     Console.WriteLine(current.Message);
                     Console.WriteLine(current.StackTrace);
-                    current = current.InnerException;
                 }
             }
 
@@ -104,8 +113,7 @@ namespace Microsoft.CodeAnalysis
                 Debugger.Break();
             }
 
-            DumpStackTrace(message: message);
-            Environment.FailFast("ASSERT FAILED" + Environment.NewLine + message);
+            Fail("ASSERT FAILED" + Environment.NewLine + message);
         }
     }
 }

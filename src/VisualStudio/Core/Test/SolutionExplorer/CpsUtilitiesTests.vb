@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
@@ -18,12 +19,31 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub ExtractAnalyzerFilePath_WithoutProjectPath()
+        Public Sub ExtractAnalyzerFilePath_WithoutProjectPath_WithTfmAndProviderType()
             Dim projectDirectoryFullPath = "C:\users\me\Solution\Project"
             Dim analyzerCanonicalName = "netstandard2.0\analyzerdependency\C:\users\me\.nuget\package\analyzer\MyAnalyzer.dll"
 
             Dim analyzerFileFullPath = CpsUtilities.ExtractAnalyzerFilePath(projectDirectoryFullPath, analyzerCanonicalName)
             Assert.Equal(expected:="C:\users\me\.nuget\package\analyzer\MyAnalyzer.dll", actual:=analyzerFileFullPath)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub ExtractAnalyzerFilePath_WithoutProjectPath_WithoutTfmAndProviderType()
+            Dim projectDirectoryFullPath = "C:\users\me\Solution\Project"
+            Dim analyzerCanonicalName = "C:\users\me\.nuget\package\analyzer\MyAnalyzer.dll"
+
+            Dim analyzerFileFullPath = CpsUtilities.ExtractAnalyzerFilePath(projectDirectoryFullPath, analyzerCanonicalName)
+            Assert.Equal(expected:="C:\users\me\.nuget\package\analyzer\MyAnalyzer.dll", actual:=analyzerFileFullPath)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WorkItem(50317, "https://github.com/dotnet/roslyn/issues/50317")>
+        Public Sub ExtractAnalyzerFilePath_WithoutProjectPath_WithoutTfmAndProviderType_SiblingFolder()
+            Dim projectDirectoryFullPath = "C:\Project"
+            Dim analyzerCanonicalName = "C:\Project.Analyzer\bin\Debug\MyAnalyzer.dll"
+
+            Dim analyzerFileFullPath = CpsUtilities.ExtractAnalyzerFilePath(projectDirectoryFullPath, analyzerCanonicalName)
+            Assert.Equal(expected:="C:\Project.Analyzer\bin\Debug\MyAnalyzer.dll", actual:=analyzerFileFullPath)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -162,14 +160,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public static string GenerateUniqueName(string baseName, Func<string, bool> canUse)
-        {
-            return GenerateUniqueName(baseName, string.Empty, canUse);
-        }
+            => GenerateUniqueName(baseName, string.Empty, canUse);
 
         public static string GenerateUniqueName(string baseName, ISet<string> names, StringComparer comparer)
-        {
-            return GenerateUniqueName(baseName, x => !names.Contains(x, comparer));
-        }
+            => GenerateUniqueName(baseName, x => !names.Contains(x, comparer));
 
         public static string GenerateUniqueName(string baseName, string extension, Func<string, bool> canUse)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class EnumerableExtensionTests
     {
-        private IEnumerable<T> Enumerable<T>(params T[] values)
-        {
-            return values;
-        }
+        private static IEnumerable<T> Enumerable<T>(params T[] values)
+            => values;
 
         [Fact]
         public void TestDo()
@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
         [Fact]
         public void TestSetEquals()
-        {
-            Assert.True(Enumerable(1, 2, 3, 4).SetEquals(Enumerable(4, 2, 3, 1)));
-        }
+            => Assert.True(Enumerable(1, 2, 3, 4).SetEquals(Enumerable(4, 2, 3, 1)));
 
         [Fact]
         public void TestIsEmpty()

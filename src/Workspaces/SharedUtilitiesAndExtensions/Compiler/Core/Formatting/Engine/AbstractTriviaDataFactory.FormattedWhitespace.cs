@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly string _newString;
 
-            public FormattedWhitespace(AnalyzerConfigOptions options, int lineBreaks, int indentation, string language)
+            public FormattedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, string language)
                 : base(options, language)
             {
                 this.LineBreaks = Math.Max(0, lineBreaks);
@@ -51,24 +51,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             public override bool ContainsChanges => true;
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan textSpan)
-            {
-                return SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
-            }
+                => SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override TriviaData WithLine(int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override TriviaData WithIndentation(int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void Format(
                 FormattingContext context, ChainedFormattingRules formattingRules, Action<int, TokenStream, TriviaData> formattingResultApplier, CancellationToken cancellationToken, int tokenPairIndex = TokenPairIndexNotNeeded)

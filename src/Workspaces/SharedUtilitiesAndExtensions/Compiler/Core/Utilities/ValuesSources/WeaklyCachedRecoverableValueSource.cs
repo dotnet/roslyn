@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -27,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Host
         private ValueSource<T> _recoverySource;
 
         public WeaklyCachedRecoverableValueSource(ValueSource<T> initialValue)
-        {
-            _recoverySource = initialValue;
-        }
+            => _recoverySource = initialValue;
 
         public WeaklyCachedRecoverableValueSource(WeaklyCachedRecoverableValueSource<T> savedSource)
         {
@@ -60,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         // enforce saving in a queue so save's don't overload the thread pool.
         private static Task s_latestTask = Task.CompletedTask;
-        private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
+        private static readonly NonReentrantLock s_taskGuard = new();
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
@@ -132,7 +128,11 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 using (Gate.DisposableWait(CancellationToken.None))
                 {
-                    _recoverySource = new AsyncLazy<T>(RecoverAsync, Recover, cacheResult: false);
+                    // Only assume the instance is saved if the saveTask completed successfully. If the save did not
+                    // complete, we can still rely on a constant value source to provide the instance.
+                    _recoverySource = saveTask.Status == TaskStatus.RanToCompletion
+                        ? new AsyncLazy<T>(RecoverAsync, Recover, cacheResult: false)
+                        : new ConstantValueSource<T>(instance);
 
                     // Need to keep instance alive until recovery source is updated.
                     GC.KeepAlive(instance);
@@ -163,7 +163,9 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
+#pragma warning disable VSTHRD114 // Avoid returning a null Task (False positive: https://github.com/microsoft/vs-threading/issues/637)
             return null;
+#pragma warning restore VSTHRD114 // Avoid returning a null Task
         }
     }
 }

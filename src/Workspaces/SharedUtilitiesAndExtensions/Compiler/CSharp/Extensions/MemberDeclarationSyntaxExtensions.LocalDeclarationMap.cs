@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -19,9 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private readonly Dictionary<string, ImmutableArray<SyntaxToken>> _dictionary;
 
             internal LocalDeclarationMap(Dictionary<string, ImmutableArray<SyntaxToken>> dictionary)
-            {
-                _dictionary = dictionary;
-            }
+                => _dictionary = dictionary;
 
             public ImmutableArray<SyntaxToken> this[string identifier]
             {

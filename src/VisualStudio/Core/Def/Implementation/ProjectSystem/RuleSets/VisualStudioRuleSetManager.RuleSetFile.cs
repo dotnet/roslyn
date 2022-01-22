@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -16,7 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class RuleSetFile : IRuleSetFile, IDisposable
         {
             private readonly VisualStudioRuleSetManager _ruleSetManager;
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
+            private readonly CancellationTokenSource _disposalCancellationSource;
+            private readonly CancellationToken _disposalToken;
 
             private FileChangeWatcher.IContext _fileChangeContext;
 
@@ -32,6 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 FilePath = filePath;
                 _ruleSetManager = ruleSetManager;
+
+                _disposalCancellationSource = new();
+                _disposalToken = _disposalCancellationSource.Token;
             }
 
             public void InitializeFileTracking(FileChangeWatcher fileChangeWatcher)
@@ -140,6 +148,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public void Dispose()
             {
                 RemoveFromRuleSetManagerAndDisconnectFileTrackers();
+                _disposalCancellationSource.Cancel();
+                _disposalCancellationSource.Dispose();
             }
 
             private void RemoveFromRuleSetManagerAndDisconnectFileTrackers()
@@ -169,8 +179,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // waiting for the foreground thread to release its lock on the file change service.
                 // To avoid this, just queue up a Task to do the work on the foreground thread later, after
                 // the lock on the file change service has been released.
-                _ruleSetManager._foregroundNotificationService.RegisterNotification(
-                    () => IncludeUpdateCore(), _ruleSetManager._listener.BeginAsyncOperation("IncludeUpdated"));
+                _ruleSetManager._threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    using var _ = _ruleSetManager._listener.BeginAsyncOperation("IncludeUpdated");
+                    await _ruleSetManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _disposalToken);
+                    IncludeUpdateCore();
+                });
             }
 
             private void IncludeUpdateCore()

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' A simple type parameter with no constraints.
     ''' </summary>
     Friend NotInheritable Class SimpleTypeParameterSymbol
-        Inherits TypeParameterSymbol
+        Inherits SubstitutableTypeParameterSymbol
 
         Private ReadOnly _container As Symbol
         Private ReadOnly _ordinal As Integer
@@ -21,6 +21,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _container = container
             _ordinal = ordinal
             _name = name
+
+            Debug.Assert(Me.TypeParameterKind = If(TypeOf Me.ContainingSymbol Is MethodSymbol, TypeParameterKind.Method,
+                                                If(TypeOf Me.ContainingSymbol Is NamedTypeSymbol, TypeParameterKind.Type,
+                                                TypeParameterKind.Cref)),
+                $"Container is {Me.ContainingSymbol?.Kind}, TypeParameterKind is {Me.TypeParameterKind}")
         End Sub
 
         Public Overrides ReadOnly Property Name As String
@@ -37,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
             Get
-                Return TypeParameterKind.Type
+                Return If(TypeOf Me.ContainingSymbol Is MethodSymbol, TypeParameterKind.Method, TypeParameterKind.Type)
             End Get
         End Property
 

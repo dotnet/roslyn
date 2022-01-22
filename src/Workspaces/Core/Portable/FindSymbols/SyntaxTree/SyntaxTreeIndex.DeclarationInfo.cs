@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -10,14 +12,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SyntaxTreeIndex
     {
-        private struct DeclarationInfo
+        private readonly struct DeclarationInfo
         {
             public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
 
             public DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
-            {
-                DeclaredSymbolInfos = declaredSymbolInfos;
-            }
+                => DeclaredSymbolInfos = declaredSymbolInfos;
 
             public void WriteTo(ObjectWriter writer)
             {

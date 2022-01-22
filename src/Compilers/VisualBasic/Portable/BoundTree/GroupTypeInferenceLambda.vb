@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class GroupTypeInferenceLambda
+    Partial Friend Class GroupTypeInferenceLambda
 
         Public Function InferLambdaReturnType(delegateParams As ImmutableArray(Of ParameterSymbol)) As TypeSymbol
             ' Return type of the lambda must be an Anonymous Type corresponding to the following initializer:
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Return Compilation.AnonymousTypeManager.ConstructAnonymousTypeSymbol(
                                             New AnonymousTypeDescriptor(
-                                                ImmutableArray.Create(New AnonymousTypeField(StringConstants.ItAnonymous,
+                                                ImmutableArray.Create(New AnonymousTypeField(GeneratedNameConstants.ItAnonymous,
                                                                        delegateParams(1).Type,
                                                                        Syntax.QueryClauseKeywordOrRangeVariableIdentifier.GetLocation(),
                                                                        True)),

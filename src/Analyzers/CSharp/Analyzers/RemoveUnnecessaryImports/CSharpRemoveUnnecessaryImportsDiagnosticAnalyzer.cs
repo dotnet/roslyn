@@ -47,15 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             var nodesContainingUnnecessaryUsings = new HashSet<SyntaxNode>();
             foreach (var node in nodes)
             {
-                var nodeContainingUnnecessaryUsings = node.GetAncestors().First(n => n is NamespaceDeclarationSyntax || n is CompilationUnitSyntax);
+                var nodeContainingUnnecessaryUsings = node.GetAncestors().First(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax);
                 if (!nodesContainingUnnecessaryUsings.Add(nodeContainingUnnecessaryUsings))
                 {
                     continue;
                 }
 
-                yield return nodeContainingUnnecessaryUsings is NamespaceDeclarationSyntax ?
-                    ((NamespaceDeclarationSyntax)nodeContainingUnnecessaryUsings).Usings.GetContainedSpan() :
-                    ((CompilationUnitSyntax)nodeContainingUnnecessaryUsings).Usings.GetContainedSpan();
+                yield return nodeContainingUnnecessaryUsings is BaseNamespaceDeclarationSyntax namespaceDeclaration
+                    ? namespaceDeclaration.Usings.GetContainedSpan()
+                    : ((CompilationUnitSyntax)nodeContainingUnnecessaryUsings).Usings.GetContainedSpan();
             }
         }
     }

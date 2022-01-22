@@ -1301,6 +1301,9 @@
   <data name="ERR_SharedEventNeedsSharedHandler" xml:space="preserve">
     <value>Events of shared WithEvents variables cannot be handled by non-shared methods.</value>
   </data>
+  <data name="ERR_SharedEventNeedsHandlerInTheSameType" xml:space="preserve">
+    <value>Events of shared WithEvents variables cannot be handled by methods in a different type.</value>
+  </data>
   <data name="ERR_ExpectedMinus" xml:space="preserve">
     <value>'-' expected.</value>
   </data>
@@ -4979,8 +4982,14 @@
   <data name="ThereAreNoPointerTypesInVB" xml:space="preserve">
     <value>There are no pointer types in VB.</value>
   </data>
+  <data name="ThereAreNoFunctionPointerTypesInVB" xml:space="preserve">
+    <value>There are no function pointer types in VB.</value>
+  </data>
   <data name="ThereIsNoDynamicTypeInVB" xml:space="preserve">
     <value>There is no dynamic type in VB.</value>
+  </data>
+  <data name="ThereAreNoNativeIntegerTypesInVB" xml:space="preserve">
+    <value>There are no native integer types in VB.</value>
   </data>
   <data name="VariableSyntaxNotWithinSyntaxTree" xml:space="preserve">
     <value>variableSyntax not within syntax tree</value>
@@ -5140,6 +5149,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -5572,5 +5582,72 @@
   </data>
   <data name="WRN_AttributeNotSupportedInVB_Title" xml:space="preserve">
     <value>Attribute is not supported in VB</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
+    <value>Generator failed to generate source.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
+    <value>Generator failed to initialize.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesFramework" xml:space="preserve">
+    <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+    <comment>{1} is the type that was loaded, {0} is the containing assembly.</comment>
+  </data>
+  <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
+    <value>The loaded assembly references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
+    <value>assigning to or passing 'ByRef' properties with init-only setters</value>
+  </data>
+  <data name="ERR_AssignmentInitOnly" xml:space="preserve">
+    <value>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</value>
+  </data>
+  <data name="ERR_OverridingInitOnlyProperty" xml:space="preserve">
+    <value>'{0}' cannot override init-only '{1}'.</value>
+  </data>
+  <data name="ERR_PropertyDoesntImplementInitOnly" xml:space="preserve">
+    <value>Init-only '{0}' cannot be implemented.</value>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyNotSupported" xml:space="preserve">
+    <value>'UnmanagedCallersOnly' attribute is not supported.</value>
+  </data>
+  <data name="FEATURE_CallerArgumentExpression" xml:space="preserve">
+    <value>caller argument expression</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
+  <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
+    <value>A shared abstract interface member cannot be accessed.</value>
+  </data>
+  <data name="ERR_UnimplementedSharedMember" xml:space="preserve">
+    <value>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</value>
   </data>
 </root>

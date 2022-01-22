@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     internal partial class ArrayBuilder<T>
@@ -11,7 +9,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <summary>
         /// struct enumerator used in foreach.
         /// </summary>
-        internal struct Enumerator : IEnumerator<T>
+        internal struct Enumerator
         {
             private readonly ArrayBuilder<T> _builder;
             private int _index;
@@ -34,23 +32,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             {
                 _index++;
                 return _index < _builder.Count;
-            }
-
-            public void Dispose()
-            {
-            }
-
-            object System.Collections.IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
-
-            public void Reset()
-            {
-                _index = -1;
             }
         }
     }

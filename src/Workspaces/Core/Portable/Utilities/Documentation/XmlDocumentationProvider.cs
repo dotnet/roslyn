@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class XmlDocumentationProvider : DocumentationProvider
     {
-        private readonly NonReentrantLock _gate = new NonReentrantLock();
+        private readonly NonReentrantLock _gate = new();
         private Dictionary<string, string> _docComments;
 
         /// <summary>
@@ -35,9 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="xmlDocCommentBytes">The XML document bytes.</param>
         /// <returns>An <see cref="XmlDocumentationProvider"/>.</returns>
         public static XmlDocumentationProvider CreateFromBytes(byte[] xmlDocCommentBytes)
-        {
-            return new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
-        }
+            => new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
 
         private static XmlDocumentationProvider DefaultXmlDocumentationProvider { get; } = new NullXmlDocumentationProvider();
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
             return _docComments.TryGetValue(documentationMemberID, out var docComment) ? docComment : "";
         }
 
-        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new()
         {
             DtdProcessing = DtdProcessing.Prohibit,
         };
@@ -113,9 +113,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected override Stream GetSourceStream(CancellationToken cancellationToken)
-            {
-                return SerializableBytes.CreateReadableStream(_xmlDocCommentBytes);
-            }
+                => SerializableBytes.CreateReadableStream(_xmlDocCommentBytes);
 
             public override bool Equals(object obj)
             {
@@ -149,9 +147,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override int GetHashCode()
-            {
-                return Hash.CombineValues(_xmlDocCommentBytes);
-            }
+                => Hash.CombineValues(_xmlDocCommentBytes);
         }
 
         private sealed class FileBasedXmlDocumentationProvider : XmlDocumentationProvider
@@ -167,9 +163,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected override Stream GetSourceStream(CancellationToken cancellationToken)
-            {
-                return new FileStream(_filePath, FileMode.Open, FileAccess.Read);
-            }
+                => new FileStream(_filePath, FileMode.Open, FileAccess.Read);
 
             public override bool Equals(object obj)
             {
@@ -178,9 +172,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override int GetHashCode()
-            {
-                return _filePath.GetHashCode();
-            }
+                => _filePath.GetHashCode();
         }
 
         /// <summary>
@@ -189,25 +181,19 @@ namespace Microsoft.CodeAnalysis
         private sealed class NullXmlDocumentationProvider : XmlDocumentationProvider
         {
             protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
-            {
-                return "";
-            }
+                => "";
 
             protected override Stream GetSourceStream(CancellationToken cancellationToken)
-            {
-                return new MemoryStream();
-            }
+                => new MemoryStream();
 
             public override bool Equals(object obj)
             {
                 // Only one instance is expected to exist, so reference equality is fine.
-                return (object)this == obj;
+                return ReferenceEquals(this, obj);
             }
 
             public override int GetHashCode()
-            {
-                return 0;
-            }
+                => 0;
         }
     }
 }

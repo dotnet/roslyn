@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -43,8 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private const string HTML = nameof(HTML);
         private const string HTMLX = nameof(HTMLX);
+        private const string LegacyRazor = nameof(LegacyRazor);
         private const string Razor = nameof(Razor);
         private const string XOML = nameof(XOML);
+        private const string WebForms = nameof(WebForms);
 
         private const char RazorExplicit = '@';
 
@@ -55,13 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private const string FunctionsRazor = "functions";
         private const string CodeRazor = "code";
 
-        private static readonly EditOptions s_venusEditOptions = new EditOptions(new StringDifferenceOptions
+        private static readonly EditOptions s_venusEditOptions = new(new StringDifferenceOptions
         {
             DifferenceType = StringDifferenceTypes.Character,
             IgnoreTrimWhiteSpace = false
         });
 
-        private static readonly ConcurrentDictionary<DocumentId, ContainedDocument> s_containedDocuments = new ConcurrentDictionary<DocumentId, ContainedDocument>();
+        private static readonly ConcurrentDictionary<DocumentId, ContainedDocument> s_containedDocuments = new();
 
         public static ContainedDocument TryGetContainedDocument(DocumentId id)
         {
@@ -78,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly IComponentModel _componentModel;
         private readonly Workspace _workspace;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly AbstractFormattingRule _vbHelperFormattingRule;
@@ -113,6 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             BufferCoordinator = bufferCoordinator;
 
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
+            _editorOptionsFactoryService = _componentModel.GetService<IEditorOptionsFactoryService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(SubjectBuffer);
             _vbHelperFormattingRule = vbHelperFormattingRule;
 
@@ -144,7 +150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             {
                 // RazorCSharp has an HTMLX base type but should not be associated with
                 // the HTML host type, so we check for it first.
-                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor)))
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor) ||
+                    b.ContentType.IsOfType(LegacyRazor)))
                 {
                     return HostType.Razor;
                 }
@@ -152,6 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // For TypeScript hosted in HTML the source buffers will have type names
                 // HTMLX and TypeScript.
                 if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML) ||
+                    b.ContentType.IsOfType(WebForms) ||
                     b.ContentType.IsOfType(HTMLX)))
                 {
                     return HostType.HTML;
@@ -171,11 +179,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             throw ExceptionUtilities.Unreachable;
         }
 
-
         public SourceTextContainer GetOpenTextContainer()
-        {
-            return this.SubjectBuffer.AsTextContainer();
-        }
+            => this.SubjectBuffer.AsTextContainer();
 
         public void Dispose()
         {
@@ -278,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     }
 
                     // make sure we are not replacing whitespace around start and at the end of visible span
-                    if (WhitespaceOnEdges(originalText, visibleTextSpan, change))
+                    if (WhitespaceOnEdges(visibleTextSpan, change))
                     {
                         continue;
                     }
@@ -306,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private bool WhitespaceOnEdges(SourceText text, TextSpan visibleTextSpan, TextChange change)
+        private static bool WhitespaceOnEdges(TextSpan visibleTextSpan, TextChange change)
         {
             if (!string.IsNullOrWhiteSpace(change.NewText))
             {
@@ -342,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return GetSubTextChanges(originalText, visibleSpanInOriginalText, leftText, rightText, offsetInOriginalText);
         }
 
-        private bool TryGetSubTextChanges(
+        private static bool TryGetSubTextChanges(
             SourceText originalText, TextSpan visibleSpanInOriginalText, string leftText, string rightText, int offsetInOriginalText, List<TextChange> changes)
         {
             // these are expensive. but hopefully we don't hit this as much except the boundary cases.
@@ -402,12 +407,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
-        {
-            return TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
-        }
+        private static bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
+            => TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
 
-        private bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
+        private static bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
         {
             if (text.Length == 0)
             {
@@ -461,7 +464,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return true;
         }
 
-        private bool TextAt(string text, int index, char ch1, char ch2 = default)
+        private static bool TextAt(string text, int index, char ch1, char ch2 = default)
         {
             if (index < 0 || text.Length <= index)
             {
@@ -482,7 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return false;
         }
 
-        private bool TryGetSubTextChange(
+        private static bool TryGetSubTextChange(
             SourceText originalText, TextSpan visibleSpanInOriginalText,
             string rightText, TextSpan spanInOriginalText, TextSpan spanInRightText, out TextChange textChange)
         {
@@ -590,7 +593,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return diffService.DiffStrings(leftTextWithReplacement, rightTextWithReplacement, s_venusEditOptions.DifferenceOptions);
         }
 
-        private void GetTextWithReplacements(
+        private static void GetTextWithReplacements(
             string leftText, string rightText,
             List<ValueTuple<int, int>> leftReplacementMap, List<ValueTuple<int, int>> rightReplacementMap,
             out string leftTextWithReplacement, out string rightTextWithReplacement)
@@ -622,7 +625,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private string GetTextWithReplacementMap(string text, string returnReplacement, string newLineReplacement, List<ValueTuple<int, int>> replacementMap)
+        private static string GetTextWithReplacementMap(string text, string returnReplacement, string newLineReplacement, List<ValueTuple<int, int>> replacementMap)
         {
             var delta = 0;
             var returnLength = returnReplacement.Length;
@@ -653,7 +656,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return StringBuilderPool.ReturnAndFree(sb);
         }
 
-        private Span AdjustSpan(Span span, List<ValueTuple<int, int>> replacementMap)
+        private static Span AdjustSpan(Span span, List<ValueTuple<int, int>> replacementMap)
         {
             var start = span.Start;
             var end = span.End;
@@ -757,11 +760,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
-            var options = _workspace.Options
-                                        .WithChangedOption(FormattingOptions.NewLine, root.Language, editorOptions.GetNewLineCharacter())
-                                        .WithChangedOption(FormattingOptions.UseTabs, root.Language, !editorOptions.IsConvertTabsToSpacesEnabled())
-                                        .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
-                                        .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize());
+            var options = SyntaxFormattingOptions.Create(
+                _workspace.Options
+                    .WithChangedOption(FormattingOptions.NewLine, root.Language, editorOptions.GetNewLineCharacter())
+                    .WithChangedOption(FormattingOptions.UseTabs, root.Language, !editorOptions.IsConvertTabsToSpacesEnabled())
+                    .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
+                    .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize()),
+                _workspace.Services,
+                document.Project.Language);
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -782,7 +788,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         private void AdjustIndentationForSpan(
-            Document document, ITextEdit edit, TextSpan visibleSpan, AbstractFormattingRule baseIndentationRule, OptionSet options)
+            Document document, ITextEdit edit, TextSpan visibleSpan, AbstractFormattingRule baseIndentationRule, SyntaxFormattingOptions options)
         {
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
@@ -797,10 +803,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var workspace = document.Project.Solution.Workspace;
-            var changes = Formatter.GetFormattedTextChanges(
+            var services = document.Project.Solution.Workspace.Services;
+            var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var changes = formatter.GetFormattingResult(
                 root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
-                workspace, options, formattingRules, CancellationToken.None);
+                options, formattingRules, CancellationToken.None).GetTextChanges(CancellationToken.None);
 
             visibleSpans.Add(visibleSpan);
             var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
@@ -835,7 +842,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     if (current.Span.Start < visibleSpan.Start)
                     {
                         var blockType = GetRazorCodeBlockType(visibleSpan.Start);
-                        if (blockType == RazorCodeBlockType.Block || blockType == RazorCodeBlockType.Helper)
+                        if (blockType is RazorCodeBlockType.Block or RazorCodeBlockType.Helper)
                         {
                             var baseIndentation = GetBaseIndentation(root, text, visibleSpan);
                             return new BaseIndentationFormattingRule(root, TextSpan.FromBounds(visibleSpan.Start, end), baseIndentation, _vbHelperFormattingRule);
@@ -859,7 +866,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return new BaseIndentationFormattingRule(root, span, indentation, _vbHelperFormattingRule);
         }
 
-        private void GetVisibleAndTextSpan(SourceText text, List<TextSpan> spans, int spanIndex, out TextSpan visibleSpan, out TextSpan visibleTextSpan)
+        private static void GetVisibleAndTextSpan(SourceText text, List<TextSpan> spans, int spanIndex, out TextSpan visibleSpan, out TextSpan visibleTextSpan)
         {
             visibleSpan = spans[spanIndex];
 
@@ -874,8 +881,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private int GetBaseIndentation(SyntaxNode root, SourceText text, TextSpan span)
         {
             // Is this right?  We should probably get this from the IVsContainedLanguageHost instead.
-            var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
-            var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
+            var editorOptions = _editorOptionsFactoryService.GetOptions(DataBuffer);
 
             var additionalIndentation = GetAdditionalIndentation(root, text, span);
 
@@ -901,7 +907,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return additionalIndentation;
         }
 
-        private TextSpan GetVisibleTextSpan(SourceText text, TextSpan visibleSpan, bool uptoFirstAndLastLine = false)
+        private static TextSpan GetVisibleTextSpan(SourceText text, TextSpan visibleSpan, bool uptoFirstAndLastLine = false)
         {
             var start = visibleSpan.Start;
             for (; start < visibleSpan.End; start++)
@@ -1061,7 +1067,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return false;
         }
 
-        private bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag, bool checkAt = true)
+        private static bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag, bool checkAt = true)
         {
             if (ch != tag[tag.Length - 1] || position < tag.Length)
             {
@@ -1073,7 +1079,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return string.Equals(razorTag, tag, StringComparison.OrdinalIgnoreCase) && (!checkAt || snapshot[start - 1] == RazorExplicit);
         }
 
-        private bool CheckCode(ITextSnapshot snapshot, int position, string tag)
+        private static bool CheckCode(ITextSnapshot snapshot, int position, string tag)
         {
             var i = position - 1;
             if (i < 0)
@@ -1095,7 +1101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return CheckCode(snapshot, position, ch, tag);
         }
 
-        private bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag1, string tag2)
+        private static bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag1, string tag2)
         {
             if (!CheckCode(snapshot, position, ch, tag2, checkAt: false))
             {

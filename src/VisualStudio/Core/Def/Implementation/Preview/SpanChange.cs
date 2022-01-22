@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -76,14 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public override void UpdatePreview()
-        {
-            engine.UpdatePreview(_id, this);
-        }
+            => engine.UpdatePreview(_id, this);
 
         internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
-        {
-            pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphReference;
-        }
+            => pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphReference;
 
         internal string GetApplicableText()
         {
@@ -93,9 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         internal Span GetSpan()
-        {
-            return _span.GetSpan(_buffer.CurrentSnapshot).Span;
-        }
+            => _span.GetSpan(_buffer.CurrentSnapshot).Span;
 
         internal override uint GetDisplayState()
         {

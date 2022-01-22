@@ -27,61 +27,86 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
             ServicesVSResources.Entire_solution
 
-        Public ReadOnly Property Option_use_editorconfig_compatibility_mode As String = ServicesVSResources.Use_editorconfig_compatibility_mode
+        Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
+            ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
 
-        Public ReadOnly Property Option_DisplayLineSeparators As String
-            Get
-                Return BasicVSResources.Show_procedure_line_separators
-            End Get
-        End Property
+        Public ReadOnly Property Option_DisplayLineSeparators As String =
+            BasicVSResources.Show_procedure_line_separators
 
-        Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String
-            Get
-                Return BasicVSResources.Don_t_put_ByRef_on_custom_structure
-            End Get
-        End Property
+        Public ReadOnly Property Option_Underline_reassigned_variables As String =
+            ServicesVSResources.Underline_reassigned_variables
 
-        Public ReadOnly Property Option_EditorHelp As String
-            Get
-                Return BasicVSResources.Editor_Help
-            End Get
-        End Property
+        Public ReadOnly Property Option_Display_all_hints_while_pressing_Alt_F1 As String =
+            ServicesVSResources.Display_all_hints_while_pressing_Alt_F1
 
-        Public ReadOnly Property Option_EnableEndConstruct As String
-            Get
-                Return BasicVSResources.A_utomatic_insertion_of_end_constructs
-            End Get
-        End Property
+        Public ReadOnly Property Option_Color_hints As String =
+            ServicesVSResources.Color_hints
 
-        Public ReadOnly Property Option_EnableHighlightKeywords As String
-            Get
-                Return BasicVSResources.Highlight_related_keywords_under_cursor
-            End Get
-        End Property
+        Public ReadOnly Property Option_Inline_Hints As String =
+            ServicesVSResources.Inline_Hints
 
-        Public ReadOnly Property Option_EnableHighlightReferences As String
-            Get
-                Return BasicVSResources.Highlight_references_to_symbol_under_cursor
-            End Get
-        End Property
+        Public ReadOnly Property Option_Display_inline_parameter_name_hints As String =
+            ServicesVSResources.Display_inline_parameter_name_hints
 
-        Public ReadOnly Property Option_EnableLineCommit As String
-            Get
-                Return BasicVSResources.Pretty_listing_reformatting_of_code
-            End Get
-        End Property
+        Public ReadOnly Property Option_Show_hints_for_literals As String =
+            ServicesVSResources.Show_hints_for_literals
 
-        Public ReadOnly Property Option_EnableOutlining As String
-            Get
-                Return BasicVSResources.Enter_outlining_mode_when_files_open
-            End Get
-        End Property
+        Public ReadOnly Property Option_Show_hints_for_New_expressions As String =
+            BasicVSResources.Show_hints_for_New_expressions
 
-        Public ReadOnly Property Option_ExtractMethod As String
-            Get
-                Return BasicVSResources.Extract_Method
-            End Get
-        End Property
+        Public ReadOnly Property Option_Show_hints_for_everything_else As String =
+            ServicesVSResources.Show_hints_for_everything_else
+
+        Public ReadOnly Property Option_Show_hints_for_indexers As String =
+            ServicesVSResources.Show_hints_for_indexers
+
+        Public ReadOnly Property Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent As String =
+            ServicesVSResources.Suppress_hints_when_parameter_name_matches_the_method_s_intent
+
+        Public ReadOnly Property Option_Suppress_hints_when_parameter_names_differ_only_by_suffix As String =
+            ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix
+
+        Public ReadOnly Property Option_Suppress_hints_when_argument_matches_parameter_name As String =
+            ServicesVSResources.Suppress_hints_when_argument_matches_parameter_name
+
+        Public ReadOnly Property Option_Display_diagnostics_inline_experimental As String =
+            ServicesVSResources.Display_diagnostics_inline_experimental
+
+        Public ReadOnly Property Option_at_the_end_of_the_line_of_code As String =
+            ServicesVSResources.at_the_end_of_the_line_of_code
+
+        Public ReadOnly Property Option_on_the_right_edge_of_the_editor_window As String =
+            ServicesVSResources.on_the_right_edge_of_the_editor_window
+
+        Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
+            BasicVSResources.Don_t_put_ByRef_on_custom_structure
+
+        Public ReadOnly Property Option_EditorHelp As String =
+            BasicVSResources.Editor_Help
+
+        Public ReadOnly Property Option_EnableEndConstruct As String =
+            BasicVSResources.A_utomatic_insertion_of_end_constructs
+
+        Public ReadOnly Property Option_EnableHighlightKeywords As String =
+            BasicVSResources.Highlight_related_keywords_under_cursor
+
+        Public ReadOnly Property Option_EnableHighlightReferences As String =
+            BasicVSResources.Highlight_references_to_symbol_under_cursor
+
+        Public ReadOnly Property Option_EnableLineCommit As String =
+            BasicVSResources.Pretty_listing_reformatting_of_code
+
+        Public ReadOnly Property Option_Quick_Actions As String =
+            ServicesVSResources.Quick_Actions
+
+        Public ReadOnly Property Option_Compute_Quick_Actions_asynchronously_experimental As String =
+            ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental
+
+        Public ReadOnly Property Option_EnableOutlining As String =
+            BasicVSResources.Enter_outlining_mode_when_files_open
+
+        Public ReadOnly Property Option_ExtractMethod As String =
+            BasicVSResources.Extract_Method
 
         Public ReadOnly Property Option_Implement_Interface_or_Abstract_Class As String =
             ServicesVSResources.Implement_Interface_or_Abstract_Class
@@ -104,11 +129,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_at_the_end As String =
             ServicesVSResources.at_the_end
 
-        Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String
-            Get
-                Return BasicVSResources.Generate_XML_documentation_comments_for
-            End Get
-        End Property
+        Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String =
+            BasicVSResources.Generate_XML_documentation_comments_for
+
+        Public ReadOnly Property Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments As String =
+            BasicVSResources.Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments
 
         Public ReadOnly Property Option_ShowRemarksInQuickInfo As String
             Get
@@ -175,6 +200,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Block_Structure_Guides As String =
             ServicesVSResources.Block_Structure_Guides
 
+        Public ReadOnly Property Option_Comments As String =
+            ServicesVSResources.Comments
+
         Public ReadOnly Property Option_Show_guides_for_declaration_level_constructs As String =
             ServicesVSResources.Show_guides_for_declaration_level_constructs
 
@@ -217,6 +245,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String =
             BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
 
+        Public ReadOnly Property Option_Add_missing_imports_on_paste As String =
+            BasicVSResources.Add_missing_imports_on_paste
+
         Public ReadOnly Property Option_Regular_Expressions As String =
             ServicesVSResources.Regular_Expressions
 
@@ -252,5 +283,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As SchemeName =
             SchemeName.VisualStudio2017
+
+        Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
+            ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
+
+        Public ReadOnly Property Enable_all_features_in_opened_files_from_source_generators_experimental As String =
+             ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental
+
+        Public ReadOnly Property Option_Enable_file_logging_for_diagnostics As String =
+            ServicesVSResources.Enable_file_logging_for_diagnostics
+
+        Public ReadOnly Property Option_Skip_analyzers_for_implicitly_triggered_builds As String =
+            ServicesVSResources.Skip_analyzers_for_implicitly_triggered_builds
+
+        Public ReadOnly Property Show_inheritance_margin As String =
+            ServicesVSResources.Show_inheritance_margin
+
+        Public ReadOnly Property Combine_inheritance_margin_with_indicator_margin As String =
+            ServicesVSResources.Combine_inheritance_margin_with_indicator_margin
+
+        Public ReadOnly Property Inheritance_Margin As String = ServicesVSResources.Inheritance_Margin
     End Module
 End Namespace

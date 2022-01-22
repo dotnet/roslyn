@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -32,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         }
 
         public IClassifier GetClassifier(ITextBuffer textBuffer)
-        {
-            return new InertClassifier(textBuffer);
-        }
+            => new InertClassifier(textBuffer);
 
         internal static void CaptureExistingClassificationSpans(
             IViewClassifierAggregatorService classifierAggregator, ITextView textView, ITextBuffer textBuffer)

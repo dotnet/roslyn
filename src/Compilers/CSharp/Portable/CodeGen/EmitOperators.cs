@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -515,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // then the mathematical negation of x is not representable within the operand type. If this occurs within a checked context, 
             // a System.OverflowException is thrown; if it occurs within an unchecked context, 
             // the result is the value of the operand and the overflow is not reported.
-            Debug.Assert(type == UnaryOperatorKind.Int || type == UnaryOperatorKind.Long);
+            Debug.Assert(type == UnaryOperatorKind.Int || type == UnaryOperatorKind.Long || type == UnaryOperatorKind.NInt);
 
             // ldc.i4.0
             // conv.i8  (when the operand is 64bit)
@@ -527,6 +529,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (type == UnaryOperatorKind.Long)
             {
                 _builder.EmitOpCode(ILOpCode.Conv_i8);
+            }
+            else if (type == UnaryOperatorKind.NInt)
+            {
+                _builder.EmitOpCode(ILOpCode.Conv_i);
             }
 
             EmitExpression(expression.Operand, used: true);
@@ -705,6 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return IsUnsigned(Binder.GetEnumPromotedType(op.Right.Type.GetEnumUnderlyingType().SpecialType));
 
                 case BinaryOperatorKind.UInt:
+                case BinaryOperatorKind.NUInt:
                 case BinaryOperatorKind.ULong:
                 case BinaryOperatorKind.ULongAndPointer:
                 case BinaryOperatorKind.PointerAndInt:

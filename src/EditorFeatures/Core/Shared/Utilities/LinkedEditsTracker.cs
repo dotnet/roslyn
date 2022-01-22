@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     internal class LinkedEditsTracker
     {
-        private static readonly object s_propagateSpansEditTag = new object();
+        private static readonly object s_propagateSpansEditTag = new();
 
         private readonly ITextBuffer _subjectBuffer;
 
@@ -30,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public IList<SnapshotSpan> GetActiveSpansForSnapshot(ITextSnapshot snapshot)
-        {
-            return _trackingSpans.Select(ts => ts.GetSpan(snapshot)).ToList();
-        }
+            => _trackingSpans.Select(ts => ts.GetSpan(snapshot)).ToList();
 
         public void AddSpans(IEnumerable<ITrackingSpan> spans)
         {
@@ -54,15 +53,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             AddSpans(newTrackingSpans);
         }
 
-        public bool MyOwnChanges(TextContentChangedEventArgs args)
-        {
-            return args.EditTag == s_propagateSpansEditTag;
-        }
+        public static bool MyOwnChanges(TextContentChangedEventArgs args)
+            => args.EditTag == s_propagateSpansEditTag;
 
-        public bool TryGetTextChanged(TextContentChangedEventArgs args, out string replacementText)
+        public bool TryGetTextChanged(TextContentChangedEventArgs args, [NotNullWhen(true)] out string? replacementText)
         {
             // make sure I am not called with my own changes
-            Contract.ThrowIfTrue(this.MyOwnChanges(args));
+            Contract.ThrowIfTrue(MyOwnChanges(args));
 
             // initialize out parameter
             replacementText = null;

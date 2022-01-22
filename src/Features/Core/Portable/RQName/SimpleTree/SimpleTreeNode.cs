@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName.SimpleTree
         public readonly string Text;
 
         public SimpleTreeNode(string text)
-        {
-            Text = text;
-        }
+            => Text = text;
     }
 }

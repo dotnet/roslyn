@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Module CompletionUtilities
@@ -45,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ch = "]"c OrElse IsWordCharacter(ch)
         End Function
 
-        Public Function IsDefaultTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Function IsDefaultTriggerCharacter(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Dim ch = text(characterPosition)
             If CommonTriggerChars.Contains(ch) Then
                 Return True
@@ -54,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return IsStartingNewWord(text, characterPosition, options)
         End Function
 
-        Public Function IsDefaultTriggerCharacterOrParen(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Function IsDefaultTriggerCharacterOrParen(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Dim ch = text(characterPosition)
 
             Return _
@@ -63,15 +62,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 IsStartingNewWord(text, characterPosition, options)
         End Function
 
-        Public Function IsTriggerAfterSpaceOrStartOfWordCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Function IsTriggerAfterSpaceOrStartOfWordCharacter(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             ' Bring up on space or at the start of a word.
             Dim ch = text(characterPosition)
 
             Return ch = " "c OrElse IsStartingNewWord(text, characterPosition, options)
         End Function
 
-        Private Function IsStartingNewWord(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            If Not options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic) Then
+        Private Function IsStartingNewWord(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
+            If Not options.TriggerOnTypingLetters Then
                 Return False
             End If
 
