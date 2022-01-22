@@ -9,14 +9,15 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using System.Web.Script.Serialization;
 using System.Xml.Linq;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             }
         }
 
-        private (SyntaxToken, JsonTree, VirtualCharSequence) JustParseTree(
+        private (SyntaxToken, JsonTree?, VirtualCharSequence) JustParseTree(
             string stringText, bool strict, bool conversionFailureOk)
         {
             var token = GetStringToken(stringText);
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return (token, tree, allChars);
         }
 
-        private JsonTree TryParseTree(
+        private JsonTree? TryParseTree(
             string stringText, bool strict, bool runTreeCheck, bool conversionFailureOk)
         {
             var (token, tree, allChars) = JustParseTree(stringText, strict, conversionFailureOk);
@@ -170,8 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                         var serializer1 = new DataContractJsonSerializer(typeof(object));
                         serializer1.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(token.ValueText)));
 
-                        var serializer2 = new JavaScriptSerializer();
-                        serializer2.DeserializeObject(token.ValueText);
+                        JsonDocument.Parse(token.ValueText, new JsonDocumentOptions { AllowTrailingCommas = false, CommentHandling = JsonCommentHandling.Disallow });
                     }
                     catch (Exception)
                     {
@@ -319,8 +319,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             string stringText, string expected, string looseDiagnostics, string strictDiagnostics, [CallerMemberName]string caller = "")
         {
             var (token, tree, allChars) = JustParseTree(stringText, strict: true, conversionFailureOk: false);
-
-            var actualTree = TreeToText(tree).Replace("\"", "\"\"");
+            Assert.NotNull(tree);
+            Roslyn.Utilities.Contract.ThrowIfNull(tree);
+            var actualTree = TreeToText(tree!).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actualTree);
 
             var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
