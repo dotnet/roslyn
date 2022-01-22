@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using System.Runtime.CompilerServices;
@@ -31,11 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             FormatOnReturnCheckBox.Content = CSharpVSResources.Automatically_format_on_return;
             FormatOnPasteCheckBox.Content = CSharpVSResources.Automatically_format_on_paste;
 
-            BindToOption(FormatWhenTypingCheckBox, FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp);
-            BindToOption(FormatOnCloseBraceCheckBox, FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp);
-            BindToOption(FormatOnSemicolonCheckBox, FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp);
-            BindToOption(FormatOnReturnCheckBox, FormattingOptions2.AutoFormattingOnReturn, LanguageNames.CSharp);
-            BindToOption(FormatOnPasteCheckBox, FeatureOnOffOptions.FormatOnPaste, LanguageNames.CSharp);
+            BindToOption(FormatWhenTypingCheckBox, AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp);
+            BindToOption(FormatOnCloseBraceCheckBox, AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, LanguageNames.CSharp);
+            BindToOption(FormatOnSemicolonCheckBox, AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon, LanguageNames.CSharp);
+            BindToOption(FormatOnReturnCheckBox, AutoFormattingOptions.Metadata.AutoFormattingOnReturn, LanguageNames.CSharp);
+            BindToOption(FormatOnPasteCheckBox, FormattingOptionsMetadata.FormatOnPaste, LanguageNames.CSharp);
         }
     }
 }

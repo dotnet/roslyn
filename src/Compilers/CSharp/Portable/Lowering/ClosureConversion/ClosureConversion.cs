@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if DEBUG
 //#define CHECK_LOCALS // define CHECK_LOCALS to help debug some rewriting problems that would otherwise cause code-gen failures
 
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
 
-#nullable restore
+#nullable disable
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
@@ -228,12 +230,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
         {
             Debug.Assert((object)thisType != null);
             Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.Type, thisType, TypeCompareKind.ConsiderEverything2)));
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
+            Debug.Assert(diagnostics.DiagnosticBag is object);
 
             var analysis = Analysis.Analyze(
                 loweredBody,
@@ -243,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slotAllocatorOpt,
                 compilationState,
                 closureDebugInfoBuilder,
-                diagnostics);
+                diagnostics.DiagnosticBag);
 
             CheckLocalsDefined(loweredBody);
             var rewriter = new ClosureConversion(
@@ -339,13 +342,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var frame = MakeFrame(scope, env);
                     env.SynthesizedEnvironment = frame;
 
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame);
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame.GetCciAdapter());
                     if (frame.Constructor != null)
                     {
                         AddSynthesizedMethod(
                             frame.Constructor,
                             FlowAnalysisPass.AppendImplicitReturn(
-                                MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                                MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, Diagnostics),
                                 frame.Constructor));
                     }
 
@@ -384,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var hoistedField = LambdaCapturedVariable.Create(synthesizedEnv, captured, ref _synthesizedFieldNameIdDispenser);
                     proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
                     synthesizedEnv.AddHoistedField(hoistedField);
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(synthesizedEnv, hoistedField);
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(synthesizedEnv, hoistedField.GetCciAdapter());
                 }
 
                 return synthesizedEnv;
@@ -461,7 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     topLevelMethodId,
                     originalMethod,
                     nestedFunction.BlockSyntax,
-                    lambdaId);
+                    lambdaId,
+                    CompilationState);
                 nestedFunction.SynthesizedLoweredMethod = synthesizedMethod;
             });
 
@@ -490,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// unfortunately either containing method or containing class could be synthetic
         /// therefore could have no syntax.
         /// </param>
-        private SynthesizedClosureEnvironment GetStaticFrame(DiagnosticBag diagnostics, SyntaxNode syntax)
+        private SynthesizedClosureEnvironment GetStaticFrame(BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if ((object)_lazyStaticLambdaFrame == null)
             {
@@ -532,13 +536,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var frame = _lazyStaticLambdaFrame;
 
                     // add frame type and cache field
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame.GetCciAdapter());
 
                     // add its ctor (note Constructor can be null if TypeKind.Struct is passed in to LambdaFrame.ctor, but Class is passed in above)
                     AddSynthesizedMethod(
                         frame.Constructor,
                         FlowAnalysisPass.AppendImplicitReturn(
-                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, diagnostics),
                             frame.Constructor));
 
                     // add cctor
@@ -664,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 prologue.Add(new BoundAssignmentOperator(syntax,
                     new BoundLocal(syntax, framePointer, null, frameType),
-                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor, binderOpt: null),
+                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor),
                     frameType));
             }
 
@@ -685,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(capturedFrame.Type.IsReferenceType); // Make sure we're not accidentally capturing a struct by value
                         frame.AddHoistedField(capturedFrame);
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame);
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame.GetCciAdapter());
                     }
 
                     proxies[_innermostFramePointer] = new CapturedToFrameSymbolReplacement(capturedFrame, isReusable: false);
@@ -1055,8 +1059,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Expanded,
                     node.InvokedAsExtensionMethod,
                     node.ArgsToParamsOpt,
+                    node.DefaultArguments,
                     node.ResultKind,
-                    node.BinderOpt,
                     type);
             }
 
@@ -1188,6 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It needs to run before the exception variable is accessed.
             // To ensure that, we will make exception variable a sequence that performs prologue as its side-effects.
             BoundExpression rewrittenExceptionSource = null;
+            var rewrittenFilterPrologue = (BoundStatementList)this.Visit(node.ExceptionFilterPrologueOpt);
             var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             if (node.ExceptionSourceOpt != null)
             {
@@ -1205,12 +1210,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (prologue.Count > 0)
             {
                 Debug.Assert(rewrittenFilter != null);
-                rewrittenFilter = new BoundSequence(
-                    rewrittenFilter.Syntax,
-                    ImmutableArray.Create<LocalSymbol>(),
-                    prologue.ToImmutable(),
-                    rewrittenFilter,
-                    rewrittenFilter.Type);
+                var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(prologue.Count);
+                foreach (var p in prologue)
+                {
+                    prologueBuilder.Add(new BoundExpressionStatement(p.Syntax, p) { WasCompilerGenerated = true });
+                }
+                if (rewrittenFilterPrologue != null)
+                {
+                    prologueBuilder.AddRange(rewrittenFilterPrologue.Statements);
+                }
+
+                rewrittenFilterPrologue = new BoundStatementList(rewrittenFilter.Syntax, prologueBuilder.ToImmutableAndFree());
             }
 
             // done with this.
@@ -1225,6 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenCatchLocals,
                 rewrittenExceptionSource,
                 exceptionTypeOpt,
+                rewrittenFilterPrologue,
                 rewrittenFilter,
                 rewrittenBlock,
                 node.IsSynthesizedAsyncCatchAll);
@@ -1298,9 +1309,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver,
                     method,
                     node.IsExtensionMethod,
+                    node.WasTargetTyped,
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
+        }
+
+        public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            if (node.TargetMethod.MethodKind == MethodKind.LocalFunction)
+            {
+                Debug.Assert(node.TargetMethod is { RequiresInstanceReceiver: false, IsStatic: true });
+                ImmutableArray<BoundExpression> arguments = default;
+                ImmutableArray<RefKind> argRefKinds = default;
+
+                RemapLocalFunction(
+                    node.Syntax,
+                    node.TargetMethod,
+                    out BoundExpression receiver,
+                    out MethodSymbol remappedMethod,
+                    ref arguments,
+                    ref argRefKinds);
+
+                Debug.Assert(arguments.IsDefault &&
+                             argRefKinds.IsDefault &&
+                             receiver.Kind == BoundKind.TypeExpression &&
+                             remappedMethod is { RequiresInstanceReceiver: false, IsStatic: true });
+
+                return node.Update(remappedMethod, constrainedToTypeOpt: node.ConstrainedToTypeOpt, node.Type);
+            }
+
+            return base.VisitFunctionPointerLoad(node);
         }
 
         public override BoundNode VisitConversion(BoundConversion conversion)
@@ -1451,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaScope = null;
             }
 
-            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
+            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod.GetCciAdapter());
 
             foreach (var parameter in node.Symbol.Parameters)
             {
@@ -1568,6 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver,
                 referencedMethod,
                 isExtensionMethod: false,
+                wasTargetTyped: false,
                 type: type);
 
             // if the block containing the lambda is not the innermost block,
@@ -1597,17 +1637,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // different from the local variable `type`, which has the node's type substituted for the current container.
                         var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
-                        var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
-                            // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
-                            // no need to include the top-level method ordinal in the field name.
-                            (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
-                            topLevelMethodId.Generation,
-                            lambdaId.Ordinal,
-                            lambdaId.Generation);
+                        var hasTypeParametersFromAnyMethod = cacheVariableType.ContainsMethodTypeParameter();
 
-                        var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
-                        cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
+                        // If we want to cache a variable by moving its value into a field,
+                        // the variable cannot use any type parameter from the method it is currently declared within.
+                        if (!hasTypeParametersFromAnyMethod)
+                        {
+                            var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
+                                // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already,
+                                // no need to include the top-level method ordinal in the field name.
+                                (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
+                                topLevelMethodId.Generation,
+                                lambdaId.Ordinal,
+                                lambdaId.Generation);
+
+                            var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
+                            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField.GetCciAdapter());
+                            cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
+                            result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
+                        }
                     }
                     else
                     {
@@ -1618,9 +1666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (_addedStatements == null) _addedStatements = ArrayBuilder<BoundStatement>.GetInstance();
                         cache = F.Local(cacheLocal);
                         _addedStatements.Add(F.Assignment(cache, F.Null(type)));
+                        result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                     }
-
-                    result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {

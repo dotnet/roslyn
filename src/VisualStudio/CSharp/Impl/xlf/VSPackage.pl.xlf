@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -79,53 +81,60 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="needs-review-translation">Pokaż dane diagnostyczne dla zamkniętych plików;
-Koloruj wyrażenia regularne; 
-Wyróżnij powiązane składniki pod kursorem; 
-Raportuj nieprawidłowe wyrażenia regularne;
-Włącz pełną analizę rozwiązania;
-Wykonaj analizę funkcji edytora w procesie zewnętrznym;
-Włącz nawigowanie do dekompilowanych źródeł;
-Dyrektywy using;
-Umieść najpierw dyrektywy system podczas sortowania deklaracji using;
-Oddziel grupy dyrektywy using;
-Sugeruj dyrektywy using dla typów w zestawach odwołania;
-Sugeruj dyrektywy using dla typów w pakietach NuGet;
-Wyróżnianie;
-Wyróżnij odwołania do symbolu pod kursorem;
-Wyróżnij pokrewne słowa kluczowe pod kursorem;
-Konspekt;
-Przejdź do trybu konspektu przy otwieraniu plików;
-Pokaż separatory wierszy procedury;
-Pokaż konspekt dla konstrukcji na poziomie deklaracji;
-Pokaż konspekt dla konstrukcji na poziomie kodu;
-Pokaż konspekt dla regionów komentarzy i preprocesora;
-Zwiń regiony podczas zwijania do definicji;
-Zanikanie;
-Zanikanie nieużywanych dyrektyw using;
-Zanikanie nieosiągalnego kodu;
-Prowadnice struktury blokowej;
-Pokaż prowadnice dla konstrukcji na poziomie deklaracji;
-Pokaż prowadnice dla konstrukcji na poziomie kodu;
-Pomoc edytora;
-Generuj komentarze dokumentacji XML dla elementów ///;
-Wstaw znak * na początku nowych wierszy podczas pisania komentarzy (/* */);
-Pokaż podgląd śledzenia zmian nazw;
-Dziel literały ciągów po naciśnięciu klawisza Enter;
-Zgłaszaj nieprawidłowe symbole zastępcze w wywołaniach metody string.Format;
-Wyodrębnianie metody;
-Nie umieszczaj parametrów ref i out w strukturze niestandardowej;
-Implementuj interfejs lub klasę abstrakcyjną;
-W przypadku wstawiania właściwości, zdarzeń i metod umieszczaj je;
-razem z innymi składowymi tego samego rodzaju;
-na końcu;
-Podczas generowania właściwości;
-preferuj właściwości przerzucane;
-preferuj właściwości automatyczne;
-wyrażenie regularne;
-wyrażenie regularne;
-Użyj ulepszonych kolorów;</target>
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="new">Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -273,8 +282,10 @@ Wstaw spację przed operatorami binarnymi i po nich;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -283,10 +294,12 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
         <target state="translated">Zmień ustawienia listy uzupełniania;Wybierz wstępnie ostatnio używaną składową; Listy uzupełniania;
 Pokaż listę uzupełniania po wpisaniu znaku;
 Pokaż listę uzupełniania po usunięciu znaku;
+Automatycznie pokazuj listę uzupełniania na liście argumentów (funkcja eksperymentalna);
 Wyróżnij pasujące fragmenty elementów listy uzupełniania;
 Pokaż filtry elementów uzupełniania;
 Zachowanie fragmentów kodu;
@@ -297,7 +310,8 @@ Zachowanie klawisza Enter;
 Nigdy nie dodawaj nowego wiersza po naciśnięciu klawisza Enter;
 Dodaj nowy wiersz po naciśnięciu klawisza Enter tylko po zakończeniu pełnego wpisanego wyrazu;
 Zawsze dodawaj nowy wiersz po naciśnięciu klawisza Enter;
-Pokaż sugestie dotyczące nazwy;</target>
+Pokaż sugestie dotyczące nazwy;
+Pokaż elementy z niezaimportowanych przestrzeni nazw (funkcja eksperymentalna);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

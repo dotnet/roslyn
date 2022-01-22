@@ -20,12 +20,13 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
     using Constants = ConvertSwitchStatementToExpressionConstants;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertSwitchStatementToExpression), Shared]
     internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -41,13 +42,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            var switchLocation = context.Diagnostics.First().AdditionalLocations[0];
+            var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, context.CancellationToken);
+            if (switchStatement.ContainsDirectives)
+            {
+                // Avoid providing code fixes for switch statements containing directives
+                return Task.CompletedTask;
+            }
+
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
             using var spansDisposer = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length, out var spans);
             foreach (var diagnostic in diagnostics)
@@ -64,39 +75,43 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 spans.Add(switchLocation.SourceSpan);
 
                 var properties = diagnostic.Properties;
-                var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]);
-                var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
+                var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]!);
+                var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]!);
 
-                var declaratorToRemoveLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var declaratorToRemoveLocation = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                SyntaxNode declaratorToRemoveNodeOpt = null;
-                ITypeSymbol declaratorToRemoveTypeOpt = null;
+                SyntaxNode? declaratorToRemoveNode = null;
+                ITypeSymbol? declaratorToRemoveType = null;
 
-                if (declaratorToRemoveLocationOpt != null)
+                if (declaratorToRemoveLocation != null)
                 {
-                    declaratorToRemoveNodeOpt = declaratorToRemoveLocationOpt.FindNode(cancellationToken);
-                    declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt).GetSymbolType();
+                    declaratorToRemoveNode = declaratorToRemoveLocation.FindNode(cancellationToken);
+                    declaratorToRemoveType = semanticModel.GetDeclaredSymbol(declaratorToRemoveNode, cancellationToken).GetSymbolType();
                 }
 
-                var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(cancellationToken);
-                var switchExpression = Rewriter.Rewrite(switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
-                    shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
-                    generateDeclaration: declaratorToRemoveLocationOpt is object);
+                var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
+
+                var switchExpression = Rewriter.Rewrite(
+                   switchStatement, semanticModel, declaratorToRemoveType, nodeToGenerate,
+                   shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
+                   generateDeclaration: declaratorToRemoveLocation is not null,
+                   cancellationToken);
 
                 editor.ReplaceNode(switchStatement, switchExpression.WithAdditionalAnnotations(Formatter.Annotation));
 
-                if (declaratorToRemoveLocationOpt is object)
+                if (declaratorToRemoveLocation is not null)
                 {
-                    editor.RemoveNode(declaratorToRemoveLocationOpt.FindNode(cancellationToken));
+                    editor.RemoveNode(declaratorToRemoveLocation.FindNode(cancellationToken));
                 }
 
                 if (shouldRemoveNextStatement)
                 {
                     // Already morphed into the top-level switch expression.
                     var nextStatement = switchStatement.GetNextStatement();
+                    Contract.ThrowIfNull(nextStatement);
                     Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
-                    editor.RemoveNode(nextStatement);
+                    editor.RemoveNode(nextStatement.IsParentKind(SyntaxKind.GlobalStatement) ? nextStatement.GetRequiredParent() : nextStatement);
                 }
             }
         }
@@ -104,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Convert_switch_statement_to_expression, createChangedDocument)
+                : base(CSharpAnalyzersResources.Convert_switch_statement_to_expression, createChangedDocument, nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression))
             {
             }
         }

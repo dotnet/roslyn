@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private ThreeState _lazyIsSecurityAttribute = ThreeState.Unknown;
 
-        // Use MemberNotNull when available, tied to HasErrors https://github.com/dotnet/roslyn/issues/41964
         /// <summary>
         /// Gets the attribute class being applied.
         /// </summary>
@@ -42,6 +40,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets a reference to the source for this application of the attribute. Returns null for applications of attributes on metadata Symbols.
         /// </summary>
         public new abstract SyntaxReference? ApplicationSyntaxReference { get; }
+
+        // Overridden to be able to apply MemberNotNull to the new members
+        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
+        internal override bool HasErrors
+        {
+            get
+            {
+                var hasErrors = base.HasErrors;
+                if (!hasErrors)
+                {
+                    Debug.Assert(AttributeClass is not null);
+                    Debug.Assert(AttributeConstructor is not null);
+                }
+
+                return hasErrors;
+            }
+        }
 
         /// <summary>
         /// Gets the list of constructor arguments specified by this application of the attribute.  This list contains both positional arguments
@@ -124,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Native compiler doesn't generate a use-site error if it is not found, we do the same.
                 var wellKnownType = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAttribute);
                 Debug.Assert(AttributeClass is object);
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                _lazyIsSecurityAttribute = AttributeClass.IsDerivedFrom(wellKnownType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics).ToThreeState();
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                _lazyIsSecurityAttribute = AttributeClass.IsDerivedFrom(wellKnownType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref discardedUseSiteInfo).ToThreeState();
             }
 
             return _lazyIsSecurityAttribute.Value();
@@ -141,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.AttributeClass is object)
             {
-                string className = this.AttributeClass.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
+                string className = this.AttributeClass.ToDisplayString(SymbolDisplayFormat.TestFormat);
 
                 if (!this.CommonConstructorArguments.Any() & !this.CommonNamedArguments.Any())
                 {
@@ -221,9 +236,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             where T : WellKnownAttributeData, ISecurityAttributeTarget, new()
         {
             Debug.Assert(!this.HasErrors);
+            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
 
             bool hasErrors;
-            DeclarativeSecurityAction action = DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, out hasErrors, arguments.Diagnostics);
+            DeclarativeSecurityAction action = DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, out hasErrors, (BindingDiagnosticBag)arguments.Diagnostics);
 
             if (!hasErrors)
             {
@@ -233,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.IsTargetAttribute(targetSymbol, AttributeDescription.PermissionSetAttribute))
                 {
-                    string? resolvedPathForFixup = DecodePermissionSetAttribute(compilation, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                    string? resolvedPathForFixup = DecodePermissionSetAttribute(compilation, arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
                     if (resolvedPathForFixup != null)
                     {
                         securityData.SetPathForPermissionSetAttributeFixup(arguments.Index, resolvedPathForFixup, arguments.AttributesCount);
@@ -242,18 +258,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        static internal void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal static void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, ISkipLocalsInitAttributeTarget, new()
         {
             arguments.GetOrCreateData<T>().HasSkipLocalsInitAttribute = true;
             if (!compilation.Options.AllowUnsafe)
             {
                 Debug.Assert(arguments.AttributeSyntaxOpt is object);
-                arguments.Diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, arguments.AttributeSyntaxOpt.Location);
+                ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_IllegalUnsafe, arguments.AttributeSyntaxOpt.Location);
             }
         }
 
-        static internal void DecodeMemberNotNullAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal static void DecodeMemberNotNullAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
             var value = arguments.Attribute.CommonConstructorArguments[0];
@@ -300,10 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
-            arguments.Diagnostics.Add(ErrorCode.WRN_MemberNotNullBadMember, arguments.AttributeSyntaxOpt.Location, memberName);
+            ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.WRN_MemberNotNullBadMember, arguments.AttributeSyntaxOpt.Location, memberName);
         }
 
-        static internal void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal static void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
             var value = arguments.Attribute.CommonConstructorArguments[1];
@@ -340,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarativeSecurityAction DecodeSecurityAttributeAction(Symbol targetSymbol, CSharpCompilation compilation, AttributeSyntax? nodeOpt, out bool hasErrors, DiagnosticBag diagnostics)
+        private DeclarativeSecurityAction DecodeSecurityAttributeAction(Symbol targetSymbol, CSharpCompilation compilation, AttributeSyntax? nodeOpt, out bool hasErrors, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)targetSymbol != null);
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
@@ -370,8 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 TypedConstant firstArg = ctorArgs.First();
-                TypeSymbol firstArgType = (TypeSymbol)firstArg.TypeInternal;
-                if ((object)firstArgType != null && firstArgType.Equals(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction)))
+                var firstArgType = (TypeSymbol?)firstArg.TypeInternal;
+                if (firstArgType is object && firstArgType.Equals(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction)))
                 {
                     return DecodeSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, out hasErrors);
                 }
@@ -383,10 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return DeclarativeSecurityAction.None;
         }
 
-        private DeclarativeSecurityAction DecodeSecurityAction(TypedConstant typedValue, Symbol targetSymbol, AttributeSyntax? nodeOpt, DiagnosticBag diagnostics, out bool hasErrors)
+        private DeclarativeSecurityAction DecodeSecurityAction(TypedConstant typedValue, Symbol targetSymbol, AttributeSyntax? nodeOpt, BindingDiagnosticBag diagnostics, out bool hasErrors)
         {
             Debug.Assert((object)targetSymbol != null);
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
+            Debug.Assert(typedValue.ValueInternal is object);
 
             int securityAction = (int)typedValue.ValueInternal;
             bool isPermissionRequestAction;
@@ -508,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// See <see cref="Microsoft.CodeAnalysis.CodeGen.PermissionSetAttributeWithFileReference"/> for remaining fixup steps.
         /// </remarks>
         /// <returns>String containing the resolved file path if PermissionSetAttribute needs fixup during codegen, null otherwise.</returns>
-        private string? DecodePermissionSetAttribute(CSharpCompilation compilation, AttributeSyntax? nodeOpt, DiagnosticBag diagnostics)
+        private string? DecodePermissionSetAttribute(CSharpCompilation compilation, AttributeSyntax? nodeOpt, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!this.HasErrors);
 
@@ -527,15 +544,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     PermissionSetAttributeTypeHasRequiredProperty(attrType, filePropName))
                 {
                     // resolve file prop path
-                    var fileName = (string)namedArg.Value.ValueInternal;
+                    var fileName = (string?)namedArg.Value.ValueInternal;
                     var resolver = compilation.Options.XmlReferenceResolver;
 
-                    resolvedFilePath = (resolver != null) ? resolver.ResolveReference(fileName, baseFilePath: null) : null;
+                    resolvedFilePath = (resolver != null && fileName != null) ? resolver.ResolveReference(fileName, baseFilePath: null) : null;
 
                     if (resolvedFilePath == null)
                     {
                         // CS7053: Unable to resolve file path '{0}' specified for the named argument '{1}' for PermissionSet attribute
-                        Location argSyntaxLocation = nodeOpt != null ? nodeOpt.GetNamedArgumentSyntax(filePropName).Location : NoLocation.Singleton;
+                        Location argSyntaxLocation = nodeOpt?.GetNamedArgumentSyntax(filePropName)?.Location ?? NoLocation.Singleton;
                         diagnostics.Add(ErrorCode.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, fileName ?? "<null>", filePropName);
                     }
                     else if (!PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName))
@@ -572,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal void DecodeClassInterfaceAttribute(AttributeSyntax? nodeOpt, DiagnosticBag diagnostics)
+        internal void DecodeClassInterfaceAttribute(AttributeSyntax? nodeOpt, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!this.HasErrors);
 
@@ -598,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void DecodeInterfaceTypeAttribute(AttributeSyntax node, DiagnosticBag diagnostics)
+        internal void DecodeInterfaceTypeAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!this.HasErrors);
 
@@ -625,11 +642,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal string DecodeGuidAttribute(AttributeSyntax? nodeOpt, DiagnosticBag diagnostics)
+        internal string DecodeGuidAttribute(AttributeSyntax? nodeOpt, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!this.HasErrors);
 
-            var guidString = (string)this.CommonConstructorArguments[0].ValueInternal;
+            var guidString = (string?)this.CommonConstructorArguments[0].ValueInternal;
 
             // Native compiler allows only a specific GUID format: "D" format (32 digits separated by hyphens)
             Guid guid;
@@ -641,7 +658,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 guidString = String.Empty;
             }
 
-            return guidString;
+            return guidString!;
+        }
+
+        private protected sealed override bool IsStringProperty(string memberName)
+        {
+            if (AttributeClass is object)
+            {
+                foreach (var member in AttributeClass.GetMembers(memberName))
+                {
+                    if (member is PropertySymbol { Type: { SpecialType: SpecialType.System_String } })
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -12,8 +15,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -21,24 +23,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("19");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("22");
 
         /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
         private static Task<SpellChecker> LoadOrCreateSpellCheckerAsync(
-            Solution solution,
+            HostWorkspaceServices services,
+            SolutionKey solutionKey,
             Checksum checksum,
+            StorageDatabase database,
             string filePath,
-            string concatenatedNames,
             ImmutableArray<Node> sortedNodes)
         {
             var result = TryLoadOrCreateAsync(
-                solution,
+                services,
+                solutionKey,
                 checksum,
+                database,
                 loadOnly: false,
-                createAsync: () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
+                createAsync: () => CreateSpellCheckerAsync(checksum, sortedNodes),
                 keySuffix: "_SpellChecker_" + filePath,
                 tryReadObject: SpellChecker.TryReadFrom,
                 cancellationToken: CancellationToken.None);
@@ -51,8 +56,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// code for serialization of SymbolTreeInfos and SpellCheckers.
         /// </summary>
         private static async Task<T> TryLoadOrCreateAsync<T>(
-            Solution solution,
+            HostWorkspaceServices services,
+            SolutionKey solutionKey,
             Checksum checksum,
+            StorageDatabase database,
             bool loadOnly,
             Func<Task<T>> createAsync,
             string keySuffix,
@@ -67,57 +74,56 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 // Ok, we can use persistence.  First try to load from the persistence service.
-                var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
+                var persistentStorageService = services.GetPersistentStorageService(database);
 
-                T result;
-                using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
+                var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
+                await using var _ = storage.ConfigureAwait(false);
+
+                // Get the unique key to identify our data.
+                var key = PrefixMetadataSymbolTreeInfo + keySuffix;
+                using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
+                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
                 {
-                    // Get the unique key to identify our data.
-                    var key = PrefixMetadataSymbolTreeInfo + keySuffix;
-                    using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
-                    using (var reader = ObjectReader.TryGetReader(stream))
+                    if (reader != null)
                     {
-                        if (reader != null)
+                        // We have some previously persisted data.  Attempt to read it back.  
+                        // If we're able to, and the version of the persisted data matches
+                        // our version, then we can reuse this instance.
+                        var read = tryReadObject(reader);
+                        if (read != null)
                         {
-                            // We have some previously persisted data.  Attempt to read it back.  
-                            // If we're able to, and the version of the persisted data matches
-                            // our version, then we can reuse this instance.
-                            result = tryReadObject(reader);
-                            if (result != null)
-                            {
-                                // If we were able to read something in, it's checksum better
-                                // have matched the checksum we expected.
-                                Debug.Assert(result.Checksum == checksum);
-                                return result;
-                            }
+                            // If we were able to read something in, it's checksum better
+                            // have matched the checksum we expected.
+                            Debug.Assert(read.Checksum == checksum);
+                            return read;
                         }
                     }
+                }
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    // Couldn't read from the persistence service.  If we've been asked to only load
-                    // data and not create new instances in their absence, then there's nothing left
-                    // to do at this point.
-                    if (loadOnly)
+                // Couldn't read from the persistence service.  If we've been asked to only load
+                // data and not create new instances in their absence, then there's nothing left
+                // to do at this point.
+                if (loadOnly)
+                {
+                    return null;
+                }
+
+                // Now, try to create a new instance and write it to the persistence service.
+                var result = await CreateWithLoggingAsync().ConfigureAwait(false);
+                Contract.ThrowIfNull(result);
+
+                using (var stream = SerializableBytes.CreateWritableStream())
+                {
+                    using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
                     {
-                        return null;
+                        result.WriteTo(writer);
                     }
 
-                    // Now, try to create a new instance and write it to the persistence service.
-                    result = await CreateWithLoggingAsync().ConfigureAwait(false);
-                    Contract.ThrowIfNull(result);
+                    stream.Position = 0;
 
-                    using (var stream = SerializableBytes.CreateWritableStream())
-                    {
-                        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
-                        {
-                            result.WriteTo(writer);
-                        }
-
-                        stream.Position = 0;
-
-                        await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);
-                    }
+                    await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);
                 }
 
                 return result;
@@ -129,21 +135,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     return await createAsync().ConfigureAwait(false);
                 }
-            };
+            }
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
         {
-            writer.WriteString(_concatenatedNames);
-
             writer.WriteInt32(_nodes.Length);
-            foreach (var node in _nodes)
+            foreach (var group in GroupByName(_nodes.AsMemory()))
             {
-                writer.WriteInt32(node.NameSpan.Start);
-                writer.WriteInt32(node.NameSpan.Length);
-                writer.WriteInt32(node.ParentIndex);
+                writer.WriteString(group.Span[0].Name);
+                writer.WriteInt32(group.Length);
+                foreach (var item in group.Span)
+                {
+                    writer.WriteInt32(item.ParentIndex);
+                }
             }
 
             writer.WriteInt32(_inheritanceMap.Keys.Count);
@@ -158,18 +165,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            if (_simpleTypeNameToExtensionMethodMap == null)
+            if (_receiverTypeNameToExtensionMethodMap == null)
             {
                 writer.WriteInt32(0);
             }
             else
             {
-                writer.WriteInt32(_simpleTypeNameToExtensionMethodMap.Count);
-                foreach (var key in _simpleTypeNameToExtensionMethodMap.Keys)
+                writer.WriteInt32(_receiverTypeNameToExtensionMethodMap.Count);
+                foreach (var key in _receiverTypeNameToExtensionMethodMap.Keys)
                 {
                     writer.WriteString(key);
 
-                    var values = _simpleTypeNameToExtensionMethodMap[key];
+                    var values = _receiverTypeNameToExtensionMethodMap[key];
                     writer.WriteInt32(values.Count);
 
                     foreach (var value in values)
@@ -180,40 +187,48 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            writer.WriteInt32(_extensionMethodOfComplexType.Length);
-            foreach (var methodInfo in _extensionMethodOfComplexType)
+            // sortedNodes is an array of Node instances which is often sorted by Node.Name by the caller. This method
+            // produces a sequence of spans within sortedNodes for Node instances that all have the same Name, allowing
+            // serialization to record the string once followed by the remaining properties for the nodes in the group.
+            static IEnumerable<ReadOnlyMemory<Node>> GroupByName(ReadOnlyMemory<Node> sortedNodes)
             {
-                writer.WriteString(methodInfo.FullyQualifiedContainerName);
-                writer.WriteString(methodInfo.Name);
-            }
-        }
+                if (sortedNodes.IsEmpty)
+                    yield break;
 
-        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
-            ObjectReader reader, Checksum checksum)
-        {
-            return TryReadSymbolTreeInfo(reader, checksum,
-                (names, nodes) => Task.FromResult(
-                    new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
+                var startIndex = 0;
+                var currentName = sortedNodes.Span[0].Name;
+                for (var i = 1; i < sortedNodes.Length; i++)
+                {
+                    var node = sortedNodes.Span[i];
+                    if (node.Name != currentName)
+                    {
+                        yield return sortedNodes[startIndex..i];
+                        startIndex = i;
+                    }
+                }
+
+                yield return sortedNodes[startIndex..sortedNodes.Length];
+            }
         }
 
         private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
             Checksum checksum,
-            Func<string, ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
+            Func<ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
-                var concatenatedNames = reader.ReadString();
-
                 var nodeCount = reader.ReadInt32();
                 var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
-                for (var i = 0; i < nodeCount; i++)
+                while (nodes.Count < nodeCount)
                 {
-                    var start = reader.ReadInt32();
-                    var length = reader.ReadInt32();
-                    var parentIndex = reader.ReadInt32();
-
-                    nodes.Add(new Node(new TextSpan(start, length), parentIndex));
+                    var name = reader.ReadString();
+                    var groupCount = reader.ReadInt32();
+                    for (var i = 0; i < groupCount; i++)
+                    {
+                        var parentIndex = reader.ReadInt32();
+                        nodes.Add(new Node(name, parentIndex));
+                    }
                 }
 
                 var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
@@ -230,17 +245,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToExtensionMethodMap;
-                ImmutableArray<ExtensionMethodInfo> extensionMethodOfComplexType;
+                MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap;
 
                 var keyCount = reader.ReadInt32();
                 if (keyCount == 0)
                 {
-                    simpleTypeNameToExtensionMethodMap = null;
+                    receiverTypeNameToExtensionMethodMap = null;
                 }
                 else
                 {
-                    simpleTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
+                    receiverTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
 
                     for (var i = 0; i < keyCount; i++)
                     {
@@ -252,34 +266,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             var containerName = reader.ReadString();
                             var name = reader.ReadString();
 
-                            simpleTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
+                            receiverTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
                         }
                     }
                 }
 
-                var arrayLength = reader.ReadInt32();
-                if (arrayLength == 0)
-                {
-                    extensionMethodOfComplexType = ImmutableArray<ExtensionMethodInfo>.Empty;
-                }
-                else
-                {
-                    var builder = ArrayBuilder<ExtensionMethodInfo>.GetInstance(arrayLength);
-                    for (var i = 0; i < arrayLength; ++i)
-                    {
-                        var containerName = reader.ReadString();
-                        var name = reader.ReadString();
-                        builder.Add(new ExtensionMethodInfo(containerName, name));
-                    }
-
-                    extensionMethodOfComplexType = builder.ToImmutableAndFree();
-                }
-
                 var nodeArray = nodes.ToImmutableAndFree();
-                var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
+                var spellCheckerTask = createSpellCheckerTask(nodeArray);
                 return new SymbolTreeInfo(
-                    checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap,
-                    extensionMethodOfComplexType, simpleTypeNameToExtensionMethodMap);
+                    checksum, nodeArray, spellCheckerTask, inheritanceMap,
+                    receiverTypeNameToExtensionMethodMap);
             }
             catch
             {
@@ -287,6 +283,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return null;
+        }
+
+        internal readonly partial struct TestAccessor
+        {
+            internal static SymbolTreeInfo ReadSymbolTreeInfo(
+                ObjectReader reader, Checksum checksum)
+            {
+                return TryReadSymbolTreeInfo(reader, checksum,
+                    nodes => Task.FromResult(new SpellChecker(checksum, nodes.Select(n => n.Name.AsMemory()))));
+            }
         }
     }
 }

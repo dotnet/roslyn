@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly;
@@ -11,11 +13,17 @@ using Microsoft.CodeAnalysis.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
 {
     public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public MakeFieldReadonlyTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new MakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
 
@@ -67,7 +75,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldNotAssigned()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -81,7 +89,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldNotAssigned_Struct()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"struct MyStruct
 {
     private int [|_goo|];
@@ -95,7 +103,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldAssignedInline()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|] = 0;
@@ -109,7 +117,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task MultipleFieldsAssignedInline_AllCanBeReadonly()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|] = 0, _bar = 0;
@@ -124,7 +132,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task ThreeFieldsAssignedInline_AllCanBeReadonly_SeparatesAllAndKeepsThemInOrder()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int _goo = 0, [|_bar|] = 0, _fizz = 0;
@@ -140,7 +148,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task MultipleFieldsAssignedInline_OneIsAssignedInMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int _goo = 0, [|_bar|] = 0;
@@ -164,7 +172,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task MultipleFieldsAssignedInline_NoInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|], _bar = 0;
@@ -182,7 +190,7 @@ $@"class MyClass
         [InlineData("\r\n\r\n")]
         public async Task MultipleFieldsAssignedInline_LeadingCommentAndWhitespace(string leadingTrvia)
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 $@"class MyClass
 {{
     //Comment{leadingTrvia}
@@ -199,7 +207,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldAssignedInCtor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -342,7 +350,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldAssignedInCtor_QualifiedWithThis()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -364,7 +372,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldReturnedInProperty()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -387,7 +395,7 @@ $@"class MyClass
         [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
         public async Task FieldReturnedInMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private string [|_s|];
@@ -412,7 +420,7 @@ $@"class MyClass
         [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
         public async Task FieldReadInMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private string [|_s|];
@@ -501,7 +509,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldInNestedTypeAssignedInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     class NestedType
@@ -531,7 +539,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task VariableAssignedToFieldInMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -595,7 +603,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task NotAssignedInPartialClass1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"partial class MyClass
 {
     private int [|_goo|];
@@ -609,7 +617,7 @@ $@"class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task NotAssignedInPartialClass2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"partial class MyClass
 {
     private int [|_goo|];
@@ -629,7 +637,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task NotAssignedInPartialClass3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -725,7 +733,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task PassedAsParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -782,9 +790,451 @@ partial class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRef1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    internal ref int Goo()
+    {
+        return ref _goo;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRef2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    internal ref int Goo()
+        => ref _goo;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRef3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    internal struct Accessor
+    {
+        private MyClass _instance;
+        internal ref int Goo => ref _instance._goo;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRef4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_a|];
+    private int _b;
+    internal ref int Goo(bool first)
+    {
+        return ref (first ? ref _a : ref _b);
+    }
+}");
+
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int _a;
+    private int [|_b|];
+    internal ref int Goo(bool first)
+    {
+        return ref (first ? ref _a : ref _b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRef5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_a|];
+    private int _b;
+    internal ref int Goo(bool first)
+        => ref (first ? ref _a : ref _b);
+}");
+
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int _a;
+    private int [|_b|];
+    internal ref int Goo(bool first)
+        => ref (first ? ref _a : ref _b);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRef6()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    internal int Goo()
+    {
+        return Local();
+
+        ref int Local()
+        {
+            return ref _goo;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRef7()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    delegate ref int D();
+
+    private int [|_goo|];
+    internal int Goo()
+    {
+        D d = () => ref _goo;
+
+        return d();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRef8()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class MyClass
+{
+    delegate ref int D();
+
+    private int [|_goo|];
+    internal int Goo()
+    {
+        D d = delegate { return ref _goo; };
+
+        return d();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRefReadonly1()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private int [|_goo|];
+    internal ref readonly int Goo()
+    {
+        return ref _goo;
+    }
+}",
+@"class MyClass
+{
+    private readonly int _goo;
+    internal ref readonly int Goo()
+    {
+        return ref _goo;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRefReadonly2()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private int [|_goo|];
+    internal ref readonly int Goo()
+        => ref _goo;
+}",
+@"class MyClass
+{
+    private readonly int _goo;
+    internal ref readonly int Goo()
+        => ref _goo;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRefReadonly3()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private int [|_goo|];
+    internal struct Accessor
+    {
+        private MyClass _instance;
+        internal ref readonly int Goo => ref _instance._goo;
+    }
+}",
+@"class MyClass
+{
+    private readonly int _goo;
+    internal struct Accessor
+    {
+        private MyClass _instance;
+        internal ref readonly int Goo => ref _instance._goo;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRefReadonly4()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private int [|_a|];
+    private int _b;
+    internal ref readonly int Goo(bool first)
+    {
+        return ref (first ? ref _a : ref _b);
+    }
+}",
+@"class MyClass
+{
+    private readonly int _a;
+    private int _b;
+    internal ref readonly int Goo(bool first)
+    {
+        return ref (first ? ref _a : ref _b);
+    }
+}");
+
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private int _a;
+    private int [|_b|];
+    internal ref readonly int Goo(bool first)
+    {
+        return ref (first ? ref _a : ref _b);
+    }
+}",
+@"class MyClass
+{
+    private int _a;
+    private readonly int _b;
+    internal ref readonly int Goo(bool first)
+    {
+        return ref (first ? ref _a : ref _b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRefReadonly5()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private int [|_a|];
+    private int _b;
+    internal ref readonly int Goo(bool first)
+        => ref (first ? ref _a : ref _b);
+}",
+@"class MyClass
+{
+    private readonly int _a;
+    private int _b;
+    internal ref readonly int Goo(bool first)
+        => ref (first ? ref _a : ref _b);
+}");
+
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private int _a;
+    private int [|_b|];
+    internal ref readonly int Goo(bool first)
+        => ref (first ? ref _a : ref _b);
+}",
+@"class MyClass
+{
+    private int _a;
+    private readonly int _b;
+    internal ref readonly int Goo(bool first)
+        => ref (first ? ref _a : ref _b);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRefReadonly6()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private int [|_goo|];
+    internal int Goo()
+    {
+        return Local();
+
+        ref readonly int Local()
+        {
+            return ref _goo;
+        }
+    }
+}",
+@"class MyClass
+{
+    private readonly int _goo;
+    internal int Goo()
+    {
+        return Local();
+
+        ref readonly int Local()
+        {
+            return ref _goo;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRefReadonly7()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    delegate ref readonly int D();
+
+    private int [|_goo|];
+    internal int Goo()
+    {
+        D d = () => ref _goo;
+
+        return d();
+    }
+}",
+@"class MyClass
+{
+    delegate ref readonly int D();
+
+    private readonly int _goo;
+    internal int Goo()
+    {
+        D d = () => ref _goo;
+
+        return d();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ReturnedByRefReadonly8()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    delegate ref readonly int D();
+
+    private int [|_goo|];
+    internal int Goo()
+    {
+        D d = delegate { return ref _goo; };
+
+        return d();
+    }
+}",
+@"class MyClass
+{
+    delegate ref readonly int D();
+
+    private readonly int _goo;
+    internal int Goo()
+    {
+        D d = delegate { return ref _goo; };
+
+        return d();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ConditionOfRefConditional1()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private bool [|_a|];
+    private int _b;
+    internal ref int Goo()
+    {
+        return ref (_a ? ref _b : ref _b);
+    }
+}",
+@"class MyClass
+{
+    private readonly bool _a;
+    private int _b;
+    internal ref int Goo()
+    {
+        return ref (_a ? ref _b : ref _b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(33009, "https://github.com/dotnet/roslyn/issues/33009")]
+        public async Task ConditionOfRefConditional2()
+        {
+            await TestInRegularAndScript1Async(
+@"class MyClass
+{
+    private bool [|_a|];
+    private int _b;
+    internal ref int Goo()
+        => ref (_a ? ref _b : ref _b);
+}",
+@"class MyClass
+{
+    private readonly bool _a;
+    private int _b;
+    internal ref int Goo()
+        => ref (_a ? ref _b : ref _b);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task PassedAsOutParameterInCtor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -806,7 +1256,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task PassedAsRefParameterInCtor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -834,7 +1284,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task StaticFieldAssignedInStaticCtor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private static int [|_goo|];
@@ -884,7 +1334,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldTypeIsCustomImmutableStruct()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"struct MyStruct
 {
     private readonly int _goo;
@@ -910,7 +1360,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FixAll()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int {|FixAllInDocument:_goo|} = 0, _bar = 0;
@@ -935,7 +1385,7 @@ class MyClass
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"  using System;
 
     partial struct MyClass
@@ -980,7 +1430,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldAssignedInCtor_InParens()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -1003,7 +1453,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldAssignedInCtor_QualifiedWithThis_InParens()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class MyClass
 {
     private int [|_goo|];
@@ -1077,7 +1527,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldUsedInTupleExpressionOnRight()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|int i;|]
@@ -1104,7 +1554,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldInTypeWithGeneratedCode()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|private int i;|]
@@ -1161,7 +1611,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldAssignedToLocalReadOnlyRef()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class Program
 {
@@ -1188,7 +1638,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task TestFieldAccessesOnLeftOfDot()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"interface IFaceServiceClient
 {
     void DetectAsync();
@@ -1217,6 +1667,137 @@ public class Repro
         faceServiceClient.DetectAsync();
     }
 }");
+        }
+
+        [WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task TestVolatileField1()
+        {
+            await TestInRegularAndScript1Async(
+@"class TestClass
+{
+    private volatile object [|first|]; 
+}",
+@"class TestClass
+{
+    private readonly object first; 
+}");
+        }
+
+        [WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task TestVolatileField2()
+        {
+            await TestInRegularAndScript1Async(
+@"class TestClass
+{
+    private volatile object [|first|], second; 
+}",
+@"class TestClass
+{
+    private readonly object first;
+    private volatile object second;
+}");
+        }
+
+        [WorkItem(42759, "https://github.com/dotnet/roslyn/issues/42759")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task TestVolatileField3()
+        {
+            await TestInRegularAndScript1Async(
+@"class TestClass
+{
+    private volatile object first, [|second|]; 
+}",
+@"class TestClass
+{
+    private volatile object first;
+    private readonly object second;
+}");
+        }
+
+        [WorkItem(46785, "https://github.com/dotnet/roslyn/issues/46785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task UsedAsRef_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    private string [|x|] = string.Empty;
+
+    public bool M()
+    {
+        ref var myVar = ref x;
+        return myVar is null;
+    }
+}");
+        }
+
+        [WorkItem(57983, "https://github.com/dotnet/roslyn/issues/57983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task UsedAsRef_NoDiagnostic_02()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.CompilerServices;
+
+public class Test
+{
+    private ulong [|nextD3D12ComputeFenceValue|];
+
+    internal void Repro()
+    {
+        ref ulong d3D12FenceValue = ref Unsafe.NullRef<ulong>();
+        d3D12FenceValue = ref nextD3D12ComputeFenceValue;
+        d3D12FenceValue++;
+    }
+}");
+        }
+
+        [WorkItem(42760, "https://github.com/dotnet/roslyn/issues/42760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task WithThreadStaticAttribute_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    [ThreadStatic]
+    private static object [|t_obj|];
+}");
+        }
+
+        [WorkItem(50925, "https://github.com/dotnet/roslyn/issues/50925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task Test_MemberUsedInGeneratedCode()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\File1.cs"">
+public sealed partial class Test
+{
+    private int [|_value|];
+
+    public static void M()
+        => _ = new Test { Value = 1 };
+}
+        </Document>
+        <Document FilePath = ""z:\\File2.g.cs"">
+using System.CodeDom.Compiler;
+
+[GeneratedCode(null, null)]
+public sealed partial class Test
+{
+    public int Value
+    {
+        get => _value;
+        set => _value = value;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>");
         }
     }
 }

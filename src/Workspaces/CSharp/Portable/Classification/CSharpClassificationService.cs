@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -24,12 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
         }
 
-        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
-            ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken);
-            AddRange(temp, result);
-        }
+        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
 
         public override ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
             => ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan);

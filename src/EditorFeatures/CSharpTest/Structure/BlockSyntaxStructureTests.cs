@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -293,7 +296,52 @@ class C
         if (true)
         {
         }
-        else {|hint:if (false){|textspan:
+        {|hint:else if (false){|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIfElse2()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        if (true)
+        {
+        }
+        {|hint:else
+            if (false ||
+                true){|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIfElse3()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        if (true)
+        {
+        }
+        {|hint:else if (false ||
+            true){|textspan:
         {$$
         }|}|}
     }
@@ -364,6 +412,24 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [WorkItem(52493, "https://github.com/dotnet/roslyn/issues/")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task LocalFunctionInTopLevelStatement_AutoCollapse()
+        {
+            const string code = @"
+Foo();
+Bar();
+
+{|hint:static void Foo(){|textspan:
+{$$
+   // ...
+}|}|}
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

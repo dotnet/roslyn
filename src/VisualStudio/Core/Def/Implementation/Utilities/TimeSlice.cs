@@ -6,14 +6,12 @@ using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
-    internal class TimeSlice
+    internal readonly struct TimeSlice
     {
         private readonly DateTime _end;
 
         public TimeSlice(TimeSpan duration)
-        {
-            _end = DateTime.UtcNow + duration;
-        }
+            => _end = DateTime.UtcNow + duration;
 
         public bool IsOver
         {

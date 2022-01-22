@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test1()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestMetadata.ResourcesNet40.mscorlib)
             Dim module0 = assembly.Modules(0)
 
             Dim objectType = module0.GlobalNamespace.GetMembers("System").

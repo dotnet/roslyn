@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -11,15 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         internal class SingleLineRewriter : CSharpSyntaxRewriter
         {
-            private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+");
+            private static readonly Regex s_newlinePattern = new(@"[\r\n]+");
 
             private readonly bool _useElasticTrivia;
             private bool _lastTokenEndedInWhitespace;
 
             public SingleLineRewriter(bool useElasticTrivia)
-            {
-                this._useElasticTrivia = useElasticTrivia;
-            }
+                => _useElasticTrivia = useElasticTrivia;
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     _lastTokenEndedInWhitespace = false;
                 }
 
-                if (token.Kind() == SyntaxKind.StringLiteralToken ||
-                    token.Kind() == SyntaxKind.InterpolatedStringTextToken)
+                if (token.Kind() is SyntaxKind.StringLiteralToken or
+                    SyntaxKind.InterpolatedStringTextToken)
                 {
                     if (s_newlinePattern.IsMatch(token.Text))
                     {

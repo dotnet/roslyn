@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private readonly Option2<CodeStyleOption2<TOptionKind>> _option;
         private readonly string _language;
         private readonly string _descriptorId;
+        private readonly EnforceOnBuild _enforceOnBuild;
         private readonly LocalizableString _title;
         private readonly LocalizableString _message;
 
@@ -41,12 +44,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             Option2<CodeStyleOption2<TOptionKind>> option,
             string language,
             string descriptorId,
+            EnforceOnBuild enforceOnBuild,
             LocalizableString title,
             LocalizableString message)
         {
             _option = option;
             _language = language;
             _descriptorId = descriptorId;
+            _enforceOnBuild = enforceOnBuild;
             _title = title;
             _message = message;
         }

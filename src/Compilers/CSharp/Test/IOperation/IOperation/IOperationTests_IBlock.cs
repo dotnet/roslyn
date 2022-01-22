@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IBlock : SemanticModelTestBase
     {
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

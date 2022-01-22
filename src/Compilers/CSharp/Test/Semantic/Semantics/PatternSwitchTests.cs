@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 1 when true: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(9, 18)
                 );
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 1: // error: handled previously
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(11, 18),
                 // (8,17): warning CS0162: Unreachable code detected
@@ -122,10 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
-                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case "goo": ; // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, @"""goo""").WithLocation(10, 18),
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case null: ; // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "null").WithLocation(11, 18),
                 // (10,13): error CS0163: Control cannot fall through from one case label ('case "goo":') to another
@@ -186,7 +188,7 @@ public class X
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case string s: // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "string s").WithLocation(11, 18)
                 );
@@ -214,7 +216,7 @@ public class X
 }";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case IEnumerable<string> i: // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<string> i").WithLocation(12, 18)
                 );
@@ -242,7 +244,7 @@ public class X : List<string>
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case X list: // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "X list").WithLocation(11, 18)
                 );
@@ -269,7 +271,7 @@ public class X : List<string>
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case var x: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var x").WithLocation(11, 18)
                 );
@@ -296,7 +298,7 @@ public class X : List<string>
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case var x: // error: subsumed by previous cases
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var x").WithLocation(11, 18)
                 );
@@ -499,7 +501,7 @@ null";
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 11: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "11").WithLocation(9, 18)
                 );
@@ -527,7 +529,7 @@ null";
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case bool b: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "bool b").WithLocation(10, 18),
                 // (13,17): warning CS0162: Unreachable code detected
@@ -687,12 +689,246 @@ null";
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case null: // subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "null").WithLocation(9, 18),
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        public void Subsumption09()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object o = null;
+        switch (o)
+        {
+            case I1 and Base:
+                break;
+            case Derived s: // 1
+                break;
+        }
+
+        switch (o)
+        {
+            case Base and I1:
+                break;
+            case Derived s: // 2
+                break;
+        }
+
+        switch (o)
+        {
+            case Base and not null:
+                break;
+            case Derived s: // 3
+                break;
+        }
+
+        switch (o) {
+            case ValueType and int and 1:
+                break;
+            case int and 1: // 4
+                break;
+        }
+
+        switch (o) {
+            case int and 1:
+                break;
+            case ValueType and int and 1: // 5
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base:
+                break;
+            case Derived s: // 6
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base { F1: 1 }:
+                break;
+            case Derived { F2: 1 }:
+                break;
+            case Derived { P1: 1 }:
+                break;
+            case Derived { F1: 1 } s: // 7
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base { P1: 1 }:
+                break;
+            case Derived { F1: 1 }:
+                break;
+            case Derived { P2: 1 }:
+                break;
+            case Derived { P1: 1 } s: // 8
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base(1, _):
+                break;
+            case Derived(2, _):
+                break;
+            case Derived(1, _, _):
+                break;
+            case Derived(1, _) s: // 9
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base { F3: (1, _) }:
+                break;
+            case Derived { F3: (_, 1) }:
+                break;
+            case Derived { F3: (1, _) } s: // 10
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base:
+                break;
+            case Base and I2: // 11
+                break;
+        }
+
+        switch (o)
+        {
+            case Base and I2:
+                break;
+            case I2 and Base: // 12
+                break;
+        }
+    }
+}
+
+interface I1 {}
+interface I2 {}
+
+class Base : I1
+{
+    public int F1 = 0;
+    public int F2 = 0;
+    public object F3 = null;
+    public int P1 {get; set;}
+    public int P2 {get; set;}
+    public void Deconstruct(out int x, out int y) => throw null;
+    public void Deconstruct(out int x, out int y, out int z) => throw null;
+}
+
+class Derived : Base, I2
+{
+}
+";
+            var compilation = CreateCompilation(new[] { source, _iTupleSource }, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 1
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(11, 18),
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 2
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(19, 18),
+                // (27,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 3
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(27, 18),
+                // (34,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case int and 1: // 4
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int and 1").WithLocation(34, 18),
+                // (41,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case ValueType and int and 1: // 5
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "ValueType and int and 1").WithLocation(41, 18),
+                // (49,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 6
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(49, 18),
+                // (61,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived { F1: 1 } s: // 7
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived { F1: 1 } s").WithLocation(61, 18),
+                // (73,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived { P1: 1 } s: // 8
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived { P1: 1 } s").WithLocation(73, 18),
+                // (85,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived(1, _) s: // 9
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived(1, _) s").WithLocation(85, 18),
+                // (95,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived { F3: (1, _) } s: // 10
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived { F3: (1, _) } s").WithLocation(95, 18),
+                // (103,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Base and I2: // 11
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Base and I2").WithLocation(103, 18),
+                // (111,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case I2 and Base: // 12
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "I2 and Base").WithLocation(111, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        public void Subsumption10()
+        {
+            var source =
+@"
+using System;
+public class C {
+    public void M1(object o) {
+        switch (o) {
+            case IConvertible and IComparable:
+                break;
+            case int:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case int:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        public void Subsumption11()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object o = null;
+        switch (o)
+        {
+            case IComparable and object:
+                break;
+            case string s: // error: subsumed by previous case
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case string s: // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "string s").WithLocation(11, 18)
                 );
         }
 
@@ -1151,19 +1387,23 @@ class Program
         M(-0.0);
         M(MakeNaN(0));
         M(MakeNaN(1));
+        M(float.NaN);
     }
-    public static void M(double d)
+    public static void M(object d)
     {
         switch (d)
         {
-            case 0:
+            case 0.0:
                 Console.WriteLine(""zero"");
                 break;
             case double.NaN:
-                Console.WriteLine(""NaN"");
+                Console.WriteLine(""double.NaN"");
                 break;
-            case 1: case 2: case 3: case 4: case 5:
-            case 6: case 7: case 8: case 9: case 10:
+            case float.NaN:
+                Console.WriteLine(""float.NaN"");
+                break;
+            case 1.0: case 2.0: case 3.0: case 4.0: case 5.0:
+            case 6.0: case 7.0: case 8.0: case 9.0: case 10.0:
                 Console.WriteLine(""unexpected"");
                 break;
             default:
@@ -1181,8 +1421,9 @@ class Program
             var expectedOutput =
 @"zero
 zero
-NaN
-NaN";
+double.NaN
+double.NaN
+float.NaN";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -1345,7 +1586,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case bool b: throw null; // error: bool already handled by previous cases.
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "bool b").WithLocation(11, 18)
                 );
@@ -1431,80 +1672,62 @@ class Program
         {
             if (o is (int, int)) {}
             if (o is (int x, int y)) {}
-            if (o is (int, int) z)) {}
+            if (o is (int, int) z) {}
             if (o is (int a, int b) c) {}
         }
         {
             if (o is (System.Int32, System.Int32)) {}
             if (o is (System.Int32 x, System.Int32 y)) {}
-            if (o is (System.Int32, System.Int32) z)) {}
+            if (o is (System.Int32, System.Int32) z) {}
             if (o is (System.Int32 a, System.Int32 b) c) {}
         }
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
-                // (21,19): error CS1525: Invalid expression term 'int'
+                // (21,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (int, int):
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 19),
-                // (21,24): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(21, 19),
+                // (21,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (int, int):
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 24),
-                // (23,19): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(21, 24),
+                // (23,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 19),
-                // (23,24): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(23, 19),
+                // (23,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 24),
-                // (25,19): error CS1525: Invalid expression term 'long'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(23, 24),
+                // (25,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 19),
-                // (25,25): error CS1525: Invalid expression term 'long'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "long").WithArguments("type pattern", "9.0").WithLocation(25, 19),
+                // (25,25): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 25),
-                // (30,19): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "long").WithArguments("type pattern", "9.0").WithLocation(25, 25),
+                // (30,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 19),
-                // (30,24): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(30, 19),
+                // (30,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 24),
-                // (32,19): error CS1525: Invalid expression term 'long'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(30, 24),
+                // (32,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 19),
-                // (32,25): error CS1525: Invalid expression term 'long'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "long").WithArguments("type pattern", "9.0").WithLocation(32, 19),
+                // (32,25): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 25),
-                // (43,23): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "long").WithArguments("type pattern", "9.0").WithLocation(32, 25),
+                // (43,23): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             if (o is (int, int)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 23),
-                // (43,28): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(43, 23),
+                // (43,28): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             if (o is (int, int)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 28),
-                // (45,23): error CS1525: Invalid expression term 'int'
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 23),
-                // (45,28): error CS1525: Invalid expression term 'int'
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 28),
-                // (45,35): error CS1525: Invalid expression term ')'
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(45, 35),
-                // (45,35): error CS1002: ; expected
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(45, 35),
-                // (45,35): error CS1513: } expected
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 35),
-                // (51,53): error CS1525: Invalid expression term ')'
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(51, 53),
-                // (51,53): error CS1002: ; expected
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(51, 53),
-                // (51,53): error CS1513: } expected
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 53),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(43, 28),
+                // (45,23): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //             if (o is (int, int) z) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(45, 23),
+                // (45,28): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //             if (o is (int, int) z) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(45, 28),
                 // (21,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(21, 18),
@@ -1538,24 +1761,12 @@ class Program
                 // (37,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int32, System.Int32) z:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(37, 18),
-                // (37,19): error CS0119: 'int' is a type, which is not valid in the given context
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 19),
-                // (37,33): error CS0119: 'int' is a type, which is not valid in the given context
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 33),
                 // (39,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int64, System.Int64)").WithArguments("object", "Deconstruct").WithLocation(39, 18),
                 // (39,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int64, System.Int64)").WithArguments("object", "2").WithLocation(39, 18),
-                // (39,19): error CS0119: 'long' is a type, which is not valid in the given context
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 19),
-                // (39,33): error CS0119: 'long' is a type, which is not valid in the given context
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 33),
                 // (43,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(43, 22),
@@ -1566,7 +1777,7 @@ class Program
                 //             if (o is (int x, int y)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("object", "2").WithLocation(44, 22),
                 // (45,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //             if (o is (int, int) z)) {}
+                //             if (o is (int, int) z) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(45, 22),
                 // (46,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (int a, int b) c) {}
@@ -1580,12 +1791,6 @@ class Program
                 // (49,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(49, 22),
-                // (49,23): error CS0119: 'int' is a type, which is not valid in the given context
-                //             if (o is (System.Int32, System.Int32)) {}
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 23),
-                // (49,37): error CS0119: 'int' is a type, which is not valid in the given context
-                //             if (o is (System.Int32, System.Int32)) {}
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 37),
                 // (50,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 x, System.Int32 y)").WithArguments("object", "Deconstruct").WithLocation(50, 22),
@@ -1593,17 +1798,11 @@ class Program
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32 x, System.Int32 y)").WithArguments("object", "2").WithLocation(50, 22),
                 // (51,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-                //             if (o is (System.Int32, System.Int32) z)) {}
+                //             if (o is (System.Int32, System.Int32) z) {}
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32, System.Int32)").WithArguments("object", "Deconstruct").WithLocation(51, 22),
                 // (51,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //             if (o is (System.Int32, System.Int32) z)) {}
+                //             if (o is (System.Int32, System.Int32) z) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(51, 22),
-                // (51,23): error CS0119: 'int' is a type, which is not valid in the given context
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 23),
-                // (51,37): error CS0119: 'int' is a type, which is not valid in the given context
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 37),
                 // (52,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 a, System.Int32 b)").WithArguments("object", "Deconstruct").WithLocation(52, 22),
@@ -2557,7 +2756,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                // (13,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case List<(int z, int w)> list2: // subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "List<(int z, int w)> list2").WithLocation(13, 18)
                 );
@@ -2673,7 +2872,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                // (13,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case var x:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var x").WithLocation(13, 18)
                 );
@@ -2704,7 +2903,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                // (13,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case List<dynamic> list2: // subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "List<dynamic> list2").WithLocation(13, 18)
                 );
@@ -2832,16 +3031,16 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case var z: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var z").WithLocation(11, 18),
-                // (18,18): error CS8120: The switch case has already been handled by a previous case.
+                // (18,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case var y: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var y").WithLocation(18, 18),
-                // (24,18): error CS8120: The switch case has already been handled by a previous case.
+                // (24,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 1: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(24, 18),
-                // (30,18): error CS8120: The switch case has already been handled by a previous case.
+                // (30,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case int y: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int y").WithLocation(30, 18),
                 // (37,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
@@ -2879,13 +3078,13 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 2: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "2").WithLocation(12, 18),
-                // (14,18): error CS8120: The switch case has already been handled by a previous case.
+                // (14,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case int n: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int n").WithLocation(14, 18),
-                // (16,18): error CS8120: The switch case has already been handled by a previous case.
+                // (16,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case var i: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var i").WithLocation(16, 18),
                 // (19,17): warning CS0162: Unreachable code detected
@@ -2917,7 +3116,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case System.ValueTuple<int, int> x: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
                 // (13,17): warning CS0162: Unreachable code detected
@@ -3022,9 +3221,13 @@ static class Ex
                 // (13,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 2),
-                // (10,9): error CS8070: Control cannot fall out of switch from final case label ('var q')
-                //         var q = 3;
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "var q").WithArguments("var q").WithLocation(10, 9)
+                // (8,13): error CS8070: Control cannot fall out of switch from final case label ('case
+                //             case
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, @"case
+
+        var q ").WithArguments(@"case
+
+        var q ").WithLocation(8, 13)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3067,6 +3270,37 @@ static class Ex
             var type = model.GetTypeInfo(node);
             Assert.Equal(SpecialType.System_Boolean, type.Type.SpecialType);
             Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(46593, "https://github.com/dotnet/roslyn/issues/46593")]
+        public void NameofInWhenClause()
+        {
+            var source =
+@"struct Outer
+{
+    struct S
+    {
+        static void M(string q)
+        {
+            S s = new S();
+            System.Console.Write(s switch
+            {
+                { P: 1 } when nameof(Q) == q => 1,
+                { P: 2 } => 2,
+                _ => 3,
+            });
+        }
+
+        int P => 1;
+    }
+
+    public int Q => 1;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                );
         }
 
         [Fact, WorkItem(20210, "https://github.com/dotnet/roslyn/issues/20210")]
@@ -3128,43 +3362,163 @@ static class Ex
 }";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (8,16): error CS8120: The switch case has already been handled by a previous case.
+                // (8,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case true:     // error: subsumed (1 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(8, 16),
-                // (9,16): error CS8120: The switch case has already been handled by a previous case.
+                // (9,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case false:    // error: subsumed (2 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(9, 16),
-                // (16,16): error CS8120: The switch case has already been handled by a previous case.
+                // (16,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case true:     // error: subsumed (3 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(16, 16),
-                // (17,16): error CS8120: The switch case has already been handled by a previous case.
+                // (17,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case false:    // error: subsumed (4 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(17, 16),
-                // (24,16): error CS8120: The switch case has already been handled by a previous case.
+                // (24,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case true:     // error: subsumed (5 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(24, 16),
-                // (25,16): error CS8120: The switch case has already been handled by a previous case.
+                // (25,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case false:    // error: subsumed (6 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(25, 16),
-                // (32,16): error CS8120: The switch case has already been handled by a previous case.
+                // (32,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case true:     // error: subsumed (7 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(32, 16),
-                // (33,16): error CS8120: The switch case has already been handled by a previous case.
+                // (33,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case false:    // error: subsumed (8 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(33, 16),
-                // (40,16): error CS8120: The switch case has already been handled by a previous case.
+                // (40,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case true:     // error: subsumed (9 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(40, 16),
-                // (41,16): error CS8120: The switch case has already been handled by a previous case.
+                // (41,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case false:    // error: subsumed (10 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(41, 16),
-                // (48,16): error CS8120: The switch case has already been handled by a previous case.
+                // (48,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case true:     // error: subsumed (11 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(48, 16),
-                // (49,16): error CS8120: The switch case has already been handled by a previous case.
+                // (49,16): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //           case false:    // error: subsumed (12 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(49, 16)
                 );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_01()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 2 == 1 => 4,
+            int i when i % 2 == 0 => 5,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_02()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 2 == 1 => 4,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_03()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 3 == 0 => 4,
+            int i when i % 3 == 1 => 5,
+            int i when i % 3 == 2 => 6,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact]
+        public void MultiplePathsToState_01()
+        {
+            var source =
+@"class Sample
+{
+    void M(int a, int b)
+    {
+        _ = (a, b) switch
+        {
+            (0, 0) => 0,
+            (0, 1) => 1,
+            (0, 2) => 2,
+
+            (1, 0) => 5,
+            (1, 1) => 6,
+            (1, 2) => 7,
+
+            _ => 10,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(51930, "https://github.com/dotnet/roslyn/issues/51930")]
+        public void AssignSwitchToRefReturningMethod()
+        {
+            var source = @"
+GetRef() = 1 switch { _ => await System.Threading.Tasks.Task.FromResult(1) };
+ref int GetRef() => throw null;";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.<<Main>$>g__GetRef|0_0()' because it returns by reference
+                // GetRef() = 1 switch { _ => await System.Threading.Tasks.Task.FromResult(1) };
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetRef()").WithArguments("Program.<<Main>$>g__GetRef|0_0()").WithLocation(2, 1)
+            );
         }
     }
 }

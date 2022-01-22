@@ -2,30 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 #if CODE_STYLE
 using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
-using FormatterState = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingService;
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using FormattingProvider = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingService;
 #else
-using Microsoft.CodeAnalysis.Options;
-using FormatterState = Microsoft.CodeAnalysis.Workspace;
+using FormattingProvider = Microsoft.CodeAnalysis.Host.HostWorkspaceServices;
 #endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class FormattingAnalyzerHelper
     {
-        internal static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, FormatterState formatterState, DiagnosticDescriptor descriptor, OptionSet options)
+        internal static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, FormattingProvider formattingProvider, DiagnosticDescriptor descriptor, SyntaxFormattingOptions options)
         {
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
 
             var oldText = tree.GetText(cancellationToken);
-            var formattingChanges = Formatter.GetFormattedTextChanges(tree.GetRoot(cancellationToken), formatterState, options, cancellationToken);
+
+            var formattingChanges = Formatter.GetFormattedTextChanges(tree.GetRoot(cancellationToken), formattingProvider, options, cancellationToken);
 
             // formattingChanges could include changes that impact a larger section of the original document than
             // necessary. Before reporting diagnostics, process the changes to minimize the span of individual

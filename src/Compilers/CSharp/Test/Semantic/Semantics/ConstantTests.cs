@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -179,15 +181,14 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (10,12): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     public S2()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(10, 12),
-    // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
-    //     static void Goo(S2 s = new S2())
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28)
-);
+                // (10,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S2()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(10, 12),
+                // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void Goo(S2 s = new S2())
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28));
         }
 
         [Fact]
@@ -1981,7 +1982,7 @@ class C
             // multiplying constants in checked statement that causes overflow behaves like unchecked
 
             var source = @"
-public class goo
+public class @goo
 {
     const int i = 1000000;
     const int j = 1000000;
@@ -2358,8 +2359,7 @@ b --> False
             // Duplicate "(byte)2" is because there's an implicit conversion to uint.
             // Duplicate "b ? (uint)1 : (byte)2" is because there's an implicit conversion to int.
             var expected =
-@"true ? 1 + i : (int)4u --> BAD
-1 + i --> BAD
+@"1 + i --> BAD
 i --> BAD
 (int)4u --> 4
 b ? (uint)1 : (byte)2 --> BAD
@@ -2783,6 +2783,38 @@ float.PositiveInfinity --> Infinity
             compilation.GetDeclarationDiagnostics().Verify(
                 // (3,18): error CS0110: The evaluation of the constant value for 'C.F' involves a circular definition
                 Diagnostic(CSharp.ErrorCode.ERR_CircConstValue, "F").WithArguments("C.F").WithLocation(3, 18));
+        }
+
+        [Fact]
+        [WorkItem(50127, "https://github.com/dotnet/roslyn/issues/50127")]
+        public void DeterministicCycleReporting()
+        {
+            var source =
+@"enum C
+{
+    A = F,
+    B = A + C + D + E,
+    C = E,
+    D = B,
+    E = B,
+    F = G,
+    G = F,
+}";
+
+            var expected = new[] {
+                // (4,5): error CS0110: The evaluation of the constant value for 'C.B' involves a circular definition
+                //     B = A + C + D + E,
+                Diagnostic(ErrorCode.ERR_CircConstValue, "B").WithArguments("C.B").WithLocation(4, 5),
+                // (8,5): error CS0110: The evaluation of the constant value for 'C.F' involves a circular definition
+                //     F = G,
+                Diagnostic(ErrorCode.ERR_CircConstValue, "F").WithArguments("C.F").WithLocation(8, 5)
+                };
+
+            for (int i = 0; i < 100; i++)
+            {
+                var compilation = CreateCompilation(source);
+                compilation.GetDeclarationDiagnostics().Verify(expected);
+            }
         }
 
         [Fact]
@@ -3309,7 +3341,10 @@ class C
 @"
 void f() { if () const int i = 0; }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+    // (2,6): warning CS8321: The local function 'f' is declared but never used
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(2, 6),
     // (2,16): error CS1525: Invalid expression term ')'
     // void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
@@ -3375,15 +3410,15 @@ void f() { if () const int i = 0; }
                 // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)null:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
-                // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
-                //             case (object)null:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13),
                 // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)"b":
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18),
                 // (23,18): error CS0150: A constant value is expected
                 //             case (object)"b":
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18));
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18),
+                // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
+                //             case (object)null:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13));
         }
 
         [Fact]
@@ -3431,7 +3466,9 @@ class C
                 );
         }
 
-        [Fact]
+        // Attempting to call `ConstantValue` on every constituent string component times out the IOperation runner.
+        // Instead, we manually validate just the top level
+        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019")]
         public void TestLargeStringConcatenation()
         {
             // When the compiler folds string concatenations using an O(n^2) algorithm, this program cannot be
@@ -3452,12 +3489,321 @@ class C
 ";
             StringBuilder source = new StringBuilder();
             source.Append(source0);
-            for (int i = 0; i < 5000; i++)
+            const int NumIterations = 5000;
+            for (int i = 0; i < NumIterations; i++)
             {
                 source.Append(@"""Lorem ipsum dolor sit amet"" + "", consectetur adipiscing elit, sed"" + "" do eiusmod tempor incididunt"" + "" ut labore et dolore magna aliqua. "" +" + "\n");
             }
             source.Append(source1);
-            CompileAndVerify(source.ToString(), expectedOutput: "58430604");
+            var comp = CreateCompilation(source.ToString(), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "58430604");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            var literalOperation = model.GetOperation(initializer);
+
+            var stringTextBuilder = new StringBuilder();
+            stringTextBuilder.Append("BEGIN ");
+            for (int i = 0; i < NumIterations; i++)
+            {
+                stringTextBuilder.Append("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ");
+            }
+            stringTextBuilder.Append("END");
+
+            Assert.Equal(stringTextBuilder.ToString(), literalOperation.ConstantValue);
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsSimple()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""Testing"";
+        const string S2 = $""{""Level 5""} {""Number 3""}"";
+        const string S3 = $""{$""{""Spinning Top""}""}"";
+        const string F1 = $""{S1}"";
+        const string F2 = $""{F1} the {S2}"";
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+
+            var expected =
+@"$""Testing"" --> Testing
+$""{""Level 5""} {""Number 3""}"" --> Level 5 Number 3
+$""{$""{""Spinning Top""}""}"" --> Spinning Top
+$""{""Spinning Top""}"" --> Spinning Top
+$""{S1}"" --> Testing
+$""{F1} the {S2}"" --> Testing the Level 5 Number 3";
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsContinued()
+        {
+            string source = @"
+public class A : System.Attribute  
+{  
+    private string name;
+    
+    public A(string name)  
+    {  
+        this.name = name;
+    }
+}  
+
+[A($""ITEM"")]
+class C
+{
+    const string S0 = $""Faaaaaaaaaaaaaaaaaaaaaaaaall"";
+
+    class Namae
+    {
+        public string X { get; }
+    }
+
+    void M(string S1 = $""Testing"", Namae n = null)
+    {
+        if (n is Namae { X : $""ConstantInterpolatedString""}){
+            switch(S1){
+                case $""Level 5"":
+                    break;
+                case $""Radio Noise"":
+                    goto case $""Level 5"";
+            }
+        }
+        S1 = S0;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsError()
+        {
+            string source = @"
+class C
+{
+    void M(string ParamDefault = ""Academy City"")
+    {
+        const string S1 = $""Testing"";
+        const string S2 = $""{""Level 5""} {3}"";
+        const string S3 = $""{$""{""Spinning Top"", 10}""}"";
+        const string S4 = $""{ParamDefault}"";
+        const int I1 = 0;
+        const string F1 = $""{I1}"";
+        const string F2 = $""{I1} the {S1}"";
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS0133: The expression being assigned to 'S2' must be constant
+                //         const string S2 = $"{"Level 5"} {3}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{""Level 5""} {3}""").WithArguments("S2").WithLocation(7, 27),
+                // (8,27): error CS0133: The expression being assigned to 'S3' must be constant
+                //         const string S3 = $"{$"{"Spinning Top", 10}"}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{$""{""Spinning Top"", 10}""}""").WithArguments("S3").WithLocation(8, 27),
+                // (9,27): error CS0133: The expression being assigned to 'S4' must be constant
+                //         const string S4 = $"{ParamDefault}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{ParamDefault}""").WithArguments("S4").WithLocation(9, 27),
+                // (11,27): error CS0133: The expression being assigned to 'F1' must be constant
+                //         const string F1 = $"{I1}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1}""").WithArguments("F1").WithLocation(11, 27),
+                // (12,27): error CS0133: The expression being assigned to 'F2' must be constant
+                //         const string F2 = $"{I1} the {S1}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1} the {S1}""").WithArguments("F2").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsHybrid()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""Number "" + ""3"";
+        const string S2 = $""{""Level 5""} "" + S1;
+        const string F1 = $""{S1}"";
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+
+            var expected =
+@"$""Number "" + ""3"" --> Number 3
+$""Number "" --> Number 
+$""{""Level 5""} "" + S1 --> Level 5 Number 3
+$""{""Level 5""} "" --> Level 5 
+$""{S1}"" --> Number 3";
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsHybridError()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        
+        string NC1 = ""Teleporter"";
+        const string S1 = ""The"" + $""Number {3}"" + ""Level 5"";
+        const string S2 = $""Level 4 "" + NC1;
+        const string F1 = $""{S1}"";
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS0133: The expression being assigned to 'S1' must be constant
+                //         const string S1 = "The" + $"Number {3}" + "Level 5";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""The"" + $""Number {3}"" + ""Level 5""").WithArguments("S1").WithLocation(8, 27),
+                // (9,27): error CS0133: The expression being assigned to 'S2' must be constant
+                //         const string S2 = $"Level 4 " + NC1;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Level 4 "" + NC1").WithArguments("S2").WithLocation(9, 27),
+                // (10,27): error CS0133: The expression being assigned to 'F1' must be constant
+                //         const string F1 = $"{S1}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{S1}""").WithArguments("F1").WithLocation(10, 27));
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsVersionError()
+        {
+            string source = @"
+public class A : System.Attribute  
+{  
+    private string name;
+    
+    public A(string name)  
+    {  
+        this.name = name;
+    }  
+}  
+
+[A($""ITEM"")]
+class C
+{
+    const string S0 = $""Post"";
+
+    class Namae
+    {
+        public string X { get; }
+    }
+
+    #pragma warning disable CS0219 // unused locals
+    void M1()
+    {
+        const string S1 = $""Testing"";
+        const string S2 = $""{""Level 5""} {""Number 3""}"";
+        const string S3 = $""{$""{""Spinning Top""}""}"";
+        const string S4 = $""Hybrid"" + ""Testing"" + ""123"";
+        const string S5 = ""Hybrid"" + ""Testing"" + $""321"";
+        const string F1 = $""{S1}"";
+        const string F2 = F1 + $"" the {S2}"";
+
+        string VS = ""Change"";
+        const string S6 = $""Failed to {VS}"";
+    }
+
+    void M2(string S1 = $""Testing"", object O = null, Namae N = null)
+    {
+        switch(S1){
+            case $""Level 5"":
+                break;
+        }
+
+        if (N is Namae { X : $""ConstantInterpolatedString""}){
+            switch(O){
+                case $""Number 3"":
+                    break;
+                case $""Radio Noise"":
+                    goto case $""Number 3"";
+            }
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                    // (32,27): error CS0133: The expression being assigned to 'S6' must be constant
+                    //         const string S6 = $"Failed to {VS}";
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(34, 27));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                    // (12,4): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    // [A($"ITEM")]
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""ITEM""").WithArguments("constant interpolated strings", "10.0").WithLocation(12, 4),
+                    // (15,23): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //     const string S0 = $"Post";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Post""").WithArguments("constant interpolated strings", "10.0").WithLocation(15, 23),
+                    // (25,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //         const string S1 = $"Testing";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Testing""").WithArguments("constant interpolated strings", "10.0").WithLocation(25, 27),
+                    // (26,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //         const string S2 = $"{"Level 5"} {"Number 3"}";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""{""Level 5""} {""Number 3""}""").WithArguments("constant interpolated strings", "10.0").WithLocation(26, 27),
+                    // (27,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //         const string S3 = $"{$"{"Spinning Top"}"}";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""{$""{""Spinning Top""}""}""").WithArguments("constant interpolated strings", "10.0").WithLocation(27, 27),
+                    // (28,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //         const string S4 = $"Hybrid" + "Testing" + "123";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Hybrid""").WithArguments("constant interpolated strings", "10.0").WithLocation(28, 27),
+                    // (29,50): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //         const string S5 = "Hybrid" + "Testing" + $"321";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""321""").WithArguments("constant interpolated strings", "10.0").WithLocation(29, 50),
+                    // (30,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //         const string F1 = $"{S1}";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""{S1}""").WithArguments("constant interpolated strings", "10.0").WithLocation(30, 27),
+                    // (31,32): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //         const string F2 = F1 + $" the {S2}";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$"" the {S2}""").WithArguments("constant interpolated strings", "10.0").WithLocation(31, 32),
+                    // (34,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //         const string S6 = $"Failed to {VS}";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Failed to {VS}""").WithArguments("constant interpolated strings", "10.0").WithLocation(34, 27),
+                    // (34,27): error CS0133: The expression being assigned to 'S6' must be constant
+                    //         const string S6 = $"Failed to {VS}";
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(34, 27),
+                    // (37,25): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //     void M2(string S1 = $"Testing", object O = null, Namae N = null)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Testing""").WithArguments("constant interpolated strings", "10.0").WithLocation(37, 25),
+                    // (40,18): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //             case $"Level 5":
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Level 5""").WithArguments("constant interpolated strings", "10.0").WithLocation(40, 18),
+                    // (44,30): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //         if (N is Namae { X : $"ConstantInterpolatedString"}){
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""ConstantInterpolatedString""").WithArguments("constant interpolated strings", "10.0").WithLocation(44, 30),
+                    // (46,22): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //                 case $"Number 3":
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Number 3""").WithArguments("constant interpolated strings", "10.0").WithLocation(46, 22),
+                    // (48,22): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //                 case $"Radio Noise":
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Radio Noise""").WithArguments("constant interpolated strings", "10.0").WithLocation(48, 22),
+                    // (49,31): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //                     goto case $"Number 3";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Number 3""").WithArguments("constant interpolated strings", "10.0").WithLocation(49, 31));
+        }
+
+        [Fact]
+        public void EmptyConstInterpolatedString()
+        {
+            CompileAndVerify(@"
+public class C
+{
+    public const string s = $"""";
+
+    static void Main()
+    {
+        System.Console.WriteLine(s);
+    }
+}
+", parseOptions: TestOptions.RegularPreview, expectedOutput: "", symbolValidator: module =>
+{
+    Assert.Equal(string.Empty, module.GlobalNamespace.GetTypeMember("C").GetField("s").ConstantValue);
+});
         }
     }
 

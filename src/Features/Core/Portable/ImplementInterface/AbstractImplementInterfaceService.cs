@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,6 +27,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         {
         }
 
+        protected abstract string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format);
+
         protected abstract bool CanImplementImplicitly { get; }
         protected abstract bool HasHiddenExplicitImplementation { get; }
         protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken, out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes);
@@ -30,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         protected abstract SyntaxNode AddCommentInsideIfStatement(SyntaxNode ifDisposingStatement, SyntaxTriviaList trivia);
         protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
 
-        public async Task<Document> ImplementInterfaceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_ImplementInterface, cancellationToken))
             {
@@ -44,20 +50,20 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // While implementing just one default action, like in the case of pressing enter after interface name in VB,
                 // choose to implement with the dispose pattern as that's the Dev12 behavior.
                 var action = ShouldImplementDisposePattern(state, explicitly: false)
-                    ? ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, state)
-                    : ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
+                    ? ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, options, state)
+                    : ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
 
                 return await action.GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public IEnumerable<CodeAction> GetCodeActions(Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+        public ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
             var state = State.Generate(this, document, model, node, cancellationToken);
-            return GetActions(document, state);
+            return GetActions(document, options, state).ToImmutableArray();
         }
 
-        private IEnumerable<CodeAction> GetActions(Document document, State state)
+        private IEnumerable<CodeAction> GetActions(Document document, ImplementTypeOptions options, State state)
         {
             if (state == null)
             {
@@ -66,38 +72,38 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
             {
-                yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
+                yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
 
                 if (ShouldImplementDisposePattern(state, explicitly: false))
                 {
-                    yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, state);
+                    yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, options, state);
                 }
 
                 var delegatableMembers = GetDelegatableMembers(state);
                 foreach (var member in delegatableMembers)
                 {
-                    yield return ImplementInterfaceCodeAction.CreateImplementThroughMemberCodeAction(this, document, state, member);
+                    yield return ImplementInterfaceCodeAction.CreateImplementThroughMemberCodeAction(this, document, options, state, member);
                 }
 
                 if (state.ClassOrStructType.IsAbstract)
                 {
-                    yield return ImplementInterfaceCodeAction.CreateImplementAbstractlyCodeAction(this, document, state);
+                    yield return ImplementInterfaceCodeAction.CreateImplementAbstractlyCodeAction(this, document, options, state);
                 }
             }
 
             if (state.MembersWithoutExplicitImplementation.Length > 0)
             {
-                yield return ImplementInterfaceCodeAction.CreateImplementExplicitlyCodeAction(this, document, state);
+                yield return ImplementInterfaceCodeAction.CreateImplementExplicitlyCodeAction(this, document, options, state);
 
                 if (ShouldImplementDisposePattern(state, explicitly: true))
                 {
-                    yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementExplicitlyWithDisposePatternCodeAction(this, document, state);
+                    yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementExplicitlyWithDisposePatternCodeAction(this, document, options, state);
                 }
             }
 
             if (AnyImplementedImplicitly(state))
             {
-                yield return ImplementInterfaceCodeAction.CreateImplementRemainingExplicitlyCodeAction(this, document, state);
+                yield return ImplementInterfaceCodeAction.CreateImplementRemainingExplicitlyCodeAction(this, document, options, state);
             }
         }
 
@@ -126,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return false;
         }
 
-        private IList<ISymbol> GetDelegatableMembers(State state)
+        private static IList<ISymbol> GetDelegatableMembers(State state)
         {
             var fields =
                 state.ClassOrStructType.GetMembers()

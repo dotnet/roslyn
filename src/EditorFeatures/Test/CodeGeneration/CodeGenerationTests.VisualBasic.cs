@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -115,7 +117,7 @@ End Class";
     Public Sub New()
 End Class";
                 await TestAddConstructorAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -353,7 +355,41 @@ Class C
     Public Event E As Action
 End Class";
                 await TestAddEventAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddCustomEventToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"Public Class [|C2|]
+    Public Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Events.AddHandler(""ClickEvent"", value)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+            Events.RemoveHandler(""ClickEvent"", value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+        End RaiseEvent
+    End Event
+End Class";
+                var input = "Class [|C1|]\nEnd Class";
+                var expected = @"Class C1
+    Public Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Events.AddHandler(""ClickEvent"", value)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+            Events.RemoveHandler(""ClickEvent"", value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+        End RaiseEvent
+    End Event
+End Class";
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -382,14 +418,14 @@ End Class";
                             GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
                             explicitInterfaceImplementations: default,
                             nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));
-                };
+                }
 
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
                         getExplicitInterfaceImplementations: GetExplicitInterfaceEvent,
                         type: typeof(System.ComponentModel.PropertyChangedEventHandler),
-                        codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                        context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -411,7 +447,7 @@ Class C
 End Class";
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -444,7 +480,7 @@ End Class";
                         ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, removeStatements),
                     raiseMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, raiseStatements),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -457,6 +493,24 @@ End Class";
 End Class";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(void));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddMethodToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"Public Class [|C2|]
+    Public Function FInt() As Integer
+        Return 0
+    End Function
+End Class";
+                var input = "Class [|C1|]\nEnd Class";
+                var expected = @"Class C1
+    Public Function FInt() As Integer
+        Return 0
+    End Function
+End Class";
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -523,7 +577,7 @@ End Class";
 End Class";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(void),
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -964,6 +1018,28 @@ End Class";
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddPropertyToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"Public Class [|C2|]
+    Public Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class";
+                var input = "Class [|C1|]\nEnd Class";
+                var expected = @"Class C1
+    Public Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class";
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public async Task AddPropertyWithoutAccessorBodies()
             {
                 var input = "Class [|C|]\n End Class";
@@ -974,7 +1050,7 @@ End Class";
                     type: typeof(int),
                     getStatements: "Return 0",
                     setStatements: "Me.P = Value",
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1601,7 +1677,7 @@ End Namespace";
 End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     forceLanguage: LanguageNames.VisualBasic,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [WorkItem(848357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
@@ -1625,7 +1701,7 @@ End Namespace
     End Class
 End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                    context: new CodeGenerationContext(generateMethodBodies: false),
                     onlyGenerateMembers: true);
             }
         }

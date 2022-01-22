@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,8 +21,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// syntax tree associated with the binding.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+            => semanticModel.GetSymbolInfo(token.Parent!, cancellationToken);
+
+        public static ISymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
         {
-            return semanticModel.GetSymbolInfo(token.Parent!, cancellationToken);
+            return semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static IOperation GetRequiredOperation(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetOperation(node, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static ISymbol GetRequiredEnclosingSymbol(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetEnclosingSymbol(position, cancellationToken)
+                ?? throw new InvalidOperationException();
         }
 
         public static TSymbol? GetEnclosingSymbol<TSymbol>(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -50,14 +64,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static INamedTypeSymbol? GetEnclosingNamedType(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(position, cancellationToken);
-        }
+            => semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(position, cancellationToken);
 
         public static INamespaceSymbol? GetEnclosingNamespace(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamespaceSymbol>(position, cancellationToken);
-        }
+            => semanticModel.GetEnclosingSymbol<INamespaceSymbol>(position, cancellationToken);
 
         public static IEnumerable<ISymbol> GetExistingSymbols(
                     this SemanticModel semanticModel, SyntaxNode? container, CancellationToken cancellationToken, Func<SyntaxNode, bool>? descendInto = null)

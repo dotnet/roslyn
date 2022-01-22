@@ -2,17 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -25,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         {
             private readonly AbstractIndentationService<TSyntaxRoot> _service;
 
-            public readonly OptionSet OptionSet;
-            public readonly IOptionService OptionService;
+            public readonly IndentationOptions Options;
             public readonly TextLine LineToBeIndented;
             public readonly CancellationToken CancellationToken;
 
@@ -45,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 AbstractIndentationService<TSyntaxRoot> service,
                 SyntacticDocument document,
                 IEnumerable<AbstractFormattingRule> rules,
-                OptionSet optionSet,
+                IndentationOptions options,
                 TextLine lineToBeIndented,
                 CancellationToken cancellationToken)
             {
@@ -53,19 +48,19 @@ namespace Microsoft.CodeAnalysis.Indentation
 
                 _service = service;
                 _syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                OptionSet = optionSet;
-                OptionService = document.Document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+                Options = options;
                 Root = (TSyntaxRoot)document.Root;
                 LineToBeIndented = lineToBeIndented;
-                _tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
+                _tabSize = options.FormattingOptions.GetOption(FormattingOptions2.TabSize);
                 CancellationToken = cancellationToken;
 
                 Rules = rules;
                 Finder = new BottomUpBaseIndentationFinder(
-                    new ChainedFormattingRules(this.Rules, OptionSet.AsAnalyzerConfigOptions(OptionService, Root.Language)),
+                    new ChainedFormattingRules(this.Rules, options.FormattingOptions),
                     _tabSize,
-                    this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
-                    tokenStream: null);
+                    options.FormattingOptions.GetOption(FormattingOptions2.IndentationSize),
+                    tokenStream: null,
+                    document.Document.GetRequiredLanguageService<IHeaderFactsService>());
             }
 
             public IndentationResult? GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
@@ -172,8 +167,8 @@ namespace Microsoft.CodeAnalysis.Indentation
                     var sourceText = Tree.GetText(CancellationToken);
 
                     var formatter = _service.CreateSmartTokenFormatter(this);
-                    var changes = formatter.FormatTokenAsync(Document.Project.Solution.Workspace, token, CancellationToken)
-                                           .WaitAndGetResult(CancellationToken);
+                    var changes = formatter.FormatTokenAsync(Document.Project.Solution.Workspace.Services, token, CancellationToken)
+                                           .WaitAndGetResult_CanCallOnBackground(CancellationToken);
 
                     var updatedSourceText = sourceText.WithChanges(changes);
                     if (LineToBeIndented.LineNumber < updatedSourceText.Lines.Count)
@@ -206,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             }
 
             public IndentationResult IndentFromStartOfLine(int addedSpaces)
-                => new IndentationResult(this.LineToBeIndented.Start, addedSpaces);
+                => new(this.LineToBeIndented.Start, addedSpaces);
 
             public IndentationResult GetIndentationOfToken(SyntaxToken token)
                 => GetIndentationOfToken(token, addedSpaces: 0);

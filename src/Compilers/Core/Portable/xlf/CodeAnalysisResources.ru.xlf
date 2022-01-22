@@ -12,6 +12,16 @@
         <target state="translated">Для данного параметра необходимо указать имя языка.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">Сборка, содержащая тип "{0}", ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">Изменения должны находиться в границах SourceText</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">Изменение версии ссылки на сборку недопустимо во время отладки: "{0}" изменил версию на "{1}".</target>
@@ -26,8 +36,23 @@
       </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
-        <target state="new">Suppress the following diagnostics to disable this analyzer: {0}</target>
+        <target state="translated">Отключите следующую диагностику, чтобы отключить этот анализатор: {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
+        <target state="translated">hintName "{0}" содержит недопустимый символ "{1}" в позиции {2}.</target>
+        <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
+        <target state="translated">HintName "{0}" добавленного исходного файла должно быть уникальным в пределах генератора.</target>
+        <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">Дополнительный файл не принадлежит базовому элементу "CompilationWithAnalyzers".</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
@@ -93,6 +118,16 @@
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Копию модуля нельзя использовать для создания метаданных сборки.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="translated">Для каждого генератора можно зарегистрировать только один {0}.</target>
+        <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
+        <target state="translated">SourceText с hintName "{0}" должен иметь явный набор кодировок.</target>
+        <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -539,6 +574,16 @@
         <target state="translated">Недопустимое название языка и региональных параметров: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">Имя раздела конфигурации глобального анализатора "{0}" недопустимо, так как не является абсолютным путем. Раздел будет проигнорирован. Раздел объявлен в файле: "{1}".</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">Имя раздела конфигурации глобального анализатора недопустимо, так как не является абсолютным путем. Раздел будет проигнорирован.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
         <target state="translated">Для диагностики "{0}" указана недопустимая серьезность "{1}" в файле конфигурации анализатора в "{2}".</target>
@@ -547,6 +592,16 @@
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
         <source>Invalid severity in analyzer config file.</source>
         <target state="translated">Недопустимая серьезность в файле конфигурации анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="translated">В нескольких файлах конфигурации глобального анализатора установлен один и тот же ключ "{0}" в разделе "{1}". Установка этого ключа отменена. Ключ был установлен в следующих файлах: "{2}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="translated">В нескольких файлах конфигурации глобального анализатора установлен один и тот же ключ. Установка этого ключа отменена.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
@@ -581,7 +636,7 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">Сбой анализатора</target>
+        <target state="translated">Сбой анализатора</target>
         <note>{0}: Analyzer name
 {1}: Type name
 {2}: Localized exception message
@@ -590,7 +645,7 @@
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+        <target state="translated">Анализатор "{0}" создал исключение типа "{1}" с сообщением "{2}".
 {3}</target>
         <note />
       </trans-unit>
@@ -654,11 +709,6 @@
       <trans-unit id="ArgumentElementCannotBeNull">
         <source>Argument cannot have a null element.</source>
         <target state="translated">Аргумент не может содержать элемент NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">Анализатор попытался зарегистрировать действие "async", которое не поддерживается.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">

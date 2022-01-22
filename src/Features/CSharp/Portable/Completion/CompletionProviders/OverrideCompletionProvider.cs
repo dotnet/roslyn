@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(OverrideCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ExternAliasCompletionProvider))]
+    [ExtensionOrder(After = nameof(PreprocessorCompletionProvider))]
     [Shared]
     internal partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
     {
@@ -30,21 +30,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         protected override SyntaxNode GetSyntax(SyntaxToken token)
         {
             return token.GetAncestor<EventFieldDeclarationSyntax>()
                 ?? token.GetAncestor<EventDeclarationSyntax>()
                 ?? token.GetAncestor<PropertyDeclarationSyntax>()
                 ?? token.GetAncestor<IndexerDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<MethodDeclarationSyntax>();
+                ?? (SyntaxNode?)token.GetAncestor<MethodDeclarationSyntax>()
+                ?? throw ExceptionUtilities.UnexpectedValue(token);
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
-        }
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
         {
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
         }
 
-        public override bool TryDetermineReturnType(SyntaxToken startToken, SemanticModel semanticModel, CancellationToken cancellationToken, out ITypeSymbol returnType, out SyntaxToken nextToken)
+        public override bool TryDetermineReturnType(SyntaxToken startToken, SemanticModel semanticModel, CancellationToken cancellationToken, out ITypeSymbol? returnType, out SyntaxToken nextToken)
         {
             nextToken = startToken;
             returnType = null;
@@ -61,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // 'partial' is actually an identifier.  If we see it just bail.  This does mean
                 // we won't handle overrides that actually return a type called 'partial'.  And
                 // not a single tear was shed.
-                if (typeSyntax is IdentifierNameSyntax &&
-                    ((IdentifierNameSyntax)typeSyntax).Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
+                if (typeSyntax is IdentifierNameSyntax identifierName &&
+                    identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
                 {
                     return false;
                 }
@@ -174,9 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 token = previousToken;
             }
 
-            startToken = token;
             modifiers = new DeclarationModifiers(isUnsafe: isUnsafe, isAbstract: isAbstract, isOverride: true, isSealed: isSealed);
-            return overrideToken.IsKind(SyntaxKind.OverrideKeyword) && IsOnStartLine(overrideToken.Parent.SpanStart, text, startLine);
+            return overrideToken.IsKind(SyntaxKind.OverrideKeyword) && IsOnStartLine(overrideToken.Parent!.SpanStart, text, startLine);
         }
 
         public override SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken)
@@ -185,8 +185,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.GetPreviousTokenIfTouchingWord(position);
         }
 
-        public override ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType)
+        public override ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol? returnType)
         {
+            if (returnType == null)
+            {
+                return members;
+            }
+
             var filteredMembers = members.WhereAsArray(m =>
                 SymbolEquivalenceComparer.Instance.Equals(GetReturnType(m), returnType));
 
@@ -213,8 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     // move to the end of the last statement of the first accessor
                     var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
-                    var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
-                        firstAccessor.ExpressionBody.Expression;
+                    var firstAccessorStatement = (SyntaxNode?)firstAccessor.Body?.Statements.LastOrDefault() ??
+                        firstAccessor.ExpressionBody!.Expression;
                     return firstAccessorStatement.GetLocation().SourceSpan.End;
                 }
                 else

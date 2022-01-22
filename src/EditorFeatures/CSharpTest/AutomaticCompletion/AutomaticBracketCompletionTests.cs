@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -247,11 +250,41 @@ class C { }";
             CheckStart(session.Session);
         }
 
-        internal Holder CreateSession(string code)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ListPattern()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is $$
+    }
+}
+";
+            var expected = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is [
+]
+    }
+}
+";
+            using var session = CreateSession(code);
+            CheckStart(session.Session);
+            // Open bracket probably should be moved to new line
+            // Close bracket probably should be aligned with open bracket
+            // Tracked by https://github.com/dotnet/roslyn/issues/57244
+            CheckReturn(session.Session, 0, expected);
+        }
+
+        internal static Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.Bracket.OpenCharacter, BraceCompletionSessionProvider.Bracket.CloseCharacter);
+                Bracket.OpenCharacter, Bracket.CloseCharacter);
         }
     }
 }

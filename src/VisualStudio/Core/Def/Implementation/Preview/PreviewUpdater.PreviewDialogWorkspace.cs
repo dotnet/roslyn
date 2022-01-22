@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,10 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         internal class PreviewDialogWorkspace : PreviewWorkspace
         {
             public PreviewDialogWorkspace(Solution solution) : base(solution)
-            {
-            }
-
-            public void UnregisterTextContainer(SourceTextContainer container)
             {
             }
 
@@ -47,60 +45,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 }
             }
 
-            public void OpenDocument(TextDocument document)
-            {
-                switch (document.Kind)
-                {
-                    case TextDocumentKind.Document:
-                        OpenDocument(document.Id);
-                        break;
-
-                    case TextDocumentKind.AnalyzerConfigDocument:
-                        OpenAnalyzerConfigDocument(document.Id);
-                        break;
-
-                    case TextDocumentKind.AdditionalDocument:
-                        OpenAdditionalDocument(document.Id);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(document.Kind);
-                }
-            }
-
-            protected override void ApplyDocumentTextChanged(DocumentId id, SourceText text)
-            {
-                OnDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
-            }
-
-            protected override void ApplyAdditionalDocumentTextChanged(DocumentId id, SourceText text)
-            {
-                OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
-            }
-
-            protected override void ApplyAnalyzerConfigDocumentTextChanged(DocumentId id, SourceText text)
-            {
-                OnAnalyzerConfigDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
-            }
-
             private class PreviewTextLoader : TextLoader
             {
                 private readonly SourceText _text;
 
                 internal PreviewTextLoader(SourceText documentText)
-                {
-                    _text = documentText;
-                }
+                    => _text = documentText;
 
                 public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
-                }
+                    => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
 
                 internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                {
-                    return TextAndVersion.Create(_text, VersionStamp.Create());
-                }
+                    => TextAndVersion.Create(_text, VersionStamp.Create());
             }
         }
     }

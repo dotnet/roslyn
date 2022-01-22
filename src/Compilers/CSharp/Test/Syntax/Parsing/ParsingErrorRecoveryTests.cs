@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -432,13 +434,6 @@ class C
             var file = this.ParseTree(text);
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(1, file.Externs.Count);
-            Assert.Equal(1, file.Usings.Count);
-            Assert.Equal(1, file.AttributeLists.Count);
-            Assert.Equal(3, file.Members.Count);
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[1].Kind());
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[2].Kind());
         }
 
         [Fact]
@@ -676,10 +671,6 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_EOFExpected, file.Errors()[0].Code);
         }
 
         [Fact]
@@ -1886,12 +1877,15 @@ class C
                 // (1,22): error CS1513: } expected
                 // class c { int this[ }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 22),
-                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c { int this[ }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,19): error CS1551: Indexers must have at least one parameter
                 // class c { int this[ }
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15));
         }
 
         [Fact]
@@ -1992,12 +1986,15 @@ class C
                 // (1,21): error CS1056: Unexpected character '$'
                 // class c { int this[ $ ] { } }
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 21),
-                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c { int this[ $ ] { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,23): error CS1551: Indexers must have at least one parameter
                 // class c { int this[ $ ] { } }
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(1, 23));
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(1, 23),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ $ ] { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15));
         }
 
         [Fact]
@@ -2083,12 +2080,15 @@ class C
                 // (1,21): error CS1513: } expected
                 // class c { int this[ public void m() { } }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 21),
-                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c { int this[ public void m() { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,19): error CS1551: Indexers must have at least one parameter
                 // class c { int this[ public void m() { } }
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15));
         }
 
         [Fact]
@@ -3922,6 +3922,9 @@ class C
                 // (1,31): error CS1026: ) expected
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed(t v;").WithLocation(1, 22),
@@ -6261,6 +6264,30 @@ class A
         }
 
         [Fact]
+        public void TestFileScopedNamespaceDeclarationInUsingDirective()
+        {
+            var text = @"using namespace Goo;";
+            var file = this.ParseTree(text);
+
+            Assert.Equal(text, file.ToFullString());
+            file.GetDiagnostics().Verify(
+                // (1,7): error CS1041: Identifier expected; 'namespace' is a keyword
+                // using namespace Goo;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "namespace").WithArguments("", "namespace").WithLocation(1, 7));
+
+            var usings = file.Usings;
+            Assert.Equal(1, usings.Count);
+            Assert.True(usings[0].Name.IsMissing);
+
+            var members = file.Members;
+            Assert.Equal(1, members.Count);
+
+            var namespaceDeclaration = members[0];
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, namespaceDeclaration.Kind());
+            Assert.False(((FileScopedNamespaceDeclarationSyntax)namespaceDeclaration).Name.IsMissing);
+        }
+
+        [Fact]
         public void TestContextualKeywordAsFromVariable()
         {
             var text = @"
@@ -6529,23 +6556,12 @@ public class Test
     };
 }";
 
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.Regular9);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
-
-            Assert.Equal($"{{{Environment.NewLine}", syntaxTree.GetCompilationUnitRoot().GetLeadingTrivia().Node.ToFullString());
 
             // The issue (9391) was exhibited while enumerating the diagnostics
             Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[]
             {
-                "(1,2): error CS1031: Type expected",
-                "(1,1): error CS1022: Type or namespace definition, or end-of-file expected",
-                "(2,13): error CS1003: Syntax error, '[' expected",
-                "(2,13): error CS1001: Identifier expected",
-                "(2,16): error CS1001: Identifier expected",
-                "(2,19): error CS1003: Syntax error, ',' expected",
-                "(2,20): error CS1003: Syntax error, ']' expected",
-                "(2,20): error CS1514: { expected",
-                "(3,6): error CS1597: Semicolon after method or accessor block is not valid",
                 "(4,1): error CS1022: Type or namespace definition, or end-of-file expected",
             }));
         }
@@ -7074,6 +7090,27 @@ static
             var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
+        }
+
+
+        [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
+        [Fact]
+        public void MissingOpenBraceForClassFileScopedNamespace()
+        {
+            var source = @"namespace n;
+
+class c
+";
+            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+
+            Assert.Equal(source, root.ToFullString());
+            // Verify incomplete class decls don't eat tokens of surrounding nodes
+            var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            Assert.False(classDecl.Identifier.IsMissing);
+            Assert.True(classDecl.OpenBraceToken.IsMissing);
+            Assert.True(classDecl.CloseBraceToken.IsMissing);
+            var ns = root.DescendantNodes().OfType<FileScopedNamespaceDeclarationSyntax>().Single();
+            Assert.False(ns.SemicolonToken.IsMissing);
         }
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]

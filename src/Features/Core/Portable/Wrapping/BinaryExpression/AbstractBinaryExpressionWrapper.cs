@@ -2,16 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
+#if DEBUG
+using System.Diagnostics;
+#endif
+
 namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
 {
     using Microsoft.CodeAnalysis.Indentation;
+    using Microsoft.CodeAnalysis.Precedence;
 
     internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
         where TBinaryExpressionSyntax : SyntaxNode
@@ -38,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
         public sealed override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
         {
-            if (!(node is TBinaryExpressionSyntax binaryExpr))
+            if (node is not TBinaryExpressionSyntax binaryExpr)
             {
                 return null;
             }
@@ -95,9 +101,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
         private ImmutableArray<SyntaxNodeOrToken> GetExpressionsAndOperators(
             PrecedenceKind precedence, TBinaryExpressionSyntax binaryExpr)
         {
-            var result = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var result);
             AddExpressionsAndOperators(precedence, binaryExpr, result);
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private void AddExpressionsAndOperators(

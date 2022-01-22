@@ -7,34 +7,30 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
-    internal class NameSyntaxComparer : IComparer<NameSyntax>
+    internal class NameSyntaxComparer : IComparer<NameSyntax?>
     {
         private readonly IComparer<SyntaxToken> _tokenComparer;
-        internal TypeSyntaxComparer TypeComparer;
+        internal readonly TypeSyntaxComparer TypeComparer;
 
         internal NameSyntaxComparer(IComparer<SyntaxToken> tokenComparer)
         {
             _tokenComparer = tokenComparer;
+            TypeComparer = new TypeSyntaxComparer(tokenComparer, this);
         }
 
-        public static IComparer<NameSyntax> Create()
+        public static IComparer<NameSyntax?> Create()
+            => Create(TokenComparer.NormalInstance);
+
+        public static IComparer<NameSyntax?> Create(IComparer<SyntaxToken> tokenComparer)
+            => new NameSyntaxComparer(tokenComparer);
+
+        public int Compare(NameSyntax? x, NameSyntax? y)
         {
-            return Create(TokenComparer.NormalInstance);
-        }
+            if (x is null)
+                return y is null ? 0 : -1;
+            else if (y is null)
+                return 1;
 
-        public static IComparer<NameSyntax> Create(IComparer<SyntaxToken> tokenComparer)
-        {
-            var nameComparer = new NameSyntaxComparer(tokenComparer);
-            var typeComparer = new TypeSyntaxComparer(tokenComparer);
-
-            nameComparer.TypeComparer = typeComparer;
-            typeComparer.NameComparer = nameComparer;
-
-            return nameComparer;
-        }
-
-        public int Compare(NameSyntax x, NameSyntax y)
-        {
             if (x == y)
             {
                 return 0;

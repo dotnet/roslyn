@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -90,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, alt));
                 builder.Add(rewrittenConsequence);
+                builder.Add(BoundSequencePoint.CreateHidden());
                 builder.Add(new BoundGotoStatement(syntax, afterif));
                 builder.Add(new BoundLabelStatement(syntax, alt));
                 builder.Add(rewrittenAlternativeOpt);

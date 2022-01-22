@@ -2,18 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Xunit.Abstractions;
+using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     public abstract class CSharpSquigglesCommon : AbstractEditorTest
     {
-        public CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpSquigglesCommon), projectTemplate)
+        protected sealed class DesktopServiceHubHostOnly : ExecutionCondition
+        {
+            public override bool ShouldSkip => string.Equals(Environment.GetEnvironmentVariable("ROSLYN_OOPCORECLR"), "true", StringComparison.OrdinalIgnoreCase);
+            public override string SkipReason => "https://github.com/dotnet/roslyn/issues/57395";
+        }
+
+        protected CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
+            : base(instanceFactory, nameof(CSharpSquigglesCommon), projectTemplate)
         {
         }
+
+        protected abstract bool SupportsGlobalUsings { get; }
 
         protected override string LanguageName => LanguageNames.CSharp;
 
@@ -34,14 +45,18 @@ namespace ConsoleApplication1
             Console.WriteLine(""Hello World"")
         }
 
-        private void Sub()
+        private static void Sub()
         {
     }
 }");
+
+            var usingsErrorTags = SupportsGlobalUsings ? "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System;\\r\\nusing System.Collections.Generic;\\r\\nusing System.Text;'[0-68]"
+                : "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\\r\\nusing System.Text;'[15-68]";
+
             VisualStudio.Editor.Verify.ErrorTags(
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\r\nusing System.Text;'[15-68]",
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[286-287]",
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[347-348]");
+              usingsErrorTags,
+              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\\r'[286-287]",
+              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[354-355]");
         }
 
         public virtual void VerifySemanticErrorSquiggles()

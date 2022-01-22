@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool isOptional,
             bool hasDefaultValue,
             object defaultValue)
-            : base(containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name)
         {
             this.RefKind = refKind;
             this.IsParams = isParams;
@@ -63,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray.Create<CustomModifier>();
 
+        public bool IsNullChecked => false;
         public bool IsDiscard => false;
     }
 }

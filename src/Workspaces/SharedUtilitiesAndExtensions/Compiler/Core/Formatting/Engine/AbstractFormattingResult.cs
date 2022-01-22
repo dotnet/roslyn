@@ -46,14 +46,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         #region IFormattingResult implementation
 
         public IList<TextChange> GetTextChanges(CancellationToken cancellationToken)
-        {
-            return _lazyChanges.GetValue(cancellationToken);
-        }
+            => _lazyChanges.GetValue(cancellationToken);
 
         public SyntaxNode GetFormattedRoot(CancellationToken cancellationToken)
-        {
-            return _lazyNode.GetValue(cancellationToken);
-        }
+            => _lazyNode.GetValue(cancellationToken);
 
         private IList<TextChange> CreateTextChanges(CancellationToken cancellationToken)
         {
@@ -112,9 +108,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         internal IEnumerable<ValueTuple<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>> GetChanges(CancellationToken cancellationToken)
-        {
-            return TokenStream.GetTriviaDataWithTokenPair(cancellationToken).Where(d => d.Item2.ContainsChanges);
-        }
+            => TokenStream.GetTriviaDataWithTokenPair(cancellationToken).Where(d => d.Item2.ContainsChanges);
 
         #endregion
     }

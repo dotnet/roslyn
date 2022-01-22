@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -14,42 +12,28 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         private class ErrorVisitor : SymbolVisitor<bool>
         {
-            private static readonly ErrorVisitor s_instance = new ErrorVisitor();
+            private static readonly ErrorVisitor s_instance = new();
 
-            public static bool ContainsError(ISymbol symbol)
-            {
-                return s_instance.Visit(symbol);
-            }
+            public static bool ContainsError(ISymbol? symbol)
+                => s_instance.Visit(symbol);
 
             public override bool DefaultVisit(ISymbol symbol)
-            {
-                return true;
-            }
+                => true;
 
             public override bool VisitAlias(IAliasSymbol symbol)
-            {
-                return false;
-            }
+                => false;
 
             public override bool VisitArrayType(IArrayTypeSymbol symbol)
-            {
-                return Visit(symbol.ElementType);
-            }
+                => Visit(symbol.ElementType);
 
             public override bool VisitEvent(IEventSymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
+                => Visit(symbol.Type);
 
             public override bool VisitField(IFieldSymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
+                => Visit(symbol.Type);
 
             public override bool VisitLocal(ILocalSymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
+                => Visit(symbol.Type);
 
             public override bool VisitMethod(IMethodSymbol symbol)
             {
@@ -86,19 +70,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             public override bool VisitParameter(IParameterSymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
+                => Visit(symbol.Type);
 
             public override bool VisitProperty(IPropertySymbol symbol)
-            {
-                return Visit(symbol.Type);
-            }
+                => Visit(symbol.Type);
 
             public override bool VisitPointerType(IPointerTypeSymbol symbol)
-            {
-                return Visit(symbol.PointedAtType);
-            }
+                => Visit(symbol.PointedAtType);
         }
     }
 }

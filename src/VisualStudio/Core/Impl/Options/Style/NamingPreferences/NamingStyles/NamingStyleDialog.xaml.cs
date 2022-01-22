@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -41,8 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
     }
 }

@@ -13,10 +13,12 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
 {
@@ -29,23 +31,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         private const int Parameter = 4;
         private const int ParameterAndOverrides = 5;
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        public GenerateVariableTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
 
         private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey2, object> ImplicitTypingEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
-
-        internal IDictionary<OptionKey2, object> OptionSet(OptionKey2 option, object value)
-        {
-            var options = new Dictionary<OptionKey2, object>();
-            options.Add(option, value);
-            return options;
-        }
+        private OptionsCollection ImplicitTypingEverywhere()
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
@@ -275,7 +278,7 @@ class Class
         [|goo|] = 1;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -295,7 +298,7 @@ class Class : Base
         [|goo|] = 1;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -450,7 +453,7 @@ class Class
         Method(out [|goo|]);
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -2080,7 +2083,7 @@ class D
         [|p|]++;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p") });
+new[] { string.Format(FeaturesResources.Generate_field_0, "p"), string.Format(FeaturesResources.Generate_property_0, "p"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p") });
 
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -2505,6 +2508,17 @@ static class MyExtension
     {
         return s.Length;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task SpeakableTopLevelStatementType()
+        {
+            await TestMissingAsync(@"
+[|P|] = 10;
+
+partial class Program
+{
 }");
         }
 
@@ -3506,6 +3520,36 @@ class Bar
     void goo()
     {
         var c = new Goo { Gibberish = 24 };
+    }
+}");
+        }
+
+        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyInWithInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"record Goo
+{
+}
+
+class Bar
+{
+    void goo(Goo g)
+    {
+        var c = g with { [|Gibberish|] = 24 };
+    }
+}",
+@"record Goo
+{
+    public int Gibberish { get; internal set; }
+}
+
+class Bar
+{
+    void goo(Goo g)
+    {
+        var c = g with { Gibberish = 24 };
     }
 }");
         }
@@ -8858,6 +8902,139 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestExtendedPropertyPatternInIsPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeBlah.[|X|]: (y: 1, z: 2) })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"
+class C
+{
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeBlah.X: (y: 1, z: 2) })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public (int y, int z) X { get; internal set; }
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestConstantPatternInPropertyPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeBlah: [|MissingConstant|] })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+",
+@"
+class C
+{
+    private const Blah MissingConstant;
+
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeBlah: MissingConstant })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestConstantPatternInExtendedPropertyPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    C SomeC { get; set; }
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeC.SomeBlah: [|MissingConstant|] })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+",
+@"
+class C
+{
+    private const Blah MissingConstant;
+
+    C SomeC { get; set; }
+    Blah SomeBlah { get; set; }
+
+    void M2()
+    {
+        object o = null;
+        if (o is C { SomeC.SomeBlah: MissingConstant })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInIsPattern9()
@@ -8977,7 +9154,7 @@ class C
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern1()
         {
@@ -9007,7 +9184,7 @@ class C
         object o = null;
         switch (o)
         {
-            case Blah { [|X|]: int i }:
+            case Blah { X: int i }:
                 break;
         }
     }
@@ -9020,7 +9197,7 @@ class C
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern2()
         {
@@ -9050,7 +9227,7 @@ class C
         Blah o = null;
         switch (o)
         {
-            case { [|X|]: int i }:
+            case { X: int i }:
                 break;
         }
     }
@@ -9288,8 +9465,8 @@ class C
     }
 }", new[]
 {
-    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
-    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_property_0, "Field"),
+    string.Format(FeaturesResources.Generate_field_0, "Field"),
 });
         }
 
@@ -9311,9 +9488,98 @@ class C
     }
 }", new[]
 {
-    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
-    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_property_0, "Field"),
+    string.Format(FeaturesResources.Generate_field_0, "Field"),
 });
+        }
+
+        [WorkItem(45367, "https://github.com/dotnet/roslyn/issues/45367")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task DontOfferPropertyOrFieldInNamespace()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+namespace ConsoleApp5
+{
+    class MyException: Exception
+    
+    internal MyException(int error, int offset, string message) : base(message)
+    {
+        [|Error|] = error;
+        Offset = offset;
+    }", new[]
+{
+    string.Format(FeaturesResources.Generate_local_0, "Error", "MyException"),
+    string.Format(FeaturesResources.Generate_parameter_0, "Error", "MyException"),
+});
+        }
+
+        [WorkItem(48172, "https://github.com/dotnet/roslyn/issues/48172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestMissingOfferParameterInTopLevel()
+        {
+            await TestMissingAsync("[|Console|].WriteLine();", new TestParameters(Options.Regular));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [WorkItem(47586, "https://github.com/dotnet/roslyn/issues/47586")]
+        public async Task TestGenerateParameterFromLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething()
+    {
+        Action<int> call = _ => Debug.Assert([|expected|]);
+    }
+}",
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething(bool expected)
+    {
+        Action<int> call = _ => Debug.Assert(expected);
+    }
+}", index: Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [WorkItem(47586, "https://github.com/dotnet/roslyn/issues/47586")]
+        public async Task TestGenerateParameterFromLambdaInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething()
+    {
+        void M()
+        {
+            Action<int> call = _ => Debug.Assert([|expected|]);
+        }
+    }
+}",
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething()
+    {
+        void M(bool expected)
+        {
+            Action<int> call = _ => Debug.Assert(expected);
+        }
+    }
+}", index: Parameter);
         }
     }
 }

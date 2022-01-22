@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -24,8 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         protected override string ProjectKind => VSLangProj.PrjKind.prjKindCSharpProject;
 
         protected override CommandID GetResetInteractiveFromProjectCommandID()
-        {
-            return new CommandID(ID.InteractiveCommands.CSharpInteractiveCommandSetId, ID.InteractiveCommands.ResetInteractiveFromProject);
-        }
+            => new(ID.InteractiveCommands.CSharpInteractiveCommandSetId, ID.InteractiveCommands.ResetInteractiveFromProject);
     }
 }

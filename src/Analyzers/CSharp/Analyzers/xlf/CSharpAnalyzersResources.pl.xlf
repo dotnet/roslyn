@@ -4,137 +4,372 @@
     <body>
       <trans-unit id="Add_braces">
         <source>Add braces</source>
-        <target state="new">Add braces</target>
+        <target state="translated">Dodaj nawiasy klamrowe</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
-        <target state="new">Add braces to '{0}' statement.</target>
+        <target state="translated">Dodaj nawiasy klamrowe do instrukcji „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="translated">Pusty wiersz jest niedozwolony po dwukropku inicjatora konstruktora</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="translated">Między kolejnymi nawiasami klamrowymi nie może znajdować się pusty wiersz.</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
-        <target state="new">Convert switch statement to expression</target>
+        <target state="translated">Konwertuj instrukcję switch na wyrażenie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_block_scoped_namespace">
+        <source>Convert to block scoped namespace</source>
+        <target state="translated">Konwertuj do zakresu bloku elementu namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_file_scoped_namespace">
+        <source>Convert to file-scoped namespace</source>
+        <target state="translated">Konwertuj do zakresu pliku elementu namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Deconstruct_variable_declaration">
+        <source>Deconstruct variable declaration</source>
+        <target state="translated">Zdekonstruuj deklarację zmiennej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delegate_invocation_can_be_simplified">
+        <source>Delegate invocation can be simplified.</source>
+        <target state="translated">Wywołanie delegata można uprościć.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="translated">Odrzucenie można usunąć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="translated">Osadzone instrukcje muszą znajdować się w osobnym wierszu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="translated">Indeksowanie można uprościć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_variable_declaration">
+        <source>Inline variable declaration</source>
+        <target state="translated">Deklaracja zmiennej wbudowanej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_removed">
+        <source>Lambda expression can be removed</source>
+        <target state="new">Lambda expression can be removed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Misplaced_using_directive">
+        <source>Misplaced using directive</source>
+        <target state="translated">Nieprawidłowo umieszczona dyrektywa using</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Move_misplaced_using_directives">
+        <source>Move misplaced using directives</source>
+        <target state="translated">Przenieś nieprawidłowo umieszczone dyrektywy using</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_readonly_fields_writable">
+        <source>Make readonly fields writable</source>
+        <target state="translated">Ustaw możliwość zapisu dla pól z deklaracją readonly</target>
+        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Local_function_can_be_made_static">
+        <source>Local function can be made static</source>
+        <target state="translated">Funkcję lokalną można ustawić jako statyczną</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_local_function_static">
+        <source>Make local function 'static'</source>
+        <target state="translated">Ustaw funkcję lokalną jako „static”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Negate_expression_changes_semantics">
+        <source>Negate expression (changes semantics)</source>
+        <target state="translated">Neguj wyrażenie (zmienia semantykę)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Null_check_can_be_clarified">
+        <source>Null check can be clarified</source>
+        <target state="translated">Można określić sprawdzanie wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">Ustaw preferencje na sprawdzanie wartości „null” zamiast sprawdzania typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_pattern_can_be_simplified">
+        <source>Property pattern can be simplified</source>
+        <target state="translated">Wzorzec właściwości można uprościć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_operator_preserves_semantics">
+        <source>Remove operator (preserves semantics)</source>
+        <target state="translated">Usuń operator (zachowuje semantykę)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_suppression_operators">
+        <source>Remove suppression operators</source>
+        <target state="translated">Usuń operatory pomijania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_lambda_expression">
+        <source>Remove unnecessary lambda expression</source>
+        <target state="new">Remove unnecessary lambda expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression_operator">
+        <source>Remove unnecessary suppression operator</source>
+        <target state="translated">Usuń niepotrzebny operator pomijania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="translated">Usuń niepotrzebne odrzucenie</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
-        <target state="new">Simplify 'default' expression</target>
+        <target state="translated">Uprość wyrażenie „default”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_pattern">
+        <source>Simplify property pattern</source>
+        <target state="translated">Uprość wzorzec właściwości</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="translated">Element Struct zawiera przypisanie do elementu „this” poza konstruktorem. Ustaw pola tylko do odczytu jako zapisywalne.</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
+        <source>Suppression operator has no effect and can be misinterpreted</source>
+        <target state="translated">Operator pomijania nie ma żadnego efektu i może zostać błędnie zinterpretowany</target>
         <note />
       </trans-unit>
       <trans-unit id="Unreachable_code_detected">
         <source>Unreachable code detected</source>
-        <target state="new">Unreachable code detected</target>
+        <target state="translated">Wykryto nieosiągalny kod</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
         <source>Use block body for accessors</source>
-        <target state="new">Use block body for accessors</target>
+        <target state="translated">Użyj treści bloku dla metod dostępu</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_constructors">
         <source>Use block body for constructors</source>
-        <target state="new">Use block body for constructors</target>
+        <target state="translated">Użyj treści bloku dla konstruktorów</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
-        <target state="new">Use block body for indexers</target>
+        <target state="translated">Użyj treści bloku dla indeksatorów</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
         <source>Use block body for local functions</source>
-        <target state="new">Use block body for local functions</target>
+        <target state="translated">Użyj treści bloku dla funkcji lokalnych</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_methods">
         <source>Use block body for methods</source>
-        <target state="new">Use block body for methods</target>
+        <target state="translated">Użyj treści bloku dla metod</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_operators">
         <source>Use block body for operators</source>
-        <target state="new">Use block body for operators</target>
+        <target state="translated">Użyj treści bloku dla operatorów</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_properties">
         <source>Use block body for properties</source>
-        <target state="new">Use block body for properties</target>
+        <target state="translated">Użyj treści bloku dla właściwości</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicit_type">
         <source>Use explicit type</source>
-        <target state="new">Use explicit type</target>
+        <target state="translated">Użyj jawnego typu</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicit_type_instead_of_var">
         <source>Use explicit type instead of 'var'</source>
-        <target state="new">Use explicit type instead of 'var'</target>
+        <target state="translated">Użyj jawnego typu zamiast deklaracji „var”</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_accessors">
         <source>Use expression body for accessors</source>
-        <target state="new">Use expression body for accessors</target>
+        <target state="translated">Użyj treści wyrażenia dla metod dostępu</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_constructors">
         <source>Use expression body for constructors</source>
-        <target state="new">Use expression body for constructors</target>
+        <target state="translated">Użyj treści wyrażenia dla konstruktorów</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
-        <target state="new">Use expression body for indexers</target>
+        <target state="translated">Użyj treści wyrażenia dla indeksatorów</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
         <source>Use expression body for local functions</source>
-        <target state="new">Use expression body for local functions</target>
+        <target state="translated">Użyj treści wyrażenia dla funkcji lokalnych</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_methods">
         <source>Use expression body for methods</source>
-        <target state="new">Use expression body for methods</target>
+        <target state="translated">Użyj treści wyrażenia dla metod</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_operators">
         <source>Use expression body for operators</source>
-        <target state="new">Use expression body for operators</target>
+        <target state="translated">Użyj treści wyrażenia dla operatorów</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_properties">
         <source>Use expression body for properties</source>
-        <target state="new">Use expression body for properties</target>
+        <target state="translated">Użyj treści wyrażenia dla właściwości</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_implicit_type">
         <source>Use implicit type</source>
-        <target state="new">Use implicit type</target>
+        <target state="translated">Użyj niejawnego typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_index_operator">
+        <source>Use index operator</source>
+        <target state="translated">Użyj operatora indeksu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_is_null_check">
+        <source>Use 'is null' check</source>
+        <target state="translated">Użyj sprawdzania „is null”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_local_function">
+        <source>Use local function</source>
+        <target state="translated">Użyj funkcji lokalnej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_new">
+        <source>Use 'new(...)'</source>
+        <target state="translated">Użyj operatora „new(...)”</target>
+        <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Use_parameter_null_checking">
+        <source>Use parameter null checking</source>
+        <target state="new">Use parameter null checking</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
-        <target state="new">Use pattern matching</target>
+        <target state="translated">Użyj dopasowywania wzorców</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="translated">Użyj porównywania ze wzorcem (może zmienić znaczenie kodu)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="translated">Użyj operatora zakresu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_simple_using_statement">
+        <source>Use simple 'using' statement</source>
+        <target state="translated">Użyj prostej instrukcji „using”</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
-        <target state="new">Use 'switch' expression</target>
+        <target state="translated">Użyj wyrażenia „switch”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_tuple_to_swap_values">
+        <source>Use tuple to swap values</source>
+        <target state="translated">Użyj krotki do zamiany wartości</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
+        <source>Using directives must be placed inside of a namespace declaration</source>
+        <target state="translated">Dyrektywy using muszą znajdować się wewnątrz deklaracji namespace</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
+        <source>Using directives must be placed outside of a namespace declaration</source>
+        <target state="translated">Dyrektywy using muszą znajdować się poza deklaracją namespace</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_deconstructed">
+        <source>Variable declaration can be deconstructed</source>
+        <target state="translated">Deklaracja zmiennej może zostać zdekonstruowana</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_inlined">
+        <source>Variable declaration can be inlined</source>
+        <target state="translated">Deklaracja zmiennej może być śródwierszowa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
+        <source>Warning: Moving using directives may change code meaning.</source>
+        <target state="translated">Uwaga: przeniesienie dyrektyw using może zmienić znaczenie kodu.</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="_0_can_be_simplified">
+        <source>{0} can be simplified</source>
+        <target state="translated">Element {0} można uprościć</target>
         <note />
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
-        <target state="new">'default' expression can be simplified</target>
+        <target state="translated">Wyrażenie „default” można uprościć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="translated">Instrukcja „if” może zostać uproszczona</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_expression_can_be_simplified">
+        <source>'new' expression can be simplified</source>
+        <target state="translated">Wyrażenie „new” można uprościć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeof_can_be_converted_ to_nameof">
+        <source>'typeof' can be converted  to 'nameof'</source>
+        <target state="translated">Element „typeof” można przekonwertować na element „nameof”</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">
         <source>use 'var' instead of explicit type</source>
-        <target state="new">use 'var' instead of explicit type</target>
+        <target state="translated">użyj deklaracji „var” zamiast jawnego typu</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directive_is_unnecessary">
         <source>Using directive is unnecessary.</source>
-        <target state="new">Using directive is unnecessary.</target>
+        <target state="translated">Dyrektywa using jest niepotrzebna.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_statement_can_be_simplified">
+        <source>'using' statement can be simplified</source>
+        <target state="translated">Instrukcję „using” można uprościć</target>
         <note />
       </trans-unit>
     </body>

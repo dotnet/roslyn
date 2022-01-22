@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 
             var (document, _, cancellationToken) = context;
 
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
+            var charService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
 
             using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var subStringTokens);
 
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         {
             using var _ = PooledStringBuilder.GetInstance(out var sb);
 
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
+            var charService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
             var newStringExpression = convert(charService, sb, stringExpression).WithTriviaFrom(stringExpression);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -97,20 +95,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             var isInterpolation = IsInterpolation;
             var chars = charService.TryConvertToVirtualChars(stringToken);
 
-            foreach (var vc in chars)
+            foreach (var ch in chars)
             {
-                var ch = vc.Char;
-
                 // just build the verbatim string by concatenating all the chars in the original
                 // string.  The only exceptions are double-quotes which need to be doubled up in the
                 // final string, and curlies which need to be doubled in interpolations.
-                sb.Append(ch);
+                ch.AppendTo(sb);
 
                 if (ShouldDouble(ch, isInterpolation))
-                    sb.Append(ch);
+                    ch.AppendTo(sb);
             }
 
-            static bool ShouldDouble(char ch, bool isInterpolation)
+            static bool ShouldDouble(VirtualChar ch, bool isInterpolation)
             {
                 if (ch == DoubleQuote)
                     return true;
@@ -122,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             }
         }
 
-        private static bool IsOpenOrCloseBrace(char ch)
+        private static bool IsOpenOrCloseBrace(VirtualChar ch)
             => ch == OpenBrace || ch == CloseBrace;
 
         protected void AddRegularStringText(
@@ -131,10 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             var isInterpolation = IsInterpolation;
             var chars = charService.TryConvertToVirtualChars(stringToken);
 
-            foreach (var vc in chars)
+            foreach (var ch in chars)
             {
-                var ch = vc.Char;
-
                 if (charService.TryGetEscapeCharacter(ch, out var escaped))
                 {
                     sb.Append('\\');
@@ -142,11 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
                 }
                 else
                 {
-                    sb.Append(ch);
+                    ch.AppendTo(sb);
 
                     // if it's an interpolation, we need to double-up open/close braces.
                     if (isInterpolation && IsOpenOrCloseBrace(ch))
-                        sb.Append(ch);
+                        ch.AppendTo(sb);
                 }
             }
         }
@@ -172,9 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             foreach (var ch in chars)
             {
                 // look for two-character escapes that start with  \  .  i.e.  \n  . Note:  \0
-                // cannot be enocded into a verbatim string, so don't offer to convert if we have
+                // cannot be encoded into a verbatim string, so don't offer to convert if we have
                 // that.
-                if (ch.Span.Length == 2 && ch.Char != 0)
+                if (ch.Span.Length == 2 && ch.Rune.Value != 0)
                 {
                     return true;
                 }
@@ -193,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

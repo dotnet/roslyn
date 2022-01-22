@@ -4,15 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -49,9 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public SyntaxNode Transform()
-        {
-            return Visit(_node);
-        }
+            => Visit(_node);
 
         private void PreprocessTriviaListMap(
             Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
@@ -61,28 +55,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var tuple = GetTrailingAndLeadingTrivia(pair, cancellationToken);
+                var (trailingTrivia, leadingTrivia) = GetTrailingAndLeadingTrivia(pair, cancellationToken);
 
                 if (pair.Key.Item1.RawKind != 0)
                 {
-                    _trailingTriviaMap.Add(pair.Key.Item1, tuple.Item1);
+                    _trailingTriviaMap.Add(pair.Key.Item1, trailingTrivia);
                 }
 
                 if (pair.Key.Item2.RawKind != 0)
                 {
-                    _leadingTriviaMap.Add(pair.Key.Item2, tuple.Item2);
+                    _leadingTriviaMap.Add(pair.Key.Item2, leadingTrivia);
                 }
             }
         }
 
-        private ValueTuple<SyntaxTriviaList, SyntaxTriviaList> GetTrailingAndLeadingTrivia(
+        private (SyntaxTriviaList trailingTrivia, SyntaxTriviaList leadingTrivia) GetTrailingAndLeadingTrivia(
             KeyValuePair<ValueTuple<SyntaxToken, SyntaxToken>,
             TriviaData> pair,
             CancellationToken cancellationToken)
         {
             if (pair.Key.Item1.RawKind == 0)
             {
-                return ValueTuple.Create(default(SyntaxTriviaList), GetLeadingTriviaAtBeginningOfTree(pair.Key, pair.Value, cancellationToken));
+                return (default(SyntaxTriviaList), GetLeadingTriviaAtBeginningOfTree(pair.Key, pair.Value, cancellationToken));
             }
 
             if (pair.Value is TriviaDataWithList csharpTriviaData)
@@ -96,13 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // whitespace trivia case such as spaces/tabs/new lines
             // these will always have a single text change
-            var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText;
+            var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText ?? "";
             var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
 
             var width = trailingTrivia.GetFullWidth();
             var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text.Substring(width));
 
-            return ValueTuple.Create(trailingTrivia, leadingTrivia);
+            return (trailingTrivia, leadingTrivia);
         }
 
         private TextSpan GetTextSpan(ValueTuple<SyntaxToken, SyntaxToken> pair)
@@ -120,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart);
         }
 
-        private int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
+        private static int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
         {
             for (var i = 0; i < triviaList.Count; i++)
             {
@@ -152,11 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // whitespace trivia case such as spaces/tabs/new lines
             // these will always have single text changes
-            var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText;
+            var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText ?? "";
             return SyntaxFactory.ParseLeadingTrivia(text);
         }
 
-        public override SyntaxNode Visit(SyntaxNode node)
+        [return: NotNullIfNotNull("node")]
+        public override SyntaxNode? Visit(SyntaxNode? node)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -214,8 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
-        {
-            return token.With(leadingTrivia, trailingTrivia);
-        }
+            => token.With(leadingTrivia, trailingTrivia);
     }
 }

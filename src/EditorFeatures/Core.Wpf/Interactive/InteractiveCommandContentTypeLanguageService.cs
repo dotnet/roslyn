@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Utilities;
@@ -19,13 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveCommandContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-        {
-            _contentTypeRegistry = contentTypeRegistry;
-        }
+            => _contentTypeRegistry = contentTypeRegistry;
 
         public IContentType GetDefaultContentType()
-        {
-            return _contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
-        }
+            => _contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
     }
 }

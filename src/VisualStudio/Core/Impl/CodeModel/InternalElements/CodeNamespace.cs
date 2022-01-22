@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -59,9 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         private SyntaxNode GetNamespaceNode()
-        {
-            return LookupNode().Ancestors().Where(CodeModelService.IsNamespace).FirstOrDefault();
-        }
+            => LookupNode().Ancestors().Where(CodeModelService.IsNamespace).FirstOrDefault();
 
         public override object Parent
         {
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 var namespaceNode = GetNamespaceNode();
 
                 return namespaceNode != null
-                    ? (object)FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeNamespace>(namespaceNode)
+                    ? FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeNamespace>(namespaceNode)
                     : this.FileCodeModel;
             }
         }

@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -49,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _ignoredSpans;
         private readonly CancellationToken _cancellationToken;
 
-        private List<Diagnostic>? _diagnostics;
+        private ImmutableArray<Diagnostic>.Builder? _diagnostics;
 
         /// <summary>
         /// Set of type and namespace names that have an alias associated with them.  i.e. if the
@@ -61,12 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public bool HasDiagnostics => _diagnostics?.Count > 0;
 
-        public List<Diagnostic> Diagnostics
+        public ImmutableArray<Diagnostic> Diagnostics => _diagnostics?.ToImmutable() ?? ImmutableArray<Diagnostic>.Empty;
+
+        public ImmutableArray<Diagnostic>.Builder DiagnosticsBuilder
         {
             get
             {
                 if (_diagnostics is null)
-                    Interlocked.CompareExchange(ref _diagnostics, new List<Diagnostic>(), null);
+                    Interlocked.CompareExchange(ref _diagnostics, ImmutableArray.CreateBuilder<Diagnostic>(), null);
 
                 return _diagnostics;
             }
@@ -92,13 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return aliasedNames;
 
             foreach (var usingDirective in compilationUnit.Usings)
-            {
                 AddAliasedName(usingDirective);
-            }
 
             foreach (var member in compilationUnit.Members)
             {
-                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
+                if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
                     AddAliasedNames(namespaceDeclaration);
             }
 
@@ -119,16 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 }
             }
 
-            void AddAliasedNames(NamespaceDeclarationSyntax namespaceDeclaration)
+            void AddAliasedNames(BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
                 foreach (var usingDirective in namespaceDeclaration.Usings)
-                {
                     AddAliasedName(usingDirective);
-                }
 
                 foreach (var member in namespaceDeclaration.Members)
                 {
-                    if (member is NamespaceDeclarationSyntax memberNamespace)
+                    if (member is BaseNamespaceDeclarationSyntax memberNamespace)
                         AddAliasedNames(memberNamespace);
                 }
             }
@@ -284,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (!_analyzer.TrySimplify(_semanticModel, node, out var diagnostic, _optionSet, _cancellationToken))
                 return false;
 
-            Diagnostics.Add(diagnostic);
+            DiagnosticsBuilder.Add(diagnostic);
             return true;
         }
     }

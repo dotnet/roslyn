@@ -4,17 +4,47 @@
     <body>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
-        <target state="new">Add 'this.'</target>
+        <target state="translated">Adicionar 'isso.'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_typeof_to_nameof">
+        <source>Convert 'typeof' to 'nameof'</source>
+        <target state="translated">Converter 'typeof' em 'nameof'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pass_in_captured_variables_as_arguments">
+        <source>Pass in captured variables as arguments</source>
+        <target state="translated">Passar variáveis capturadas como argumentos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_colon_on_following_line">
+        <source>Place colon on following line</source>
+        <target state="translated">Colocar os dois-pontos na próxima linha</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="translated">Colocar a instrução na linha seguinte</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
-        <target state="new">Remove Unnecessary Usings</target>
+        <target state="translated">Remover Usos Desnecessários</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank line between braces</source>
+        <target state="translated">Remover a linha em branco entre chaves</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
-        <target state="new">Remove unreachable code</target>
+        <target state="translated">Remover código inacessível</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
+        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
+        <target state="translated">Aviso: a adição de parâmetros à declaração de função local pode produzir um código inválido.</target>
         <note />
       </trans-unit>
     </body>

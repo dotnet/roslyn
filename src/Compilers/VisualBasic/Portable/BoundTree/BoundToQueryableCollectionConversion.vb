@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundToQueryableCollectionConversion
+    Partial Friend Class BoundToQueryableCollectionConversion
 
         Public Sub New([call] As BoundCall)
             Me.New([call].Syntax, [call], [call].Type)

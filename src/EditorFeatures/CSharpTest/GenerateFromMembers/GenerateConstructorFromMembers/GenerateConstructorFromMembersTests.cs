@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -730,7 +732,6 @@ class X
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task Tuple()
         {
@@ -999,6 +1000,84 @@ class Z
     }
 }",
 chosenSymbols: new string[] { "a", "b" },
+optionsCallback: options => options[0].Value = true);
+        }
+
+        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecksWithNullableReferenceType()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z
+{
+    int a;
+    string b;
+    string? c;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z
+{
+    int a;
+    string b;
+    string? c;
+
+    public Z(int a, string b, string? c{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+        this.c = c;
+    }
+}",
+chosenSymbols: new string[] { "a", "b", "c" },
+optionsCallback: options => options[0].Value = true);
+        }
+
+        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecksWithNullableReferenceTypeForGenerics()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+
+    public Z(int a, string b, T? c{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+        this.c = c;
+    }
+}",
+chosenSymbols: new string[] { "a", "b", "c" },
 optionsCallback: options => options[0].Value = true);
         }
 
@@ -1566,7 +1645,7 @@ chosenSymbols: null);
     {
         field_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1586,7 +1665,7 @@ chosenSymbols: null);
     {
         field_s_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1606,7 +1685,7 @@ chosenSymbols: null);
     {
         s_field_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1617,7 +1696,7 @@ chosenSymbols: null);
 @"class Z
 {
     int [|field__End|] = 2;
-}", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
+}", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1639,7 +1718,76 @@ chosenSymbols: null);
     {
         s_field_a = p_a;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestUnsafeField()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Z
+{
+    [|unsafe int* a;|]
+}",
+@"
+class Z
+{
+    unsafe int* a;
+
+    public unsafe Z(int* a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestUnsafeFieldInUnsafeClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+unsafe class Z
+{
+    [|int* a;|]
+}",
+@"
+unsafe class Z
+{
+    int* a;
+
+    public Z(int* a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+        }
+
+        [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMissingWhenTypeNotInCompilation()
+        {
+            await TestMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"">
+        <Document>
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+<![CDATA[ class Z<T> where T : class ]]>
+{
+    int a;
+    string b;
+    T? c;
+    [||]
+}
+        </Document>
+    </Project>
+</Workspace>");
         }
     }
 }

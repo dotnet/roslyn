@@ -5,7 +5,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,14 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ExplicitInterfaceMemberCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(ExplicitInterfaceMemberCompletionProvider);
-        }
+            => typeof(ExplicitInterfaceMemberCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExplicitInterfaceMember_01()
@@ -32,6 +25,9 @@ interface IGoo
     void Goo();
     void Goo(int x);
     int Prop { get; }
+    int Generic<K, V>(K key, V value);
+    string this[int i] { get; }
+    void With_Underscore();
 }
 
 class Bar : IGoo
@@ -39,9 +35,12 @@ class Bar : IGoo
      void IGoo.$$
 }";
 
-            await VerifyItemExistsAsync(markup, "Goo()");
-            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "(int x)");
             await VerifyItemExistsAsync(markup, "Prop");
+            await VerifyItemExistsAsync(markup, "Generic", displayTextSuffix: "<K, V>(K key, V value)");
+            await VerifyItemExistsAsync(markup, "this", displayTextSuffix: "[int i]");
+            await VerifyItemExistsAsync(markup, "With_Underscore", displayTextSuffix: "()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -60,8 +59,8 @@ interface IBar : IGoo
      void IGoo.$$
 }";
 
-            await VerifyItemExistsAsync(markup, "Goo()");
-            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "(int x)");
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
@@ -81,8 +80,8 @@ class Bar : IGoo
      void IGoo.$$
 }";
 
-            await VerifyItemExistsAsync(markup, "Goo()");
-            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "(int x)");
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
@@ -102,8 +101,8 @@ interface IBar : IGoo
      void IGoo.$$
 }";
 
-            await VerifyItemExistsAsync(markup, "Goo()");
-            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+            await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "(int x)");
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
@@ -133,7 +132,7 @@ class Bar : IGoo
      void IGoo.Goo()
 }";
 
-            await VerifyProviderCommitAsync(markup, "Goo()", expected, null, "");
+            await VerifyProviderCommitAsync(markup, "Goo()", expected, null);
         }
 
         [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
@@ -162,7 +161,7 @@ class Bar : IGoo
      void IGoo.Goo(
 }";
 
-            await VerifyProviderCommitAsync(markup, "Goo()", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "Goo()", expected, '(');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -192,7 +191,7 @@ class Bar : I2
             await VerifyItemIsAbsentAsync(markup, "GetType()");
             await VerifyItemIsAbsentAsync(markup, "ToString()");
 
-            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Goo2", displayTextSuffix: "()");
             await VerifyItemExistsAsync(markup, "Prop");
         }
 
@@ -218,7 +217,7 @@ class Bar : I1
             await VerifyItemIsAbsentAsync(markup, "TestEvent.add");
             await VerifyItemIsAbsentAsync(markup, "TestEvent.remove");
 
-            await VerifyItemExistsAsync(markup, "Foo()");
+            await VerifyItemExistsAsync(markup, "Foo", displayTextSuffix: "()");
             await VerifyItemExistsAsync(markup, "Prop");
             await VerifyItemExistsAsync(markup, "TestEvent");
         }
@@ -367,9 +366,9 @@ public interface IGoo
     </Project>
 </Workspace>";
 
-            await VerifyItemIsAbsentAsync(markup, "Goo1()");
+            await VerifyItemIsAbsentAsync(markup, "Goo1", displayTextSuffix: "()");
             await VerifyItemIsAbsentAsync(markup, "Prop1");
-            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Goo2", displayTextSuffix: "()");
             await VerifyItemExistsAsync(markup, "Prop2");
         }
 
@@ -403,10 +402,491 @@ public interface IGoo
     </Project>
 </Workspace>";
 
-            await VerifyItemIsAbsentAsync(markup, "Goo1()");
+            await VerifyItemIsAbsentAsync(markup, "Goo1", displayTextSuffix: "()");
             await VerifyItemIsAbsentAsync(markup, "Prop1");
-            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Goo2", displayTextSuffix: "()");
             await VerifyItemExistsAsync(markup, "Prop2");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Generic_Tab()
+        {
+            var markup = @"
+interface IGoo
+{
+    int Generic<K, V>(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int Generic<K, V>(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.Generic<K, V>(K key, V value)
+}";
+
+            await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Generic_OpenBrace()
+        {
+            var markup = @"
+interface IGoo
+{
+    int Generic<K, V>(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int Generic<K, V>(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.Generic<
+}";
+
+            await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '<');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Method_Tab()
+        {
+            var markup = @"
+interface IGoo
+{
+    int Generic(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int Generic(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.Generic(K key, V value)
+}";
+
+            await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Method_OpenBrace()
+        {
+            var markup = @"
+interface IGoo
+{
+    int Generic(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int Generic(K key, V value);
+}
+
+class Bar : IGoo
+{
+     void IGoo.Generic(
+}";
+
+            await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '(');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Indexer_Tab()
+        {
+            var markup = @"
+interface IGoo
+{
+    int this[K key, V value] { get; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int this[K key, V value] { get; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.this[K key, V value]
+}";
+
+            await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VerifySignatureCommit_Indexer_OpenBrace()
+        {
+            var markup = @"
+interface IGoo
+{
+    int this[K key, V value] { get; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            var expected = @"
+interface IGoo
+{
+    int this[K key, V value] { get; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.this[
+}";
+
+            await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("ref")]
+        [InlineData("in")]
+        [InlineData("out")]
+        public async Task TestWithRefKind(string refKind)
+        {
+            var markup = $@"
+interface I
+{{
+    void M({refKind} string s);
+}}
+
+class C : I
+{{
+    void I.$$
+}}
+";
+
+            var expected = $@"
+interface I
+{{
+    void M({refKind} string s);
+}}
+
+class C : I
+{{
+    void I.M({refKind} string s)
+}}
+";
+
+            await VerifyProviderCommitAsync(markup, $"M({refKind} string s)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember()
+        {
+            var markup = @"
+interface I2<T> where T : I2<T>
+{
+    abstract static implicit operator int(T x);
+}
+
+class Test2 : I2<Test2>
+{
+    static implicit I2<Test2>.$$
+}
+";
+
+            var expected = @"
+interface I2<T> where T : I2<T>
+{
+    abstract static implicit operator int(T x);
+}
+
+class Test2 : I2<Test2>
+{
+    static implicit I2<Test2>.operator int(Test2 x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator int(Test2 x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_TrueOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static bool operator true(T x);
+    abstract static bool operator false(T x);
+}
+
+class C : I<C>
+{
+    static bool I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static bool operator true(T x);
+    abstract static bool operator false(T x);
+}
+
+class C : I<C>
+{
+    static bool I<C>.operator true(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_UnaryPlusOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x);
+}
+
+class C : I<C>
+{
+    static C I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x);
+}
+
+class C : I<C>
+{
+    static C I<C>.operator +(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator +(C x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_BinaryPlusOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x, T y);
+}
+
+class C : I<C>
+{
+    static C I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x, T y);
+}
+
+class C : I<C>
+{
+    static C I<C>.operator +(C x, C y)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator +(C x, C y)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestWithParamsParameter()
+        {
+            var markup = @"
+interface I
+{
+    void M(params string[] args);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(params string[] args);
+}
+
+class C : I
+{
+    void I.M(params string[] args)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestWithNullable()
+        {
+            var markup = @"
+#nullable enable
+
+interface I
+{
+    void M<T>(T? x);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+#nullable enable
+
+interface I
+{
+    void M<T>(T? x);
+}
+
+class C : I
+{
+    void I.M<T>(T? x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M<T>(T? x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestEscapeIdentifier()
+        {
+            var markup = @"
+interface I
+{
+    void M(string @class);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(string @class);
+}
+
+class C : I
+{
+    void I.M(string @class)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M(string @class)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestEscapeIdentifier2()
+        {
+            var markup = @"
+interface I
+{
+    void M<@class>();
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M<@class>();
+}
+
+class C : I
+{
+    void I.M<@class>()
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M<@class>()", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestParameterWithDefaultValue()
+        {
+            var markup = @"
+interface I
+{
+    void M(int x = 10);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(int x = 10);
+}
+
+class C : I
+{
+    void I.M(int x)
+}
+";
+            // TODO: Consider adding the default value too.
+            await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
         }
     }
 }

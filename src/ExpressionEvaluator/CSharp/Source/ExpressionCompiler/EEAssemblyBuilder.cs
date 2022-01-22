@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -67,18 +65,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool IgnoreAccessibility => true;
+        public override EmitBaseline? PreviousGeneration => null;
+        public override SymbolChanges? EncSymbolChanges => null;
 
         internal override NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
         {
             return _getDynamicOperationContextType(contextType);
         }
 
-        public override int CurrentGenerationOrdinal => 0;
-
         internal override VariableSlotAllocator? TryCreateVariableSlotAllocator(MethodSymbol symbol, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
-            => (symbol is EEMethodSymbol method) ? new SlotAllocator(GetLocalDefinitions(method.Locals)) : null;
+            => (symbol is EEMethodSymbol method) ? new SlotAllocator(GetLocalDefinitions(method.Locals, diagnostics)) : null;
 
-        private static ImmutableArray<LocalDefinition> GetLocalDefinitions(ImmutableArray<LocalSymbol> locals)
+        private ImmutableArray<LocalDefinition> GetLocalDefinitions(ImmutableArray<LocalSymbol> locals, DiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<LocalDefinition>.GetInstance();
             foreach (var local in locals)
@@ -87,14 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     continue;
                 }
-                var def = ToLocalDefinition(local, builder.Count);
+                var def = ToLocalDefinition(local, builder.Count, diagnostics);
                 Debug.Assert(((EELocalSymbol)local).Ordinal == def.SlotIndex);
                 builder.Add(def);
             }
             return builder.ToImmutableAndFree();
         }
 
-        private static LocalDefinition ToLocalDefinition(LocalSymbol local, int index)
+        private LocalDefinition ToLocalDefinition(LocalSymbol local, int index, DiagnosticBag diagnostics)
         {
             // See EvaluationContext.GetLocals.
             TypeSymbol type;
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new LocalDefinition(
                 local,
                 local.Name,
-                (Cci.ITypeReference)type,
+                Translate(type, syntaxNodeOpt: null, diagnostics),
                 slot: index,
                 synthesizedKind: local.SynthesizedKind,
                 id: LocalDebugId.None,

@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
-            OptionSet options,
+            ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxToken firstToken,
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
-            OptionSet options,
+            ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,
@@ -77,17 +79,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var current = token.Parent;
             for (; current != null; current = current.Parent)
             {
-                if (current is MemberDeclarationSyntax ||
-                    current is SimpleLambdaExpressionSyntax ||
-                    current is ParenthesizedLambdaExpressionSyntax ||
-                    current is AnonymousMethodExpressionSyntax ||
-                    current is LocalFunctionStatementSyntax)
+                if (current is MemberDeclarationSyntax or
+                    SimpleLambdaExpressionSyntax or
+                    ParenthesizedLambdaExpressionSyntax or
+                    AnonymousMethodExpressionSyntax or
+                    LocalFunctionStatementSyntax)
                 {
                     break;
                 }
             }
 
-            if (current == null || current is MemberDeclarationSyntax)
+            if (current is null or MemberDeclarationSyntax)
             {
                 return false;
             }
@@ -98,14 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public StatementSyntax GetFirstStatement()
-        {
-            return GetFirstStatement<StatementSyntax>();
-        }
+            => GetFirstStatement<StatementSyntax>();
 
         public StatementSyntax GetLastStatement()
-        {
-            return GetLastStatement<StatementSyntax>();
-        }
+            => GetLastStatement<StatementSyntax>();
 
         public StatementSyntax GetFirstStatementUnderContainer()
         {
@@ -127,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             Contract.ThrowIfNull(statement);
             var firstStatementUnderContainer = GetFirstStatementUnderContainer();
-            Contract.ThrowIfFalse(statement.Parent == firstStatementUnderContainer.Parent);
+            Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(statement, firstStatementUnderContainer));
 
             return statement;
         }
@@ -194,14 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public SyntaxKind UnderCheckedExpressionContext()
-        {
-            return UnderCheckedContext<CheckedExpressionSyntax>();
-        }
+            => UnderCheckedContext<CheckedExpressionSyntax>();
 
         public SyntaxKind UnderCheckedStatementContext()
-        {
-            return UnderCheckedContext<CheckedStatementSyntax>();
-        }
+            => UnderCheckedContext<CheckedStatementSyntax>();
 
         private SyntaxKind UnderCheckedContext<T>() where T : SyntaxNode
         {

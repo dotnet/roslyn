@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private readonly struct DocumentAnalysisData
         {
-            public static readonly DocumentAnalysisData Empty = new DocumentAnalysisData(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
+            public static readonly DocumentAnalysisData Empty = new(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
 
             /// <summary>
             /// Version of the diagnostic data.
@@ -56,9 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             public DocumentAnalysisData ToPersistData()
-            {
-                return new DocumentAnalysisData(Version, Items);
-            }
+                => new(Version, Items);
 
             public bool FromCache
             {
@@ -111,11 +107,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
-            {
-                return GetResultOrEmpty(Result, analyzer, ProjectId, Version);
-            }
+                => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
 
-            public static async Task<ProjectAnalysisData> CreateAsync(IPersistentStorageService persistentService, Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
+            public static async Task<ProjectAnalysisData> CreateAsync(Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 VersionStamp? version = null;
 
@@ -123,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var stateSet in stateSets)
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
-                    var result = await state.GetAnalysisDataAsync(persistentService, project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    var result = await state.GetAnalysisDataAsync(project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfFalse(project.Id == result.ProjectId);
 
                     if (!version.HasValue)

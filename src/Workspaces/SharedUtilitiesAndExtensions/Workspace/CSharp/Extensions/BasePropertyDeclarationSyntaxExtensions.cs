@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <summary>
         /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
         /// </summary>
-        public static SyntaxToken TryGetSemicolonToken(this BasePropertyDeclarationSyntax node)
+        public static SyntaxToken TryGetSemicolonToken(this BasePropertyDeclarationSyntax? node)
         {
             if (node != null)
             {
@@ -28,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <summary>
         /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
         /// </summary>
-        public static BasePropertyDeclarationSyntax TryWithSemicolonToken(this BasePropertyDeclarationSyntax node, SyntaxToken semicolonToken)
+        [return: NotNullIfNotNull("node")]
+        public static BasePropertyDeclarationSyntax? TryWithSemicolonToken(this BasePropertyDeclarationSyntax? node, SyntaxToken semicolonToken)
         {
             if (node != null)
             {
@@ -45,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <summary>
         /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
         /// </summary>
-        public static BasePropertyDeclarationSyntax TryWithExpressionBody(this BasePropertyDeclarationSyntax node, ArrowExpressionClauseSyntax expressionBody)
+        [return: NotNullIfNotNull("node")]
+        public static BasePropertyDeclarationSyntax? TryWithExpressionBody(this BasePropertyDeclarationSyntax? node, ArrowExpressionClauseSyntax expressionBody)
         {
             if (node != null)
             {

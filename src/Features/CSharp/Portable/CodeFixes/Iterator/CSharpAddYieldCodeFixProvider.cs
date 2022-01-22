@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -83,10 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             root = root.ReplaceNode(returnStatement, yieldStatement);
-            return new MyCodeAction(CSharpFeaturesResources.Replace_return_with_yield_return, document.WithSyntaxRoot(root));
+            return new MyCodeAction(document.WithSyntaxRoot(root));
         }
 
-        private bool TryGetExpressionType(
+        private static bool TryGetExpressionType(
             SemanticModel model, ExpressionSyntax? expression, [NotNullWhen(true)] out ITypeSymbol? returnExpressionType)
         {
             if (expression == null)
@@ -100,13 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return returnExpressionType != null;
         }
 
-        private bool TryGetMethodReturnType(
+        private static bool TryGetMethodReturnType(
             SyntaxNode node, SemanticModel model, CancellationToken cancellationToken,
             [NotNullWhen(true)] out ITypeSymbol? methodReturnType)
         {
             methodReturnType = null;
             var symbol = model.GetEnclosingSymbol(node.Span.Start, cancellationToken);
-            if (!(symbol is IMethodSymbol method) || method.ReturnsVoid)
+            if (symbol is not IMethodSymbol method || method.ReturnsVoid)
             {
                 return false;
             }
@@ -117,10 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         private bool IsCorrectTypeForYieldReturn(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, ITypeSymbol methodReturnType, SemanticModel model)
         {
-            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
-            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName);
-            var ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
-            var ienumeratorGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName);
+            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
+            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName!);
+            var ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
+            var ienumeratorGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName!);
 
             if (ienumerableGenericSymbol == null ||
                 ienumerableSymbol == null ||
@@ -188,10 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return true;
         }
 
-        private bool IsCorrectTypeForYieldReturn(ITypeSymbol methodReturnType, SemanticModel model)
+        private static bool IsCorrectTypeForYieldReturn(ITypeSymbol methodReturnType, SemanticModel model)
         {
-            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
-            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName);
+            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
+            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName!);
 
             if (ienumerableSymbol == null ||
                     ienumeratorSymbol == null)
@@ -224,8 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Document newDocument)
-                : base(title, c => Task.FromResult(newDocument))
+            public MyCodeAction(Document newDocument)
+                : base(CSharpFeaturesResources.Replace_return_with_yield_return, c => Task.FromResult(newDocument), nameof(CSharpFeaturesResources.Replace_return_with_yield_return))
             {
             }
         }

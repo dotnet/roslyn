@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AliasA
             Return FlattenActions(actions)
         End Function
 
-        Private Function GetAmbiguousDefinition(ByVal typeDefinion As String) As String
+        Private Shared Function GetAmbiguousDefinition(ByVal typeDefinion As String) As String
             Return $"
 Namespace N1
     {typeDefinion}

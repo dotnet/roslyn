@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -30,6 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
     [UseExportProvider]
     public class DiagnosticAnalyzerDriverTests
     {
+        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+
         [Fact]
         public async Task DiagnosticAnalyzerDriverAllInOne()
         {
@@ -41,12 +46,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
             var missingSyntaxNodes = new HashSet<SyntaxKind>();
+            // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
+            missingSyntaxNodes.Add(SyntaxKind.WithExpression);
+            missingSyntaxNodes.Add(SyntaxKind.RecordDeclaration);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular);
+            using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var newSolution = workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference })
+                .Projects.Single().AddAdditionalDocument(name: "dummy.txt", text: "", filePath: "dummy.txt").Project.Solution;
+            workspace.TryApplyChanges(newSolution);
+
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             AccessSupportedDiagnostics(analyzer);
-            await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new TextSpan(0, document.GetTextAsync().Result.Length));
+            await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, new TextSpan(0, document.GetTextAsync().Result.Length));
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxNodes);
@@ -68,10 +82,13 @@ class C
 ";
 
             var ideEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source))
+            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
+                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(ideEngineAnalyzer));
+                ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-                await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineAnalyzer, ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
+                await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineWorkspace, ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
                 foreach (var method in methodNames)
                 {
                     Assert.False(ideEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.MethodKind == MethodKind.DelegateInvoke && e.ReturnsVoid));
@@ -82,7 +99,7 @@ class C
             }
 
             var compilerEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source);
+            using var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
             var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None).Result;
             compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { compilerEngineAnalyzer });
             foreach (var method in methodNames)
@@ -99,10 +116,17 @@ class C
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;
-            using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular);
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
             await ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(async analyzer =>
-                await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new TextSpan(0, document.GetTextAsync().Result.Length)));
+            {
+                using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+
+                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+                var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+                return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, new TextSpan(0, document.GetTextAsync().Result.Length));
+            });
         }
 
         [WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
@@ -136,36 +160,37 @@ class C
         [Fact]
         public async Task AnalyzerOptionsArePassedToAllAnalyzers()
         {
-            using var workspace = TestWorkspace.CreateCSharp(TestResource.AllInOneCSharpCode, TestOptions.Regular);
-            var currentProject = workspace.CurrentSolution.Projects.Single();
+            using var workspace = TestWorkspace.CreateCSharp(TestResource.AllInOneCSharpCode, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
-            var additionalDocId = DocumentId.CreateNewId(currentProject.Id);
-            var newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"));
-            currentProject = newSln.Projects.Single();
-            var additionalDocument = currentProject.GetAdditionalDocument(additionalDocId)!;
-            var additionalStream = new AdditionalTextWithState(additionalDocument.State);
-            var options = new AnalyzerOptions(ImmutableArray.Create<AdditionalText>(additionalStream));
+            var additionalDocId = DocumentId.CreateNewId(workspace.CurrentSolution.Projects.Single().Id);
+            var additionalText = new TestAdditionalText("add.config", SourceText.From("random text"));
+            var options = new AnalyzerOptions(ImmutableArray.Create<AdditionalText>(additionalText));
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
 
-            var sourceDocument = currentProject.Documents.Single();
-            await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, sourceDocument, new TextSpan(0, sourceDocument.GetTextAsync().Result.Length));
+            workspace.TryApplyChanges(workspace.CurrentSolution
+                .WithAnalyzerReferences(new[] { analyzerReference })
+                .AddAdditionalDocument(additionalDocId, "add.config", additionalText.GetText()));
+
+            var sourceDocument = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, sourceDocument, new TextSpan(0, sourceDocument.GetTextAsync().Result.Length));
             analyzer.VerifyAnalyzerOptions();
         }
 
-        private void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
+        private static void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
-            var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, analyzer);
-            diagnosticService.GetDiagnosticDescriptorsPerReference();
+            var diagnosticService = new HostDiagnosticAnalyzers(new[] { new AnalyzerImageReference(ImmutableArray.Create(analyzer)) });
+            diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache());
         }
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
+            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+
             public bool OpenFileOnly(OptionSet options) => false;
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            {
-                return DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
-            }
+                => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
         }
 
         [Fact]
@@ -173,10 +198,14 @@ class C
         {
             var source = @"x";
 
+            using var workspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+
             var analyzer = new CompilationAnalyzerWithSyntaxTreeAnalyzer();
-            using var ideEngineWorkspace = TestWorkspace.CreateCSharp(source);
-            var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+            var ideEngineDocument = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
 
             var diagnosticsFromAnalyzer = diagnostics.Where(d => d.Id == "SyntaxDiagnostic");
 
@@ -199,21 +228,15 @@ class C
             }
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
-            }
+                => context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
 
             public void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
-            {
-                context.RegisterSyntaxTreeAction(new SyntaxTreeAnalyzer().AnalyzeSyntaxTree);
-            }
+                => context.RegisterSyntaxTreeAction(SyntaxTreeAnalyzer.AnalyzeSyntaxTree);
 
             private class SyntaxTreeAnalyzer
             {
-                public void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(s_syntaxDiagnosticDescriptor, context.Tree.GetRoot().GetFirstToken().GetLocation()));
-                }
+                public static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+                    => context.ReportDiagnostic(Diagnostic.Create(s_syntaxDiagnosticDescriptor, context.Tree.GetRoot().GetFirstToken().GetLocation()));
             }
         }
 
@@ -232,10 +255,13 @@ class C
 ";
 
             var analyzer = new CodeBlockAnalyzerFactory();
-            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source))
+            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
+                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+                ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
+                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineWorkspace, ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
                 var diagnosticsFromAnalyzer = diagnostics.Where(d => d.Id == CodeBlockAnalyzerFactory.Descriptor.Id);
                 Assert.Equal(2, diagnosticsFromAnalyzer.Count());
             }
@@ -251,7 +277,7 @@ class C
 }
 ";
 
-            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source))
+            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
                 var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None).Result;
                 var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
@@ -273,20 +299,18 @@ class C
             }
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCodeBlockStartAction<SyntaxKind>(CreateAnalyzerWithinCodeBlock);
-            }
+                => context.RegisterCodeBlockStartAction<SyntaxKind>(CreateAnalyzerWithinCodeBlock);
 
             public void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<SyntaxKind> context)
             {
                 var blockAnalyzer = new CodeBlockAnalyzer();
-                context.RegisterCodeBlockEndAction(blockAnalyzer.AnalyzeCodeBlock);
-                context.RegisterSyntaxNodeAction(blockAnalyzer.AnalyzeNode, blockAnalyzer.SyntaxKindsOfInterest.ToArray());
+                context.RegisterCodeBlockEndAction(CodeBlockAnalyzer.AnalyzeCodeBlock);
+                context.RegisterSyntaxNodeAction(CodeBlockAnalyzer.AnalyzeNode, CodeBlockAnalyzer.SyntaxKindsOfInterest.ToArray());
             }
 
             private class CodeBlockAnalyzer
             {
-                public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+                public static ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
                 {
                     get
                     {
@@ -294,11 +318,11 @@ class C
                     }
                 }
 
-                public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
+                public static void AnalyzeCodeBlock(CodeBlockAnalysisContext _)
                 {
                 }
 
-                public void AnalyzeNode(SyntaxNodeAnalysisContext context)
+                public static void AnalyzeNode(SyntaxNodeAnalysisContext context)
                 {
                     // Ensure only executable nodes are analyzed.
                     Assert.NotEqual(SyntaxKind.MethodDeclaration, context.Node.Kind());
@@ -518,6 +542,10 @@ class C
                 expectedNugetAnalyzersExecuted: true,
                 vsixAnalyzers: ImmutableArray<VsixAnalyzer>.Empty,
                 expectedVsixAnalyzersExecuted: false,
+                nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+                expectedNugetSuppressorsExecuted: false,
+                vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
+                expectedVsixSuppressorsExecuted: false,
                 new[]
                 {
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
@@ -533,6 +561,10 @@ class C
                 expectedNugetAnalyzersExecuted: true,
                 vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
                 expectedVsixAnalyzersExecuted: false,
+                nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+                expectedNugetSuppressorsExecuted: false,
+                vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
+                expectedVsixSuppressorsExecuted: false,
                 new[]
                 {
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
@@ -549,11 +581,143 @@ class C
                 expectedNugetAnalyzersExecuted: true,
                 vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
                 expectedVsixAnalyzersExecuted: true,
+                nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+                expectedNugetSuppressorsExecuted: false,
+                vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
+                expectedVsixSuppressorsExecuted: false,
                 new[]
                 {
                     (Diagnostic("A", "Class").WithLocation(1, 7), nameof(VsixAnalyzer)),
                     (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
                     (Diagnostic("C", "Class").WithLocation(1, 7), nameof(VsixAnalyzer))
+                });
+        }
+
+        [Fact, WorkItem(46942, "https://github.com/dotnet/roslyn/issues/46942")]
+        public async Task TestNuGetAndVsixAnalyzer_SuppressorSuppressesVsixAnalyzer()
+        {
+            // Multiple NuGet analyzers do not overlap with the VSIX analyzer or suppressor
+            var firstNugetAnalyzerDiagnosticIds = new[] { "A" };
+            var secondNugetAnalyzerDiagnosticIds = new[] { "B", "C" };
+            var vsixAnalyzerDiagnosticIds = new[] { "X", "Y", "Z" };
+            var firstNugetAnalyzer = new NuGetAnalyzer(firstNugetAnalyzerDiagnosticIds);
+            var secondNugetAnalyzer = new NuGetAnalyzer(secondNugetAnalyzerDiagnosticIds);
+            var vsixAnalyzer = new VsixAnalyzer(vsixAnalyzerDiagnosticIds);
+            var vsixSuppressor = new VsixSuppressor(vsixAnalyzerDiagnosticIds);
+            var nugetSuppressor = new NuGetSuppressor(vsixAnalyzerDiagnosticIds);
+            var partialNugetSuppressor = new NuGetSuppressor(new[] { "Y", "Z" });
+
+            Assert.Equal(firstNugetAnalyzerDiagnosticIds, firstNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
+            Assert.Equal(secondNugetAnalyzerDiagnosticIds, secondNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
+            Assert.Equal(vsixAnalyzerDiagnosticIds, vsixAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
+            Assert.Equal(vsixAnalyzerDiagnosticIds, vsixSuppressor.SupportedSuppressions.Select(s => s.SuppressedDiagnosticId).Order());
+            Assert.Equal(vsixAnalyzerDiagnosticIds, nugetSuppressor.SupportedSuppressions.Select(s => s.SuppressedDiagnosticId).Order());
+
+            // Verify the following:
+            //   1) No duplicate diagnostics
+            //   2) The VSIX diagnostics are suppressed by the VSIX suppressor
+            await TestNuGetAndVsixAnalyzerCoreAsync(
+                nugetAnalyzers: ImmutableArray<NuGetAnalyzer>.Empty,
+                expectedNugetAnalyzersExecuted: false,
+                vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+                expectedVsixAnalyzersExecuted: true,
+                nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+                expectedNugetSuppressorsExecuted: false,
+                vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
+                expectedVsixSuppressorsExecuted: true,
+                new[]
+                {
+                    (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
+                });
+
+            // All without overlap, the VSIX analyzer and suppressor still work when nuget analyzers are present:
+            //   1) No duplicate diagnostics
+            //   2) All analyzers execute
+            //   3) VSIX diagnostics are suppressed.
+            await TestNuGetAndVsixAnalyzerCoreAsync(
+                nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer, secondNugetAnalyzer),
+                expectedNugetAnalyzersExecuted: true,
+                vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+                expectedVsixAnalyzersExecuted: true,
+                nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+                expectedNugetSuppressorsExecuted: false,
+                vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
+                expectedVsixSuppressorsExecuted: true,
+                new[]
+                {
+                    (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("B", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("C", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
+                });
+
+            // All without overlap, verify the following:
+            //   1) No duplicate diagnostics
+            //   2) Both NuGet and Vsix analyzers execute
+            //   3) Appropriate diagnostic filtering is done - Nuget suppressor suppresses VSIX analyzer.
+            await TestNuGetAndVsixAnalyzerCoreAsync(
+                nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer),
+                expectedNugetAnalyzersExecuted: true,
+                vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+                expectedVsixAnalyzersExecuted: true,
+                nugetSuppressors: ImmutableArray.Create(nugetSuppressor),
+                expectedNugetSuppressorsExecuted: true,
+                vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
+                expectedVsixSuppressorsExecuted: false,
+                new[]
+                {
+                    (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
+                });
+
+            // Suppressors with duplicate support for VsixAnalyzer, but not 100% overlap. Verify the following:
+            //   1) No duplicate diagnostics
+            //   2) Both NuGet and Vsix analyzers execute
+            //   3) Only Nuget suppressor executes
+            //   4) Appropriate diagnostic filtering is done - Nuget suppressor suppresses VSIX analyzer.
+            await TestNuGetAndVsixAnalyzerCoreAsync(
+                nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer),
+                expectedNugetAnalyzersExecuted: true,
+                vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+                expectedVsixAnalyzersExecuted: true,
+                nugetSuppressors: ImmutableArray.Create(partialNugetSuppressor),
+                expectedNugetSuppressorsExecuted: true,
+                vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
+                expectedVsixSuppressorsExecuted: false,
+                new[]
+                {
+                    (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("X", "Class", isSuppressed: false).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
+                });
+
+            // Suppressors with duplicate support for VsixAnalyzer, with 100% overlap. Verify the following:
+            //   1) No duplicate diagnostics
+            //   2) Both NuGet and Vsix analyzers execute
+            //   3) Only Nuget suppressor executes
+            //   4) Appropriate diagnostic filtering is done - Nuget suppressor suppresses VSIX analyzer.
+            await TestNuGetAndVsixAnalyzerCoreAsync(
+                nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer),
+                expectedNugetAnalyzersExecuted: true,
+                vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+                expectedVsixAnalyzersExecuted: true,
+                nugetSuppressors: ImmutableArray.Create(nugetSuppressor),
+                expectedNugetSuppressorsExecuted: true,
+                vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
+                expectedVsixSuppressorsExecuted: false,
+                new[]
+                {
+                    (Diagnostic("A", "Class").WithLocation(1, 7), nameof(NuGetAnalyzer)),
+                    (Diagnostic("X", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Y", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer)),
+                    (Diagnostic("Z", "Class", isSuppressed: true).WithLocation(1, 7), nameof(VsixAnalyzer))
                 });
         }
 
@@ -568,6 +732,10 @@ class C
                 expectedNugetAnalyzerExecuted,
                 vsixAnalyzer != null ? ImmutableArray.Create(vsixAnalyzer) : ImmutableArray<VsixAnalyzer>.Empty,
                 expectedVsixAnalyzerExecuted,
+                ImmutableArray<NuGetSuppressor>.Empty,
+                false,
+                ImmutableArray<VsixSuppressor>.Empty,
+                false,
                 expectedDiagnostics);
 
         private static async Task TestNuGetAndVsixAnalyzerCoreAsync(
@@ -575,6 +743,10 @@ class C
             bool expectedNugetAnalyzersExecuted,
             ImmutableArray<VsixAnalyzer> vsixAnalyzers,
             bool expectedVsixAnalyzersExecuted,
+            ImmutableArray<NuGetSuppressor> nugetSuppressors,
+            bool expectedNugetSuppressorsExecuted,
+            ImmutableArray<VsixSuppressor> vsixSuppressors,
+            bool expectedVsixSuppressorsExecuted,
             params (DiagnosticDescription diagnostic, string message)[] expectedDiagnostics)
         {
             // First clear out the analyzer state for all analyzers.
@@ -588,27 +760,56 @@ class C
                 vsixAnalyzer.SymbolActionInvoked = false;
             }
 
-            using var workspace = TestWorkspace.CreateCSharp("class Class { }", TestOptions.Regular);
+            foreach (var nugetSuppressor in nugetSuppressors)
+            {
+                nugetSuppressor.SuppressorInvoked = false;
+            }
+
+            foreach (var vsixSuppressor in vsixSuppressors)
+            {
+                vsixSuppressor.SuppressorInvoked = false;
+            }
+
+            using var workspace = TestWorkspace.CreateCSharp("class Class { }", TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            var vsixAnalyzerReferences = new List<DiagnosticAnalyzer>(vsixAnalyzers.CastArray<DiagnosticAnalyzer>());
+            vsixAnalyzerReferences.AddRange(vsixSuppressors.CastArray<DiagnosticAnalyzer>());
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
+            {
+                new AnalyzerImageReference(vsixAnalyzerReferences.ToImmutableArray())
+            })));
+
             var project = workspace.CurrentSolution.Projects.Single();
 
+            var nugetAnalyzerReferences = new List<DiagnosticAnalyzer>();
             if (!nugetAnalyzers.IsEmpty)
             {
-                project = project.WithAnalyzerReferences(new[] { new AnalyzerImageReference(nugetAnalyzers.As<DiagnosticAnalyzer>()) });
+                nugetAnalyzerReferences.AddRange(nugetAnalyzers.As<DiagnosticAnalyzer>());
+            }
+
+            if (!nugetSuppressors.IsEmpty)
+            {
+                nugetAnalyzerReferences.AddRange(nugetSuppressors.As<DiagnosticAnalyzer>());
+            }
+
+            if (nugetAnalyzerReferences.Count > 0)
+            {
+                project = project.WithAnalyzerReferences(new[] { new AnalyzerImageReference(nugetAnalyzerReferences.ToImmutableArray()) });
             }
 
             var document = project.Documents.Single();
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-            var diagnostics = (await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(
-                workspaceAnalyzerOpt: vsixAnalyzers.SingleOrDefault(),
-                document,
-                root.FullSpan)).OrderBy(d => d.Id).ToImmutableArray();
+
+            var diagnostics = (await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, root.FullSpan, includeSuppressedDiagnostics: true))
+                .OrderBy(d => d.Id).ToImmutableArray();
 
             diagnostics.Verify(expectedDiagnostics.Select(d => d.diagnostic).ToArray());
 
-            int index = 0;
-            foreach (var (_, expectedMessage) in expectedDiagnostics)
+            var index = 0;
+            foreach (var (d, expectedMessage) in expectedDiagnostics)
             {
                 Assert.Equal(expectedMessage, diagnostics[index].GetMessage());
+                Assert.Equal(d.IsSuppressed, diagnostics[index].IsSuppressed);
                 index++;
             }
 
@@ -620,6 +821,16 @@ class C
             foreach (var vsixAnalyzer in vsixAnalyzers)
             {
                 Assert.Equal(expectedVsixAnalyzersExecuted, vsixAnalyzer.SymbolActionInvoked);
+            }
+
+            foreach (var nugetSuppressor in nugetSuppressors)
+            {
+                Assert.Equal(expectedNugetSuppressorsExecuted, nugetSuppressor.SuppressorInvoked);
+            }
+
+            foreach (var vsixSuppressor in vsixSuppressors)
+            {
+                Assert.Equal(expectedVsixSuppressorsExecuted, vsixSuppressor.SuppressorInvoked);
             }
         }
 
@@ -644,9 +855,7 @@ class C
         private abstract class AbstractNuGetOrVsixAnalyzer : DiagnosticAnalyzer
         {
             protected AbstractNuGetOrVsixAnalyzer(string analyzerName, params string[] reportedIds)
-            {
-                SupportedDiagnostics = CreateSupportedDiagnostics(analyzerName, reportedIds);
-            }
+                => SupportedDiagnostics = CreateSupportedDiagnostics(analyzerName, reportedIds);
 
             private static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics(string analyzerName, string[] reportedIds)
             {
@@ -663,9 +872,7 @@ class C
             public bool SymbolActionInvoked { get; set; }
             public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
             public sealed override void Initialize(AnalysisContext context)
-            {
-                context.RegisterSymbolAction(OnSymbol, SymbolKind.NamedType);
-            }
+                => context.RegisterSymbolAction(OnSymbol, SymbolKind.NamedType);
 
             private void OnSymbol(SymbolAnalysisContext context)
             {
@@ -674,6 +881,64 @@ class C
                 {
                     var diagnostic = Diagnostic.Create(descriptor, context.Symbol.Locations[0]);
                     context.ReportDiagnostic(diagnostic);
+                }
+            }
+        }
+
+        private sealed class NuGetSuppressor : AbstractNugetOrVsixSuppressor
+        {
+            public NuGetSuppressor(string[] reportIds)
+                : base(nameof(NuGetSuppressor), reportIds)
+            {
+            }
+        }
+
+        private sealed class VsixSuppressor : AbstractNugetOrVsixSuppressor
+        {
+            public VsixSuppressor(string[] reportIds)
+                : base(nameof(VsixSuppressor), reportIds)
+            {
+            }
+        }
+
+        private abstract class AbstractNugetOrVsixSuppressor : DiagnosticSuppressor
+        {
+            private readonly Dictionary<string, SuppressionDescriptor> mapping = new Dictionary<string, SuppressionDescriptor>();
+
+            protected AbstractNugetOrVsixSuppressor(string analyzerName, params string[] reportedIds)
+                => SupportedSuppressions = CreateSupportedSuppressions(analyzerName, this.mapping, reportedIds);
+
+            private static ImmutableArray<SuppressionDescriptor> CreateSupportedSuppressions(
+                string analyzerName,
+                Dictionary<string, SuppressionDescriptor> mapping,
+                string[] reportedIds)
+            {
+                var builder = ArrayBuilder<SuppressionDescriptor>.GetInstance(reportedIds.Length);
+                foreach (var id in reportedIds)
+                {
+                    var descriptor = new SuppressionDescriptor("SPR" + id, id, justification: analyzerName);
+                    mapping.Add(descriptor.SuppressedDiagnosticId, descriptor);
+                    builder.Add(descriptor);
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+
+            public bool SuppressorInvoked { get; set; }
+
+            public sealed override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; }
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                SuppressorInvoked = true;
+
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    if (this.mapping.TryGetValue(diagnostic.Id, out var descriptor))
+                    {
+                        context.ReportSuppression(
+                            Microsoft.CodeAnalysis.Diagnostics.Suppression.Create(descriptor, diagnostic));
+                    }
                 }
             }
         }

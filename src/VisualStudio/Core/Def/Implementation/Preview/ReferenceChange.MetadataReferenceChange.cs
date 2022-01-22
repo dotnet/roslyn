@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
@@ -19,14 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
 
             internal override Solution AddToSolution(Solution solution)
-            {
-                return solution.AddMetadataReference(this.ProjectId, _reference);
-            }
+                => solution.AddMetadataReference(this.ProjectId, _reference);
 
             internal override Solution RemoveFromSolution(Solution solution)
-            {
-                return solution.RemoveMetadataReference(this.ProjectId, _reference);
-            }
+                => solution.RemoveMetadataReference(this.ProjectId, _reference);
 
             protected override string GetDisplayText()
             {

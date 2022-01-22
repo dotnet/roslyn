@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindReferences;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -28,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
 
-            public override Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (Result)
                 {
                     Result.Add(definition);
                 }
 
-                return Task.CompletedTask;
+                return default;
             }
         }
 
@@ -44,19 +47,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             private readonly FindUsagesContext _context;
 
             public MockStreamingFindUsagesPresenter(FindUsagesContext context)
-            {
-                _context = context;
-            }
+                => _context = context;
 
-            public FindUsagesContext StartSearch(string title, bool supportsReferences)
-                => _context;
+            public (FindUsagesContext, CancellationToken) StartSearch(string title, bool supportsReferences)
+                => (_context, CancellationToken.None);
 
             public void ClearAll()
             {
             }
 
-            public FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
-                => _context;
+            public (FindUsagesContext, CancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+                => (_context, CancellationToken.None);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             AssertResult(context.Result, "C.C()", "class C");
         }
 
-        private void AssertResult(
+        private static void AssertResult(
             List<DefinitionItem> result,
             params string[] definitions)
         {

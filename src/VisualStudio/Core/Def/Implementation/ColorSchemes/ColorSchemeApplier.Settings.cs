@@ -2,19 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using NativeMethods = Microsoft.CodeAnalysis.Editor.Wpf.Utilities.NativeMethods;
@@ -29,20 +24,15 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             private const string AppliedColorSchemeName = "AppliedColorScheme";
 
             private readonly IServiceProvider _serviceProvider;
-            private readonly VisualStudioWorkspace _workspace;
+            private readonly IGlobalOptionService _globalOptions;
 
-            public HasThemeBeenDefaultedIndexer HasThemeBeenDefaulted { get; }
-
-            public ColorSchemeSettings(IServiceProvider serviceProvider, VisualStudioWorkspace visualStudioWorkspace)
+            public ColorSchemeSettings(IServiceProvider serviceProvider, IGlobalOptionService globalOptions)
             {
                 _serviceProvider = serviceProvider;
-                _workspace = visualStudioWorkspace;
-
-                HasThemeBeenDefaulted = new HasThemeBeenDefaultedIndexer(visualStudioWorkspace);
+                _globalOptions = globalOptions;
             }
 
-
-            public ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
+            public static ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
             {
                 return new[]
                 {
@@ -51,13 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
             }
 
-            private ColorScheme GetColorScheme(SchemeName schemeName)
+            private static ColorScheme GetColorScheme(SchemeName schemeName)
             {
                 using var colorSchemeStream = GetColorSchemeXmlStream(schemeName);
                 return ColorSchemeReader.ReadColorScheme(colorSchemeStream);
             }
 
-            private Stream GetColorSchemeXmlStream(SchemeName schemeName)
+            private static Stream GetColorSchemeXmlStream(SchemeName schemeName)
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 return assembly.GetManifestResourceStream($"Microsoft.VisualStudio.LanguageServices.ColorSchemes.{schemeName}.xml");
@@ -70,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 foreach (var item in registryItems)
                 {
                     using var itemKey = registryRoot.CreateSubKey(item.SectionName);
-                    itemKey.SetValue(item.ValueName, item.ValueData);
+                    itemKey.SetValue(RegistryItem.ValueName, item.ValueData);
                     // Flush RegistryKeys out of paranoia
                     itemKey.Flush();
                 }
@@ -110,16 +100,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             public SchemeName GetConfiguredColorScheme()
             {
-                var schemeName = _workspace.Options.GetOption(ColorSchemeOptions.ColorScheme);
+                var schemeName = _globalOptions.GetOption(ColorSchemeOptions.ColorScheme);
                 return schemeName != SchemeName.None
                     ? schemeName
                     : ColorSchemeOptions.ColorScheme.DefaultValue;
             }
 
-            public void MigrateToColorSchemeSetting(bool isThemeCustomized)
+            public void MigrateToColorSchemeSetting()
             {
                 // Get the preview feature flag value.
-                var useEnhancedColorsSetting = _workspace.Options.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
+                var useEnhancedColorsSetting = _globalOptions.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
 
                 // Return if we have already migrated.
                 if (useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.Migrated)
@@ -127,86 +117,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     return;
                 }
 
-                // Since we did not apply 2019 colors if the theme had been customized, default customized themes to 2017 colors.
-                var colorScheme = (useEnhancedColorsSetting != ColorSchemeOptions.UseEnhancedColors.DoNotUse && !isThemeCustomized)
-                    ? SchemeName.VisualStudio2019
-                    : SchemeName.VisualStudio2017;
+                var colorScheme = useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.DoNotUse
+                    ? SchemeName.VisualStudio2017
+                    : SchemeName.VisualStudio2019;
 
-                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.ColorScheme, colorScheme));
-                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated));
-            }
-
-            public Guid GetThemeId()
-            {
-                // Look up the value from the new roamed theme property first and
-                // fallback to the original roamed theme property if that fails.
-                var themeIdString = _workspace.Options.GetOption(VisualStudioColorTheme.CurrentThemeNew)
-                    ?? _workspace.Options.GetOption(VisualStudioColorTheme.CurrentTheme);
-
-                return Guid.TryParse(themeIdString, out var themeId) ? themeId : Guid.Empty;
-            }
-
-            private static class VisualStudioColorTheme
-            {
-                private const string CurrentThemeValueName = "Microsoft.VisualStudio.ColorTheme";
-                private const string CurrentThemeValueNameNew = "Microsoft.VisualStudio.ColorThemeNew";
-
-                public static readonly Option<string?> CurrentTheme = new Option<string?>(nameof(VisualStudioColorTheme),
-                    nameof(CurrentTheme),
-                    defaultValue: null,
-                    storageLocations: new RoamingProfileStorageLocation(CurrentThemeValueName));
-
-                public static readonly Option<string?> CurrentThemeNew = new Option<string?>(nameof(VisualStudioColorTheme),
-                    nameof(CurrentThemeNew),
-                    defaultValue: null,
-                    storageLocations: new RoamingProfileStorageLocation(CurrentThemeValueNameNew));
-            }
-
-            public sealed class HasThemeBeenDefaultedIndexer
-            {
-                private readonly VisualStudioWorkspace _workspace;
-
-                public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace visualStudioWorkspace)
-                {
-                    _workspace = visualStudioWorkspace;
-                }
-
-                public bool this[Guid themeId]
-                {
-                    get => _workspace.Options.GetOption(HasThemeBeenDefaultedOptions.Options[themeId]);
-
-                    set => _workspace.SetOptions(_workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions.Options[themeId], value));
-                }
-            }
-
-            internal class HasThemeBeenDefaultedOptions
-            {
-                internal static readonly ImmutableDictionary<Guid, Option<bool>> Options = new Dictionary<Guid, Option<bool>>
-                {
-                    [KnownColorThemes.Blue] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Blue),
-                    [KnownColorThemes.Light] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Light),
-                    [KnownColorThemes.Dark] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Dark),
-                    [KnownColorThemes.AdditionalContrast] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.AdditionalContrast)
-                }.ToImmutableDictionary();
-
-                private static Option<bool> CreateHasThemeBeenDefaultedOption(Guid themeId)
-                {
-                    return new Option<bool>(nameof(ColorSchemeApplier), $"{nameof(HasThemeBeenDefaultedOptions)}{themeId}", defaultValue: false,
-                        storageLocations: new RoamingProfileStorageLocation($@"Roslyn\ColorSchemeApplier\HasThemeBeenDefaulted\{themeId}"));
-                }
-            }
-
-            [ExportOptionProvider, Shared]
-            internal class HasThemeBeenDefaultedOptionProvider : IOptionProvider
-            {
-                [ImportingConstructor]
-                [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-                public HasThemeBeenDefaultedOptionProvider()
-                {
-                }
-
-                public ImmutableArray<IOption> Options => HasThemeBeenDefaultedOptions.Options.Values.ToImmutableArray<IOption>();
-
+                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
+                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
             }
         }
     }

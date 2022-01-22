@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                                             .OrderByDescending(f => f).ToList();
             var existingConstants = orderedExistingConstants.ToSet();
 
-            if (LooksLikeFlagsEnum(enumType, orderedExistingConstants))
+            if (LooksLikeFlagsEnum(orderedExistingConstants))
             {
                 if (orderedExistingConstants.Count == 0)
                 {
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 SpecialType.System_Byte => (byte)1,
                 SpecialType.System_Int16 => (short)1,
                 SpecialType.System_UInt16 => (ushort)1,
-                SpecialType.System_Int32 => (int)1,
+                SpecialType.System_Int32 => 1,
                 SpecialType.System_UInt32 => (uint)1,
                 SpecialType.System_Int64 => (long)1,
                 SpecialType.System_UInt64 => (ulong)1,
@@ -69,10 +71,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private static IComparable Multiply(IComparable value, uint number)
             => value switch
             {
-                long v => unchecked((long)(v * number)),
-                ulong v => unchecked((ulong)(v * number)),
+                long v => unchecked(v * number),
+                ulong v => unchecked(v * number),
                 int v => unchecked((int)(v * number)),
-                uint v => unchecked((uint)(v * number)),
+                uint v => unchecked(v * number),
                 short v => unchecked((short)(v * number)),
                 ushort v => unchecked((ushort)(v * number)),
                 sbyte v => unchecked((sbyte)(v * number)),
@@ -83,10 +85,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private static IComparable Add(IComparable value, uint number)
             => value switch
             {
-                long v => unchecked((long)(v + number)),
-                ulong v => unchecked((ulong)(v + number)),
+                long v => unchecked(v + number),
+                ulong v => unchecked(v + number),
                 int v => unchecked((int)(v + number)),
-                uint v => unchecked((uint)(v + number)),
+                uint v => unchecked(v + number),
                 short v => unchecked((short)(v + number)),
                 ushort v => unchecked((ushort)(v + number)),
                 sbyte v => unchecked((sbyte)(v + number)),
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 _ => false,
             };
 
-        private static bool LooksLikeFlagsEnum(INamedTypeSymbol enumType, List<IComparable> existingConstants)
+        private static bool LooksLikeFlagsEnum(List<IComparable> existingConstants)
         {
             if (existingConstants.Count >= 1 &&
                IntegerUtilities.HasOneBitSet(existingConstants[0]) &&

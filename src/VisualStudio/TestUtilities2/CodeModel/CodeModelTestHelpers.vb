@@ -5,11 +5,12 @@
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
+Imports EnvDTE
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
@@ -22,10 +23,17 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Friend Module CodeModelTestHelpers
 
+        Public ReadOnly Composition As TestComposition = VisualStudioTestCompositions.LanguageServices.AddParts(
+            GetType(MockServiceProvider),
+            GetType(MockVisualStudioWorkspace),
+            GetType(ProjectCodeModelFactory))
+
         Public SystemWindowsFormsPath As String
         Public SystemDrawingPath As String
 
+#Disable Warning IDE0040 ' Add accessibility modifiers - https://github.com/dotnet/roslyn/issues/45962
         Sub New()
+#Enable Warning IDE0040 ' Add accessibility modifiers
             SystemWindowsFormsPath = GetType(System.Windows.Forms.Form).Assembly.Location
             SystemDrawingPath = GetType(System.Drawing.Point).Assembly.Location
         End Sub
@@ -38,13 +46,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(definition, composition:=Composition)
 
             Dim result As CodeModelTestState = Nothing
             Try
-                Dim mockComponentModel = New MockComponentModel(workspace.ExportProvider)
-                Dim mockServiceProvider = New MockServiceProvider(mockComponentModel)
-                Dim mockVisualStudioWorkspace = New MockVisualStudioWorkspace(workspace)
                 WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
                 ' The Code Model test infrastructure assumes that a test workspace only ever contains a single project.
@@ -52,27 +57,34 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
+                Dim visualStudioWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
+                visualStudioWorkspace.SetWorkspace(workspace)
 
                 Dim state = New CodeModelState(
                     threadingContext,
-                    mockServiceProvider,
+                    workspace.ExportProvider.GetExportedValue(Of MockServiceProvider),
                     project.LanguageServices,
-                    mockVisualStudioWorkspace,
-                    New ProjectCodeModelFactory(mockVisualStudioWorkspace, mockServiceProvider, threadingContext))
+                    visualStudioWorkspace,
+                    workspace.ExportProvider.GetExportedValue(Of ProjectCodeModelFactory))
 
                 Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
+
+                Dim firstFileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, Implementation.CodeModel.FileCodeModel)? = Nothing
 
                 For Each document In project.Documents
                     ' Note that a parent is not specified below. In Visual Studio, this would normally be an EnvDTE.Project instance.
                     Dim fcm = projectCodeModel.GetOrCreateFileCodeModel(document.FilePath, parent:=Nothing)
                     fcm.Object.TextManagerAdapter = New MockTextManagerAdapter()
-                    mockVisualStudioWorkspace.SetFileCodeModel(document.Id, fcm)
+
+                    If Not firstFileCodeModel.HasValue Then
+                        firstFileCodeModel = fcm
+                    End If
                 Next
 
                 Dim root = New ComHandle(Of EnvDTE.CodeModel, RootCodeModel)(RootCodeModel.Create(state, Nothing, project.Id))
-                Dim firstFCM = mockVisualStudioWorkspace.GetFileCodeModelComHandle(project.DocumentIds.First())
 
-                result = New CodeModelTestState(workspace, mockVisualStudioWorkspace, root, firstFCM, state.CodeModelService)
+                result = New CodeModelTestState(workspace, state.Workspace, root, firstFileCodeModel.Value, state.CodeModelService)
             Finally
                 If result Is Nothing Then
                     workspace.Dispose()
@@ -81,24 +93,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
             Return result
         End Function
-
-        Public Class MockServiceProvider
-            Implements IServiceProvider
-
-            Private ReadOnly _componentModel As MockComponentModel
-
-            Public Sub New(componentModel As MockComponentModel)
-                Me._componentModel = componentModel
-            End Sub
-
-            Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
-                If serviceType = GetType(SComponentModel) Then
-                    Return Me._componentModel
-                End If
-
-                Throw New NotImplementedException($"No service exists for {serviceType.FullName}")
-            End Function
-        End Class
 
         Friend Class MockComWrapperFactory
             Implements IComWrapperFactory
@@ -113,14 +107,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         Dim handle = GCHandle.Alloc(managedObject, GCHandleType.Normal)
                         Dim freeHandle = True
                         Try
+#Disable Warning RS0042 ' Do not copy value
                             BlindAggregatorFactory.SetInnerObject(wrapperUnknown, innerUnknown, GCHandle.ToIntPtr(handle))
+#Enable Warning RS0042 ' Do not copy value
                             freeHandle = False
                         Finally
                             If freeHandle Then handle.Free()
                         End Try
 
                         Dim wrapperRCW = Marshal.GetObjectForIUnknown(wrapperUnknown)
-                        Return CType(wrapperRCW, IComWrapper)
+                        Return CType(wrapperRCW, IComWrapperFixed)
                     Finally
                         Marshal.Release(innerUnknown)
                     End Try
@@ -132,7 +128,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Class
 
         <Extension()>
-        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Document
+        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Microsoft.CodeAnalysis.Document
             Dim cursorDocument = state.Workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
 
             Dim document = state.Workspace.CurrentSolution.GetDocument(cursorDocument.Id)
@@ -214,7 +210,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return XElement.Parse(xml)
         End Function
 
-        Private s_map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
+        Private ReadOnly s_map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
             {{GetType(EnvDTE.CodeAttribute), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE80.CodeAttribute2), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE.CodeClass), {EnvDTE.vsCMElement.vsCMElementClass, EnvDTE.vsCMElement.vsCMElementModule}},

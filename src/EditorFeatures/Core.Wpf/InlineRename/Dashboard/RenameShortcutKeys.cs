@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             SearchInComments = ExtractAccessKey(EditorFeaturesResources.Include_comments, "C");
             PreviewChanges = ExtractAccessKey(EditorFeaturesResources.Preview_changes1, "P");
             Apply = ExtractAccessKey(EditorFeaturesResources.Apply1, "A");
-            RenameFile = ExtractAccessKey(EditorFeaturesResources.Rename_file, "F");
+            RenameFile = ExtractAccessKey(EditorFeaturesResources.Rename_symbols_file, "F");
         }
 
         /// <summary>

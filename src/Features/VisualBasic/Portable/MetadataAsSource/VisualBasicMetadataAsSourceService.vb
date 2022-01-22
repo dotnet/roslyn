@@ -4,12 +4,10 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -21,9 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         Inherits AbstractMetadataAsSourceService
 
         Private ReadOnly _memberSeparationRule As AbstractFormattingRule = New FormattingRule()
+        Public Shared ReadOnly Instance As New VisualBasicMetadataAsSourceService()
 
-        Public Sub New(languageServices As HostLanguageServices)
-            MyBase.New(languageServices.GetService(Of ICodeGenerationService)())
+        Private Sub New()
         End Sub
 
         Protected Overrides Async Function AddAssemblyInfoRegionAsync(document As Document, symbolCompilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of Document)
@@ -50,6 +48,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 SyntaxFactory.CarriageReturnLineFeed})
 
             Return document.WithSyntaxRoot(newRoot)
+        End Function
+
+        Protected Overrides Function AddNullableRegionsAsync(document As Document, cancellationToken As CancellationToken) As Task(Of Document)
+            ' VB has no equivalent to #nullable enable
+            Return Task.FromResult(document)
         End Function
 
         Protected Overrides Async Function ConvertDocCommentsToRegularCommentsAsync(document As Document, docCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As Task(Of Document)
@@ -108,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines)
             End Function
 
-            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextAnchorIndentationOperationAction)
+            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextOperation As NextAnchorIndentationOperationAction)
                 Return
             End Sub
 
@@ -116,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Return c = vbCr OrElse c = vbLf OrElse SyntaxFacts.IsNewLine(c)
             End Function
 
-            Private Function ValidTopLevelDeclaration(node As DeclarationStatementSyntax) As Boolean
+            Private Shared Function ValidTopLevelDeclaration(node As DeclarationStatementSyntax) As Boolean
                 Select Case node.Kind
                     Case SyntaxKind.SubStatement,
                          SyntaxKind.FunctionStatement,

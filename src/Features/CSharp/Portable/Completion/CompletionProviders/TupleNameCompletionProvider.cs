@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             try
@@ -42,10 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = completionContext.Position;
                 var cancellationToken = completionContext.CancellationToken;
 
-                var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
-                var workspace = document.Project.Solution.Workspace;
-                var context = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
+                var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
 
                 var index = GetElementIndex(context);
                 if (index == null)
@@ -53,21 +54,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
-                var inferredTypes = typeInferrer.InferTypes(semanticModel, context.TargetToken.Parent.SpanStart, cancellationToken)
+                var typeInferrer = document.GetRequiredLanguageService<ITypeInferenceService>();
+                var inferredTypes = typeInferrer.InferTypes(semanticModel, context.TargetToken.Parent!.SpanStart, cancellationToken)
                         .Where(t => t.IsTupleType)
                         .Cast<INamedTypeSymbol>()
                         .ToImmutableArray();
 
                 AddItems(inferredTypes, index.Value, completionContext, context.TargetToken.Parent.SpanStart);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
         }
 
-        private int? GetElementIndex(CSharpSyntaxContext context)
+        private static int? GetElementIndex(CSharpSyntaxContext context)
         {
             var token = context.TargetToken;
             if (token.IsKind(SyntaxKind.OpenParenToken))
@@ -80,16 +81,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            if (token.IsKind(SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.TupleExpression))
+            if (token.IsKind(SyntaxKind.CommaToken) && token.Parent is TupleExpressionSyntax tupleExpr)
             {
-                var tupleExpr = (TupleExpressionSyntax)context.TargetToken.Parent as TupleExpressionSyntax;
                 return (tupleExpr.Arguments.GetWithSeparators().IndexOf(context.TargetToken) + 1) / 2;
             }
 
             return null;
         }
 
-        private void AddItems(ImmutableArray<INamedTypeSymbol> inferredTypes, int index, CompletionContext context, int spanStart)
+        private static void AddItems(ImmutableArray<INamedTypeSymbol> inferredTypes, int index, CompletionContext context, int spanStart)
         {
             foreach (var type in inferredTypes)
             {
@@ -121,6 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 selectedItem.DisplayText));
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
+        public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
     }
 }

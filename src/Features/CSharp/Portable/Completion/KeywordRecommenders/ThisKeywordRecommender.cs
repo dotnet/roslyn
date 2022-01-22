@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsConstructorInitializerContext(CSharpSyntaxContext context)
+        private static bool IsConstructorInitializerContext(CSharpSyntaxContext context)
         {
             // cases:
             //   Goo() : |
@@ -64,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.SyntaxTree.IsParameterModifierContext(
                     context.Position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
             {
-                if (previousModifier == SyntaxKind.None ||
-                    previousModifier == SyntaxKind.RefKeyword ||
-                    previousModifier == SyntaxKind.InKeyword)
+                if (previousModifier is SyntaxKind.None or
+                    SyntaxKind.RefKeyword or
+                    SyntaxKind.InKeyword)
                 {
                     if (parameterIndex == 0 &&
                         context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))

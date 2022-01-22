@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -15,25 +18,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         protected AsynchronousTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : base(threadingContext, asyncListener, notificationService)
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, globalOptions, asyncListener)
         {
         }
 
-        public IAccurateTagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
         {
             if (subjectBuffer == null)
-            {
                 throw new ArgumentNullException(nameof(subjectBuffer));
-            }
 
             return this.CreateTaggerWorker<T>(null, subjectBuffer);
         }
 
         ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
-        {
-            return CreateTagger<T>(buffer);
-        }
+            => CreateTagger<T>(buffer);
     }
 }

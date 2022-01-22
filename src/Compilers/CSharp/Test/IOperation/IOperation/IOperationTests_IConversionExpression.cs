@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     // Test list drawn from Microsoft.CodeAnalysis.CSharp.ConversionKind
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IConversionExpression : SemanticModelTestBase
     {
         #region Implicit Conversions
 
@@ -947,10 +949,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1031: Type expected
-                //         C1 /*<bind>*/c1 = new/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(8, 41),
-                // CS1526: A new expression requires (), [], or {} after type
+                // file.cs(8,41): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //         C1 /*<bind>*/c1 = new/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(8, 41)
             };
@@ -1067,7 +1066,7 @@ IVariableDeclaratorOperation (Symbol: C1 i1) (OperationKind.VariableDeclarator, 
             Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0144: Cannot create an instance of the abstract class or interface 'I1'
+                // CS0144: Cannot create an instance of the abstract type or interface 'I1'
                 //         C1 /*<bind>*/i1 = new I1()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I1()").WithArguments("I1").WithLocation(12, 27)
             };
@@ -5176,9 +5175,48 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [Fact]
+        public void TestNullableConversion()
+        {
+            var source = @"
+#nullable enable
+
+using System;
+
+class Class
+{
+    private static T? GetValueOrDefault<T>() where T : unmanaged
+    {
+        return null;
+    }
+
+    public static void Method()
+    {
+        IConvertible? nullableInterface;
+
+        if (Environment.Is64BitProcess)
+        {
+            nullableInterface = GetValueOrDefault<long>();
+        }
+        else
+        {
+            nullableInterface = GetValueOrDefault<int>();
+        }
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
+            var iopTree = (IAssignmentOperation)model.GetOperation(assignment);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, iopTree.Value.Type.NullableAnnotation);
+        }
         #endregion
 
-        private class ExpectedSymbolVerifier
+        internal class ExpectedSymbolVerifier
         {
             public static SyntaxNode VariableDeclaratorSelector(SyntaxNode syntaxNode) =>
                 ((VariableDeclaratorSyntax)syntaxNode).Initializer.Value;
@@ -5225,7 +5263,7 @@ Block[B5] - Exit
             /// syntax node. A selector is used to walk the operation tree and syntax tree for the final
             /// nodes to compare type info for.
             ///
-            /// <see cref="SyntaxSelector"/> is used to to select the syntax node to test.
+            /// <see cref="SyntaxSelector"/> is used to select the syntax node to test.
             /// <see cref="OperationSelector"/> is used to select the IConversion node to test.
             /// <see cref="ConversionChildSelector"/> is used to select what child node of the IConversion to compare original types to.
             /// this is useful for multiple conversion scenarios where we end up with multiple IConversion nodes in the tree.

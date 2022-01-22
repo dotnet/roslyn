@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -69,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         SyntaxNodeKey GetNodeKey(SyntaxNode node);
         SyntaxNodeKey TryGetNodeKey(SyntaxNode node);
         SyntaxNode LookupNode(SyntaxNodeKey nodeKey, SyntaxTree syntaxTree);
-        bool TryLookupNode(SyntaxNodeKey nodeKey, SyntaxTree syntaxTree, out SyntaxNode node);
+        bool TryLookupNode(SyntaxNodeKey nodeKey, SyntaxTree syntaxTree, [NotNullWhen(true)] out SyntaxNode? node);
 
         bool MatchesScope(SyntaxNode node, EnvDTE.vsCMElement scope);
 
@@ -101,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         bool IsOptionNode(SyntaxNode node);
         bool IsImportNode(SyntaxNode node);
 
-        ISymbol ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId);
+        ISymbol? ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId);
 
         string GetUnescapedName(string name);
 
@@ -139,8 +140,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         string GetExternalSymbolFullName(ISymbol symbol);
 
+#nullable disable
         SyntaxNode GetNodeWithModifiers(SyntaxNode node);
         SyntaxNode GetNodeWithType(SyntaxNode node);
+#nullable restore
         SyntaxNode GetNodeWithInitializer(SyntaxNode node);
 
         EnvDTE.vsCMAccess GetAccess(ISymbol symbol);
@@ -152,15 +155,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         bool IsAccessorNode(SyntaxNode node);
         MethodKind GetAccessorKind(SyntaxNode node);
 
-        bool TryGetAccessorNode(SyntaxNode parentNode, MethodKind kind, out SyntaxNode accessorNode);
-        bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, out SyntaxNode expressionBody);
-        bool TryGetParameterNode(SyntaxNode parentNode, string name, out SyntaxNode parameterNode);
-        bool TryGetImportNode(SyntaxNode parentNode, string dottedName, out SyntaxNode importNode);
-        bool TryGetOptionNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode optionNode);
-        bool TryGetInheritsNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode inheritsNode);
-        bool TryGetImplementsNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode implementsNode);
-        bool TryGetAttributeNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode attributeNode);
-        bool TryGetAttributeArgumentNode(SyntaxNode attributeNode, int index, out SyntaxNode attributeArgumentNode);
+        bool TryGetAccessorNode(SyntaxNode parentNode, MethodKind kind, [NotNullWhen(true)] out SyntaxNode? accessorNode);
+        bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, [NotNullWhen(true)] out SyntaxNode? expressionBody);
+        bool TryGetParameterNode(SyntaxNode parentNode, string name, [NotNullWhen(true)] out SyntaxNode? parameterNode);
+        bool TryGetImportNode(SyntaxNode parentNode, string dottedName, [NotNullWhen(true)] out SyntaxNode? importNode);
+        bool TryGetOptionNode(SyntaxNode parentNode, string name, int ordinal, [NotNullWhen(true)] out SyntaxNode? optionNode);
+        bool TryGetInheritsNode(SyntaxNode parentNode, string name, int ordinal, [NotNullWhen(true)] out SyntaxNode? inheritsNode);
+        bool TryGetImplementsNode(SyntaxNode parentNode, string name, int ordinal, [NotNullWhen(true)] out SyntaxNode? implementsNode);
+        bool TryGetAttributeNode(SyntaxNode parentNode, string name, int ordinal, [NotNullWhen(true)] out SyntaxNode? attributeNode);
+        bool TryGetAttributeArgumentNode(SyntaxNode attributeNode, int index, [NotNullWhen(true)] out SyntaxNode? attributeArgumentNode);
 
         void GetOptionNameAndOrdinal(SyntaxNode parentNode, SyntaxNode optionNode, out string name, out int ordinal);
         void GetInheritsNamespaceAndOrdinal(SyntaxNode parentNode, SyntaxNode inheritsNode, out string namespaceName, out int ordinal);
@@ -189,9 +192,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         SyntaxNode GetEffectiveParentForAttribute(SyntaxNode node);
 
-        SyntaxNode CreateAttributeNode(string name, string value, string target = null);
+        SyntaxNode CreateAttributeNode(string name, string value, string? target = null);
         SyntaxNode CreateAttributeArgumentNode(string name, string value);
-        SyntaxNode CreateImportNode(string name, string alias = null);
+        SyntaxNode CreateImportNode(string name, string? alias = null);
         SyntaxNode CreateParameterNode(string name, string type);
 
         string GetAttributeArgumentValue(SyntaxNode attributeArgumentNode);
@@ -256,13 +259,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         EnvDTE80.vsCMPropertyKind GetReadWrite(SyntaxNode memberNode);
 
-        SyntaxNode SetType(SyntaxNode node, ITypeSymbol typeSymbol);
+        SyntaxNode SetType(SyntaxNode node, ITypeSymbol? typeSymbol);
 
         Document Delete(Document document, SyntaxNode node);
 
         string GetMethodXml(SyntaxNode node, SemanticModel semanticModel);
 
-        string GetInitExpression(SyntaxNode node);
+        string? GetInitExpression(SyntaxNode node);
         SyntaxNode AddInitExpression(SyntaxNode node, string value);
 
         CodeGenerationDestination GetDestination(SyntaxNode containerNode);
@@ -282,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         ITypeSymbol GetTypeSymbol(object type, SemanticModel semanticModel, int position);
 
-        ITypeSymbol GetTypeSymbolFromFullName(string fullName, Compilation compilation);
+        ITypeSymbol? GetTypeSymbolFromFullName(string fullName, Compilation compilation);
 
         SyntaxNode CreateReturnDefaultValueStatement(ITypeSymbol type);
 

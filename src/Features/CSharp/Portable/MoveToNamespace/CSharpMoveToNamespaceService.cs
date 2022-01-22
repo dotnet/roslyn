@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
             => container switch
             {
                 NamespaceDeclarationSyntax namespaceSyntax => namespaceSyntax.Name.ToString(),
-                CompilationUnitSyntax compilationUnit => string.Empty,
+                CompilationUnitSyntax _ => string.Empty,
                 _ => throw ExceptionUtilities.UnexpectedValue(container)
             };
 

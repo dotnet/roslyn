@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal static class CodeGenerationHelpers
     {
-        public static SyntaxNode GenerateThrowStatement(
+        public static SyntaxNode? GenerateThrowStatement(
             SyntaxGenerator factory,
             SemanticDocument document,
             string exceptionMetadataName)
@@ -36,31 +37,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return factory.ThrowStatement(exceptionCreationExpression);
         }
 
-        public static TSyntaxNode AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode syntax)
-            where TSyntaxNode : SyntaxNode
-        {
-            if (syntax != null && symbol is CodeGenerationSymbol)
-            {
-                return syntax.WithAdditionalAnnotations(
-                    ((CodeGenerationSymbol)symbol).GetAnnotations());
-            }
-
-            return syntax;
-        }
+        [return: NotNullIfNotNull("syntax")]
+        public static TSyntaxNode? AddAnnotationsTo<TSyntaxNode>(ISymbol symbol, TSyntaxNode? syntax) where TSyntaxNode : SyntaxNode
+            => symbol is CodeGenerationSymbol codeGenerationSymbol
+                ? syntax?.WithAdditionalAnnotations(codeGenerationSymbol.GetAnnotations())
+                : syntax;
 
         public static TSyntaxNode AddFormatterAndCodeGeneratorAnnotationsTo<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
             => node.WithAdditionalAnnotations(Formatter.Annotation, CodeGenerator.Annotation);
-
-        public static void CheckNodeType<TSyntaxNode1>(SyntaxNode node, string argumentName)
-            where TSyntaxNode1 : SyntaxNode
-        {
-            if (node == null || node is TSyntaxNode1)
-            {
-                return;
-            }
-
-            throw new ArgumentException(WorkspacesResources.Node_is_of_the_wrong_type, argumentName);
-        }
 
         public static void GetNameAndInnermostNamespace(
             INamespaceSymbol @namespace,
@@ -68,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             out string name,
             out INamespaceSymbol innermostNamespace)
         {
-            if (options.GenerateMembers && options.MergeNestedNamespaces && @namespace.Name != string.Empty)
+            if (options.Context.GenerateMembers && options.Context.MergeNestedNamespaces && @namespace.Name != string.Empty)
             {
                 var names = new List<string>();
                 names.Add(@namespace.Name);
@@ -99,17 +83,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public static bool IsSpecialType(ITypeSymbol type, SpecialType specialType)
-        {
-            return type != null && type.SpecialType == specialType;
-        }
+        public static bool IsSpecialType([NotNullWhen(true)] ITypeSymbol? type, SpecialType specialType)
+            => type != null && type.SpecialType == specialType;
 
-        public static int GetPreferredIndex(int index, IList<bool> availableIndices, bool forward)
+        public static int GetPreferredIndex(int index, IList<bool>? availableIndices, bool forward)
         {
             if (availableIndices == null)
-            {
                 return index;
-            }
 
             if (forward)
             {
@@ -135,7 +115,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return -1;
         }
 
-        public static bool TryGetDocumentationComment(ISymbol symbol, string commentToken, out string comment, CancellationToken cancellationToken = default)
+        public static bool TryGetDocumentationComment(
+            ISymbol symbol, string commentToken, [NotNullWhen(true)] out string? comment, CancellationToken cancellationToken = default)
         {
             var xml = symbol.GetDocumentationCommentXml(cancellationToken: cancellationToken);
             if (string.IsNullOrEmpty(xml))
@@ -152,40 +133,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return true;
         }
 
-        public static bool TypesMatch(ITypeSymbol type, object value)
-        {
-            // No context type, have to assume that they don't match.
-            if (type != null)
+        public static bool TypesMatch(ITypeSymbol? type, object value)
+            => type?.SpecialType switch
             {
-                switch (type.SpecialType)
-                {
-                    case SpecialType.System_SByte:
-                        return value is sbyte;
-                    case SpecialType.System_Byte:
-                        return value is byte;
-                    case SpecialType.System_Int16:
-                        return value is short;
-                    case SpecialType.System_UInt16:
-                        return value is ushort;
-                    case SpecialType.System_Int32:
-                        return value is int;
-                    case SpecialType.System_UInt32:
-                        return value is uint;
-                    case SpecialType.System_Int64:
-                        return value is long;
-                    case SpecialType.System_UInt64:
-                        return value is ulong;
-                    case SpecialType.System_Decimal:
-                        return value is decimal;
-                    case SpecialType.System_Single:
-                        return value is float;
-                    case SpecialType.System_Double:
-                        return value is double;
-                }
-            }
-
-            return false;
-        }
+                SpecialType.System_SByte => value is sbyte,
+                SpecialType.System_Byte => value is byte,
+                SpecialType.System_Int16 => value is short,
+                SpecialType.System_UInt16 => value is ushort,
+                SpecialType.System_Int32 => value is int,
+                SpecialType.System_UInt32 => value is uint,
+                SpecialType.System_Int64 => value is long,
+                SpecialType.System_UInt64 => value is ulong,
+                SpecialType.System_Decimal => value is decimal,
+                SpecialType.System_Single => value is float,
+                SpecialType.System_Double => value is double,
+                _ => false,
+            };
 
         public static IEnumerable<ISymbol> GetMembers(INamedTypeSymbol namedType)
         {
@@ -209,22 +172,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                             }).ToList();
         }
 
-        public static T GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CodeGenerationOptions options)
-            where T : SyntaxNode
+        public static T RemoveLeadingDirectiveTrivia<T>(T node) where T : SyntaxNode
         {
-            Contract.ThrowIfNull(symbol);
-
-            return options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1
-                ? symbol.DeclaringSyntaxReferences[0].GetSyntax() as T
-                : null;
+            var leadingTrivia = node.GetLeadingTrivia().Where(trivia => !trivia.IsDirective);
+            return node.WithLeadingTrivia(leadingTrivia);
         }
 
-        public static T GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
+        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
             where T : SyntaxNode
         {
             Contract.ThrowIfNull(attribute);
 
-            return options != null && options.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
+            return options.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
                 attribute.ApplicationSyntaxReference.GetSyntax() as T :
                 null;
         }
@@ -233,93 +192,90 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
             CodeGenerationOptions options,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             IComparer<TDeclaration> comparerWithoutNameCheck,
             IComparer<TDeclaration> comparerWithNameCheck,
-            Func<SyntaxList<TDeclaration>, TDeclaration> after = null,
-            Func<SyntaxList<TDeclaration>, TDeclaration> before = null)
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
             where TDeclaration : SyntaxNode
         {
             Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
 
-            if (options != null)
+            // Try to strictly obey the after option by inserting immediately after the member containing the location
+            if (options.Context.AfterThisLocation != null)
             {
-                // Try to strictly obey the after option by inserting immediately after the member containing the location
-                if (options.AfterThisLocation != null)
+                var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.Context.AfterThisLocation.SourceSpan.Start);
+                if (afterMember != null)
                 {
-                    var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.AfterThisLocation.SourceSpan.Start);
-                    if (afterMember != null)
+                    var index = declarationList.IndexOf(afterMember);
+                    index = GetPreferredIndex(index + 1, availableIndices, forward: true);
+                    if (index != -1)
                     {
-                        var index = declarationList.IndexOf(afterMember);
-                        index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
+                        return index;
                     }
                 }
+            }
 
-                // Try to strictly obey the before option by inserting immediately before the member containing the location
-                if (options.BeforeThisLocation != null)
+            // Try to strictly obey the before option by inserting immediately before the member containing the location
+            if (options.Context.BeforeThisLocation != null)
+            {
+                var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.Context.BeforeThisLocation.SourceSpan.End);
+                if (beforeMember != null)
                 {
-                    var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.BeforeThisLocation.SourceSpan.End);
-                    if (beforeMember != null)
+                    var index = declarationList.IndexOf(beforeMember);
+                    index = GetPreferredIndex(index, availableIndices, forward: false);
+                    if (index != -1)
                     {
-                        var index = declarationList.IndexOf(beforeMember);
-                        index = GetPreferredIndex(index, availableIndices, forward: false);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
+                        return index;
                     }
                 }
+            }
 
-                if (options.AutoInsertionLocation)
+            if (options.Context.AutoInsertionLocation)
+            {
+                if (declarationList.IsEmpty())
                 {
-                    if (declarationList.IsEmpty())
-                    {
-                        return 0;
-                    }
+                    return 0;
+                }
 
-                    var desiredIndex = TryGetDesiredIndexIfGrouped(
-                        declarationList, declaration, availableIndices,
-                        comparerWithoutNameCheck, comparerWithNameCheck);
-                    if (desiredIndex.HasValue)
-                    {
-                        return desiredIndex.Value;
-                    }
+                var desiredIndex = TryGetDesiredIndexIfGrouped(
+                    declarationList, declaration, availableIndices,
+                    comparerWithoutNameCheck, comparerWithNameCheck);
+                if (desiredIndex.HasValue)
+                {
+                    return desiredIndex.Value;
+                }
 
-                    if (after != null)
+                if (after != null)
+                {
+                    var member = after(declarationList);
+                    if (member != null)
                     {
-                        var member = after(declarationList);
-                        if (member != null)
+                        var index = declarationList.IndexOf(member);
+                        if (index >= 0)
                         {
-                            var index = declarationList.IndexOf(member);
-                            if (index >= 0)
+                            index = GetPreferredIndex(index + 1, availableIndices, forward: true);
+                            if (index != -1)
                             {
-                                index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
+                                return index;
                             }
                         }
                     }
+                }
 
-                    if (before != null)
+                if (before != null)
+                {
+                    var member = before(declarationList);
+                    if (member != null)
                     {
-                        var member = before(declarationList);
-                        if (member != null)
-                        {
-                            var index = declarationList.IndexOf(member);
+                        var index = declarationList.IndexOf(member);
 
-                            if (index >= 0)
+                        if (index >= 0)
+                        {
+                            index = GetPreferredIndex(index, availableIndices, forward: false);
+                            if (index != -1)
                             {
-                                index = GetPreferredIndex(index, availableIndices, forward: false);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
+                                return index;
                             }
                         }
                     }
@@ -341,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static int? TryGetDesiredIndexIfGrouped<TDeclarationSyntax>(
             SyntaxList<TDeclarationSyntax> declarationList,
             TDeclarationSyntax declaration,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             IComparer<TDeclarationSyntax> comparerWithoutNameCheck,
             IComparer<TDeclarationSyntax> comparerWithNameCheck)
             where TDeclarationSyntax : SyntaxNode
@@ -366,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private static int? TryGetDesiredIndexIfGroupedWorker<TDeclarationSyntax>(
             SyntaxList<TDeclarationSyntax> declarationList,
             TDeclarationSyntax declaration,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             IComparer<TDeclarationSyntax> comparerWithoutNameCheck,
             IComparer<TDeclarationSyntax> comparerWithNameCheck)
             where TDeclarationSyntax : SyntaxNode

@@ -106,7 +106,6 @@ End Module
 
 #End Region
 
-
 #Region "CSharp tests"
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyExtensionMethodOnce() As Task

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -37,22 +39,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public BraceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
             IBraceMatchingService braceMatcherService,
-            IForegroundNotificationService notificationService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting), notificationService)
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
         {
             _braceMatcherService = braceMatcherService;
         }
 
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer),
+                TaggerEventSources.OnParseOptionChanged(subjectBuffer));
         }
 
-        protected override Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override Task ProduceTagsAsync(
+            TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             var document = documentSnapshotSpan.Document;
             if (!caretPosition.HasValue || document == null)
@@ -60,17 +65,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 return Task.CompletedTask;
             }
 
-            return ProduceTagsAsync(context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value);
+            var options = BraceMatchingOptions.From(document.Project);
+
+            return ProduceTagsAsync(
+                context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value, options, cancellationToken);
         }
 
-        internal async Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position)
+        internal async Task ProduceTagsAsync(
+            TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Tagger_BraceHighlighting_TagProducer_ProduceTags, context.CancellationToken))
+            using (Logger.LogBlock(FunctionId.Tagger_BraceHighlighting_TagProducer_ProduceTags, cancellationToken))
             {
                 if (position >= 0 && position <= snapshot.Length)
                 {
                     var (bracesLeftOfPosition, bracesRightOfPosition) = await GetAllMatchingBracesAsync(
-                        _braceMatcherService, document, position, context.CancellationToken).ConfigureAwait(false);
+                        _braceMatcherService, document, position, options, cancellationToken).ConfigureAwait(false);
 
                     AddBraces(context, snapshot, bracesLeftOfPosition);
                     AddBraces(context, snapshot, bracesRightOfPosition);
@@ -97,10 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             IBraceMatchingService service,
             Document document,
             int position,
+            BraceMatchingOptions options,
             CancellationToken cancellationToken)
         {
             // These are the matching spans when checking the token to the right of the position.
-            var rightOfPosition = await service.GetMatchingBracesAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var rightOfPosition = await service.GetMatchingBracesAsync(document, position, options, cancellationToken).ConfigureAwait(false);
 
             // The braces to the right of the position should only be added if the position is 
             // actually within the span of the start brace.  Note that this is what we want for
@@ -136,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             //      { ^}
             //      <@ ^@>
 
-            var leftOfPosition = await service.GetMatchingBracesAsync(document, position - 1, cancellationToken).ConfigureAwait(false);
+            var leftOfPosition = await service.GetMatchingBracesAsync(document, position - 1, options, cancellationToken).ConfigureAwait(false);
 
             if (leftOfPosition.HasValue &&
                 position <= leftOfPosition.Value.RightSpan.End &&
@@ -150,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             return (leftOfPosition: null, rightOfPosition);
         }
 
-        private void AddBraces(
+        private static void AddBraces(
             TaggerContext<BraceHighlightTag> context,
             ITextSnapshot snapshot,
             BraceMatchingResult? braces)

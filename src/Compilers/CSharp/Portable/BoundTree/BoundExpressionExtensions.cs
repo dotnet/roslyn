@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -48,9 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == BoundKind.DefaultLiteral;
         }
 
-        public static bool IsLiteralNullOrDefault(this BoundExpression node)
+        public static bool IsImplicitObjectCreation(this BoundExpression node)
         {
-            return node.IsLiteralNull() || node.IsLiteralDefault();
+            return node.Kind == BoundKind.UnconvertedObjectCreationExpression;
+        }
+
+        public static bool IsLiteralDefaultOrImplicitObjectCreation(this BoundExpression node)
+        {
+            return node.IsLiteralDefault() || node.IsImplicitObjectCreation();
         }
 
         // returns true when expression has no side-effects and produces
@@ -85,6 +89,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var type = node.Type;
             return type is { } && type.IsDynamic();
+        }
+
+        public static NamedTypeSymbol? GetInferredDelegateType(this BoundExpression expr, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(expr.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
+
+            var delegateType = expr.GetFunctionType()?.GetInternalDelegateType();
+            delegateType?.AddUseSiteInfo(ref useSiteInfo);
+            return delegateType;
+        }
+
+        public static TypeSymbol? GetTypeOrFunctionType(this BoundExpression expr)
+        {
+            if (expr.Type is { } type)
+            {
+                return type;
+            }
+            return expr.GetFunctionType();
+        }
+
+        public static FunctionTypeSymbol? GetFunctionType(this BoundExpression expr)
+        {
+            return expr switch
+            {
+                BoundMethodGroup methodGroup => methodGroup.FunctionType,
+                UnboundLambda unboundLambda => unboundLambda.FunctionType,
+                _ => null
+            };
         }
 
         public static bool MethodGroupReceiverIsDynamic(this BoundMethodGroup node)

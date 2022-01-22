@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,14 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ObjectInitializerCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(ObjectInitializerCompletionProvider);
-        }
+            => typeof(ObjectAndWithInitializerCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingToInitialize()
@@ -45,6 +41,25 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        public async Task ImplicitObjectCreation_NothingToInitialize()
+        {
+            var markup = @"
+class C { }
+
+class D
+{
+    void goo()
+    {
+       C goo = new() { $$
+    }
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OneItem1()
         {
             var markup = @"
@@ -55,6 +70,45 @@ class D
     void goo()
     {
        C goo = new C { v$$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "value");
+            await VerifyItemIsAbsentAsync(markup, "<value>k__BackingField");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        public async Task ImplicitObjectCreation_OneItem1()
+        {
+            var markup = @"
+class C { public int value {set; get; }}
+
+class D
+{
+    void goo()
+    {
+       C goo = new() { v$$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "value");
+            await VerifyItemIsAbsentAsync(markup, "<value>k__BackingField");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ImplicitObjectCreation_NullableStruct_OneItem1()
+        {
+            var markup = @"
+struct S { public int value {set; get; }}
+
+class D
+{
+    void goo()
+    {
+       S? goo = new() { v$$
     }
 }";
 
@@ -521,6 +575,8 @@ public class Goo
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
     public string Prop { get; set; }
 }";
+            HideAdvancedMembers = true;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -528,8 +584,9 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -538,8 +595,7 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -583,14 +639,12 @@ class D
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
             var item = completionList.Items.First();
 
-            Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
+            Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(CompletionOptions.Default), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestTrigger()
-        {
-            TestCommonIsTextualTriggerCharacter();
-        }
+            => TestCommonIsTextualTriggerCharacter();
 
         [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -606,6 +660,9 @@ class D
         End Set
     End Property
 End Class";
+
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -613,8 +670,7 @@ End Class";
                 expectedSymbolsSameSolution: 0,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.VisualBasic,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.VisualBasic);
         }
 
         [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]

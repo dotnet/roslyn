@@ -3,13 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 {
-    public partial class RemoveUnnecessaryCastTests
+    public class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveUnnecessaryCastTests_FixAllTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpRemoveUnnecessaryCastDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryCastCodeFixProvider());
+
         #region "Fix all occurrences tests"
 
         [Fact]

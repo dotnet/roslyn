@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         private ISet<INamedTypeSymbol> _outerTypes;
 
         protected SyntaxContext(
-            Workspace workspace,
+            Document document,
             SemanticModel semanticModel,
             int position,
             SyntaxToken leftToken,
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isNamespaceContext,
             bool isNamespaceDeclarationNameContext,
             bool isPreProcessorDirectiveContext,
+            bool isPreProcessorExpressionContext,
             bool isRightOfNameSeparator,
             bool isStatementContext,
             bool isAnyExpressionContext,
@@ -35,12 +38,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isInImportsDirective,
             bool isWithinAsyncMethod,
             bool isPossibleTupleContext,
-            bool isPatternContext,
+            bool isAtStartOfPattern,
+            bool isAtEndOfPattern,
             bool isRightSideOfNumericType,
             bool isOnArgumentListBracketOrComma,
             CancellationToken cancellationToken)
         {
-            this.Workspace = workspace;
+            this.Document = document;
             this.SemanticModel = semanticModel;
             this.SyntaxTree = semanticModel.SyntaxTree;
             this.Position = position;
@@ -50,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsNamespaceContext = isNamespaceContext;
             this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
             this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
+            this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsStatementContext = isStatementContext;
             this.IsAnyExpressionContext = isAnyExpressionContext;
@@ -60,18 +65,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsInImportsDirective = isInImportsDirective;
             this.IsWithinAsyncMethod = isWithinAsyncMethod;
             this.IsPossibleTupleContext = isPossibleTupleContext;
-            this.IsPatternContext = isPatternContext;
-            this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
+            this.IsAtStartOfPattern = isAtStartOfPattern;
+            this.IsAtEndOfPattern = isAtEndOfPattern;
+            this.InferredTypes = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
             this.IsRightSideOfNumericType = isRightSideOfNumericType;
             this.IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
         }
 
-        public Workspace Workspace { get; }
+        public Document Document { get; }
         public SemanticModel SemanticModel { get; }
         public SyntaxTree SyntaxTree { get; }
         public int Position { get; }
 
+        /// <summary>
+        /// The token to the left of <see cref="Position"/>. This token may be touching the position.
+        /// </summary>
         public SyntaxToken LeftToken { get; }
+
+        /// <summary>
+        /// The first token to the left of <see cref="Position"/> that we're not touching. Equal to <see cref="LeftToken"/>
+        /// if we aren't touching <see cref="LeftToken" />.
+        /// </summary>
         public SyntaxToken TargetToken { get; }
 
         public bool IsTypeContext { get; }
@@ -80,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsNamespaceDeclarationNameContext { get; }
 
         public bool IsPreProcessorDirectiveContext { get; }
+        public bool IsPreProcessorExpressionContext { get; }
 
         public bool IsRightOfNameSeparator { get; }
         public bool IsStatementContext { get; }
@@ -92,7 +107,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsInImportsDirective { get; }
         public bool IsWithinAsyncMethod { get; }
         public bool IsPossibleTupleContext { get; }
-        public bool IsPatternContext { get; }
+        public bool IsAtStartOfPattern { get; }
+        public bool IsAtEndOfPattern { get; }
 
         public bool IsRightSideOfNumericType { get; }
         public bool IsOnArgumentListBracketOrComma { get; }
@@ -114,17 +130,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             return SpecializedCollections.EmptySet<INamedTypeSymbol>();
         }
 
-        protected ImmutableArray<ITypeSymbol> ComputeInferredTypes(Workspace workspace,
-            SemanticModel semanticModel,
-            int position,
-            CancellationToken cancellationToken)
-        {
-            var typeInferenceService = workspace?.Services.GetLanguageService<ITypeInferenceService>(semanticModel.Language)
-                ?? GetTypeInferenceServiceWithoutWorkspace();
-            return typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
-        }
-
-        internal abstract ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace();
+        internal abstract bool IsAwaitKeywordContext();
 
         public ISet<INamedTypeSymbol> GetOuterTypes(CancellationToken cancellationToken)
         {
@@ -137,13 +143,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         }
 
         public TService GetLanguageService<TService>() where TService : class, ILanguageService
-        {
-            return this.Workspace.Services.GetLanguageService<TService>(this.SemanticModel.Language);
-        }
-
-        public TService GetWorkspaceService<TService>() where TService : class, IWorkspaceService
-        {
-            return this.Workspace.Services.GetService<TService>();
-        }
+            => Document.GetLanguageService<TService>();
     }
 }

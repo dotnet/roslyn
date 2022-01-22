@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingParameter.AddSynthesizedAttributes(moduleBuilder, ref attributes);
         }
 
-        internal sealed override ConstantValue ExplicitDefaultConstantValue
+        internal sealed override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return _underlyingParameter.ExplicitDefaultConstantValue; }
         }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.RefCustomModifiers; }
         }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return _underlyingParameter.MarshallingInformation; }
         }
@@ -136,21 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.IsIUnknownConstant; }
         }
 
-        internal override bool IsCallerLineNumber
-        {
-            get { return _underlyingParameter.IsCallerLineNumber; }
-        }
-
-        internal override bool IsCallerFilePath
-        {
-            get { return _underlyingParameter.IsCallerFilePath; }
-        }
-
-        internal override bool IsCallerMemberName
-        {
-            get { return _underlyingParameter.IsCallerMemberName; }
-        }
-
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             // https://github.com/dotnet/roslyn/issues/30073: Consider moving to leaf types
@@ -162,10 +147,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.NotNullIfParameterNotNull; }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
+
+        public sealed override bool IsNullChecked => UnderlyingParameter.IsNullChecked;
 
         #endregion
     }

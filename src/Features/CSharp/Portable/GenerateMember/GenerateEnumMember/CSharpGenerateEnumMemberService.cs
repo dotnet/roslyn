@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -23,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
         }
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-        {
-            return node is IdentifierNameSyntax;
-        }
+            => node is IdentifierNameSyntax;
 
         protected override bool TryInitializeIdentifierNameState(
             SemanticDocument document, SimpleNameSyntax identifierName, CancellationToken cancellationToken,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
                 !identifierName.IsVar)
             {
                 simpleNameOrMemberAccessExpression = identifierName.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == identifierName
-                    ? (ExpressionSyntax)memberAccess
+                    ? memberAccess
                     : identifierName;
 
                 // If we're being invoked, then don't offer this, offer generate method instead.

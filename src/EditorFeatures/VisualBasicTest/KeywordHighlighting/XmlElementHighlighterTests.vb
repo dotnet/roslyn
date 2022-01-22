@@ -8,8 +8,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
     Public Class XmlElementHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
-        Friend Overrides Function CreateHighlighter() As IHighlighter
-            Return New XmlElementHighlighter()
+        Friend Overrides Function GetHighlighterType() As Type
+            Return GetType(XmlElementHighlighter)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>

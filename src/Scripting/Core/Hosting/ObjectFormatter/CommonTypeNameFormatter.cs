@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using System.Reflection;
@@ -210,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 quoteStringsAndCharacters: true,
                 escapeNonPrintableCharacters: true,
                 cultureInfo: CultureInfo.InvariantCulture);
-            var formatted = int.MinValue <= bound && bound <= int.MaxValue
+            var formatted = bound is >= int.MinValue and <= int.MaxValue
                 ? PrimitiveFormatter.FormatPrimitive((int)bound, options)
                 : PrimitiveFormatter.FormatPrimitive(bound, options);
             sb.Append(formatted);
@@ -218,13 +220,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private void AppendArrayRank(StringBuilder sb, Type arrayType)
         {
-            sb.Append('[');
+            sb.Append(ArrayOpening);
             int rank = arrayType.GetArrayRank();
             if (rank > 1)
             {
                 sb.Append(',', rank - 1);
             }
-            sb.Append(']');
+            sb.Append(ArrayClosing);
         }
 
         private string FormatGenericTypeName(TypeInfo typeInfo, CommonTypeNameFormatterOptions options)

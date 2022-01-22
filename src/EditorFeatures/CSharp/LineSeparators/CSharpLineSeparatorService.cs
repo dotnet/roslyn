@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
     internal class CSharpLineSeparatorService : ILineSeparatorService
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLineSeparatorService()
         {
         }
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var node = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var spans = new List<TextSpan>();
 
@@ -44,16 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
             foreach (var block in blocks)
             {
                 if (cancellationToken.IsCancellationRequested)
-                {
                     return SpecializedCollections.EmptyEnumerable<TextSpan>();
-                }
 
                 switch (block)
                 {
                     case TypeDeclarationSyntax typeBlock:
                         ProcessNodeList(typeBlock.Members, spans, cancellationToken);
                         continue;
-                    case NamespaceDeclarationSyntax namespaceBlock:
+                    case BaseNamespaceDeclarationSyntax namespaceBlock:
                         ProcessUsings(namespaceBlock.Usings, spans, cancellationToken);
                         ProcessNodeList(namespaceBlock.Members, spans, cancellationToken);
                         continue;
@@ -95,11 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
         /// <summary>Node types that may contain separable blocks.</summary>
         private static bool IsSeparableContainer(SyntaxNode node)
-        {
-            return node is TypeDeclarationSyntax ||
-                node is NamespaceDeclarationSyntax ||
-                node is CompilationUnitSyntax;
-        }
+            => node is TypeDeclarationSyntax or BaseNamespaceDeclarationSyntax or CompilationUnitSyntax;
 
         private static bool IsBadType(SyntaxNode node)
         {
@@ -145,26 +139,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
         }
 
         private static bool IsBadProperty(SyntaxNode node)
-        {
-            return IsBadAccessorList(node as PropertyDeclarationSyntax);
-        }
+            => IsBadAccessorList(node as PropertyDeclarationSyntax);
 
         private static bool IsBadEvent(SyntaxNode node)
-        {
-            return IsBadAccessorList(node as EventDeclarationSyntax);
-        }
+            => IsBadAccessorList(node as EventDeclarationSyntax);
 
         private static bool IsBadIndexer(SyntaxNode node)
-        {
-            return IsBadAccessorList(node as IndexerDeclarationSyntax);
-        }
+            => IsBadAccessorList(node as IndexerDeclarationSyntax);
 
-        private static bool IsBadAccessorList(BasePropertyDeclarationSyntax baseProperty)
+        private static bool IsBadAccessorList(BasePropertyDeclarationSyntax? baseProperty)
         {
             if (baseProperty?.AccessorList == null)
-            {
                 return false;
-            }
 
             return baseProperty.AccessorList.OpenBraceToken.IsMissing ||
                 baseProperty.AccessorList.CloseBraceToken.IsMissing;

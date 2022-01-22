@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -16,15 +17,13 @@ namespace Microsoft.CodeAnalysis
     internal class DefaultDocumentTextDifferencingService : IDocumentTextDifferencingService
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultDocumentTextDifferencingService()
         {
         }
 
         public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-        {
-            return GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
-        }
+            => GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
 
         public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
         {

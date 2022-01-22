@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,8 +19,6 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Roslyn.Compilers.Extension
 {
-    [ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
-    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("31C0675E-87A4-4061-A0DD-A4E510FCCF97")]
     public sealed class CompilerPackage : AsyncPackage
     {

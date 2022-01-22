@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -26,9 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         protected override object GetExtenderNames()
-        {
-            return CodeModelService.GetExternalTypeExtenderNames();
-        }
+            => CodeModelService.GetExternalTypeExtenderNames();
 
         protected override object GetExtender(string name)
         {
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
 
             var compilation = GetCompilation();
-            if (!(compilation.GetMetadataReference(assembly) is PortableExecutableReference metadataReference))
+            if (compilation.GetMetadataReference(assembly) is not PortableExecutableReference metadataReference)
             {
                 return string.Empty;
             }
@@ -127,18 +127,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         public EnvDTE.CodeElement AddBase(object @base, object position)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public void RemoveBase(object element)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public void RemoveMember(object element)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
     }
 }

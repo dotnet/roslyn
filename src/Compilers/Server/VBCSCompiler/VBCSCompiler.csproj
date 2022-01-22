@@ -5,7 +5,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <LargeAddressAware>true</LargeAddressAware>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <UseAppHost>false</UseAppHost>
@@ -17,18 +17,15 @@
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netcoreapp3.1'" />
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'net6.0'" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'net6.0'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
     <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Shared\BuildClient.cs" />
     <Compile Include="..\..\Shared\BuildServerConnection.cs" />
-    <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\Shared\ExitingTraceListener.cs" />
-    <Compile Include="..\..\Shared\ShadowCopyAnalyzerAssemblyLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -14,32 +14,71 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\CSharpConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.Rewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\CSharpMakeFieldReadonlyCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeStructFieldsWritable\CSharpMakeStructFieldsWritableCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MisplacedUsingDirectives\MisplacedUsingDirectivesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\ConsecutiveBracePlacementCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConstructorInitializerPlacement\ConstructorInitializerPlacementCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\CSharpChangeNamespaceToMatchFolderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\CSharpOrderModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchStatementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\CSharpQualifyMemberAccessCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\CSharpRemoveUnnecessaryCastCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\CSharpRemoveConfusingSuppressionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryLambdaExpression\CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\CSharpRemoveUnreachableCodeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\CSharpRemoveUnnecessaryParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\CSharpRemoveUnusedValuesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\CSharpSimplifyPropertyPatternCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundAssignmentCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundCoalesceAssignmentCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\CSharpUseConditionalExpressionForAssignmentCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\CSharpUseConditionalExpressionForReturnCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\CSharpUseConditionalExpressionHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\MultiLineConditionalExpressionFormattingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\CSharpUseDeconstructionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseParameterNullChecking\CSharpUseParameterNullCheckingCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\CSharpUseIndexOperatorCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\CSharpUseRangeOperatorCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\Helpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\CSharpUseInferredMemberNameCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseNullCheckOverTypeCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseInitializerHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpUseNotPatternCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSimpleUsingStatement\UseSimpleUsingStatementCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\EmbeddedStatementPlacement\EmbeddedStatementPlacementCodeFixProvider.cs" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)ConvertNamespace\" />
   </ItemGroup>
 </Project>

@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private readonly WeakReference<ITextBuffer> _weakEditorBuffer;
             private readonly object _gate = new object();
-            private readonly ITextBufferCloneService _textBufferCloneServiceOpt;
+            private readonly ITextBufferCloneService? _textBufferCloneService;
 
-            private event EventHandler<TextChangeEventArgs> EtextChanged;
+            private event EventHandler<TextChangeEventArgs>? EtextChanged;
             private SourceText _currentText;
 
             private TextBufferContainer(ITextBuffer editorBuffer)
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Text
                 Contract.ThrowIfNull(editorBuffer);
 
                 _weakEditorBuffer = new WeakReference<ITextBuffer>(editorBuffer);
-                editorBuffer.Properties.TryGetProperty(typeof(ITextBufferCloneService), out _textBufferCloneServiceOpt);
-                _currentText = SnapshotSourceText.From(_textBufferCloneServiceOpt, editorBuffer.CurrentSnapshot, this);
+                editorBuffer.Properties.TryGetProperty(typeof(ITextBufferCloneService), out _textBufferCloneService);
+                _currentText = SnapshotSourceText.From(_textBufferCloneService, editorBuffer.CurrentSnapshot, this);
             }
 
             /// <summary>
@@ -51,11 +51,9 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             private static TextBufferContainer CreateContainer(ITextBuffer editorBuffer)
-            {
-                return new TextBufferContainer(editorBuffer);
-            }
+                => new TextBufferContainer(editorBuffer);
 
-            public ITextBuffer TryFindEditorTextBuffer()
+            public ITextBuffer? TryFindEditorTextBuffer()
                 => _weakEditorBuffer.GetTarget();
 
             public override SourceText CurrentText
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            private void OnTextContentChanged(object sender, TextContentChangedEventArgs args)
+            private void OnTextContentChanged(object? sender, TextContentChangedEventArgs args)
             {
                 var changed = this.EtextChanged;
                 if (changed == null)
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 // this should convert given editor snapshots to roslyn forked snapshots
                 var oldText = (SnapshotSourceText)args.Before.AsText();
-                var newText = SnapshotSourceText.From(_textBufferCloneServiceOpt, args.After);
+                var newText = SnapshotSourceText.From(_textBufferCloneService, args.After);
                 _currentText = newText;
 
                 var changes = ImmutableArray.CreateRange(args.Changes.Select(c => new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength)));
@@ -125,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             // These are the event args that were last sent from this text container when the text
             // content may have changed.
-            public TextChangeEventArgs LastEventArgs { get; private set; }
+            public TextChangeEventArgs? LastEventArgs { get; private set; }
         }
     }
 }

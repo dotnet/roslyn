@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal interface IReferenceFinder
     {
         /// <summary>
+        /// Determines what, if any, global alias names could potentially map this symbol in this project.
+        /// Note that this result is allowed to return global aliases that don't actually map to this symbol.
+        /// For example, given symbol <c>A.X</c> and <c>global alias G = B.X</c>, <c>G</c> might be returned
+        /// in a search for <c>A.X</c> because they both end in <c>X</c>.
+        /// </summary>
+        Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
+            ISymbol symbol, Project project, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Called by the find references search engine when a new symbol definition is found.
         /// Implementations can then choose to request more symbols be searched for.  For example, an
         /// implementation could choose for the find references search engine to cascade to
@@ -24,25 +34,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Called by the find references search engine to determine which projects should be
-        /// searched for a given symbol.  The returned projects will then be searched in parallel. If
-        /// the implementation does not care about the provided symbol then null can be returned
-        /// from this method.
-        /// 
-        /// Implementations should endeavor to keep the list of returned projects as small as
-        /// possible to keep search time down to a minimum.  Returning the entire list of projects in
-        /// a solution is not recommended (unless, of course, there is reasonable reason to believe
-        /// there are references in every project).
-        /// 
-        /// Implementations of this method must be thread-safe.
-        /// </summary>
-        Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
+        Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called by the find references search engine to determine which documents in the supplied
@@ -57,7 +50,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document> documents,
+            ISymbol symbol, HashSet<string>? globalAliases,
+            Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         /// <summary>
@@ -67,8 +61,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel,
+        ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+            ISymbol symbol, HashSet<string>? globalAliases,
+            Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
     }
 }

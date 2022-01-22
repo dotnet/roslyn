@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -35,25 +38,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public FixAllProvider GetFixAllProvider()
-        {
-            return SuppressionFixAllProvider.Instance;
-        }
+            => SuppressionFixAllProvider.Instance;
 
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
-        {
-            return SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
-        }
+            => SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
 
-        protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
-        protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
+        protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken);
+        protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken);
 
         protected abstract SyntaxNode AddGlobalSuppressMessageAttribute(
             SyntaxNode newRoot,
             ISymbol targetSymbol,
             INamedTypeSymbol suppressMessageAttribute,
             Diagnostic diagnostic,
-            Workspace workspace,
-            Compilation compilation,
+            HostWorkspaceServices services,
+            SyntaxFormattingOptions options,
             IAddImportsService addImportsService,
             CancellationToken cancellationToken);
 
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
         }
 
-        protected string GetOrMapDiagnosticId(Diagnostic diagnostic, out bool includeTitle)
+        protected static string GetOrMapDiagnosticId(Diagnostic diagnostic, out bool includeTitle)
         {
             if (diagnostic.Id == IDEDiagnosticIds.FormattingDiagnosticId)
             {
@@ -89,13 +88,52 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return diagnostic.Id;
         }
 
-        protected virtual SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
+        protected abstract SyntaxNode GetContainingStatement(SyntaxToken token);
+        protected abstract bool TokenHasTrailingLineContinuationChar(SyntaxToken token);
+
+        protected SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines)
         {
+            var containingStatement = GetContainingStatement(token);
+
+            // The containing statement might not start on the same line as the token, but we don't want to split
+            // a statement in the middle, so we actually want to use the first token on the line that has the first token
+            // of the statement.
+            //
+            // eg, given: public void M() { int x = 1; }
+            //
+            // When trying to suppress an "unused local" for x, token would be "x", the first token
+            // of the containing statement is "int", but we want the pragma before "public".
+            if (containingStatement is not null && containingStatement.GetFirstToken() != token)
+            {
+                var indexOfLine = lines.IndexOf(containingStatement.GetFirstToken().SpanStart);
+                var line = lines[indexOfLine];
+                token = root.FindToken(line.Start);
+            }
+
             return token;
         }
 
-        protected virtual SyntaxToken GetAdjustedTokenForPragmaRestore(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
+        private SyntaxToken GetAdjustedTokenForPragmaRestore(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
         {
+            var containingStatement = GetContainingStatement(token);
+
+            // As per above, the last token of the statement might not be the last token on the line
+            if (containingStatement is not null && containingStatement.GetLastToken() != token)
+            {
+                indexOfLine = lines.IndexOf(containingStatement.GetLastToken().SpanStart);
+            }
+
+            var line = lines[indexOfLine];
+            token = root.FindToken(line.End);
+
+            // VB has line continuation characters that can explicitly extend the line beyond the last
+            // token, so allow for that by just skipping over them
+            while (TokenHasTrailingLineContinuationChar(token))
+            {
+                indexOfLine = indexOfLine + 1;
+                token = root.FindToken(lines[indexOfLine].End, findInsideTrivia: true);
+            }
+
             return token;
         }
 
@@ -162,6 +200,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 skipSuppressMessage = suppressMessageAttribute == null || !suppressMessageAttribute.IsAttribute();
             }
 
+            var lazyFormattingOptions = (SyntaxFormattingOptions?)null;
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
@@ -171,7 +210,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (diagnostic.Location.IsInSource && documentOpt != null)
                     {
                         // pragma warning disable.
-                        nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, diagnostic, this));
+                        lazyFormattingOptions ??= await SyntaxFormattingOptions.FromDocumentAsync(documentOpt, cancellationToken).ConfigureAwait(false);
+                        nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, lazyFormattingOptions.Value, diagnostic, this));
                     }
 
                     // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
@@ -234,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var indexOfLine = lines.IndexOf(span.Start);
             var lineAtPos = lines[indexOfLine];
             var startToken = root.FindToken(lineAtPos.Start);
-            startToken = GetAdjustedTokenForPragmaDisable(startToken, root, lines, indexOfLine);
+            startToken = GetAdjustedTokenForPragmaDisable(startToken, root, lines);
 
             // Find the end token to attach pragma restore warning directive.
             var spanEnd = Math.Max(startToken.Span.End, span.End);
@@ -314,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
         }
 
-        protected string GetScopeString(SymbolKind targetSymbolKind)
+        protected static string GetScopeString(SymbolKind targetSymbolKind)
         {
             switch (targetSymbolKind)
             {
@@ -335,9 +375,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
         }
 
-        protected string GetTargetString(ISymbol targetSymbol)
-        {
-            return "~" + DocumentationCommentId.CreateDeclarationId(targetSymbol);
-        }
+        protected static string GetTargetString(ISymbol targetSymbol)
+            => "~" + DocumentationCommentId.CreateDeclarationId(targetSymbol);
     }
 }

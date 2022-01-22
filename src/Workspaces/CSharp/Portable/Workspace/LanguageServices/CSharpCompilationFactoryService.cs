@@ -3,17 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [ExportLanguageService(typeof(ICompilationFactoryService), LanguageNames.CSharp), Shared]
     internal class CSharpCompilationFactoryService : ICompilationFactoryService
     {
-        private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);
+        private static readonly CSharpCompilationOptions s_defaultOptions = new(OutputKind.ConsoleApplication, concurrentBuild: false);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: (CSharpCompilationOptions)options ?? s_defaultOptions);
         }
 
-        Compilation ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type hostObjectType)
+        Compilation ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType)
         {
             return CSharpCompilation.CreateScriptCompilation(
                 assemblyName,
@@ -37,20 +39,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 globalsType: hostObjectType);
         }
 
-        Compilation ICompilationFactoryService.GetCompilationFromCompilationReference(MetadataReference reference)
-        {
-            var compilationRef = reference as CompilationReference;
-            return compilationRef?.Compilation;
-        }
-
-        bool ICompilationFactoryService.IsCompilationReference(MetadataReference reference)
-        {
-            return reference is CompilationReference;
-        }
-
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
+            => s_defaultOptions;
+
+        CompilationOptions? ICompilationFactoryService.TryParsePdbCompilationOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata)
         {
-            return s_defaultOptions;
+            if (!compilationOptionsMetadata.TryGetValue("output-kind", out var outputKindString) ||
+                !Enum.TryParse<OutputKind>(outputKindString, out var outputKind))
+            {
+                return null;
+            }
+
+            return new CSharpCompilationOptions(outputKind: outputKind);
+        }
+
+        GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
+        {
+            return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider);
         }
     }
 }

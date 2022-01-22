@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            internal RangeVariableSymbol AddRangeVariable(Binder binder, SyntaxToken identifier, DiagnosticBag diagnostics)
+            internal RangeVariableSymbol AddRangeVariable(Binder binder, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
             {
                 string name = identifier.ValueText;
                 var result = new RangeVariableSymbol(name, binder.ContainingMemberOrLambda, identifier.GetLocation());

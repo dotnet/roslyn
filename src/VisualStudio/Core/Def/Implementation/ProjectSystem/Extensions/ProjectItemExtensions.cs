@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using EnvDTE;
@@ -13,9 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
     internal static class ProjectItemExtensions
     {
         public static ProjectItem FindItem(this ProjectItem item, string itemName, StringComparer comparer)
-        {
-            return item.ProjectItems.FindItem(itemName, comparer);
-        }
+            => item.ProjectItems.FindItem(itemName, comparer);
 
         public static bool TryGetFullPath(this ProjectItem item, [NotNullWhen(returnValue: true)] out string? fullPath)
         {
@@ -24,8 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
         }
 
         public static bool IsFolder(this ProjectItem item)
-        {
-            return item != null && item.Kind == Constants.vsProjectItemKindPhysicalFolder;
-        }
+            => item != null && item.Kind == Constants.vsProjectItemKindPhysicalFolder;
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             bool isExtensionMethodThis,
             bool addRefReadOnlyModifier,
-            DiagnosticBag declarationDiagnostics)
+            BindingDiagnosticBag declarationDiagnostics)
         {
             Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
 
@@ -51,20 +53,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            if (addRefReadOnlyModifier && refKind == RefKind.In)
-            {
-                var modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
+            ImmutableArray<CustomModifier> inModifiers = ParameterHelpers.ConditionallyCreateInModifiers(refKind, addRefReadOnlyModifier, context, declarationDiagnostics, syntax);
 
+            if (!inModifiers.IsDefaultOrEmpty)
+            {
                 return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
                     owner,
                     ordinal,
                     parameterType,
                     refKind,
-                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)),
+                    inModifiers,
                     name,
                     locations,
                     syntax.GetReference(),
-                    ConstantValue.Unset,
                     isParams,
                     isExtensionMethodThis);
             }
@@ -73,9 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
                 (syntax.AttributeLists.Count == 0) &&
-                !owner.IsPartialMethod())
+                !owner.IsPartialMethod() &&
+                syntax.ExclamationExclamationToken.Kind() == SyntaxKind.None)
             {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, isDiscard: false, locations);
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
             }
 
             return new SourceComplexParameterSymbol(
@@ -86,7 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 name,
                 locations,
                 syntax.GetReference(),
-                ConstantValue.Unset,
                 isParams,
                 isExtensionMethodThis);
         }
@@ -134,7 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _name,
                     _locations,
                     this.SyntaxReference,
-                    this.ExplicitDefaultConstantValue,
                     newIsParams,
                     this.IsExtensionMethodThis);
             }
@@ -151,7 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name,
                 _locations,
                 this.SyntaxReference,
-                this.ExplicitDefaultConstantValue,
                 newIsParams,
                 this.IsExtensionMethodThis);
         }
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// go on the compilation, but if it is a local function it is part of the local
         /// function's declaration diagnostics.
         /// </summary>
-        internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+        internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
             => ContainingSymbol.AddDeclarationDiagnostics(diagnostics);
 
         internal abstract SyntaxReference SyntaxReference { get; }

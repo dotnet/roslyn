@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -15,16 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     internal partial class CSharpCodeModelService
     {
         protected override AbstractNodeNameGenerator CreateNodeNameGenerator()
-        {
-            return new NodeNameGenerator();
-        }
+            => new NodeNameGenerator();
 
         private class NodeNameGenerator : AbstractNodeNameGenerator
         {
             protected override bool IsNameableNode(SyntaxNode node)
-            {
-                return CSharpCodeModelService.IsNameableNode(node);
-            }
+                => CSharpCodeModelService.IsNameableNode(node);
 
             private static void AppendName(StringBuilder builder, NameSyntax name)
             {
@@ -166,12 +164,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 switch (node.Kind())
                 {
                     case SyntaxKind.NamespaceDeclaration:
-                        var namespaceDeclaration = (NamespaceDeclarationSyntax)node;
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)node;
                         AppendName(builder, namespaceDeclaration.Name);
                         break;
 
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                         var typeDeclaration = (TypeDeclarationSyntax)node;
                         builder.Append(typeDeclaration.Identifier.ValueText);

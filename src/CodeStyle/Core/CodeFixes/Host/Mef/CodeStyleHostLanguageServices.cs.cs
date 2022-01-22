@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly CompositionHost _compositionContext;
 
             private MefHostExportProvider(CompositionHost compositionContext)
-            {
-                _compositionContext = compositionContext;
-            }
+                => _compositionContext = compositionContext;
 
             public static MefHostExportProvider Create(string languageName)
             {
@@ -52,11 +52,8 @@ namespace Microsoft.CodeAnalysis.Host
                     MefHostServicesHelpers.LoadNearbyAssemblies(assemblyNames));
             }
 
-
             IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-            {
-                return _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
-            }
+                => _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
 
             IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
             {

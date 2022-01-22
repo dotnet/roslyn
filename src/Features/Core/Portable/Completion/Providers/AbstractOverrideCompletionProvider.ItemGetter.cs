@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -33,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             private readonly SourceText _text;
             private readonly SyntaxTree _syntaxTree;
             private readonly int _startLineNumber;
-            private readonly TextLine _startLine;
 
             private ItemGetter(
                 AbstractOverrideCompletionProvider overrideCompletionProvider,
@@ -42,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 SourceText text,
                 SyntaxTree syntaxTree,
                 int startLineNumber,
-                TextLine startLine,
                 CancellationToken cancellationToken)
             {
                 _provider = overrideCompletionProvider;
@@ -51,70 +47,51 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _text = text;
                 _syntaxTree = syntaxTree;
                 _startLineNumber = startLineNumber;
-                _startLine = startLine;
                 _cancellationToken = cancellationToken;
             }
 
-            internal static async Task<ItemGetter> CreateAsync(
+            public static async Task<ItemGetter> CreateAsync(
                 AbstractOverrideCompletionProvider overrideCompletionProvider,
                 Document document,
                 int position,
                 CancellationToken cancellationToken)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var startLineNumber = text.Lines.IndexOf(position);
-                var startLine = text.Lines[startLineNumber];
-                return new ItemGetter(overrideCompletionProvider, document, position, text, syntaxTree, startLineNumber, startLine, cancellationToken);
+                return new ItemGetter(overrideCompletionProvider, document, position, text, syntaxTree, startLineNumber, cancellationToken);
             }
 
-            internal async Task<IEnumerable<CompletionItem>> GetItemsAsync()
+            public async Task<ImmutableArray<CompletionItem>> GetItemsAsync()
             {
                 // modifiers* override modifiers* type? |
                 if (!TryCheckForTrailingTokens(_position))
-                {
-                    return null;
-                }
+                    return default;
 
                 var startToken = _provider.FindStartingToken(_syntaxTree, _position, _cancellationToken);
                 if (startToken.Parent == null)
-                {
-                    return null;
-                }
+                    return default;
 
-                var semanticModel = await _document.GetSemanticModelForNodeAsync(startToken.Parent, _cancellationToken).ConfigureAwait(false);
+                var semanticModel = await _document.ReuseExistingSpeculativeModelAsync(startToken.Parent, _cancellationToken).ConfigureAwait(false);
                 if (!_provider.TryDetermineReturnType(startToken, semanticModel, _cancellationToken, out var returnType, out var tokenAfterReturnType) ||
                     !_provider.TryDetermineModifiers(tokenAfterReturnType, _text, _startLineNumber, out var seenAccessibility, out var modifiers) ||
                     !TryDetermineOverridableMembers(semanticModel, startToken, seenAccessibility, out var overridableMembers))
                 {
-                    return null;
+                    return default;
                 }
 
-                overridableMembers = _provider.FilterOverrides(overridableMembers, returnType);
-                var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
-
-                var resolvableMembers = overridableMembers.Where(m => CanResolveSymbolKey(m, semanticModel.Compilation));
-
-                return overridableMembers.Select(m => CreateItem(
-                    m, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
-            }
-
-            private bool CanResolveSymbolKey(ISymbol m, Compilation compilation)
-            {
-                // SymbolKey doesn't guarantee roundtrip-ability, which we need in order to generate overrides.
-                // Preemptively filter out those methods whose SymbolKeys we won't be able to round trip.
-                var key = SymbolKey.Create(m, _cancellationToken);
-                var result = key.Resolve(compilation, cancellationToken: _cancellationToken);
-                return result.Symbol != null;
+                return _provider.FilterOverrides(overridableMembers, returnType).
+                       SelectAsArray(m => CreateItem(m, semanticModel, startToken, modifiers));
             }
 
             private CompletionItem CreateItem(
-                ISymbol symbol, ISymbolDisplayService symbolDisplayService,
-                SemanticModel semanticModel, SyntaxToken startToken, DeclarationModifiers modifiers)
+                ISymbol symbol, SemanticModel semanticModel,
+                SyntaxToken startToken, DeclarationModifiers modifiers)
             {
                 var position = startToken.SpanStart;
 
-                var displayString = symbolDisplayService.ToMinimalDisplayString(semanticModel, position, symbol, _overrideNameFormat);
+                var displayString = symbol.ToMinimalDisplayString(semanticModel, position, _overrideNameFormat);
 
                 return MemberInsertionCompletionItem.Create(
                     displayString,
@@ -124,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     symbol,
                     startToken,
                     position,
-                    rules: _provider.GetRules());
+                    rules: GetRules());
             }
 
             private bool TryDetermineOverridableMembers(
@@ -132,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 Accessibility seenAccessibility, out ImmutableArray<ISymbol> overridableMembers)
             {
                 var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(startToken.SpanStart, _cancellationToken);
+                Contract.ThrowIfNull(containingType);
+
                 var result = containingType.GetOverridableMembers(_cancellationToken);
 
                 // Filter based on accessibility
@@ -166,9 +145,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             private bool IsOnStartLine(int position)
-            {
-                return _text.Lines.IndexOf(position) == _startLineNumber;
-            }
+                => _text.Lines.IndexOf(position) == _startLineNumber;
         }
     }
 }

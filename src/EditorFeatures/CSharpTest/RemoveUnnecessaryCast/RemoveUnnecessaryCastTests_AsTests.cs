@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,11 +13,17 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 {
     public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveUnnecessaryCastTests_AsTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnnecessaryCastDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryCastCodeFixProvider());
 
@@ -511,9 +519,9 @@ class Test
 
         [WorkItem(545459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveUnneededCastInsideADelegateConstructor()
+        public async Task DoNotRemoveIllegalAsCastInsideADelegateConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
             @"
 using System;
 class Test
@@ -523,20 +531,6 @@ class Test
     static void Main(string[] args)
     {
         var cd1 = new D([|M1 as Action<int>|]);
-    }
-
-    public static void M1(int i) { }
-}",
-
-@"
-using System;
-class Test
-{
-    delegate void D(int x);
-
-    static void Main(string[] args)
-    {
-        var cd1 = new D(M1);
     }
 
     public static void M1(int i) { }
@@ -859,9 +853,9 @@ class X
 
         [WorkItem(545855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545855")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveUnnecessaryLambdaToDelegateCast()
+        public async Task DoRemoveIllegalAsCastOnLambda()
         {
-            await TestAsync(
+            await TestMissingInRegularAndScriptAsync(
             @"
 using System;
 using System.Collections.Generic;
@@ -885,33 +879,7 @@ static class Program
         return true;
     }
 }
-",
-
-@"
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-
-static class Program
-{
-    static void Main()
-    {
-        FieldInfo[] fields = typeof(Exception).GetFields();
-        Console.WriteLine(fields.Any(field => field.IsStatic));
-    }
-
-    static bool Any<T>(this IEnumerable<T> s, Func<T, bool> predicate)
-    {
-        return false;
-    }
-
-    static bool Any<T>(this ICollection<T> s, Func<T, bool> predicate)
-    {
-        return true;
-    }
-}
-",
-    parseOptions: null);
+");
         }
 
         [WorkItem(529816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
@@ -1118,7 +1086,7 @@ static class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontCrashOnIncompleteMethodDeclaration()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class A
@@ -1127,6 +1095,20 @@ class A
     {
         string
         Goo(x => 1, [|"""" as string|]);
+    }
+
+    static void Goo<T, S>(T x, )
+    {
+    }
+}",
+@"using System;
+
+class A
+{
+    static void Main()
+    {
+        string
+        Goo(x => 1, """");
     }
 
     static void Goo<T, S>(T x, )
@@ -1347,11 +1329,8 @@ static class C
 
         [WorkItem(545942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545942")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastFromValueTypeToObjectInReferenceEquality()
+        public async Task DoNotRemoveCastFromStringTypeToObjectInReferenceEquality()
         {
-            // Note: The cast below can't be removed because it would result in an
-            // illegal reference equality test between object and a value type.
-
             await TestMissingInRegularAndScriptAsync(
 @"using System;
 
@@ -1417,7 +1396,7 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToByteFromIntInConditionalExpression()
+        public async Task DontRemoveCastToByteFromIntInConditionalExpression_CSharp8()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1426,7 +1405,21 @@ class Program
     {
         return [|b ? (1 as byte?) : (0 as byte?)|];
     }
-}");
+}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastToByteFromIntInConditionalExpression_CSharp9()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? (1 as byte?) : (0 as byte?)|];
+    }
+}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
         }
 
         #region Interface Casts
@@ -1465,12 +1458,8 @@ class Y : X, IDisposable
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType1()
+        public async Task DoRemoveCastToInterfaceForSealedType1()
         {
-            // Note: The cast below can be removed because C is sealed and the
-            // unspecified optional parameters of I.Goo() and C.Goo() have the
-            // same default values.
-
             await TestInRegularAndScriptAsync(
 @"
 using System;
@@ -1493,7 +1482,6 @@ sealed class C : I
     }
 }
 ",
-
 @"
 using System;
 
@@ -1519,11 +1507,8 @@ sealed class C : I
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType2()
+        public async Task DoRemoveCastToInterfaceForSealedType2()
         {
-            // Note: The cast below can be removed because C is sealed and the
-            // interface member has no parameters.
-
             await TestInRegularAndScriptAsync(
 @"
 using System;
@@ -1549,7 +1534,6 @@ sealed class C : I
     }
 }
 ",
-
 @"
 using System;
 
@@ -1578,12 +1562,9 @@ sealed class C : I
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType3()
+        public async Task DoNotRemoveCastToInterfaceForSealedType3()
         {
-            // Note: The cast below can be removed because C is sealed and the
-            // interface member has no parameters.
-
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -1607,33 +1588,6 @@ sealed class C : I
     static void Main()
     {
         Console.WriteLine(([|Instance as I|]).Goo);
-    }
-}
-",
-
-@"
-using System;
-
-interface I
-{
-    string Goo { get; }
-}
-
-sealed class C : I
-{
-    public C Instance { get { return new C(); } }
-
-    public string Goo
-    {
-        get
-        {
-            return ""Nikov Rules"";
-        }
-    }
-
-    static void Main()
-    {
-        Console.WriteLine(Instance.Goo);
     }
 }
 ");
@@ -1670,12 +1624,8 @@ sealed class C : I
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType5()
+        public async Task DoRemoveCastToInterfaceForSealedTypeWhenDefaultValuesAreDifferentButParameterIsPassed()
         {
-            // Note: The cast below can be removed (even though C is sealed)
-            // because the optional parameters whose default values differ are
-            // specified.
-
             await TestInRegularAndScriptAsync(
 @"
 using System;
@@ -1698,7 +1648,6 @@ sealed class C : I
     }
 }
 ",
-
 @"
 using System;
 
@@ -1754,9 +1703,9 @@ sealed class C : I
 
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType7()
+        public async Task DoNotRemoveCastToInterfaceForSealedType7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -1778,31 +1727,6 @@ sealed class C : I
     static void Main()
     {
         Console.WriteLine(([|new C() as I|])[x: 1]);
-    }
-}
-",
-
-@"
-using System;
-
-interface I
-{
-    int this[int x = 0, int y = 0] { get; }
-}
-
-sealed class C : I
-{
-    public int this[int x = 0, int y = 0]
-    {
-        get
-        {
-            return x * 2;
-        }
-    }
-
-    static void Main()
-    {
-        Console.WriteLine(new C()[x: 1]);
     }
 }
 ");
@@ -3012,7 +2936,39 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToMethodWithParamsArgsWithIncorrectMethodDefintion()
+        public async Task DoRemoveCastOnCallToMethodWithIncorrectParamsArgs()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        TakesParams([|null as string|]);
+    }
+
+    private static void TakesParams(params string wrongDefined)
+    {
+        Console.WriteLine(wrongDefined.Length);
+    }
+}",
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        TakesParams(null);
+    }
+
+    private static void TakesParams(params string wrongDefined)
+    {
+        Console.WriteLine(wrongDefined.Length);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastOnCallToMethodWithCorrectParamsArgs()
         {
             await TestMissingInRegularAndScriptAsync(
 @"
@@ -3023,7 +2979,7 @@ class Program
         TakesParams([|null as string|]);
     }
 
-    private static void TakesParams(params string wrongDefined)
+    private static void TakesParams(params string[] wrongDefined)
     {
         Console.WriteLine(wrongDefined.Length);
     }
@@ -3194,9 +3150,9 @@ static class Program
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsNamedArgsWithIncorrectMethodDefintion()
+        public async Task DoRemoveCastOnCallToAttributeWithInvalidParamsArgs()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 sealed class MarkAttribute : Attribute
@@ -3208,6 +3164,45 @@ sealed class MarkAttribute : Attribute
 }
 
 [Mark(true, [|null as string|], Prop = 1)]
+static class Program
+{
+}",
+@"
+using System;
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool otherArg, params string wrongDefined)
+    {
+    }
+    public int Prop { get; set; }
+}
+
+[Mark(true, null, Prop = 1)]
+static class Program
+{
+}");
+        }
+
+        [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastOfNullToParamsArg()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Reflection;
+
+class MarkAttribute : Attribute
+{
+  public readonly string[] Arr;
+
+  public MarkAttribute(params string[] arr)
+  {
+    Arr = arr;
+  }
+}
+
+[Mark([|(string)|]null)]
 static class Program
 {
 }");

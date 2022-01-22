@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -19,10 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 {
     public partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestWorkspaceFixture>
     {
-        public TypeInferrerTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         protected override async Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, TestMode mode)
         {
             var root = await document.GetSyntaxRootAsync();
@@ -33,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 
             if (mode == TestMode.Position)
             {
-                int position = node?.SpanStart ?? textSpan.Start;
-                inferredType = typeInference.InferType(await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), CancellationToken.None), position, objectAsDefault: true, cancellationToken: CancellationToken.None);
+                var position = node?.SpanStart ?? textSpan.Start;
+                inferredType = typeInference.InferType(await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None), position, objectAsDefault: true, cancellationToken: CancellationToken.None);
             }
             else
             {
-                inferredType = typeInference.InferType(await document.GetSemanticModelForSpanAsync(node?.Span ?? textSpan, CancellationToken.None), node, objectAsDefault: true, cancellationToken: CancellationToken.None);
+                inferredType = typeInference.InferType(await document.ReuseExistingSpeculativeModelAsync(node?.Span ?? textSpan, CancellationToken.None), node, objectAsDefault: true, cancellationToken: CancellationToken.None);
             }
 
             var typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace();
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             await TestAsync(text, expectedType, mode);
         }
 
-        private ExpressionSyntax FindExpressionSyntaxFromSpan(SyntaxNode root, TextSpan textSpan)
+        private static ExpressionSyntax FindExpressionSyntaxFromSpan(SyntaxNode root, TextSpan textSpan)
         {
             var token = root.FindToken(textSpan.Start);
             var currentNode = token.Parent;
@@ -1546,27 +1544,19 @@ System.Func<string, System.Threading.Tasks.Task<string?>> f = async s => [|Goo()
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCatch(TestMode mode)
-        {
-            await TestInMethodAsync("try { } catch ([|Goo|] ex) { }", "global::System.Exception", mode);
-        }
+            => await TestInMethodAsync("try { } catch ([|Goo|] ex) { }", "global::System.Exception", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestIf(TestMode mode)
-        {
-            await TestInMethodAsync(@"if ([|Goo()|]) { }", "global::System.Boolean", mode);
-        }
+            => await TestInMethodAsync(@"if ([|Goo()|]) { }", "global::System.Boolean", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestWhile(TestMode mode)
-        {
-            await TestInMethodAsync(@"while ([|Goo()|]) { }", "global::System.Boolean", mode);
-        }
+            => await TestInMethodAsync(@"while ([|Goo()|]) { }", "global::System.Boolean", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestDo(TestMode mode)
-        {
-            await TestInMethodAsync(@"do { } while ([|Goo()|])", "global::System.Boolean", mode);
-        }
+            => await TestInMethodAsync(@"do { } while ([|Goo()|])", "global::System.Boolean", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestFor1(TestMode mode)
@@ -1579,15 +1569,11 @@ i++) { }", "global::System.Boolean", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestFor2(TestMode mode)
-        {
-            await TestInMethodAsync(@"for (string i = [|Goo()|]; ; ) { }", "global::System.String", mode);
-        }
+            => await TestInMethodAsync(@"for (string i = [|Goo()|]; ; ) { }", "global::System.String", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestFor3(TestMode mode)
-        {
-            await TestInMethodAsync(@"for (var i = [|Goo()|]; ; ) { }", "global::System.Int32", mode);
-        }
+            => await TestInMethodAsync(@"for (var i = [|Goo()|]; ; ) { }", "global::System.Int32", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestForNullableReference(TestMode mode)
@@ -1597,30 +1583,21 @@ i++) { }", "global::System.Boolean", mode);
 for (string? s = [|Goo()|]; ; ) { }", "global::System.String?", mode);
         }
 
-
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestUsing1(TestMode mode)
-        {
-            await TestInMethodAsync(@"using ([|Goo()|]) { }", "global::System.IDisposable", mode);
-        }
+            => await TestInMethodAsync(@"using ([|Goo()|]) { }", "global::System.IDisposable", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestUsing2(TestMode mode)
-        {
-            await TestInMethodAsync(@"using (int i = [|Goo()|]) { }", "global::System.Int32", mode);
-        }
+            => await TestInMethodAsync(@"using (int i = [|Goo()|]) { }", "global::System.Int32", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestUsing3(TestMode mode)
-        {
-            await TestInMethodAsync(@"using (var v = [|Goo()|]) { }", "global::System.IDisposable", mode);
-        }
+            => await TestInMethodAsync(@"using (var v = [|Goo()|]) { }", "global::System.IDisposable", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestForEach(TestMode mode)
-        {
-            await TestInMethodAsync(@"foreach (int v in [|Goo()|]) { }", "global::System.Collections.Generic.IEnumerable<global::System.Int32>", mode);
-        }
+            => await TestInMethodAsync(@"foreach (int v in [|Goo()|]) { }", "global::System.Collections.Generic.IEnumerable<global::System.Int32>", mode);
 
         [Theory(Skip = "https://github.com/dotnet/roslyn/issues/37309"), CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestForEachNullableElements(TestMode mode)
@@ -1674,21 +1651,15 @@ foreach (string? v in [|Goo()|]) { }", "global::System.Collections.Generic.IEnum
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestSwitch1(TestMode mode)
-        {
-            await TestInMethodAsync(@"switch ([|Goo()|]) { }", "global::System.Int32", mode);
-        }
+            => await TestInMethodAsync(@"switch ([|Goo()|]) { }", "global::System.Int32", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestSwitch2(TestMode mode)
-        {
-            await TestInMethodAsync(@"switch ([|Goo()|]) { default: }", "global::System.Int32", mode);
-        }
+            => await TestInMethodAsync(@"switch ([|Goo()|]) { default: }", "global::System.Int32", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestSwitch3(TestMode mode)
-        {
-            await TestInMethodAsync(@"switch ([|Goo()|]) { case ""a"": }", "global::System.String", mode);
-        }
+            => await TestInMethodAsync(@"switch ([|Goo()|]) { case ""a"": }", "global::System.String", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestMethodCall1(TestMode mode)
@@ -1928,9 +1899,7 @@ i[[|Goo()|]];", "global::System.Int32", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestIndexerCall1(TestMode mode)
-        {
-            await TestInMethodAsync(@"this[[|Goo()|]];", "global::System.Int32", mode);
-        }
+            => await TestInMethodAsync(@"this[[|Goo()|]];", "global::System.Int32", mode);
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestIndexerCall2(TestMode mode)
@@ -3104,6 +3073,199 @@ class Program
         {
             await TestInMethodAsync(
 @"(int, string) x = (1, [||]);", "global::System.String", TestMode.Position);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestInferringInEnumHasFlags(TestMode mode)
+        {
+            var text =
+@"using System.IO;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        FileInfo f;
+        f.Attributes.HasFlag([|flag|]);
+    }
+}";
+
+            await TestAsync(text, "global::System.IO.FileAttributes", mode);
+        }
+
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [InlineData("")]
+        [InlineData("Re")]
+        [InlineData("Col")]
+        [InlineData("Color.Green or", false)]
+        [InlineData("Color.Green or ")]
+        [InlineData("(Color.Green or ")] // start of: is (Color.Red or Color.Green) and not Color.Blue
+        [InlineData("Color.Green or Re")]
+        [InlineData("Color.Green or Color.Red or ")]
+        [InlineData("Color.Green orWrittenWrong ", false)]
+        [InlineData("not ")]
+        [InlineData("not Re")]
+        public async Task TestEnumInPatterns_Is_ConstUnaryAndBinaryPattern(string isPattern, bool shouldInferColor = true)
+        {
+            var markup = @$"
+class C
+{{
+    public enum Color
+    {{
+        Red,
+        Green,
+    }}
+
+    public void M(Color c)
+    {{
+        var isRed = c is {isPattern}[||];
+    }}
+}}
+";
+
+            var expectedType = shouldInferColor
+                ? "global::C.Color"
+                : "global::System.Object";
+            await TestAsync(markup, expectedType, TestMode.Position);
+        }
+
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [InlineData("")]
+        [InlineData("Col")]
+        [InlineData("Color.R")]
+        [InlineData("Red")]
+        [InlineData("Color.Green or ")]
+        [InlineData("Color.Green or Re")]
+        [InlineData("not ")]
+        [InlineData("not Re")]
+        public async Task TestEnumInPatterns_Is_PropertyPattern(string partialWritten)
+        {
+            var markup = @$"
+public enum Color
+{{
+    Red,
+    Green,
+}}
+
+class C
+{{
+    public Color Color {{ get; }}
+
+    public void M()
+    {{
+        var isRed = this is {{ Color: {partialWritten}[||]
+    }}
+}}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestEnumInPatterns_SwitchStatement_PropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public Color Color { get; }
+
+    public void M()
+    {
+        switch (this)
+        {
+            case { Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestEnumInPatterns_SwitchExpression_PropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public Color Color { get; }
+
+    public void M()
+    {
+        var isRed = this switch
+        {
+            { Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestEnumInPatterns_SwitchStatement_ExtendedPropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public C AnotherC { get; }
+    public Color Color { get; }
+
+    public void M()
+    {
+        switch (this)
+        {
+            case { AnotherC.Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestEnumInPatterns_SwitchStatement_ExtendedPropertyPattern_Field()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public C AnotherC { get; }
+    public Color Color;
+
+    public void M()
+    {
+        switch (this)
+        {
+            case { AnotherC.Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
         }
     }
 }

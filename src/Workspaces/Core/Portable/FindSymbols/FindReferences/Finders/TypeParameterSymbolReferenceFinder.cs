@@ -2,23 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal class TypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
+    internal sealed class TypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
     {
         protected override bool CanFind(ITypeParameterSymbol symbol)
-        {
-            return symbol.TypeParameterKind != TypeParameterKind.Method;
-        }
+            => symbol.TypeParameterKind != TypeParameterKind.Method;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ITypeParameterSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -32,8 +32,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name, symbol.ContainingType.Name);
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,

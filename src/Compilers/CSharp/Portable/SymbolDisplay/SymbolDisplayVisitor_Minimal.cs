@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -195,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 startNode = usingDirective.Parent.Parent;
             }
 
-            var usingAliases = GetAncestorsOrThis<NamespaceDeclarationSyntax>(startNode)
+            var usingAliases = GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>(startNode)
                 .SelectMany(n => n.Usings)
                 .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
                 .Where(u => u.Alias != null)
@@ -260,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => null
             };
 
-        private string RemoveAttributeSufficeIfNecessary(INamedTypeSymbol symbol, string symbolName)
+        private string RemoveAttributeSuffixIfNecessary(INamedTypeSymbol symbol, string symbolName)
         {
             if (this.IsMinimizing &&
                 format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) &&

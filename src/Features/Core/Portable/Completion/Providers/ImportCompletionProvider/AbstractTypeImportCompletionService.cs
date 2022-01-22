@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,11 +16,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 
+using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
+
 namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
     internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
     {
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
         private static Task s_cachingTask = Task.CompletedTask;
 
         private IImportCompletionCacheService<CacheEntry, CacheEntry> CacheService { get; }
@@ -31,18 +31,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         protected abstract bool IsCaseSensitive { get; }
 
+        protected abstract string Language { get; }
+
         internal AbstractTypeImportCompletionService(Workspace workspace)
+            => CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
+
+        public Task WarmUpCacheAsync(Project? project, CancellationToken cancellationToken)
         {
-            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
+            return project is null
+                ? Task.CompletedTask
+                : GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken);
         }
 
         public async Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
             Project currentProject,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
+            CompletionOptions options,
             CancellationToken cancellationToken)
         {
-            var getCacheResults = await GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
+            var getCacheResults = await GetCacheEntriesAsync(currentProject, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
             if (getCacheResults == null)
             {
@@ -53,7 +61,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 {
                     if (s_cachingTask.IsCompleted)
                     {
-                        s_cachingTask = Task.Run(() => GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation: true, CancellationToken.None));
+                        // When building cache in the background, make sure we always use latest snapshot with full semantic
+                        var projectId = currentProject.Id;
+                        var workspace = currentProject.Solution.Workspace;
+                        s_cachingTask = Task.Run(() => WarmUpCacheAsync(workspace.CurrentSolution.GetProject(projectId), CancellationToken.None), CancellationToken.None);
                     }
                 }
 
@@ -66,19 +77,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             ImmutableArray<CompletionItem> GetItemsFromCacheResult(GetCacheResult cacheResult)
             {
                 return cacheResult.Entry.GetItemsForContext(
-                         syntaxContext.SemanticModel.Language,
+                         Language,
                          GenericTypeSuffix,
                          currentCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(cacheResult.Assembly),
                          syntaxContext.IsAttributeNameContext,
-                         IsCaseSensitive);
+                         IsCaseSensitive,
+                         options.HideAdvancedMembers);
             }
         }
 
-        private async Task<ImmutableArray<GetCacheResult>?> GetCacheEntriesAsync(Project currentProject, SyntaxContext syntaxContext, bool forceCacheCreation, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<GetCacheResult>?> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
         {
             var _ = ArrayBuilder<GetCacheResult>.GetInstance(out var builder);
 
-            var cacheResult = await GetCacheForProjectAsync(currentProject, syntaxContext, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var editorBrowsableInfo = new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(currentCompilation));
+
+            var cacheResult = await GetCacheForProjectAsync(currentProject, forceCacheCreation: true, editorBrowsableInfo, cancellationToken).ConfigureAwait(false);
 
             // We always force create a cache for current project.
             Debug.Assert(cacheResult.HasValue);
@@ -87,20 +102,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             var solution = currentProject.Solution;
             var graph = solution.GetProjectDependencyGraph();
             var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).SelectAsArray(id => solution.GetRequiredProject(id));
-            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var referencedProject in referencedProjects.Where(p => p.SupportsCompilation))
             {
                 var compilation = await referencedProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var assembly = SymbolFinder.FindSimilarSymbols(compilation.Assembly, currentCompilation).SingleOrDefault();
-                var metadataReference = currentCompilation.GetMetadataReference(assembly);
+                var assembly = SymbolFinder.FindSimilarSymbols(compilation.Assembly, currentCompilation, cancellationToken).SingleOrDefault();
+                var metadataReference = assembly != null ? currentCompilation.GetMetadataReference(assembly) : null;
 
                 if (HasGlobalAlias(metadataReference))
                 {
                     cacheResult = await GetCacheForProjectAsync(
                         referencedProject,
-                        syntaxContext,
                         forceCacheCreation,
+                        editorBrowsableInfo: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (cacheResult.HasValue)
@@ -120,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             {
                 if (HasGlobalAlias(peReference) &&
                     currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly &&
-                    TryGetCacheForPEReference(solution, currentCompilation, peReference, syntaxContext, forceCacheCreation, cancellationToken, out cacheResult))
+                    TryGetCacheForPEReference(solution, assembly, editorBrowsableInfo, peReference, forceCacheCreation, cancellationToken, out cacheResult))
                 {
                     if (cacheResult.HasValue)
                     {
@@ -148,8 +162,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// </summary>
         private async Task<GetCacheResult?> GetCacheForProjectAsync(
             Project project,
-            SyntaxContext syntaxContext,
             bool forceCacheCreation,
+            Lazy<EditorBrowsableInfo>? editorBrowsableInfo,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -161,9 +175,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 project.Id,
                 compilation.Assembly,
                 checksum,
-                syntaxContext,
                 forceCacheCreation,
                 CacheService.ProjectItemsCache,
+                editorBrowsableInfo ?? new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(compilation)),
                 cancellationToken);
         }
 
@@ -172,9 +186,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// </summary>
         private bool TryGetCacheForPEReference(
             Solution solution,
-            Compilation compilation,
+            IAssemblySymbol assemblySymbol,
+            Lazy<EditorBrowsableInfo> editorBrowsableInfo,
             PortableExecutableReference peReference,
-            SyntaxContext syntaxContext,
             bool forceCacheCreation,
             CancellationToken cancellationToken,
             out GetCacheResult? result)
@@ -190,36 +204,35 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 return false;
             }
 
-            if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
-            {
-                result = null;
-                return false;
-            }
-
             var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
             result = GetCacheWorker(
                 key,
                 assemblySymbol,
                 checksum,
-                syntaxContext,
                 forceCacheCreation,
                 CacheService.PEItemsCache,
+                editorBrowsableInfo,
                 cancellationToken);
             return true;
         }
 
         // Returns null if cache miss and forceCacheCreation == false
+        //
+        // PERF:
+        // Based on profiling results, initializing EditorBrowsableInfo upfront for each referenced
+        // project every time a completion is triggered is expensive. Making them lazy would
+        // eliminate this overhead when we have a cache hit while keeping it easy to share 
+        // between original projects and PE references when trying to get completion items.
         private GetCacheResult? GetCacheWorker<TKey>(
             TKey key,
             IAssemblySymbol assembly,
             Checksum checksum,
-            SyntaxContext syntaxContext,
             bool forceCacheCreation,
             IDictionary<TKey, CacheEntry> cache,
+            Lazy<EditorBrowsableInfo> editorBrowsableInfo,
             CancellationToken cancellationToken)
+            where TKey : notnull
         {
-            var language = syntaxContext.SemanticModel.Language;
-
             // Cache hit
             if (cache.TryGetValue(key, out var cacheEntry) && cacheEntry.Checksum == checksum)
             {
@@ -229,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             // Cache miss, create all items only when asked.
             if (forceCacheCreation)
             {
-                using var builder = new CacheEntry.Builder(checksum, language, GenericTypeSuffix);
+                using var builder = new CacheEntry.Builder(checksum, Language, GenericTypeSuffix, editorBrowsableInfo.Value);
                 GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
                 cacheEntry = builder.ToReferenceCacheEntry();
                 cache[key] = cacheEntry;
@@ -354,12 +367,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         {
             private readonly ItemPropertyKind _properties;
 
-            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute)
+            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced)
             {
                 Item = item;
                 _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
                             | (isGeneric ? ItemPropertyKind.IsGeneric : 0)
-                            | (isAttribute ? ItemPropertyKind.IsAttribute : 0);
+                            | (isAttribute ? ItemPropertyKind.IsAttribute : 0)
+                            | (isEditorBrowsableStateAdvanced ? ItemPropertyKind.IsEditorBrowsableStateAdvanced : 0);
             }
 
             public CompletionItem Item { get; }
@@ -373,10 +387,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             public bool IsAttribute
                 => (_properties & ItemPropertyKind.IsAttribute) != 0;
 
+            public bool IsEditorBrowsableStateAdvanced
+                => (_properties & ItemPropertyKind.IsEditorBrowsableStateAdvanced) != 0;
+
             public TypeImportCompletionItemInfo WithItem(CompletionItem item)
-            {
-                return new TypeImportCompletionItemInfo(item, IsPublic, IsGeneric, IsAttribute);
-            }
+                => new(item, IsPublic, IsGeneric, IsAttribute, IsEditorBrowsableStateAdvanced);
 
             [Flags]
             private enum ItemPropertyKind : byte
@@ -384,6 +399,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 IsPublic = 0x1,
                 IsGeneric = 0x2,
                 IsAttribute = 0x4,
+                IsEditorBrowsableStateAdvanced = 0x8,
             }
         }
     }

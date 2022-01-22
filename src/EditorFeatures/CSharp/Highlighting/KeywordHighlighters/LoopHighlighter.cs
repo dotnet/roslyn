@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     internal class LoopHighlighter : AbstractKeywordHighlighter
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LoopHighlighter()
         {
         }
@@ -48,27 +51,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             HighlightRelatedKeywords(node, spans, highlightBreaks: true, highlightContinues: true);
         }
 
-        private void HighlightDoStatement(DoStatementSyntax statement, List<TextSpan> spans)
+        private static void HighlightDoStatement(DoStatementSyntax statement, List<TextSpan> spans)
         {
             spans.Add(statement.DoKeyword.Span);
             spans.Add(statement.WhileKeyword.Span);
             spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
         }
 
-        private void HighlightForStatement(ForStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.ForKeyword.Span);
-        }
+        private static void HighlightForStatement(ForStatementSyntax statement, List<TextSpan> spans)
+            => spans.Add(statement.ForKeyword.Span);
 
-        private void HighlightForEachStatement(CommonForEachStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.ForEachKeyword.Span);
-        }
+        private static void HighlightForEachStatement(CommonForEachStatementSyntax statement, List<TextSpan> spans)
+            => spans.Add(statement.ForEachKeyword.Span);
 
-        private void HighlightWhileStatement(WhileStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.WhileKeyword.Span);
-        }
+        private static void HighlightWhileStatement(WhileStatementSyntax statement, List<TextSpan> spans)
+            => spans.Add(statement.WhileKeyword.Span);
 
         /// <summary>
         /// Finds all breaks and continues that are a child of this node, and adds the appropriate spans to the spans list.

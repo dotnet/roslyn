@@ -7,7 +7,7 @@
     <UseWpf>true</UseWpf>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Implementation</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -36,11 +36,13 @@
     <Reference Include="System.Design" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="WindowsFormsIntegration" />
-    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
-    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <EmbeddedResource Update="SolutionExplorerShim.resx" GenerateSource="true" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" Version="$(MicrosoftVisualStudioCodeAnalysisSdkUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />

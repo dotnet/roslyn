@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,17 +19,13 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TextBufferCloneServiceFactory(
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService)
+        public TextBufferCloneServiceFactory(ITextBufferCloneService textBufferCloneService)
         {
-            _singleton = new TextBufferCloneService((ITextBufferFactoryService3)textBufferFactoryService, contentTypeRegistryService);
+            _singleton = textBufferCloneService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
 
         [Export(typeof(ITextBufferCloneService)), Shared]
         private class TextBufferCloneService : ITextBufferCloneService
@@ -40,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
             private readonly IContentType _unknownContentType;
 
             [ImportingConstructor]
-            [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TextBufferCloneService(ITextBufferFactoryService3 textBufferFactoryService, IContentTypeRegistryService contentTypeRegistryService)
             {
                 _textBufferFactoryService = textBufferFactoryService;

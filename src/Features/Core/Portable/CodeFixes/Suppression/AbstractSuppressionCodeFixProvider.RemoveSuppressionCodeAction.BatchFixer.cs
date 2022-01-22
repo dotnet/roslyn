@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,22 +20,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
-            public static BatchFixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-            {
-                return new BatchFixer(suppressionFixProvider);
-            }
+            public static FixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
+                => new RemoveSuppressionBatchFixAllProvider(suppressionFixProvider);
 
             /// <summary>
             /// Batch fixer for pragma suppression removal code action.
             /// </summary>
-            private sealed class BatchFixer : BatchFixAllProvider
+            private sealed class RemoveSuppressionBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
             {
                 private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
 
-                public BatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-                {
-                    _suppressionFixProvider = suppressionFixProvider;
-                }
+                public RemoveSuppressionBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
+                    => _suppressionFixProvider = suppressionFixProvider;
 
                 protected override async Task AddDocumentFixesAsync(
                     Document document, ImmutableArray<Diagnostic> diagnostics,
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
                 }
 
-                protected async override Task AddProjectFixesAsync(
+                protected override async Task AddProjectFixesAsync(
                     Project project, ImmutableArray<Diagnostic> diagnostics,
                     ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> bag,
                     FixAllState fixAllState, CancellationToken cancellationToken)
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                         // This is a temporary generated code action, which doesn't need telemetry, hence suppressing RS0005.
 #pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
-                        var batchAttributeRemoveFix = Create(
+                        var batchAttributeRemoveFix = CodeAction.Create(
                             attributeRemoveFixes.First().Title,
                             createChangedSolution: ct => Task.FromResult(currentSolution),
                             equivalenceKey: fixAllState.CodeActionEquivalenceKey);

@@ -6,22 +6,17 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Completion.Log
 {
-    internal sealed class CompletionProvidersLogger
+    internal static class CompletionProvidersLogger
     {
-        private const string Max = "Maximum";
-        private const string Min = "Minimum";
-        private const string Mean = nameof(Mean);
-        private const string Range = nameof(Range);
-        private const string Count = nameof(Count);
+        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
+        private static readonly LogAggregator s_logAggregator = new();
 
-        private static readonly StatisticLogAggregator s_statisticLogAggregator = new StatisticLogAggregator();
-        private static readonly LogAggregator s_logAggregator = new LogAggregator();
-
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 50, maxBucketValue: 1000);
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(bucketSize: 50, maxBucketValue: 1000);
 
         internal enum ActionInfo
         {
             TypeImportCompletionTicks,
+            TypeImportCompletionExpanderTicks,      // time to complete the request when expander is used (i.e. no timeout or partial results)
             TypeImportCompletionItemCount,
             TypeImportCompletionReferenceCount,
             TypeImportCompletionCacheMissCount,
@@ -29,21 +24,31 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
             TargetTypeCompletionTicks,
 
-            ExtensionMethodCompletionSuccessCount,
-            // following are only reported when successful (i.e. filter is available)
             ExtensionMethodCompletionTicks,
+            ExtensionMethodCompletionExpanderTicks,         // time to complete the request when expander is used (i.e. no timeout or partial results)
             ExtensionMethodCompletionMethodsProvided,
-            ExtensionMethodCompletionGetFilterTicks,
-            ExtensionMethodCompletionGetSymbolTicks,
-            ExtensionMethodCompletionTypesChecked,
-            ExtensionMethodCompletionMethodsChecked,
+            ExtensionMethodCompletionGetSymbolsTicks,
+            ExtensionMethodCompletionCreateItemsTicks,
+            ExtensionMethodCompletionRemoteTicks,
             CommitsOfExtensionMethodImportCompletionItem,
+            ExtensionMethodCompletionPartialResultCount,
+            ExtensionMethodCompletionTimeoutCount,
+
+            CommitUsingSemicolonToAddParenthesis,
+            CommitUsingDotToAddParenthesis
         }
 
-        internal static void LogTypeImportCompletionTicksDataPoint(int count)
+        internal static void LogTypeImportCompletionTicksDataPoint(int count, bool isExpanded)
         {
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
+            if (isExpanded)
+            {
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionExpanderTicks, count);
+            }
+            else
+            {
+                s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
+            }
         }
 
         internal static void LogTypeImportCompletionItemCountDataPoint(int count) =>
@@ -58,36 +63,63 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogCommitOfTypeImportCompletionItem() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
 
-        internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
-
-
-        internal static void LogExtensionMethodCompletionSuccess() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionSuccessCount);
-
-        internal static void LogExtensionMethodCompletionTicksDataPoint(int count)
+        internal static void LogTargetTypeCompletionTicksDataPoint(int count)
         {
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, count);
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, count);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TargetTypeCompletionTicks, count);
+        }
+
+        internal static void LogExtensionMethodCompletionTicksDataPoint(int total, int getSymbols, int createItems, bool isExpanded, bool isRemote)
+        {
+            if (isExpanded)
+            {
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionExpanderTicks, total);
+            }
+            else
+            {
+                s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, total);
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, total);
+            }
+
+            if (isRemote)
+            {
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionRemoteTicks, (total - getSymbols - createItems));
+            }
+
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionCreateItemsTicks, createItems);
         }
 
         internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
 
-        internal static void LogExtensionMethodCompletionGetFilterTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetFilterTicks, count);
-
-        internal static void LogExtensionMethodCompletionGetSymbolTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolTicks, count);
-
-        internal static void LogExtensionMethodCompletionTypesCheckedDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTypesChecked, count);
-
-        internal static void LogExtensionMethodCompletionMethodsCheckedDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsChecked, count);
-
         internal static void LogCommitOfExtensionMethodImportCompletionItem() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
+
+        internal static void LogExtensionMethodCompletionPartialResultCount() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionPartialResultCount);
+
+        internal static void LogExtensionMethodCompletionTimeoutCount() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTimeoutCount);
+
+        internal static void LogCommitUsingSemicolonToAddParenthesis() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingSemicolonToAddParenthesis);
+
+        internal static void LogCommitUsingDotToAddParenthesis() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingDotToAddParenthesis);
+
+        internal static void LogCustomizedCommitToAddParenthesis(char? commitChar)
+        {
+            switch (commitChar)
+            {
+                case '.':
+                    LogCommitUsingDotToAddParenthesis();
+                    break;
+                case ';':
+                    LogCommitUsingSemicolonToAddParenthesis();
+                    break;
+            }
+        }
 
         internal static void ReportTelemetry()
         {
@@ -98,11 +130,11 @@ namespace Microsoft.CodeAnalysis.Completion.Log
                     var info = ((ActionInfo)kv.Key).ToString("f");
                     var statistics = kv.Value.GetStatisticResult();
 
-                    m[CreateProperty(info, Max)] = statistics.Maximum;
-                    m[CreateProperty(info, Min)] = statistics.Minimum;
-                    m[CreateProperty(info, Mean)] = statistics.Mean;
-                    m[CreateProperty(info, Range)] = statistics.Range;
-                    m[CreateProperty(info, Count)] = statistics.Count;
+                    m[CreateProperty(info, nameof(statistics.Maximum))] = statistics.Maximum;
+                    m[CreateProperty(info, nameof(statistics.Minimum))] = statistics.Minimum;
+                    m[CreateProperty(info, nameof(statistics.Mean))] = statistics.Mean;
+                    m[CreateProperty(info, nameof(statistics.Range))] = statistics.Range;
+                    m[CreateProperty(info, nameof(statistics.Count))] = statistics.Count;
                 }
 
                 foreach (var kv in s_logAggregator)
@@ -122,8 +154,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         }
 
         private static string CreateProperty(string parent, string child)
-        {
-            return parent + "." + child;
-        }
+            => parent + "." + child;
     }
 }

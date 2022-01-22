@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             // This is e.g. useful in the name simplification, where a whole qualified name is annotated
             protected bool alwaysSimplify;
 
-            private readonly HashSet<SyntaxNode> _processedParentNodes = new HashSet<SyntaxNode>();
+            private readonly HashSet<SyntaxNode> _processedParentNodes = new();
 
             protected AbstractReductionRewriter(ObjectPool<IReductionRewriter> pool)
                 => _pool = pool;
@@ -58,19 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             private static SyntaxNode GetParentNode(SyntaxNode node)
-            {
-                if (node is ExpressionSyntax expression)
+                => node switch
                 {
-                    return GetParentNode(expression);
-                }
-
-                if (node is CrefSyntax cref)
-                {
-                    return GetParentNode(cref);
-                }
-
-                return null;
-            }
+                    ExpressionSyntax expression => GetParentNode(expression),
+                    PatternSyntax pattern => GetParentNode(pattern),
+                    CrefSyntax cref => GetParentNode(cref),
+                    _ => null
+                };
 
             private static SyntaxNode GetParentNode(ExpressionSyntax expression)
             {
@@ -86,6 +81,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return lastExpression.Parent;
             }
 
+            private static SyntaxNode GetParentNode(PatternSyntax pattern)
+            {
+                var lastPattern = pattern;
+                for (SyntaxNode current = pattern; current != null; current = current.Parent)
+                {
+                    if (current is PatternSyntax currentPattern)
+                    {
+                        lastPattern = currentPattern;
+                    }
+                }
+
+                return lastPattern.Parent;
+            }
+
             private static SyntaxNode GetParentNode(CrefSyntax cref)
             {
                 var topMostCref = cref
@@ -94,14 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     .LastOrDefault();
 
                 return topMostCref.Parent;
-            }
-
-            private static SyntaxNode GetParentNode(StatementSyntax statement)
-            {
-                return statement
-                    .AncestorsAndSelf()
-                    .OfType<StatementSyntax>()
-                    .LastOrDefault();
             }
 
             protected SyntaxNode SimplifyNode<TNode>(
@@ -148,9 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 var parentNode = GetParentNode(expression);
                 if (parentNode == null)
-                {
                     return newNode;
-                }
 
                 return SimplifyNode(expression, newNode, parentNode, simplifier);
             }

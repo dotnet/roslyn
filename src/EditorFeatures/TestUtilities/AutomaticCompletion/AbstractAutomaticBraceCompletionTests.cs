@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
-using Microsoft.VisualStudio.Text.Operations;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
     [UseExportProvider]
     public abstract class AbstractAutomaticBraceCompletionTests
     {
-        internal void CheckStart(IBraceCompletionSession session, bool expectValidSession = true)
+        internal static void CheckStart(IBraceCompletionSession session, bool expectValidSession = true)
         {
             Type(session, session.OpeningBrace.ToString());
 
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal void CheckBackspace(IBraceCompletionSession session)
+        internal static void CheckBackspace(IBraceCompletionSession session)
         {
             session.TextView.TryMoveCaretToAndEnsureVisible(session.OpeningPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot).Add(1));
             session.PreBackspace(out var handled);
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             Assert.Null(session.ClosingPoint);
         }
 
-        internal void CheckTab(IBraceCompletionSession session, bool allowTab = true)
+        internal static void CheckTab(IBraceCompletionSession session, bool allowTab = true)
         {
             session.PreTab(out var handled);
             if (!handled)
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal void CheckReturn(IBraceCompletionSession session, int indentation, string result = null)
+        internal static void CheckReturn(IBraceCompletionSession session, int indentation, string result = null)
         {
             session.PreReturn(out var handled);
 
@@ -87,16 +88,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
             if (result != null)
             {
-                Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
+                AssertEx.EqualOrDiff(result, session.SubjectBuffer.CurrentSnapshot.GetText());
             }
         }
 
-        internal void CheckText(IBraceCompletionSession session, string result)
-        {
-            Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
-        }
+        internal static void CheckText(IBraceCompletionSession session, string result)
+            => Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
 
-        internal void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
+        internal static void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
         {
             session.PreReturn(out var handled);
 
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             Assert.Equal(expectedVirtualSpace, virtualCaret.VirtualSpaces);
         }
 
-        internal void CheckOverType(IBraceCompletionSession session, bool allowOverType = true)
+        internal static void CheckOverType(IBraceCompletionSession session, bool allowOverType = true)
         {
             var preClosingPoint = session.ClosingPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot);
             Assert.Equal(session.ClosingBrace, preClosingPoint.Subtract(1).GetChar());
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal void Type(IBraceCompletionSession session, string text)
+        internal static void Type(IBraceCompletionSession session, string text)
         {
             var buffer = session.SubjectBuffer;
             var caret = session.TextView.GetCaretPoint(buffer).Value;
@@ -147,12 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey2, object> changedOptionSet = null)
+        internal static Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
-            var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
-            var undoManager = workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>();
-            var editorOperationsFactoryService = workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>();
-
             if (changedOptionSet != null)
             {
                 var options = workspace.Options;
@@ -166,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
             var document = workspace.Documents.First();
 
-            var provider = new BraceCompletionSessionProvider(threadingContext, undoManager, editorOperationsFactoryService);
+            var provider = Assert.IsType<BraceCompletionSessionProvider>(workspace.ExportProvider.GetExportedValue<IBraceCompletionSessionProvider>());
             var openingPoint = new SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value);
             if (provider.TryCreateSession(document.GetTextView(), openingPoint, opening, closing, out var session))
             {
@@ -189,9 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
 
             public void Dispose()
-            {
-                this.Workspace.Dispose();
-            }
+                => this.Workspace.Dispose();
         }
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class SimplificationOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

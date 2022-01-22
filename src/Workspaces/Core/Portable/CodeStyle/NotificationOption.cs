@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -34,24 +36,22 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         /// <inheritdoc cref="NotificationOption2.None"/>
-        public static readonly NotificationOption None = new NotificationOption(NotificationOption2.None);
+        public static readonly NotificationOption None = new(NotificationOption2.None);
 
         /// <inheritdoc cref="NotificationOption2.Silent"/>
-        public static readonly NotificationOption Silent = new NotificationOption(NotificationOption2.Silent);
+        public static readonly NotificationOption Silent = new(NotificationOption2.Silent);
 
         /// <inheritdoc cref="NotificationOption2.Suggestion"/>
-        public static readonly NotificationOption Suggestion = new NotificationOption(NotificationOption2.Suggestion);
+        public static readonly NotificationOption Suggestion = new(NotificationOption2.Suggestion);
 
         /// <inheritdoc cref="NotificationOption2.Warning"/>
-        public static readonly NotificationOption Warning = new NotificationOption(NotificationOption2.Warning);
+        public static readonly NotificationOption Warning = new(NotificationOption2.Warning);
 
         /// <inheritdoc cref="NotificationOption2.Error"/>
-        public static readonly NotificationOption Error = new NotificationOption(NotificationOption2.Error);
+        public static readonly NotificationOption Error = new(NotificationOption2.Error);
 
         private NotificationOption(NotificationOption2 notificationOptionImpl)
-        {
-            _notificationOptionImpl = notificationOptionImpl;
-        }
+            => _notificationOptionImpl = notificationOptionImpl;
 
         public override string ToString() => _notificationOptionImpl.ToString();
     }

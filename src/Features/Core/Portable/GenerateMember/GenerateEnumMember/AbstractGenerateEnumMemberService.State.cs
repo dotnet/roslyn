@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,8 +74,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
 
                 cancellationToken.ThrowIfCancellationRequested();
                 TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
-                if (!service.ValidateTypeToGenerateIn(
-                        document.Project.Solution, TypeToGenerateIn, true, EnumType))
+                if (!ValidateTypeToGenerateIn(TypeToGenerateIn, true, EnumType))
                 {
                     return false;
                 }
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 // Either we found no matches, or this was ambiguous. Either way, we might be able
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
-                if (!service.TryDetermineTypeToGenerateIn(
+                if (!TryDetermineTypeToGenerateIn(
                     semanticDocument, containingType, simpleNameOrMemberAccessExpression, cancellationToken,
                     out var typeToGenerateIn, out var isStatic))
                 {

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private sealed class DeclarationFinder : CSharpSyntaxWalker
         {
-            private readonly Dictionary<string, List<SyntaxToken>> _map = new Dictionary<string, List<SyntaxToken>>();
+            private readonly Dictionary<string, List<SyntaxToken>> _map = new();
 
             private DeclarationFinder()
                 : base(SyntaxWalkerDepth.Node)

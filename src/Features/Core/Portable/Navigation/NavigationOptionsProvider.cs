@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class NavigationOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

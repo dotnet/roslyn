@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
@@ -36,8 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         public bool HasPostApplyChanges()
-        {
-            return AmountToAddToTrackingSpanStart != 0 || AmountToAddToTrackingSpanEnd != 0;
-        }
+            => AmountToAddToTrackingSpanStart != 0 || AmountToAddToTrackingSpanEnd != 0;
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,18 +13,24 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 {
     public partial class UseObjectInitializerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseObjectInitializerTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseObjectInitializerDiagnosticAnalyzer(), new CSharpUseObjectInitializerCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestOnVariableDeclarator()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -50,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -96,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -145,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestOnAssignmentExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -175,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestStopOnDuplicateMember()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -205,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestComplexInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -239,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestNotOnCompoundAssignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -305,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -344,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -383,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -425,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestTrivia1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -678,6 +686,27 @@ class MyClass
             LastName = string.Empty
         };
         e.Name = string.Empty;
+    }
+}");
+        }
+
+        [WorkItem(37675, "https://github.com/dotnet/roslyn/issues/37675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestDoNotOfferForUsingDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C : IDisposable
+{
+    int i;
+
+    void M()
+    {
+        using var c = [||]new C();
+        c.i = 1;
+    }
+
+    void Dispose()
+    {
     }
 }");
         }

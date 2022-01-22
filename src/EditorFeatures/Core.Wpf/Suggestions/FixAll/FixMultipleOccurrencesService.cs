@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FixMultipleOccurrencesService(IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            listenerProvider.GetListener(FeatureAttribute.LightBulb);
-        }
+            => listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
         public Solution GetFix(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 waitDialogMessage, cancellationToken);
         }
 
-        private Solution GetFixedSolution(
+        private static Solution GetFixedSolution(
             FixAllState fixAllState,
             Workspace workspace,
             string title,

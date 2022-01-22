@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -38,13 +39,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
         /// </summary>
         private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
-            => new ProjectFileReference(reference.EvaluatedInclude, reference.GetAliases());
+            => new(reference.EvaluatedInclude, reference.GetAliases());
 
         public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
         {
             var aliasesText = item.GetMetadata(MetadataNames.Aliases);
 
-            return !string.IsNullOrWhiteSpace(aliasesText)
+            return !RoslynString.IsNullOrWhiteSpace(aliasesText)
                 ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
                 : ImmutableArray<string>.Empty;
         }
@@ -53,12 +54,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             var referenceOutputAssemblyText = item.GetMetadata(MetadataNames.ReferenceOutputAssembly);
 
-            return !string.IsNullOrWhiteSpace(referenceOutputAssemblyText)
-                ? !string.Equals(referenceOutputAssemblyText, bool.FalseString, StringComparison.OrdinalIgnoreCase)
-                : true;
+            return RoslynString.IsNullOrWhiteSpace(referenceOutputAssemblyText) ||
+                !string.Equals(referenceOutputAssemblyText, bool.FalseString, StringComparison.OrdinalIgnoreCase);
         }
 
-        public static string ReadPropertyString(this MSB.Execution.ProjectInstance executedProject, string propertyName)
+        public static string? ReadPropertyString(this MSB.Execution.ProjectInstance executedProject, string propertyName)
             => executedProject.GetProperty(propertyName)?.EvaluatedValue;
 
         public static bool ReadPropertyBool(this MSB.Execution.ProjectInstance executedProject, string propertyName)
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (builder.Length > 0)
                 {
-                    builder.Append(" ");
+                    builder.Append(' ');
                 }
 
                 builder.Append(item.EvaluatedInclude);

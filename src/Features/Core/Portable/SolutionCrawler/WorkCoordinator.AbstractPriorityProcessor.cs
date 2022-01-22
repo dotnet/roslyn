@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal sealed partial class SolutionCrawlerRegistrationService
     {
-        private sealed partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
@@ -30,19 +30,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _gate = new object();
                         _lazyAnalyzers = lazyAnalyzers;
 
                         Processor = processor;
-
-                        if (Processor._documentTracker != null)
-                        {
-                            Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
-                        }
+                        Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
                     }
 
                     public ImmutableArray<IIncrementalAnalyzer> Analyzers
@@ -66,9 +62,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     protected override void PauseOnGlobalOperation()
-                    {
-                        SolutionCrawlerLogger.LogGlobalOperation(Processor._logAggregator);
-                    }
+                        => SolutionCrawlerLogger.LogGlobalOperation(Processor._logAggregator);
 
                     protected abstract Task HigherQueueOperationTask { get; }
                     protected abstract bool HigherQueueHasWorkItem { get; }
@@ -109,13 +103,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         base.Shutdown();
 
-                        if (Processor._documentTracker != null)
-                        {
-                            Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
-                        }
+                        Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
                     }
 
-                    private void OnNonRoslynBufferTextChanged(object sender, EventArgs e)
+                    private void OnNonRoslynBufferTextChanged(object? sender, EventArgs e)
                     {
                         // There are 2 things incremental processor takes care of
                         //

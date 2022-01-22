@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -31,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            if (!(argument.Parent is AttributeArgumentListSyntax argumentList))
+            if (argument.Parent is not AttributeArgumentListSyntax argumentList)
             {
                 return null;
             }
 
-            if (!(argumentList.Parent is AttributeSyntax invocableExpression))
+            if (argumentList.Parent is not AttributeSyntax invocableExpression)
             {
                 return null;
             }

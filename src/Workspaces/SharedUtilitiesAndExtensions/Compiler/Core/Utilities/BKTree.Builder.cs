@@ -92,7 +92,7 @@ namespace Roslyn.Utilities
             private readonly Edge[] _compactEdges;
             private readonly BuilderNode[] _builderNodes;
 
-            public Builder(IEnumerable<StringSlice> values)
+            public Builder(IEnumerable<ReadOnlyMemory<char>> values)
             {
                 // TODO(cyrusn): Properly handle unicode normalization here.
                 var distinctValues = values.Where(v => v.Length > 0).Distinct(StringSliceComparer.OrdinalIgnoreCase).ToArray();
@@ -107,7 +107,7 @@ namespace Roslyn.Utilities
                     var value = distinctValues[i];
                     _wordSpans[i] = new TextSpan(characterIndex, value.Length);
 
-                    foreach (var ch in value)
+                    foreach (var ch in value.Span)
                     {
                         _concatenatedLowerCaseWords[characterIndex] = CaseInsensitiveComparison.ToLower(ch);
                         characterIndex++;
@@ -163,10 +163,8 @@ namespace Roslyn.Utilities
                         {
                             Debug.Assert(spilledEdges.Count == (edgeCount - CompactEdgeAllocationSize));
 
-                            foreach (var kvp in spilledEdges)
-                            {
-                                edges.Add(new Edge(kvp.Key, kvp.Value));
-                            }
+                            foreach (var (distance, childIndex) in spilledEdges)
+                                edges.Add(new Edge(distance, childIndex));
                         }
                     }
 
@@ -236,16 +234,22 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
+                    ref var node = ref _builderNodes[currentNodeIndex];
+
                     // When we hit 4 elements, we need to allocate the spillover dictionary to 
                     // place the extra edges.
                     if (currentNodeEdgeCount == CompactEdgeAllocationSize)
                     {
-                        Debug.Assert(_builderNodes[currentNodeIndex].SpilloverEdges == null);
+                        RoslynDebug.Assert(node.SpilloverEdges is null);
                         var spilloverEdges = new Dictionary<int, int>();
-                        _builderNodes[currentNodeIndex].SpilloverEdges = spilloverEdges;
+                        node.SpilloverEdges = spilloverEdges;
+                    }
+                    else
+                    {
+                        RoslynDebug.AssertNotNull(node.SpilloverEdges);
                     }
 
-                    _builderNodes[currentNodeIndex].SpilloverEdges.Add(editDistance, insertionIndex);
+                    node.SpilloverEdges.Add(editDistance, insertionIndex);
                 }
 
                 _builderNodes[currentNodeIndex].EdgeCount++;
@@ -284,12 +288,10 @@ namespace Roslyn.Utilities
             {
                 public readonly TextSpan CharacterSpan;
                 public int EdgeCount;
-                public Dictionary<int, int> SpilloverEdges;
+                public Dictionary<int, int>? SpilloverEdges;
 
                 public BuilderNode(TextSpan characterSpan) : this()
-                {
-                    this.CharacterSpan = characterSpan;
-                }
+                    => this.CharacterSpan = characterSpan;
             }
         }
     }

@@ -224,6 +224,7 @@
   </data>
   <data name="Remove_Me_qualification" xml:space="preserve">
     <value>Remove 'Me' qualification</value>
+    <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Name_can_be_simplified" xml:space="preserve">
     <value>Name can be simplified</value>
@@ -272,15 +273,6 @@
   </data>
   <data name="Invalid_selection" xml:space="preserve">
     <value>Invalid selection</value>
-  </data>
-  <data name="Selection_doesn_t_contain_any_valid_token" xml:space="preserve">
-    <value>Selection doesn't contain any valid token</value>
-  </data>
-  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
-    <value>No valid selection to perform extraction</value>
-  </data>
-  <data name="No_common_root_node_for_extraction" xml:space="preserve">
-    <value>No common root node for extraction</value>
   </data>
   <data name="Deprecated" xml:space="preserve">
     <value>Deprecated</value>
@@ -651,9 +643,6 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</value>
   <data name="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first" xml:space="preserve">
     <value>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</value>
   </data>
-  <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
-    <value>Asynchronously waits for the task to finish.</value>
-  </data>
   <data name="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order" xml:space="preserve">
     <value>Sets the string comparison method specified in Option Compare to a strict binary sort order.</value>
   </data>
@@ -973,9 +962,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_an_Async_Function" xml:space="preserve">
     <value>Make {0} an Async Function.</value>
   </data>
-  <data name="Insert_Missing_Cast" xml:space="preserve">
-    <value>Insert Missing Cast</value>
-  </data>
   <data name="Convert_0_to_Iterator" xml:space="preserve">
     <value>Convert {0} to Iterator</value>
   </data>
@@ -1128,9 +1114,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>WithEvents field</value>
     <comment>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="property_accessor" xml:space="preserve">
-    <value>property accessor</value>
-  </data>
   <data name="as_clause" xml:space="preserve">
     <value>as clause</value>
     <comment>{Locked="as"} "as" is a VB keyword and should not be localized.</comment>
@@ -1218,27 +1201,18 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Convert_to_Select_Case" xml:space="preserve">
     <value>Convert to 'Select Case'</value>
   </data>
-  <data name="Use_Is_Nothing_check" xml:space="preserve">
-    <value>Use 'Is Nothing' check</value>
-  </data>
-  <data name="Use_IsNot_Nothing_check" xml:space="preserve">
-    <value>Use 'IsNot Nothing' check</value>
-  </data>
   <data name="Convert_to_For_Each" xml:space="preserve">
     <value>Convert to 'For Each'</value>
   </data>
   <data name="Convert_to_For" xml:space="preserve">
     <value>Convert  to 'For'</value>
   </data>
-  <data name="If_statement_can_be_simplified" xml:space="preserve">
-    <value>'If' statement can be simplified</value>
-  </data>
   <data name="Add_Obsolete" xml:space="preserve">
     <value>Add &lt;Obsolete&gt;</value>
   </data>
   <data name="Add_missing_Imports" xml:space="preserve">
     <value>Add missing Imports</value>
-    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
+    <comment>{Locked="Import"}</comment>
   </data>
   <data name="Add_Shadows" xml:space="preserve">
     <value>Add 'Shadows'</value>
@@ -1250,5 +1224,37 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Make_0_inheritable" xml:space="preserve">
     <value>Make '{0}' inheritable</value>
+  </data>
+  <data name="Apply_Me_qualification_preferences" xml:space="preserve">
+    <value>Apply Me qualification preferences</value>
+    <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Apply_Imports_directive_placement_preferences" xml:space="preserve">
+    <value>Apply Imports directive placement preferences</value>
+    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_private_field_ReadOnly_when_possible" xml:space="preserve">
+    <value>Make private field ReadOnly when possible</value>
+    <comment>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Organize_Imports" xml:space="preserve">
+    <value>Organize Imports</value>
+    <comment>{Locked="Import"}</comment>
+  </data>
+  <data name="Change_to_DirectCast" xml:space="preserve">
+    <value>Change to 'DirectCast'</value>
+  </data>
+  <data name="Change_to_TryCast" xml:space="preserve">
+    <value>Change to 'TryCast'</value>
+  </data>
+  <data name="Remove_shared_keyword_from_module_member" xml:space="preserve">
+    <value>Remove 'Shared' keyword from Module member</value>
+    <comment>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="_0_Events" xml:space="preserve">
+    <value>({0} Events)</value>
+  </data>
+  <data name="Shared_constructor" xml:space="preserve">
+    <value>Shared constructor</value>
   </data>
 </root>

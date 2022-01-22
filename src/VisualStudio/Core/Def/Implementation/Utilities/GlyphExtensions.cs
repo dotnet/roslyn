@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -209,9 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         }
 
         public static ImageSource GetImageSource(this Glyph glyph, IGlyphService glyphService)
-        {
-            return glyphService.GetGlyph(glyph.GetStandardGlyphGroup(), glyph.GetStandardGlyphItem());
-        }
+            => glyphService.GetGlyph(glyph.GetStandardGlyphGroup(), glyph.GetStandardGlyphItem());
 
         public static ushort GetGlyphIndex(this Glyph glyph)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
@@ -22,14 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(Node, Hash.Combine(ParentNode, Type.GetHashCode()));
-        }
+            => Hash.Combine(Node, Hash.Combine(ParentNode, Type.GetHashCode()));
 
         public override bool Equals(object obj)
-        {
-            return Equals(obj as CodeModelEvent);
-        }
+            => Equals(obj as CodeModelEvent);
 
         public bool Equals(CodeModelEvent other)
         {

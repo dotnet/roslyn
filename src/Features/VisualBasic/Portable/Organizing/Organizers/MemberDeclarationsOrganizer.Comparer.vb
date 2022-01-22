@@ -3,12 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
-    Friend Partial Class MemberDeclarationsOrganizer
+    Partial Friend Class MemberDeclarationsOrganizer
         Public Class Comparer
             Implements IComparer(Of StatementSyntax)
             ' TODO(cyrusn): Allow users to specify the ordering they want
@@ -115,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
                 End If
             End Function
 
-            Private Function GetOuterOrdering(x As StatementSyntax) As OuterOrdering
+            Private Shared Function GetOuterOrdering(x As StatementSyntax) As OuterOrdering
                 Select Case x.Kind
                     Case SyntaxKind.FieldDeclaration
                         Return OuterOrdering.Fields

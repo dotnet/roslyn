@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract string GenericSuffix { get; }
 
-        protected override bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext)
-            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(document);
+        protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
+            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document);
 
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
 
-        protected async override Task AddCompletionItemsAsync(
+        protected override async Task AddCompletionItemsAsync(
             CompletionContext completionContext,
             SyntaxContext syntaxContext,
             HashSet<string> namespaceInScope,
@@ -39,15 +39,53 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
-                    var items = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                    var ticks = Environment.TickCount;
+                    using var nestedTokenSource = new CancellationTokenSource();
+                    using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
+                    var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
+                        ? syntaxContext.InferredTypes
+                        : ImmutableArray<ITypeSymbol>.Empty;
+
+                    var getItemsTask = Task.Run(() => ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
                         completionContext.Position,
                         receiverTypeSymbol,
                         namespaceInScope,
+                        inferredTypes,
                         forceIndexCreation: isExpandedCompletion,
-                        cancellationToken).ConfigureAwait(false);
+                        hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
+                        linkedTokenSource.Token), linkedTokenSource.Token);
 
-                    completionContext.AddItems(items.Select(i => Convert(i)));
+                    var timeoutInMilliseconds = completionContext.CompletionOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion;
+
+                    // Timebox is enabled if timeout value is >= 0 and we are not triggered via expander
+                    if (timeoutInMilliseconds >= 0 && !isExpandedCompletion)
+                    {
+                        // timeout == 0 means immediate timeout (for testing purpose)
+                        if (timeoutInMilliseconds == 0 || await Task.WhenAny(getItemsTask, Task.Delay(timeoutInMilliseconds, linkedTokenSource.Token)).ConfigureAwait(false) != getItemsTask)
+                        {
+                            nestedTokenSource.Cancel();
+                            CompletionProvidersLogger.LogExtensionMethodCompletionTimeoutCount();
+                            return;
+                        }
+                    }
+
+                    // Either the timebox is not enabled, so we need to wait until the operation for complete,
+                    // or there's no timeout, and we now have all completion items ready.
+                    var result = await getItemsTask.ConfigureAwait(false);
+                    if (result is null)
+                        return;
+
+                    var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
+                    completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+
+                    // report telemetry:
+                    var totalTicks = Environment.TickCount - ticks;
+                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
+                        totalTicks, result.GetSymbolsTicks, result.CreateItemsTicks, isExpandedCompletion, result.IsRemote);
+
+                    if (result.IsPartialResult)
+                        CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
                 }
                 else
                 {
@@ -75,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (expressionNode != null)
             {
                 // Check if we are accessing members of a type, no extension methods are exposed off of types.
-                if (!(syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is ITypeSymbol))
+                if (syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is not ITypeSymbol)
                 {
                     // The expression we're calling off of needs to have an actual instance type.
                     // We try to be more tolerant to errors here so completion would still be available in certain case of partially typed code.
@@ -104,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _ => symbol as ITypeSymbol,
             };
 
-        private CompletionItem Convert(SerializableImportCompletionItem serializableItem)
+        private CompletionItem Convert(SerializableImportCompletionItem serializableItem, string receiverTypeSymbolKey)
             => ImportCompletionItem.Create(
                 serializableItem.Name,
                 serializableItem.Arity,
@@ -112,6 +150,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 serializableItem.Glyph,
                 GenericSuffix,
                 CompletionItemFlags.Expanded,
-                serializableItem.SymbolKeyData);
+                (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.AdditionalOverloadCount),
+                serializableItem.IncludedInTargetTypeCompletion);
     }
 }

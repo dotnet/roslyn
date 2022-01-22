@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given code fix provider or suppression fix provider.
         /// </summary>
-        public static FixAllProviderInfo Create(object provider)
+        public static FixAllProviderInfo? Create(object provider)
         {
             if (provider is CodeFixProvider codeFixProvider)
             {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given code fix provider.
         /// </summary>
-        private static FixAllProviderInfo CreateWithCodeFixer(CodeFixProvider provider)
+        private static FixAllProviderInfo? CreateWithCodeFixer(CodeFixProvider provider)
         {
             var fixAllProvider = provider.GetFixAllProvider();
             if (fixAllProvider == null)
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given suppression fix provider.
         /// </summary>
-        private static FixAllProviderInfo CreateWithSuppressionFixer(IConfigurationFixProvider provider)
+        private static FixAllProviderInfo? CreateWithSuppressionFixer(IConfigurationFixProvider provider)
         {
             var fixAllProvider = provider.GetFixAllProvider();
             if (fixAllProvider == null)
@@ -100,9 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             public override bool CanBeFixed(Diagnostic diagnostic)
-            {
-                return _supportedDiagnosticIds.Contains(diagnostic.Id);
-            }
+                => _supportedDiagnosticIds.Contains(diagnostic.Id);
         }
 
         private class SuppressionFixerFixAllProviderInfo : FixAllProviderInfo
@@ -119,9 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             public override bool CanBeFixed(Diagnostic diagnostic)
-            {
-                return _canBeSuppressedOrUnsuppressed(diagnostic);
-            }
+                => _canBeSuppressedOrUnsuppressed(diagnostic);
         }
     }
 }

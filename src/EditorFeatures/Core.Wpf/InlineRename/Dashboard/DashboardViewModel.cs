@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _defaultRenameInCommentsFlag;
         private bool _defaultRenameFileFlag;
         private bool _defaultPreviewChangesFlag;
-
+        private bool _isReplacementTextValid;
 
         public DashboardViewModel(InlineRenameSession session)
         {
@@ -51,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
 
-            // Set the flag to true by default if we're showing the option. Use
-            // the property so we correctly update the session as well
-            DefaultRenameFileFlag = session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename;
+            // Set the flag to true by default if we're showing the option.
+            _isReplacementTextValid = true;
+            ComputeDefaultRenameFileFlag();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -66,12 +67,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             UpdateSearchText(totalSpansCount, totalFilesCount);
         }
 
+        private void OnIsReplacementTextValidChanged(bool isReplacementTextValid)
+        {
+            if (isReplacementTextValid == _isReplacementTextValid)
+            {
+                return;
+            }
+
+            _isReplacementTextValid = isReplacementTextValid;
+            ComputeDefaultRenameFileFlag();
+            NotifyPropertyChanged(nameof(AllowFileRename));
+        }
+
+        private void ComputeDefaultRenameFileFlag()
+        {
+            // If replacementText is invalid, we won't rename the file.
+            DefaultRenameFileFlag = _isReplacementTextValid
+                && (_session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename);
+        }
+
         private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)
         {
             var session = (InlineRenameSession)sender;
             _resolvableConflictCount = 0;
             _unresolvableConflictCount = 0;
-
+            OnIsReplacementTextValidChanged(result.ReplacementTextValid);
             if (result.ReplacementTextValid)
             {
                 _errorText = null;
@@ -111,14 +131,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string name = null)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+            => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         private void AllPropertiesChanged()
-        {
-            NotifyPropertyChanged(string.Empty);
-        }
+            => NotifyPropertyChanged(string.Empty);
 
         private void UpdateSearchText(int referenceCount, int fileCount)
         {
@@ -159,13 +175,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public DashboardSeverity Severity => _severity;
 
-        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed;
+        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
         public string FileRenameString => _session.FileRenameInfo switch
         {
             InlineRenameFileRenameInfo.TypeDoesNotMatchFileName => EditorFeaturesResources.Rename_file_name_doesnt_match,
             InlineRenameFileRenameInfo.TypeWithMultipleLocations => EditorFeaturesResources.Rename_file_partial_type,
-            _ => EditorFeaturesResources.Rename_file
+            _ => EditorFeaturesResources.Rename_symbols_file
         };
 
         public string HeaderText

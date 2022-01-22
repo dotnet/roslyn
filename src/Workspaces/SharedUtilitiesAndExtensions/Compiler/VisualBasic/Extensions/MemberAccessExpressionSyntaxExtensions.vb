@@ -4,7 +4,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -84,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' 3) new T() With { .a = 1, .b = .a <-- 'a refers to the T type
 
             If allowImplicitTarget Then
-                Dim conditional = memberAccessExpression.GetCorrespondingConditionalAccessExpression()
+                Dim conditional = memberAccessExpression.GetRootConditionalAccessExpression()
                 If conditional IsNot Nothing Then
                     If conditional.Expression Is Nothing Then
 

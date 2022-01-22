@@ -10,10 +10,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasicCodeStyleOptions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VisualBasicVirtualCharService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\InvocationExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperatorPrecedence.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SingleLineRewriter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StatementSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.vb" />
@@ -22,9 +27,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\VisualBasicPrecedenceService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\VisualBasicSelectedMembers.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\VisualBasicSemanticFacts.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicAccessibilityFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicDocumentationCommentService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicFileBannerFacts.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicHeaderFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxFacts.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\VisualBasicInferredMemberNameSimplifier.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CastAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveSyntaxEqualityComparer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveWalker.vb" />
@@ -41,7 +52,7 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" GenerateSource="true" Link="VisualBasicCompilerExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

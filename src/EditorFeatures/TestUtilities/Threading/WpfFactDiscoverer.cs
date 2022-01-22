@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
@@ -14,9 +16,7 @@ namespace Roslyn.Test.Utilities
         private readonly IMessageSink _diagnosticMessageSink;
 
         public WpfFactDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink)
-        {
-            _diagnosticMessageSink = diagnosticMessageSink;
-        }
+            => _diagnosticMessageSink = diagnosticMessageSink;
 
         protected override IXunitTestCase CreateTestCase(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
             => new WpfTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
@@ -27,9 +27,7 @@ namespace Roslyn.Test.Utilities
         private readonly IMessageSink _diagnosticMessageSink;
 
         public WpfTheoryDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink)
-        {
-            _diagnosticMessageSink = diagnosticMessageSink;
-        }
+            => _diagnosticMessageSink = diagnosticMessageSink;
 
         protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
         {

@@ -13,8 +13,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     <[UseExportProvider]>
     Public Class VisualBasicCompletionSnippetNoteTests
-        Private _markup As XElement = <document>
-                                          <![CDATA[Imports System
+        Private ReadOnly _markup As XElement = <document>
+                                                   <![CDATA[Imports System
 Class Goo
     $$
 End Class]]></document>
@@ -78,7 +78,7 @@ End Class]]></document>
             End Using
         End Function
 
-        Private Function CreateVisualBasicSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
+        Private Shared Function CreateVisualBasicSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
             Dim state = TestStateFactory.CreateVisualBasicTestState(
                 xElement,
                 New List(Of Type) From {GetType(VisualBasicMockCompletionProvider), GetType(TestVisualBasicSnippetInfoService)})

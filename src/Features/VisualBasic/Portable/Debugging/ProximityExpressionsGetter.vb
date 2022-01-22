@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
     <ExportLanguageService(GetType(IProximityExpressionsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Partial Class VisualBasicProximityExpressionsService
+    Partial Friend Class VisualBasicProximityExpressionsService
         Implements IProximityExpressionsService
 
         <ImportingConstructor>

@@ -13,6 +13,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.Runtime.InteropServices;
 using System.Collections.Specialized;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -25,15 +26,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         internal const string KeepAliveSettingName = "keepalive";
 
         private readonly NameValueCollection _appSettings;
+        private readonly ICompilerServerLogger _logger;
 
-        internal BuildServerController(NameValueCollection appSettings)
+        internal BuildServerController(NameValueCollection appSettings, ICompilerServerLogger logger)
         {
             _appSettings = appSettings;
+            _logger = logger;
         }
 
         internal int Run(string[] args)
         {
-            string pipeName;
+            string? pipeName;
             bool shutdown;
             if (!ParseCommandLine(args, out pipeName, out shutdown))
             {
@@ -41,14 +44,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             pipeName = pipeName ?? GetDefaultPipeName();
+            if (pipeName is null)
+            {
+                throw new Exception("Cannot calculate pipe name");
+            }
+
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
-            var tempPath = Path.GetTempPath();
-
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
-                : RunServer(pipeName, tempPath, cancellationToken: cancellationTokenSource.Token);
+                : RunServer(pipeName, cancellationToken: cancellationTokenSource.Token);
         }
 
         internal TimeSpan? GetKeepAliveTimeout()
@@ -75,65 +81,37 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception e)
             {
-                CompilerServerLogger.LogException(e, "Could not read AppSettings");
+                _logger.LogException(e, "Could not read AppSettings");
                 return ServerDispatcher.DefaultServerKeepAlive;
             }
         }
 
-        /// <summary>
-        /// Was a server running with the specified session key during the execution of this call?
-        /// </summary>
-        private static bool? WasServerRunning(string pipeName)
-        {
-            string mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            return BuildServerConnection.WasServerMutexOpen(mutexName);
-        }
+        internal static IClientConnectionHost CreateClientConnectionHost(string pipeName, ICompilerServerLogger logger) => new NamedPipeClientConnectionHost(pipeName, logger);
 
-        private static IClientConnectionHost CreateClientConnectionHost(string pipeName)
+        internal static ICompilerServerHost CreateCompilerServerHost(ICompilerServerLogger logger)
         {
-            var compilerServerHost = CreateCompilerServerHost();
-            return CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
-        }
-
-        internal static ICompilerServerHost CreateCompilerServerHost()
-        {
-            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
-            // location of the response files.
-            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var clientDirectory = BuildClient.GetClientDirectory();
             var sdkDirectory = BuildClient.GetSystemSdkDirectory();
-
-            return new CompilerServerHost(clientDirectory, sdkDirectory);
+            return new CompilerServerHost(clientDirectory, sdkDirectory, logger);
         }
 
-        internal static IClientConnectionHost CreateClientConnectionHostForServerHost(
-            ICompilerServerHost compilerServerHost,
-            string pipeName)
+        private static string? GetDefaultPipeName()
         {
-            return new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
-        }
-
-        private async Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
-        {
-            return await BuildServerConnection.TryConnectToServerAsync(pipeName, timeout, cancellationToken: default).ConfigureAwait(false);
-        }
-
-        private static string GetDefaultPipeName()
-        {
-            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            return BuildServerConnection.GetPipeNameForPathOpt(clientDirectory);
+            return BuildServerConnection.GetPipeName(BuildClient.GetClientDirectory());
         }
 
         internal int RunServer(
             string pipeName,
-            string tempPath,
-            IClientConnectionHost clientConnectionHost = null,
-            IDiagnosticListener listener = null,
+            ICompilerServerHost? compilerServerHost = null,
+            IClientConnectionHost? clientConnectionHost = null,
+            IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
             CancellationToken cancellationToken = default)
         {
             keepAlive ??= GetKeepAliveTimeout();
             listener ??= new EmptyDiagnosticListener();
-            clientConnectionHost ??= CreateClientConnectionHost(pipeName);
+            compilerServerHost ??= CreateCompilerServerHost(_logger);
+            clientConnectionHost ??= CreateClientConnectionHost(pipeName, _logger);
 
             // Grab the server mutex to prevent multiple servers from starting with the same
             // pipename and consuming excess resources. If someone else holds the mutex
@@ -148,10 +126,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return CommonCompiler.Failed;
                 }
 
-                CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
-                FatalError.Handler = FailFast.OnFatalException;
+                compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
+                FatalError.Handler = FailFast.Handler;
 
-                var dispatcher = new ServerDispatcher(clientConnectionHost, listener);
+                var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive, cancellationToken);
                 return CommonCompiler.Succeeded;
             }
@@ -159,83 +137,35 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal static int CreateAndRunServer(
             string pipeName,
-            string tempPath,
-            IClientConnectionHost clientConnectionHost = null,
-            IDiagnosticListener listener = null,
+            ICompilerServerHost? compilerServerHost = null,
+            IClientConnectionHost? clientConnectionHost = null,
+            IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
-            NameValueCollection appSettings = null,
+            NameValueCollection? appSettings = null,
+            ICompilerServerLogger? logger = null,
             CancellationToken cancellationToken = default)
         {
             appSettings ??= new NameValueCollection();
-            var controller = new BuildServerController(appSettings);
-            return controller.RunServer(pipeName, tempPath, clientConnectionHost, listener, keepAlive, cancellationToken);
+            logger ??= EmptyCompilerServerLogger.Instance;
+            var controller = new BuildServerController(appSettings, logger);
+            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
 
-        internal int RunShutdown(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
+        internal int RunShutdown(string pipeName, int? timeoutOverride = null, CancellationToken cancellationToken = default) =>
+            RunShutdownAsync(pipeName, waitForProcess: true, timeoutOverride, cancellationToken).GetAwaiter().GetResult();
+
+        internal async Task<int> RunShutdownAsync(string pipeName, bool waitForProcess, int? timeoutOverride, CancellationToken cancellationToken = default)
         {
-            return RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken).GetAwaiter().GetResult();
+            var success = await BuildServerConnection.RunServerShutdownRequestAsync(
+                pipeName,
+                timeoutOverride,
+                waitForProcess: waitForProcess,
+                _logger,
+                cancellationToken).ConfigureAwait(false);
+            return success ? CommonCompiler.Succeeded : CommonCompiler.Failed;
         }
 
-        /// <summary>
-        /// Shutting down the server is an inherently racy operation.  The server can be started or stopped by
-        /// external parties at any time.
-        /// 
-        /// This function will return success if at any time in the function the server is determined to no longer
-        /// be running.
-        /// </summary>
-        internal async Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
-        {
-            if (WasServerRunning(pipeName) == false)
-            {
-                // The server holds the mutex whenever it is running, if it's not open then the 
-                // server simply isn't running.
-                return CommonCompiler.Succeeded;
-            }
-
-            try
-            {
-                var realTimeout = timeout != null
-                    ? (int)timeout.Value.TotalMilliseconds
-                    : Timeout.Infinite;
-                using (var client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false))
-                {
-                    var request = BuildRequest.CreateShutdown();
-                    await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);
-                    var response = await BuildResponse.ReadAsync(client, cancellationToken).ConfigureAwait(false);
-                    var shutdownResponse = (ShutdownBuildResponse)response;
-
-                    if (waitForProcess)
-                    {
-                        try
-                        {
-                            var process = Process.GetProcessById(shutdownResponse.ServerProcessId);
-                            process.WaitForExit();
-                        }
-                        catch (Exception)
-                        {
-                            // There is an inherent race here with the server process.  If it has already shutdown
-                            // by the time we try to access it then the operation has succeed.
-                        }
-                    }
-                }
-
-                return CommonCompiler.Succeeded;
-            }
-            catch (Exception)
-            {
-                if (WasServerRunning(pipeName) == false)
-                {
-                    // If the server was in the process of shutting down when we connected then it's reasonable
-                    // for an exception to happen.  If the mutex has shutdown at this point then the server 
-                    // is shut down.
-                    return CommonCompiler.Succeeded;
-                }
-
-                return CommonCompiler.Failed;
-            }
-        }
-
-        internal static bool ParseCommandLine(string[] args, out string pipeName, out bool shutdown)
+        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown)
         {
             pipeName = null;
             shutdown = false;

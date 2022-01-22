@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,6 +34,74 @@ class C
 class C
 {
 }";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Record()
+        {
+            var code =
+@"//$$
+record R;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record R;";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordStruct()
+        {
+            var code =
+@"//$$
+record struct R;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record struct R;";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordWithPositionalParameters()
+        {
+            var code =
+@"//$$
+record R(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record R(string S, int I);";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordStructWithPositionalParameters()
+        {
+            var code =
+@"//$$
+record struct R(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record struct R(string S, int I);";
 
             VerifyTypingCharacter(code, expected);
         }
@@ -91,6 +160,139 @@ class C
     /// <param name=""goo""></param>
     /// <returns></returns>
     int M<T>(int goo) { return 0; }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Method_WithExceptions()
+        {
+            var code =
+@"class C
+{
+    //$$
+    int M<T>(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        return 0;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <typeparam name=""T""></typeparam>
+    /// <param name=""goo""></param>
+    /// <returns></returns>
+    /// <exception cref=""Exception""></exception>
+    int M<T>(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        return 0;
+    }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Constructor_WithExceptions()
+        {
+            var code =
+@"class C
+{
+    //$$
+    public C(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        throw null;
+        throw null;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <param name=""goo""></param>
+    /// <exception cref=""Exception""></exception>
+    /// <exception cref=""System.NullReferenceException""></exception>
+    public C(int goo)
+    {
+        if (goo < 0) throw new /*leading trivia*/Exception/*trailing trivia*/();
+        throw null;
+        throw null;
+    }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(54245, "https://github.com/dotnet/roslyn/issues/54245")]
+        public void TypingCharacter_Constructor_WithExceptions_Caught()
+        {
+            // This result is wrong, but we can't do better as long as we only check syntax.
+            var code = @"
+using System;
+
+class C
+{
+    //$$
+    public C(int goo)
+    {
+        try
+        {
+            if (goo == 10)
+                throw new Exception();
+            if (goo == 9)
+                throw new ArgumentOutOfRangeException();
+        }
+        catch (ArgumentException)
+        {
+        }
+
+        throw null;
+        throw null;
+    }
+}";
+
+            var expected = @"
+using System;
+
+class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <param name=""goo""></param>
+    /// <exception cref=""Exception""></exception>
+    /// <exception cref=""ArgumentOutOfRangeException""></exception>
+    /// <exception cref=""NullReferenceException""></exception>
+    public C(int goo)
+    {
+        try
+        {
+            if (goo == 10)
+                throw new Exception();
+            if (goo == 9)
+                throw new ArgumentOutOfRangeException();
+        }
+        catch (ArgumentException)
+        {
+        }
+
+        throw null;
+        throw null;
+    }
 }";
 
             VerifyTypingCharacter(code, expected);
@@ -1103,7 +1305,6 @@ class C
             VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_DontInsertSlashes1()
         {
@@ -1463,6 +1664,66 @@ void M() {}""
 class C
 {
 }";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_Record()
+        {
+            var code = "record R$$;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record R;";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordStruct()
+        {
+            var code = "record struct R$$;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record struct R;";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordWithPositionalParameters()
+        {
+            var code = "record R$$(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record R(string S, int I);";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordStructWithPositionalParameters()
+        {
+            var code = "record struct R$$(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record struct R(string S, int I);";
 
             VerifyInsertCommentCommand(code, expected);
         }
@@ -1985,7 +2246,6 @@ class C { }";
                 TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
                         .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
             }
-
         }
 
         protected override char DocumentationCommentCharacter
@@ -1993,12 +2253,9 @@ class C { }";
             get { return '/'; }
         }
 
-        internal override ICommandHandler CreateCommandHandler(
-            IWaitIndicator waitIndicator,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+        internal override ICommandHandler CreateCommandHandler(TestWorkspace workspace)
         {
-            return new DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService);
+            return workspace.ExportProvider.GetCommandHandler<DocumentationCommentCommandHandler>(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.CSharpContentType);
         }
 
         protected override TestWorkspace CreateTestWorkspace(string code)

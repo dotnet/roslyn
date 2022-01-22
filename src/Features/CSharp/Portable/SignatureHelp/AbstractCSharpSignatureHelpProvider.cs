@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -14,34 +13,30 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal abstract class AbstractCSharpSignatureHelpProvider : AbstractSignatureHelpProvider
     {
+        private static readonly SymbolDisplayFormat s_allowDefaultLiteralFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
+            .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+
         protected AbstractCSharpSignatureHelpProvider()
         {
         }
 
         protected static SymbolDisplayPart Keyword(SyntaxKind kind)
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
+
+        protected static SymbolDisplayPart Operator(SyntaxKind kind)
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Operator, null, SyntaxFacts.GetText(kind));
 
         protected static SymbolDisplayPart Punctuation(SyntaxKind kind)
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
 
         protected static SymbolDisplayPart Text(string text)
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);
 
         protected static SymbolDisplayPart Space()
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
 
         protected static SymbolDisplayPart NewLine()
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
 
         private static readonly IList<SymbolDisplayPart> _separatorParts = new List<SymbolDisplayPart>
             {
@@ -55,14 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
-            IDocumentationCommentFormattingService formatter,
-            CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService formatter)
         {
             return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
-                parameter.ToMinimalDisplayParts(semanticModel, position));
+                parameter.ToMinimalDisplayParts(semanticModel, position, s_allowDefaultLiteralFormat));
         }
 
         /// <summary>
@@ -70,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// method to exist.
         /// </summary>
         [Obsolete("Expected to exist by IntelliCode. This can be removed once their unnecessary use of this is removed.")]
+#pragma warning disable CA1822 // Mark members as static - see obsolete message above.
         protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
-        {
-            return SpecializedCollections.EmptyList<TaggedText>();
-        }
+#pragma warning restore CA1822 // Mark members as static
+            => SpecializedCollections.EmptyList<TaggedText>();
     }
 }

@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 OperationStatus status,
                 TextSpan originalSpan,
                 TextSpan finalSpan,
-                OptionSet options,
+                ExtractMethodOptions options,
                 bool selectionInExpression,
                 SemanticDocument document,
                 SyntaxAnnotation firstTokenAnnotation,
@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             public override bool ContainingScopeHasAsyncKeyword()
-            {
-                return false;
-            }
+                => false;
 
             public override SyntaxNode? GetContainingScope()
             {
@@ -45,12 +43,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var firstToken = GetFirstTokenInSelection();
                 var lastToken = GetLastTokenInSelection();
-                return firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
+                var scope = firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
+                if (scope == null)
+                    return null;
+
+                return CSharpSyntaxFacts.Instance.GetRootStandaloneExpression(scope);
             }
 
             public override ITypeSymbol? GetContainingScopeType()
             {
-                if (!(GetContainingScope() is ExpressionSyntax node))
+                if (GetContainingScope() is not ExpressionSyntax node)
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 // use FormattableString if conversion between String and FormattableString
                 if (info.Type?.SpecialType == SpecialType.System_String &&
-                    info.ConvertedType?.IsFormattableString() == true)
+                    info.ConvertedType?.IsFormattableStringOrIFormattable() == true)
                 {
                     return info.GetConvertedTypeWithAnnotatedNullability();
                 }

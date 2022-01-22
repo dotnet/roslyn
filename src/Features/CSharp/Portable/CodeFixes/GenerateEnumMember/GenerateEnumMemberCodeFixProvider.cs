@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -40,8 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
         }
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
-        {
-            return node is IdentifierNameSyntax;
-        }
+            => node is IdentifierNameSyntax;
     }
 }

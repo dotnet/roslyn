@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -101,22 +99,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public SymbolResult<T2> WithSymbol<T2>(T2 symbol) where T2 : ISymbol
-            {
-                return new SymbolResult<T2>(DesiredName, NameNode, symbol, Weight);
-            }
+                => new(DesiredName, NameNode, symbol, Weight);
 
             internal SymbolResult<T> WithDesiredName(string desiredName)
-            {
-                return new SymbolResult<T>(desiredName, NameNode, Symbol, Weight);
-            }
+                => new(desiredName, NameNode, Symbol, Weight);
         }
 
         private struct SymbolResult
         {
             public static SymbolResult<T> Create<T>(string desiredName, TSimpleNameSyntax nameNode, T symbol, double weight) where T : ISymbol
-            {
-                return new SymbolResult<T>(desiredName, nameNode, symbol, weight);
-            }
+                => new(desiredName, nameNode, symbol, weight);
         }
     }
 }

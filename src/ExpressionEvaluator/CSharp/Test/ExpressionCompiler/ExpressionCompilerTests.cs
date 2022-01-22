@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -1492,8 +1494,10 @@ class C
     int this[int x, int y] { set { } }
     int this[int x, int y, int z] { get { return 0; } set { } }
 
-    int M() { return 0; }
-        }
+    int M1() { return 0; }
+    int M2() { return 0; }
+    int M2(int i) { return i; }
+}
 ";
             var compilation0 = CreateCompilation(
                 source,
@@ -1502,7 +1506,7 @@ class C
 
             WithRuntimeInstance(compilation0, runtime =>
             {
-                var context = CreateMethodContext(runtime, "C.M");
+                var context = CreateMethodContext(runtime, "C.M1");
 
                 CheckResultFlags(context, "F", DkmClrCompilationResultFlags.None);
                 CheckResultFlags(context, "RF", DkmClrCompilationResultFlags.ReadOnlyResult);
@@ -1520,11 +1524,12 @@ class C
                 CheckResultFlags(context, "this[1, 2]", DkmClrCompilationResultFlags.None, "error CS0154: The property or indexer 'C.this[int, int]' cannot be used in this context because it lacks the get accessor");
                 CheckResultFlags(context, "this[1, 2, 3]", DkmClrCompilationResultFlags.None);
 
-                CheckResultFlags(context, "M()", DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                CheckResultFlags(context, "M1()", DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
 
                 CheckResultFlags(context, "null", DkmClrCompilationResultFlags.ReadOnlyResult);
                 CheckResultFlags(context, "1", DkmClrCompilationResultFlags.ReadOnlyResult);
-                CheckResultFlags(context, "M", DkmClrCompilationResultFlags.None, "error CS0428: Cannot convert method group 'M' to non-delegate type 'object'. Did you intend to invoke the method?");
+                CheckResultFlags(context, "M1", DkmClrCompilationResultFlags.ReadOnlyResult);
+                CheckResultFlags(context, "M2", DkmClrCompilationResultFlags.None, "error CS8917: The delegate type could not be inferred.");
                 CheckResultFlags(context, "typeof(C)", DkmClrCompilationResultFlags.ReadOnlyResult);
                 CheckResultFlags(context, "new C()", DkmClrCompilationResultFlags.ReadOnlyResult);
             });
@@ -1685,20 +1690,43 @@ class C
             var source =
 @"class C
 {
-    void M()
+    void M1()
     {
     }
+    void M2() { }
+    void M2(int i) { }
 }";
             ResultProperties resultProperties;
             string error;
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "this.M",
+                methodName: "C.M1",
+                expr: "this.M2",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal("error CS0428: Cannot convert method group 'M' to non-delegate type 'object'. Did you intend to invoke the method?", error);
+            Assert.Equal("error CS8917: The delegate type could not be inferred.", error);
+
+            testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M1",
+                expr: "this.M1",
+                resultProperties: out resultProperties,
+                error: out error);
+            Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            var method = (MethodSymbol)methodData.Method;
+            Assert.Equal(SpecialType.System_Object, method.ReturnType.SpecialType);
+            methodData.VerifyIL(
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""void C.M1()""
+  IL_0007:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_000c:  ret
+}");
         }
 
         [Fact]
@@ -1707,25 +1735,49 @@ class C
             var source =
 @"class C
 {
-    static void M()
+    static void M1()
     {
         object o;
     }
+    static void M2() { }
+    static void M2(int i) { }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
                     runtime,
-                    methodName: "C.M");
+                    methodName: "C.M1");
                 string error;
                 var testData = new CompilationTestData();
                 var result = context.CompileAssignment(
                     target: "o",
-                    expr: "M",
+                    expr: "M2",
                     error: out error,
                     testData: testData);
-                Assert.Equal("error CS0428: Cannot convert method group 'M' to non-delegate type 'object'. Did you intend to invoke the method?", error);
+                Assert.Equal("error CS8917: The delegate type could not be inferred.", error);
+
+                testData = new CompilationTestData();
+
+                // If you see this failing, please fix https://github.com/dotnet/roslyn/issues/58449
+                Assert.Equal(compilation0.LanguageVersion, context.Compilation.LanguageVersion);
+
+                context.CompileAssignment(
+                    target: "o",
+                    expr: "M1",
+                    error: out error,
+                    testData: testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (object V_0) //o
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void C.M1()""
+  IL_0007:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_000c:  stloc.0
+  IL_000d:  ret
+}");
             });
         }
 
@@ -2018,7 +2070,7 @@ class C<T>
                 // All locals of type E<T> with type argument T from <>c<T>.
                 foreach (var local in locals)
                 {
-                    var localType = (NamedTypeSymbol)local.Type;
+                    var localType = (NamedTypeSymbol)local.Type.GetInternalSymbol();
                     var typeArg = localType.TypeArguments()[0];
                     Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
                 }
@@ -2088,7 +2140,7 @@ class C<T>
                 Assert.Equal(1, locals.Length);
                 foreach (var local in locals)
                 {
-                    var localType = (TypeSymbol)local.Type;
+                    var localType = (TypeSymbol)local.Type.GetInternalSymbol();
                     Assert.Equal(localType.ContainingSymbol, method);
                 }
 
@@ -2252,7 +2304,7 @@ class C
         /// normally be allowed.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
         public void Await()
         {
             var source = @"
@@ -2288,7 +2340,7 @@ class C
         /// This would be illegal in any non-debugger context.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
         public void AwaitInUnsafeContext()
         {
             var source = @"
@@ -2476,7 +2528,7 @@ class C
   IL_002c:  ret
 }");
                 // Verify generated type and method are generic.
-                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
+                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention);
                 var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(result.Assembly));
                 var reader = metadata.MetadataReader;
                 var typeDef = reader.GetTypeDef(result.TypeName);
@@ -2490,7 +2542,7 @@ class C
                 testData = new CompilationTestData();
                 context.CompileExpression("(object)t ?? typeof(T) ?? typeof(U)", out error, testData);
                 methodData = testData.GetMethodData("<>x<T, U, V>.<>m0");
-                Assert.Equal(Cci.CallingConvention.Default, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
+                Assert.Equal(Cci.CallingConvention.Default, ((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention);
             });
         }
 
@@ -2535,7 +2587,7 @@ class C<T>
   IL_001e:  call       ""U C<T>.F<U>(System.Func<U>)""
   IL_0023:  ret
 }");
-                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
+                Assert.Equal(Cci.CallingConvention.Generic, ((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention);
             });
         }
 
@@ -2566,7 +2618,7 @@ class C<T>
   IL_0002:  newobj     ""System.ArgIterator..ctor(System.RuntimeArgumentHandle)""
   IL_0007:  ret
 }");
-                Assert.Equal(Cci.CallingConvention.ExtraArguments, ((Cci.IMethodDefinition)methodData.Method).CallingConvention);
+                Assert.Equal(Cci.CallingConvention.ExtraArguments, ((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention);
             });
         }
 
@@ -3157,7 +3209,7 @@ class B : A
         }
     }
 }";
-            var compilation0 = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugDll));
+            var compilation0 = CreateCompilation(source, options: WithNullableEnable(TestOptions.DebugDll));
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -4123,13 +4175,20 @@ class C
     {
     }
 }";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "G(F)");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation, runtime =>
+            {
+                var context = CreateMethodContext(
+                    runtime,
+                    methodName: "C.M");
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression("G(F)", out var error, testData);
+
+                // If you see this failing, please fix https://github.com/dotnet/roslyn/issues/58449
+                Assert.Equal(compilation.LanguageVersion, context.Compilation.LanguageVersion);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldnull
@@ -4137,7 +4196,9 @@ class C
   IL_0007:  newobj     ""D..ctor(object, System.IntPtr)""
   IL_000c:  call       ""void C.G(D)""
   IL_0011:  ret
-}");
+}
+");
+            });
         }
 
         [Fact]
@@ -4814,14 +4875,12 @@ class C
                 string error;
                 var testData = new CompilationTestData();
                 var result = context.CompileExpression("F()", out error, testData);
-                // Currently, the name of the evaluation method is used for
-                // [CallerMemberName] so "F()" will generate "[] [<>m0] [1]".
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       17 (0x11)
   .maxstack  3
   IL_0000:  ldstr      """"
-  IL_0005:  ldstr      ""<>m0""
+  IL_0005:  ldstr      ""Main""
   IL_000a:  ldc.i4.1
   IL_000b:  call       ""object C.F(string, string, int)""
   IL_0010:  ret
@@ -5285,7 +5344,7 @@ class C
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData);
                 Assert.Equal(new AssemblyIdentity("System.Core"), missingAssemblyIdentities.Single());
-                Assert.Equal("error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?", error);
+                Assert.Equal("error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?", error);
             });
         }
 
@@ -6028,7 +6087,7 @@ class C
         /// <summary>
         /// Ignore accessibility in async rewriter.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
         public void AsyncRewriterIgnoreAccessibility()
         {
             var source =

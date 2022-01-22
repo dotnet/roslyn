@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <RootNamespace></RootNamespace>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -17,6 +17,9 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
@@ -36,9 +39,11 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="VBWorkspaceResources.resx" GenerateSource="true" NAmespace="Microsoft.CodeAnalysis.VisualBasic" />

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal partial class GenerateOverridesCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly IPickMembersService _pickMembersService_forTestingPurposes;
+        private readonly IPickMembersService? _pickMembersService_forTestingPurposes;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,30 +28,28 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
         }
 
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        public GenerateOverridesCodeRefactoringProvider(IPickMembersService pickMembersService)
-        {
-            _pickMembersService_forTestingPurposes = pickMembersService;
-        }
+        public GenerateOverridesCodeRefactoringProvider(IPickMembersService? pickMembersService)
+            => _pickMembersService_forTestingPurposes = pickMembersService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
+            if (!helpers.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+                !helpers.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
-            var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
+            var containingType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
 
             var overridableMembers = containingType.GetOverridableMembers(cancellationToken);
             if (overridableMembers.Length == 0)

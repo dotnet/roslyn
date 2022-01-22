@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -19,14 +21,10 @@ namespace Microsoft.CodeAnalysis.ErrorLogger
         }
 
         public void LogException(object source, Exception exception)
-        {
-            Logger.GetLogger()?.Log(FunctionId.Extension_Exception, LogMessage.Create(source.GetType().Name + " : " + ToLogFormat(exception)));
-        }
+            => Logger.Log(FunctionId.Extension_Exception, (source, exception) => source.GetType().Name + " : " + ToLogFormat(exception), source, exception, LogLevel.Error);
 
         private static string ToLogFormat(Exception exception)
-        {
-            return exception.Message + Environment.NewLine + exception.StackTrace;
-        }
+            => exception.Message + Environment.NewLine + exception.StackTrace;
     }
 }
 

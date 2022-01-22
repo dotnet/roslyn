@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst;
@@ -9,12 +11,18 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTypeForConst
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTypeForConst)]
     public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseExplicitTypeForConstTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new UseExplicitTypeForConstCodeFixProvider());
 
@@ -147,14 +155,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTypeForConst
         }
 
         [Fact]
-        public async Task TestNotWithLambda()
+        public async Task TestWithLambda()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         const [|var|] v = () => { };
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        const System.Action v = () => { };
     }
 }");
         }

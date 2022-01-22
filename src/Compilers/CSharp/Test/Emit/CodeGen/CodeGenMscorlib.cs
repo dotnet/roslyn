@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -225,7 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// Report CS0656 for missing Decimal to int conversion.
         /// </summary>
         [WorkItem(530860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
-        [Fact]
+        [WorkItem(39962, "https://github.com/dotnet/roslyn/issues/39962")]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39962
         public void NoDecimalConversion()
         {
             var source1 =
@@ -521,7 +524,7 @@ namespace System.Collections
         public char CharAt(int i) { return default(char); }
     }
 
-    internal class program
+    internal class @program
     {
         string M(string s)
         {
@@ -585,7 +588,7 @@ namespace System.Collections
         }
     }
 
-    internal class program
+    internal class @program
     {
         void Main()
         {
@@ -711,7 +714,7 @@ namespace System
     }
 }
 
-    internal class program
+    internal class @program
     {
         void Main()
         {
@@ -848,7 +851,7 @@ namespace System
         }
     }
 
-    internal class program
+    internal class @program
     {
         void Main()
         {
@@ -983,7 +986,7 @@ namespace System
     }
 }
   
-unsafe internal class program
+unsafe internal class @program
 {
     public static void Main()
     {
@@ -1098,7 +1101,7 @@ namespace System.Runtime.CompilerServices
     }
 }
   
-unsafe internal class program
+unsafe internal class @program
 {
     public static void Main()
     {

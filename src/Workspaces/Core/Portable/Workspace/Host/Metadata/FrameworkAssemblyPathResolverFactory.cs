@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service();
-        }
+            => new Service();
 
         private sealed class Service : IFrameworkAssemblyPathResolver
         {
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Host
             //    return false;
             //}
 
-            public string ResolveAssemblyPath(ProjectId projectId, string assemblyName, string fullyQualifiedTypeName = null)
+            public string? ResolveAssemblyPath(ProjectId projectId, string assemblyName, string? fullyQualifiedTypeName)
             {
                 // Assembly path resolution not supported at the default workspace level.
                 return null;

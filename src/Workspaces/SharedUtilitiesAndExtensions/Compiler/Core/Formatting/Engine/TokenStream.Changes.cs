@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -21,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             private ConcurrentDictionary<int, TriviaData> _map;
 
             public bool TryRemove(int pairIndex)
-            {
-                return _map?.TryRemove(pairIndex, out var temp) ?? false;
-            }
+                => _map?.TryRemove(pairIndex, out _) ?? false;
 
             public void AddOrReplace(int key, TriviaData triviaInfo)
             {
@@ -34,10 +33,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 map[key] = triviaInfo;
             }
 
-            public bool TryGet(int key, out TriviaData triviaInfo)
+            public bool TryGet(int key, [NotNullWhen(true)] out TriviaData? triviaInfo)
             {
                 triviaInfo = null;
+#pragma warning disable CS8762 // Parameter may not have a null value when exiting in some condition. https://github.com/dotnet/roslyn/issues/43241
                 return _map?.TryGetValue(key, out triviaInfo) ?? false;
+#pragma warning restore CS8762 // Parameter may not have a null value when exiting in some condition.
             }
         }
     }

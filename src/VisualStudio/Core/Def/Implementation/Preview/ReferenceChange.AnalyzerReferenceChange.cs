@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -20,14 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
 
             internal override Solution AddToSolution(Solution solution)
-            {
-                return solution.AddAnalyzerReference(this.ProjectId, _reference);
-            }
+                => solution.AddAnalyzerReference(this.ProjectId, _reference);
 
             internal override Solution RemoveFromSolution(Solution solution)
-            {
-                return solution.RemoveAnalyzerReference(this.ProjectId, _reference);
-            }
+                => solution.RemoveAnalyzerReference(this.ProjectId, _reference);
 
             protected override string GetDisplayText()
             {

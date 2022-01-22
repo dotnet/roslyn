@@ -9,18 +9,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
 {
     internal static class Comparison
     {
-        public static bool AreStringValuesEqual(string str1, string str2)
-            => string.IsNullOrEmpty(str1) == string.IsNullOrEmpty(str2)
-            || str1 == str2;
+        public static bool AreStringValuesEqual(string? str1, string? str2)
+            => (str1 ?? "") == (str2 ?? "");
 
-        public static bool AreArraysEqual<T>(T[] array1, T[] array2) where T : IEquatable<T>
+        public static bool AreArraysEqual<T>(T[]? array1, T[]? array2) where T : IEquatable<T>
         {
+            if (array1 is null || array2 is null)
+            {
+                // both must be null
+                return array1 == array2;
+            }
+
             if (array1.Length != array2.Length)
             {
                 return false;
             }
 
-            for (int i = 0; i < array1.Length; i++)
+            for (var i = 0; i < array1.Length; i++)
             {
                 if (!EqualityComparer<T>.Default.Equals(array1[i], array2[i]))
                 {

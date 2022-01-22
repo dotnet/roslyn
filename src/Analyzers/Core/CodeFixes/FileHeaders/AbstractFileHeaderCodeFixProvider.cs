@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,26 +13,19 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
     {
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
-        protected abstract ISyntaxKinds SyntaxKinds { get; }
-
-        protected abstract SyntaxTrivia EndOfLine(string text);
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
-
-        public override FixAllProvider GetFixAllProvider()
-            => new FixAll(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -49,39 +40,61 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         }
 
         private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            return document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
-        }
+            => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
 
         private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
+        {
+#if CODE_STYLE
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken);
+#else
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+            var newLine = options.GetOption(FormattingOptions2.NewLine, document.Project.Language);
+            var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            var newLineTrivia = generator.EndOfLine(newLine);
+
+            return await GetTransformedSyntaxRootAsync(generator.SyntaxFacts, FileHeaderHelper, newLineTrivia, document, fileHeaderTemplate: null, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, Document document, string? fileHeaderTemplate, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
-                || string.IsNullOrEmpty(fileHeaderTemplate))
+            // If we weren't given a header lets get the one from editorconfig
+            if (fileHeaderTemplate is null &&
+                !document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out fileHeaderTemplate))
             {
-                // This exception would show up as a gold bar, but as indicated we do not believe this is reachable.
-                throw ExceptionUtilities.Unreachable;
+                // No header supplied, no editorconfig setting, nothing to do
+                return root;
+            }
+
+            if (string.IsNullOrEmpty(fileHeaderTemplate))
+            {
+                // Header template is empty, nothing to do. This shouldn't be possible if this method is called in
+                // reaction to a diagnostic, but this method is also used when creating new documents so lets be defensive.
+                return root;
             }
 
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(document.FilePath));
 
-            var fileHeader = FileHeaderHelper.ParseFileHeader(root);
+            var fileHeader = fileHeaderHelper.ParseFileHeader(root);
             SyntaxNode newSyntaxRoot;
             if (fileHeader.IsMissing)
             {
-                newSyntaxRoot = AddHeader(document, root, expectedFileHeader);
+                newSyntaxRoot = AddHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader);
             }
             else
             {
-                newSyntaxRoot = ReplaceHeader(document, root, expectedFileHeader);
+                newSyntaxRoot = ReplaceHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader);
             }
 
             return newSyntaxRoot;
         }
 
-        private SyntaxNode ReplaceHeader(Document document, SyntaxNode root, string expectedFileHeader)
+        private static SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
             // Skip single line comments, whitespace, and end of line trivia until a blank line is encountered.
             var triviaList = root.GetLeadingTrivia();
@@ -107,7 +120,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             for (var i = 0; i < triviaList.Count; i++)
             {
                 var triviaLine = triviaList[i];
-                if (triviaLine.RawKind == SyntaxKinds.SingleLineCommentTrivia)
+                if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.SingleLineCommentTrivia)
                 {
                     if (possibleLeadingSpaces != string.Empty)
                     {
@@ -119,7 +132,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                     removalList.Add(i);
                     onBlankLine = false;
                 }
-                else if (triviaLine.RawKind == SyntaxKinds.WhitespaceTrivia)
+                else if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.WhitespaceTrivia)
                 {
                     if (leadingSpaces == string.Empty)
                     {
@@ -128,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
                     removalList.Add(i);
                 }
-                else if (triviaLine.RawKind == SyntaxKinds.EndOfLineTrivia)
+                else if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.EndOfLineTrivia)
                 {
                     possibleLeadingSpaces = string.Empty;
                     removalList.Add(i);
@@ -154,14 +167,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 triviaList = triviaList.RemoveAt(removalList[i]);
             }
 
-#if CODE_STYLE
-            var newLineText = Environment.NewLine;
-#else
-            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language);
-#endif
-            var newLineTrivia = EndOfLine(newLineText);
-
-            var newHeaderTrivia = CreateNewHeader(leadingSpaces + FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText);
+            var newHeaderTrivia = CreateNewHeader(syntaxFacts, leadingSpaces + fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
 
             // Add a blank line and any remaining preserved trivia after the header.
             newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(triviaList);
@@ -170,26 +176,20 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return root.WithLeadingTrivia(newHeaderTrivia);
         }
 
-        private SyntaxNode AddHeader(Document document, SyntaxNode root, string expectedFileHeader)
+        private static SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
-#if CODE_STYLE
-            var newLineText = Environment.NewLine;
-#else
-            var newLineText = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, root.Language);
-#endif
-            var newLineTrivia = EndOfLine(newLineText);
-            var newTrivia = CreateNewHeader(FileHeaderHelper.CommentPrefix, expectedFileHeader, newLineText).Add(newLineTrivia).Add(newLineTrivia);
+            var newTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString()).Add(newLineTrivia).Add(newLineTrivia);
 
             // Skip blank lines already at the beginning of the document, since we add our own
             var leadingTrivia = root.GetLeadingTrivia();
             var skipCount = 0;
             for (var i = 0; i < leadingTrivia.Count; i++)
             {
-                if (leadingTrivia[i].RawKind == SyntaxKinds.EndOfLineTrivia)
+                if (leadingTrivia[i].RawKind == syntaxFacts.SyntaxKinds.EndOfLineTrivia)
                 {
                     skipCount = i + 1;
                 }
-                else if (leadingTrivia[i].RawKind != SyntaxKinds.WhitespaceTrivia)
+                else if (leadingTrivia[i].RawKind != syntaxFacts.SyntaxKinds.WhitespaceTrivia)
                 {
                     break;
                 }
@@ -200,11 +200,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return root.WithLeadingTrivia(newTrivia);
         }
 
-        private SyntaxTriviaList CreateNewHeader(string prefixWithLeadingSpaces, string expectedFileHeader, string newLineText)
+        private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces, string expectedFileHeader, string newLineText)
         {
             var copyrightText = GetCopyrightText(prefixWithLeadingSpaces, expectedFileHeader, newLineText);
             var newHeader = copyrightText;
-            return SyntaxFacts.ParseLeadingTrivia(newHeader);
+            return syntaxFacts.ParseLeadingTrivia(newHeader);
         }
 
         private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText, string newLineText)
@@ -232,31 +232,18 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Add_file_banner, createChangedDocument, nameof(AbstractFileHeaderCodeFixProvider))
+                : base(CodeFixesResources.Add_file_header, createChangedDocument, nameof(AbstractFileHeaderCodeFixProvider))
             {
             }
         }
 
-        private class FixAll : DocumentBasedFixAllProvider
-        {
-            private readonly AbstractFileHeaderCodeFixProvider _codeFixProvider;
-
-            public FixAll(AbstractFileHeaderCodeFixProvider codeFixProvider)
-            {
-                _codeFixProvider = codeFixProvider;
-            }
-
-            protected override string CodeActionTitle => CodeFixesResources.Add_file_banner;
-
-            protected override Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+        public override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
             {
                 if (diagnostics.IsEmpty)
-                {
-                    return SpecializedTasks.Null<SyntaxNode>();
-                }
+                    return null;
 
-                return _codeFixProvider.GetTransformedSyntaxRootAsync(document, fixAllContext.CancellationToken).AsNullable();
-            }
-        }
+                return await this.GetTransformedDocumentAsync(document, context.CancellationToken).ConfigureAwait(false);
+            });
     }
 }

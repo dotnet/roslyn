@@ -13,9 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly ImmutableArray<EventProcessor> _additionalEventProcessors;
             public AggregateDiagnosticTableControlEventProcessor(params EventProcessor[] additionalEventProcessors)
-            {
-                _additionalEventProcessors = additionalEventProcessors.ToImmutableArray();
-            }
+                => _additionalEventProcessors = additionalEventProcessors.ToImmutableArray();
 
             public override void PostprocessSelectionChanged(TableSelectionChangedEventArgs e)
             {

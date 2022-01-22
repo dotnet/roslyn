@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,13 +17,15 @@ namespace Microsoft.CodeAnalysis
     public struct TypedConstant : IEquatable<TypedConstant>
     {
         private readonly TypedConstantKind _kind;
-        private readonly ITypeSymbolInternal _type;
+        private readonly ITypeSymbolInternal? _type;
         private readonly object? _value;
 
-        internal TypedConstant(ITypeSymbolInternal type, TypedConstantKind kind, object? value)
+        internal TypedConstant(ITypeSymbolInternal? type, TypedConstantKind kind, object? value)
         {
             Debug.Assert(kind == TypedConstantKind.Array || !(value is ImmutableArray<TypedConstant>));
             Debug.Assert(!(value is ISymbol) || value is ISymbolInternal);
+            Debug.Assert(type is object || kind == TypedConstantKind.Error);
+
             _kind = kind;
             _type = type;
             _value = value;
@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis
         /// Returns the <see cref="ITypeSymbol"/> of the constant, 
         /// or null if the type can't be determined (error).
         /// </summary>
-        public ITypeSymbol Type
+        public ITypeSymbol? Type
         {
-            get { return _type.GetITypeSymbol(); }
+            get { return _type?.GetITypeSymbol(); }
         }
 
-        internal ITypeSymbolInternal TypeInternal
+        internal ITypeSymbolInternal? TypeInternal
         {
             get { return _type; }
         }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Unlike <see cref="Value"/> returns <see cref="ISymbolInternal"/> when the value is a symbol.
         /// </summary>
-        internal object ValueInternal
+        internal object? ValueInternal
         {
             get
             {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException("TypedConstant is an array. Use Values property.");
                 }
 
-                return _value!;
+                return _value;
             }
         }
 
@@ -124,14 +124,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [return: MaybeNull]
-        internal T DecodeValue<T>(SpecialType specialType)
+        internal T? DecodeValue<T>(SpecialType specialType)
         {
-            TryDecodeValue(specialType, out T value);
+            TryDecodeValue(specialType, out T? value);
             return value;
         }
 
-        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull] [NotNullWhen(returnValue: true)] out T value)
+        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNullWhen(false)] out T value)
         {
             if (_kind == TypedConstantKind.Error)
             {
@@ -139,7 +138,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            if (_type.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
+            if (_type!.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
                 value = (T)_value!;
                 return true;

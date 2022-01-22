@@ -21,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(containingBinder, commentedSymbol)
         End Sub
 
-        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
-            Dim result As ImmutableArray(Of Symbol) = MyBase.BindXmlNameAttributeValue(identifier, useSiteDiagnostics)
+        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
+            Dim result As ImmutableArray(Of Symbol) = MyBase.BindXmlNameAttributeValue(identifier, useSiteInfo)
             If Not result.IsEmpty Then
                 Return result
             End If
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LookupOptions.MustNotBeLocalOrParameter
 
             Dim lookupResult As LookupResult = lookupResult.GetInstance()
-            Me.Lookup(lookupResult, identifier.Identifier.ValueText, 0, options, useSiteDiagnostics)
+            Me.Lookup(lookupResult, identifier.Identifier.ValueText, 0, options, useSiteInfo)
 
             If Not lookupResult.HasSingleSymbol Then
                 lookupResult.Free()

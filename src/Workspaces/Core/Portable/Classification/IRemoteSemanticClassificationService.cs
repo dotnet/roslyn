@@ -3,18 +3,42 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
     internal interface IRemoteSemanticClassificationService
     {
-        Task<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan span, CancellationToken cancellationToken);
+        ValueTask<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
+            PinnedSolutionInfo solutionInfo,
+            DocumentId documentId,
+            TextSpan span,
+            ClassificationOptions options,
+            StorageDatabase database,
+            bool isFullyLoaded,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Tries to get cached semantic classifications for the specified document and the specified <paramref
+        /// name="textSpan"/>.  Will return an empty array not able to.
+        /// </summary>
+        /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
+        /// classifications are only returned if they match the content the file currently has.</param>
+        ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
+            DocumentKey documentKey,
+            TextSpan textSpan,
+            Checksum checksum,
+            StorageDatabase database,
+            CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -22,21 +46,25 @@ namespace Microsoft.CodeAnalysis.Classification
     /// first int is the index of classification type in <see cref="ClassificationTypes"/>, and the
     /// second and third ints encode the span.
     /// </summary>
+    [DataContract]
     internal sealed class SerializableClassifiedSpans
     {
-        public List<string> ClassificationTypes;
-        public List<int> ClassificationTriples;
+        [DataMember(Order = 0)]
+        public List<string>? ClassificationTypes;
 
-        internal static SerializableClassifiedSpans Dehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        [DataMember(Order = 1)]
+        public List<int>? ClassificationTriples;
+
+        internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
         {
             using var _ = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
             return Dehydrate(classifiedSpans, classificationTypeToId);
         }
 
-        private static SerializableClassifiedSpans Dehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
+        private static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
         {
             var classificationTypes = new List<string>();
-            var classificationTriples = new List<int>(capacity: classifiedSpans.Count * 3);
+            var classificationTriples = new List<int>(capacity: classifiedSpans.Length * 3);
 
             foreach (var classifiedSpan in classifiedSpans)
             {
@@ -61,8 +89,11 @@ namespace Microsoft.CodeAnalysis.Classification
             };
         }
 
-        internal void Rehydrate(List<ClassifiedSpan> classifiedSpans)
+        internal void Rehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans)
         {
+            Contract.ThrowIfNull(ClassificationTypes);
+            Contract.ThrowIfNull(ClassificationTriples);
+
             for (var i = 0; i < ClassificationTriples.Count; i += 3)
             {
                 classifiedSpans.Add(new ClassifiedSpan(

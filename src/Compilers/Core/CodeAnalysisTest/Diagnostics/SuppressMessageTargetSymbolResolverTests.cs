@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -364,6 +366,20 @@ End Class
                 LanguageNames.VisualBasic, false,
                 "C.#s",
                 "C.s");
+        }
+
+        [Fact, WorkItem(1141257, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1141257")]
+        public void TestResolveEnumFieldWithoutName()
+        {
+            var source = @"
+enum E
+{
+    $$,
+}
+";
+            var syntaxTree = CreateSyntaxTree(source, LanguageNames.CSharp);
+            var compilation = CreateCompilation(syntaxTree, LanguageNames.CSharp, "");
+            _ = SuppressMessageAttributeState.ResolveTargetSymbols(compilation, "E.", SuppressMessageAttributeState.TargetScope.Member);
         }
 
         [Fact]

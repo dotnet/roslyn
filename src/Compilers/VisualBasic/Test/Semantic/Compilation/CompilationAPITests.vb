@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
@@ -20,10 +21,19 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
 Imports Roslyn.Test.Utilities.TestHelpers
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
         Inherits BasicTestBase
+
+        Private Function WithDiagnosticOptions(
+            tree As SyntaxTree,
+            ParamArray options As (string, ReportDiagnostic)()) As VisualBasicCompilationOptions
+
+            Return TestOptions.DebugDll.
+                WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(tree, options))
+        End Function
 
         <Fact>
         Public Sub PerTreeVsGlobalSuppress()
@@ -38,7 +48,8 @@ End Class")
             Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
-            tree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Warn)))
+            options = options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
             comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             ' Global options override syntax tree options. This is the opposite of C# behavior
             comp.AssertNoDiagnostics()
@@ -53,7 +64,7 @@ Class C
     End Sub
 End Class")
 
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilation({tree}, options:=TestOptions.DebugDll)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'x'.
@@ -61,8 +72,9 @@ BC42024: Unused local variable: 'x'.
             ~
                 </errors>)
 
-            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
-            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+
+            Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Suppress))
+            Dim comp2 = CreateCompilation({tree}, options:=options)
             comp2.AssertNoDiagnostics()
         End Sub
 
@@ -77,11 +89,11 @@ Class C
     End Sub
 End Class")
 
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilation({tree}, options:=TestOptions.DebugDll)
             comp.AssertNoDiagnostics()
 
-            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
-            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+            Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Warn))
+            Dim comp2 = CreateCompilation({tree}, options:=options)
             ' Pragma should have precedence over per-tree options
             comp2.AssertNoDiagnostics()
         End Sub
@@ -100,16 +112,11 @@ End Class")
             Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
-            Dim newTree = tree.WithDiagnosticOptions(
-                CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
-            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=options)
-            ' Tree options should have precedence over specific diagnostic options
-            comp2.AssertTheseDiagnostics(
-                <errors>
-BC42024: Unused local variable: 'x'.
-        Dim x As Integer
-            ~
-                </errors>)
+            options = options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
+            Dim comp2 = CreateCompilationWithMscorlib45({tree}, options:=options)
+            ' Specific diagnostic options should have precedence over tree options
+            comp2.AssertNoDiagnostics()
         End Sub
 
         <Fact>
@@ -119,15 +126,19 @@ Class C
      Sub M()
         Dim x As Integer
     End Sub
-End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+End Class")
             Dim newTree = SyntaxFactory.ParseSyntaxTree("
 Class D
      Sub M()
         Dim y As Integer
     End Sub
-End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC4024", ReportDiagnostic.Error)))
+End Class")
 
-            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            Dim options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
+                    (tree, {("BC42024", ReportDiagnostic.Suppress)}),
+                    (newTree, {("BC4024", ReportDiagnostic.Error)})))
+            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=options)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'y'.
@@ -138,23 +149,26 @@ BC42024: Unused local variable: 'y'.
 
         <Fact>
         Public Sub TreeOptionsComparerRespected()
-            Dim options = CreateImmutableDictionary(StringOrdinalComparer.Instance, ("bc42024", ReportDiagnostic.Suppress))
-
             Dim tree = SyntaxFactory.ParseSyntaxTree("
 Class C
      Sub M()
         Dim x As Integer
     End Sub
-End Class").WithDiagnosticOptions(options)
+End Class")
+            ' Default provider is case insensitive
+            Dim options = WithDiagnosticOptions(tree, ("bc42024", ReportDiagnostic.Suppress))
 
-            Dim newTree = SyntaxFactory.ParseSyntaxTree("
-Class D
-     Sub M()
-        Dim y As Integer
-    End Sub
-End Class").WithDiagnosticOptions(options.WithComparers(CaseInsensitiveComparison.Comparer))
+            Dim comp = CreateCompilation(tree, options:=options)
+            comp.AssertNoDiagnostics()
 
-            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            options = options.WithSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
+                    StringComparer.Ordinal,
+                    Nothing,
+                    (tree, {("bc42024", ReportDiagnostic.Suppress)}))
+            )
+
+            comp = CreateCompilation(tree, options:=options)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'x'.
@@ -274,7 +288,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
             listSyntaxTree.Add(t1)
 
             ' System.dll
-            listRef.Add(TestReferences.NetFx.v4_0_30319.System)
+            listRef.Add(Net451.System)
             Dim ops = TestOptions.ReleaseExe
 
             ' Create Compilation with Option is not Nothing
@@ -520,8 +534,8 @@ End Namespace
         Public Sub ReferenceAPITest()
             ' Create Compilation takes two args
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Dim ref3 = New TestMetadataReference(fullPath:="c:\xml.bms")
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
@@ -792,9 +806,7 @@ End Namespace
             Assert.Equal(Of Boolean)(True, b1)
 
             Dim xt As SyntaxTree = Nothing
-            Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        b1 = comp.ContainsSyntaxTree(xt)
-                                                    End Sub)
+            Assert.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
 
             comp = comp.RemoveSyntaxTrees({t2})
             Assert.Equal(1, comp.SyntaxTrees.Length)
@@ -829,7 +841,7 @@ End Namespace
             ' Create compilation with args is disordered
             Dim comp1 = VisualBasicCompilation.Create("Compilation")
             Dim Err = "c:\file_that_does_not_exist"
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim ref1 = Net451.mscorlib
             Dim listRef = New List(Of MetadataReference)
             ' this is NOT testing Roslyn
             listRef.Add(ref1)
@@ -1044,8 +1056,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
             Dim csCompRef = csComp.ToMetadataReference(embedInteropTypes:=True)
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
 
             ' Add VisualBasicCompilationReference
             comp = VisualBasicCompilation.Create("Test1",
@@ -1160,7 +1172,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub AssemblySuppliedAsModule()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference()})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(ResourcesNet451.System).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
 
@@ -1170,7 +1182,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference1()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Assert.Null(comp.GetReferencedAssemblySymbol(TestReferences.NetFx.v4_0_30319.System))
+            Assert.Null(comp.GetReferencedAssemblySymbol(Net451.System))
 
             Dim modRef1 = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference()
             Assert.Null(comp.GetReferencedModuleSymbol(modRef1))
@@ -1181,7 +1193,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <Fact>
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.System
             Dim ref2 = New TestMetadataReference(fullPath:="c:\a\xml.bms")
             Dim ref3 = ref2
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
@@ -1209,11 +1221,11 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref2 = Net451.System
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
 
-            ' Replace an non-existing item with another invalid item
+            ' Replace a non-existing item with another invalid item
             Assert.Throws(Of ArgumentException)(Sub()
                                                     comp = comp.ReplaceReference(ref2, ref1)
                                                 End Sub)
@@ -1221,7 +1233,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Assert.Equal(1, comp.References.Count)
         End Sub
 
-        '' Replace an non-existing item with null
+        '' Replace a non-existing item with null
         <WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")>
         <Fact>
         Public Sub NegReference4()
@@ -1241,14 +1253,14 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
                End Sub)
         End Sub
 
-        '' Replace an non-existing item with another valid item
+        '' Replace a non-existing item with another valid item
         <WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")>
         <Fact>
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Assert.Throws(Of ArgumentException)(
                 Sub()
                     comp = comp.ReplaceReference(ref1, ref2)
@@ -1257,7 +1269,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Dim s1 = "Imports System.Text"
             Dim t1 = Parse(s1)
 
-            ' Replace an non-existing item with another valid item and disorder the args
+            ' Replace a non-existing item with another valid item and disorder the args
             Assert.Throws(Of ArgumentException)(Sub()
                                                     comp.ReplaceSyntaxTree(newTree:=VisualBasicSyntaxTree.ParseText("Imports System"), oldTree:=t1)
                                                 End Sub)
@@ -1456,10 +1468,11 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
         <Fact()>
         <WorkItem(543292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543292")>
-        Public Sub CompilationStackOverflow()
+        Public Sub CompilationNotSupported()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.DynamicType)
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing, Nothing, Nothing))
         End Sub
 
         <Fact>
@@ -2050,15 +2063,6 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ReferenceManagerReuse_WithPreviousSubmission()
-            Dim s1 = VisualBasicCompilation.CreateScriptCompilation("s1")
-            Dim s2 = VisualBasicCompilation.CreateScriptCompilation("s2")
-
-            Dim s3 = s2.WithScriptCompilationInfo(s2.ScriptCompilationInfo.WithPreviousScriptCompilation(s1))
-            Assert.True(s2.ReferenceManagerEquals(s3))
-        End Sub
-
-        <Fact>
         Public Sub ReferenceManagerReuse_WithXmlFileResolver()
             Dim c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseDll)
 
@@ -2176,6 +2180,43 @@ End Class
             Assert.False(arc.ReferenceManagerEquals(ars))
         End Sub
 
+        <Fact>
+        Public Sub ReferenceManagerReuse_WithScriptCompilationInfo()
+            ' Note The following results would change if we optimized sharing more: https://github.com/dotnet/roslyn/issues/43397
+
+            Dim c1 = VisualBasicCompilation.CreateScriptCompilation("c1")
+            Assert.NotNull(c1.ScriptCompilationInfo)
+            Assert.Null(c1.ScriptCompilationInfo.PreviousScriptCompilation)
+
+            Dim c2 = c1.WithScriptCompilationInfo(Nothing)
+            Assert.Null(c2.ScriptCompilationInfo)
+            Assert.True(c2.ReferenceManagerEquals(c1))
+
+            Dim c3 = c2.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=Nothing, returnType:=GetType(Integer), globalsType:=Nothing))
+            Assert.NotNull(c3.ScriptCompilationInfo)
+            Assert.Null(c3.ScriptCompilationInfo.PreviousScriptCompilation)
+            Assert.True(c3.ReferenceManagerEquals(c2))
+
+            Dim c4 = c3.WithScriptCompilationInfo(Nothing)
+            Assert.Null(c4.ScriptCompilationInfo)
+            Assert.True(c4.ReferenceManagerEquals(c3))
+
+            Dim c5 = c4.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c1, returnType:=GetType(Integer), globalsType:=Nothing))
+            Assert.False(c5.ReferenceManagerEquals(c4))
+
+            Dim c6 = c5.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c1, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.True(c6.ReferenceManagerEquals(c5))
+
+            Dim c7 = c6.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c2, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.False(c7.ReferenceManagerEquals(c6))
+
+            Dim c8 = c7.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=Nothing, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.False(c8.ReferenceManagerEquals(c7))
+
+            Dim c9 = c8.WithScriptCompilationInfo(Nothing)
+            Assert.True(c9.ReferenceManagerEquals(c8))
+        End Sub
+
         Private Class EvolvingTestReference
             Inherits PortableExecutableReference
 
@@ -2203,7 +2244,7 @@ End Class
             End Function
         End Class
 
-        <ConditionalFact(GetType(NoIOperationValidation))>
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
             Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
@@ -2247,7 +2288,7 @@ End Class
         <WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim metadata = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim metadata = Net451.mscorlib
             comp = comp.AddReferences(metadata)
             Dim assemblySmb = comp.GetReferencedAssemblySymbol(metadata)
             Dim reference = comp.GetMetadataReference(assemblySmb)
@@ -2484,6 +2525,142 @@ End Module
 
             compilation2.VerifyDiagnostics()
             CompileAndVerify(compilation2, expectedOutput:="1")
+        End Sub
+
+        <Fact, WorkItem(50696, "https://github.com/dotnet/roslyn/issues/50696")>
+        Public Sub GetWellKnownType()
+
+            Dim corlib = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class ValueType
+    End Class
+    Public Structure Void
+    End Structure
+End Namespace
+"
+
+
+            Dim tuple = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+    End Structure
+End Namespace
+"
+
+            Dim corlibWithoutValueTupleRef = CreateEmptyCompilation(corlib, assemblyName:="corlibWithoutValueTupleRef").EmitToImageReference()
+            Dim corlibWithValueTupleRef = CreateEmptyCompilation(corlib + tuple, assemblyName:="corlibWithValueTupleRef").EmitToImageReference()
+
+            Dim libWithIsExternalInitRef = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="libWithIsExternalInit").EmitToImageReference()
+            Dim libWithIsExternalInitRef2 = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="libWithIsExternalInit2").EmitToImageReference()
+
+            If True Then
+                ' type in source
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "source")
+            End If
+
+            If True Then
+                ' type in library
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithoutValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "libWithIsExternalInit")
+            End If
+
+            If True Then
+                ' type in corlib and in source
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "source")
+            End If
+
+            If True Then
+                ' type in corlib, in library and in source
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "source")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef, libWithIsExternalInitRef2})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries (corlib in middle)
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, corlibWithValueTupleRef, libWithIsExternalInitRef2})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries (corlib last)
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2, corlibWithValueTupleRef})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries, but flag is set
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef, libWithIsExternalInitRef2},
+                    options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
+            End If
+
+            If True Then
+                ' type in two libraries
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2})
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
+            End If
+
+            If True Then
+                ' type in two libraries, but flag is set
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2},
+                    options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
+            End If
+
+            If True Then
+                ' type in corlib and in a library
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in a library (reverse order)
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in a library, but flag is set
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef},
+                    options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+                Assert.Equal("corlibWithValueTupleRef", comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
+            End If
+        End Sub
+
+        Private Shared Sub GetWellKnownType_Verify(comp As VisualBasicCompilation, expectedAssemblyName As String)
+            Assert.Equal(expectedAssemblyName, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+            Assert.Equal(expectedAssemblyName, comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
         End Sub
 
     End Class

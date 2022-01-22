@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -53,14 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         internal override SyntaxNode LookupNode()
-        {
-            return CodeModelService.LookupNode(_nodeKey, GetSyntaxTree());
-        }
+            => CodeModelService.LookupNode(_nodeKey, GetSyntaxTree());
 
         internal override bool TryLookupNode(out SyntaxNode node)
-        {
-            return CodeModelService.TryLookupNode(_nodeKey, GetSyntaxTree(), out node);
-        }
+            => CodeModelService.TryLookupNode(_nodeKey, GetSyntaxTree(), out node);
 
         /// <summary>
         /// This function re-acquires the key for this code element using the given syntax path.

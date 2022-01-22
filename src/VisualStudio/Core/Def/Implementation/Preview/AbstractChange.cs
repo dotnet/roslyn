@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -36,9 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public IVsPreviewChangesList GetChildren()
-        {
-            return Children;
-        }
+            => Children;
 
         internal abstract void GetDisplayData(VSTREEDISPLAYDATA[] pData);
 

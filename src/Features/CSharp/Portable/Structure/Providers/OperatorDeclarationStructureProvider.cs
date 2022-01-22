@@ -4,8 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -13,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class OperatorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<OperatorDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             OperatorDeclarationSyntax operatorDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(operatorDeclaration, spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(operatorDeclaration, ref spans, options);
 
             // fault tolerance
             if (operatorDeclaration.Body == null ||
@@ -33,7 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var nextSibling = current.GetNextSibling();
 
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
-            var compressEmptyLines = !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.OperatorDeclaration);
+            //
+            // Whitespace between operators is collapsed in Metadata as Source.
+            var compressEmptyLines = options.IsMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.OperatorDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 operatorDeclaration,

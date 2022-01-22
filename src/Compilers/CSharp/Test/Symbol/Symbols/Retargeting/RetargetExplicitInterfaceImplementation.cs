@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -45,7 +48,7 @@ public class C : Interface1
                 },
                 new[]
                     {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -110,7 +113,7 @@ public  class D : C
                 },
                 new MetadataReference[]
                 {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });
@@ -340,7 +343,7 @@ public class C3 : Interface2<Class1>
                 },
                 new[]
                     {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -375,7 +378,7 @@ public  class D3 : C3
                 },
                 new MetadataReference[]
                 {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });
@@ -432,6 +435,41 @@ public  class D3 : C3
             var retargetedClassC3Event1 = (EventSymbol)retargetedClassC3.GetMembers("Interface2<Class1>.Event1").Single();
             var retargetedClassC3Event1Impl = retargetedClassC3Event1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Event1, retargetedClassC3Event1Impl.OriginalDefinition);
+        }
+
+        [Fact]
+        public void ExplicitInterfaceImplementationRetargetingGenericType()
+        {
+            var source1 = @"
+public class C1<T>
+{
+    public interface I1
+    {
+        void M(T x);
+    }
+}
+";
+            var ref1 = CreateEmptyCompilation("").ToMetadataReference();
+            var compilation1 = CreateCompilation(source1, references: new[] { ref1 });
+
+            var source2 = @"
+public class C2<U> : C1<U>.I1
+{
+    void C1<U>.I1.M(U x) {}
+}
+";
+            var compilation2 = CreateCompilation(source2, references: new[] { compilation1.ToMetadataReference(), ref1, CreateEmptyCompilation("").ToMetadataReference() });
+
+            var compilation3 = CreateCompilation("", references: new[] { compilation1.ToMetadataReference(), compilation2.ToMetadataReference() });
+
+            Assert.NotSame(compilation2.GetTypeByMetadataName("C1`1"), compilation3.GetTypeByMetadataName("C1`1"));
+
+            var c2 = compilation3.GetTypeByMetadataName("C2`1");
+            Assert.IsType<RetargetingNamedTypeSymbol>(c2);
+
+            var m = c2.GetMethod("C1<U>.I1.M");
+
+            Assert.Equal(c2.Interfaces().Single().GetMethod("M"), m.ExplicitInterfaceImplementations.Single());
         }
     }
 }

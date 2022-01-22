@@ -26,7 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         private readonly ImmutableList<AbstractFormattingRule> _rules;
 
-#if !CODE_STYLE
+#if CODE_STYLE
+        public static readonly CSharpSyntaxFormattingService Instance = new();
+
+#else
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 #endif
@@ -49,18 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public override IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules()
-        {
-            return _rules;
-        }
+            => _rules;
 
-        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> formattingSpans = null)
-        {
-            return new AggregatedFormattingResult(node, results, formattingSpans);
-        }
+        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null)
+            => new AggregatedFormattingResult(node, results, formattingSpans);
 
-        protected override AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
-        {
-            return new CSharpFormatEngine(node, options, formattingRules, token1, token2).Format(cancellationToken);
-        }
+        protected override AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
+            => new CSharpFormatEngine(node, options, formattingRules, startToken, endToken).Format(cancellationToken);
     }
 }

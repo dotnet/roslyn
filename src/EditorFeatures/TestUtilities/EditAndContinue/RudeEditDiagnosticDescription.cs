@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -27,9 +29,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public string FirstLine => _firstLine;
 
         public RudeEditDiagnosticDescription WithFirstLine(string value)
-        {
-            return new RudeEditDiagnosticDescription(_rudeEditKind, _squiggle, _arguments, value.Trim());
-        }
+            => new RudeEditDiagnosticDescription(_rudeEditKind, _squiggle, _arguments, value.Trim());
 
         public bool Equals(RudeEditDiagnosticDescription other)
         {
@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public override bool Equals(object obj)
-        {
-            return obj is RudeEditDiagnosticDescription && Equals((RudeEditDiagnosticDescription)obj);
-        }
+            => obj is RudeEditDiagnosticDescription && Equals((RudeEditDiagnosticDescription)obj);
 
         public override int GetHashCode()
         {

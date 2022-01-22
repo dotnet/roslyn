@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         private static (string quoteCharSnapshotText, int quoteCharCaretPosition) TypeQuoteChar(TestWorkspace workspace)
         {
             var view = workspace.Documents.Single().GetTextView();
-            var commandHandler = new FixInterpolatedVerbatimStringCommandHandler();
+            var commandHandler = workspace.ExportProvider.GetCommandHandler<FixInterpolatedVerbatimStringCommandHandler>(nameof(FixInterpolatedVerbatimStringCommandHandler));
 
             string quoteCharSnapshotText = null;
             int quoteCharCaretPosition = default;
@@ -154,22 +156,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
-        {
-            TestNotHandled(@"@$[||]");
-        }
+            => TestHandled(@"@$[||]", @"$@""[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterDollarSign()
-        {
-            TestNotHandled(@"$[||]");
-        }
+            => TestNotHandled(@"$[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFile()
-        {
-            TestNotHandled(@"[||]");
-        }
+            => TestNotHandled(@"[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestAfterAtSignDollarSignEndOfFile()

@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
                 return projectId;
             }
 
-            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(projectName), VersionStamp.Default, projectName, projectName, StringConstants.CSharpLspLanguageName);
+            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(projectName), VersionStamp.Default, projectName, projectName, LanguageNames.CSharp);
 
             _remoteLanguageServiceWorkspaceHost.Workspace.OnProjectAdded(projectInfo);
 
@@ -37,8 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLspRazorProjectFactory(RemoteLanguageServiceWorkspaceHost remoteLanguageServiceWorkspaceHost)
-        {
-            _remoteLanguageServiceWorkspaceHost = remoteLanguageServiceWorkspaceHost ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspaceHost));
-        }
+            => _remoteLanguageServiceWorkspaceHost = remoteLanguageServiceWorkspaceHost ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspaceHost));
     }
 }

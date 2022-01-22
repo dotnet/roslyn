@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -35,11 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
 
-        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+        internal TestAccessor GetTestAccessor() => new(this);
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
@@ -53,9 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         {
             private readonly MoveToNamespaceDialog _dialog;
             public TestAccessor(MoveToNamespaceDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public Button OKButton => _dialog.OKButton;
             public Button CancelButton => _dialog.CancelButton;

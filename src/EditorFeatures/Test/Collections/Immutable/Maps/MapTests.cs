@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -122,14 +124,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
         private class PathologicalComparer<T> : IEqualityComparer<T>
         {
             public bool Equals(T x, T y)
-            {
-                return EqualityComparer<T>.Default.Equals(x, y);
-            }
+                => EqualityComparer<T>.Default.Equals(x, y);
 
             public int GetHashCode(T obj)
-            {
-                return 0;
-            }
+                => 0;
         }
     }
 }

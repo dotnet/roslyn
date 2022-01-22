@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
@@ -28,9 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected abstract void ShutdownSource();
 
         protected void ConnectWorkspaceEvents()
-        {
-            Workspace.WorkspaceChanged += OnWorkspaceChanged;
-        }
+            => Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
@@ -89,12 +87,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected void AddTableSource(ITableDataSource source)
-        {
-            this.TableManager.AddSource(source, Columns);
-        }
+            => this.TableManager.AddSource(source, Columns);
 
         internal ITableManager TableManager { get; }
 
-        internal abstract IReadOnlyCollection<string> Columns { get; }
+        internal abstract ImmutableArray<string> Columns { get; }
     }
 }

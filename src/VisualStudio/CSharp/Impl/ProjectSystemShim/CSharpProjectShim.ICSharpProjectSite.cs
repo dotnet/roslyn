@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -30,19 +32,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public bool CheckInputFileTimes(System.Runtime.InteropServices.ComTypes.FILETIME output)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void BuildProject(object progress)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void Unused()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void OnSourceFileAdded(string filename)
         {
@@ -54,19 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void OnSourceFileRemoved(string filename)
-        {
-            RemoveFile(filename);
-        }
+            => RemoveFile(filename);
 
         public int OnResourceFileAdded(string filename, string resourceName, bool embedded)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int OnResourceFileRemoved(string filename)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int OnImportAdded(string filename, string project)
         {
@@ -77,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public int OnImportAddedEx(string filename, string project, CompilerOptions optionID)
         {
-            if (optionID != CompilerOptions.OPTID_IMPORTS && optionID != CompilerOptions.OPTID_IMPORTSUSINGNOPIA)
+            if (optionID is not CompilerOptions.OPTID_IMPORTS and not CompilerOptions.OPTID_IMPORTSUSINGNOPIA)
             {
                 throw new ArgumentException("optionID was an unexpected value.", nameof(optionID));
             }
@@ -124,14 +114,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void OnModuleAdded(string filename)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void OnModuleRemoved(string filename)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public int GetValidStartupClasses(IntPtr[] classNames, ref int count)
         {

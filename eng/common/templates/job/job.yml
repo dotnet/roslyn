@@ -24,6 +24,9 @@ parameters:
   enablePublishBuildAssets: false
   enablePublishTestResults: false
   enablePublishUsingPipelines: false
+  mergeTestResults: false
+  testRunTitle: ''
+  testResultsFormat: ''
   name: ''
   preSteps: []
   runAsPublic: false
@@ -62,6 +65,9 @@ jobs:
   - ${{ if ne(parameters.enableTelemetry, 'false') }}:
     - name: DOTNET_CLI_TELEMETRY_PROFILE
       value: '$(Build.Repository.Uri)'
+  - ${{ if eq(parameters.enableRichCodeNavigation, 'true') }}:
+    - name: EnableRichCodeNavigation
+      value: 'true'
   - ${{ each variable in parameters.variables }}:
     # handle name-value variable syntax
     # example:
@@ -97,7 +103,7 @@ jobs:
 
   - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - ${{ if eq(parameters.enableMicrobuild, 'true') }}:
-      - task: MicroBuildSigningPlugin@2
+      - task: MicroBuildSigningPlugin@3
         displayName: Install MicroBuild plugin
         inputs:
           signType: $(_SignType)
@@ -108,6 +114,7 @@ jobs:
         continueOnError: ${{ parameters.continueOnError }}
         condition: and(succeeded(), in(variables['_SignType'], 'real', 'test'), eq(variables['Agent.Os'], 'Windows_NT'))
 
+  - ${{ if and(eq(parameters.runAsPublic, 'false'), eq(variables['System.TeamProject'], 'internal')) }}:
     - task: NuGetAuthenticate@0
 
   - ${{ if or(eq(parameters.artifacts.download, 'true'), ne(parameters.artifacts.download, '')) }}:
@@ -120,6 +127,15 @@ jobs:
 
   - ${{ each step in parameters.steps }}:
     - ${{ step }}
+
+  - ${{ if eq(parameters.enableRichCodeNavigation, true) }}:
+    - task: RichCodeNavIndexer@0
+      displayName: RichCodeNav Upload
+      inputs:
+        languages: ${{ coalesce(parameters.richCodeNavigationLanguage, 'csharp') }}
+        environment: ${{ coalesce(parameters.richCodeNavigationEnvironment, 'production') }}
+        richNavLogOutputDirectory: $(Build.SourcesDirectory)/artifacts/bin
+      continueOnError: true
 
   - ${{ if eq(parameters.enableMicrobuild, 'true') }}:
     - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -187,13 +203,26 @@ jobs:
       continueOnError: true
       condition: always()
 
-  - ${{ if eq(parameters.enablePublishTestResults, 'true') }}:
+  - ${{ if or(and(eq(parameters.enablePublishTestResults, 'true'), eq(parameters.testResultsFormat, '')), eq(parameters.testResultsFormat, 'xunit')) }}:
     - task: PublishTestResults@2
-      displayName: Publish Test Results
+      displayName: Publish XUnit Test Results
       inputs:
         testResultsFormat: 'xUnit'
         testResultsFiles: '*.xml' 
         searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
+        testRunTitle: ${{ coalesce(parameters.testRunTitle, parameters.name, '$(System.JobName)') }}-xunit
+        mergeTestResults: ${{ parameters.mergeTestResults }}
+      continueOnError: true
+      condition: always()
+  - ${{ if or(and(eq(parameters.enablePublishTestResults, 'true'), eq(parameters.testResultsFormat, '')), eq(parameters.testResultsFormat, 'vstest')) }}:
+    - task: PublishTestResults@2
+      displayName: Publish TRX Test Results
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '*.trx' 
+        searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
+        testRunTitle: ${{ coalesce(parameters.testRunTitle, parameters.name, '$(System.JobName)') }}-trx
+        mergeTestResults: ${{ parameters.mergeTestResults }}
       continueOnError: true
       condition: always()
     

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -382,7 +384,13 @@ class P
   }
 }";
 
-            CompileAndVerify(source2, expectedOutput: @"2");
+            CompileAndVerify(source2, parseOptions: TestOptions.Regular9, expectedOutput: @"2");
+
+            var comp = CreateCompilation(source2);
+            comp.VerifyDiagnostics(
+                // (15,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(P.DA, object)' and 'P.M1(P.DB, int)'
+                //     M1(() => () => i, i);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(P.DA, object)", "P.M1(P.DB, int)").WithLocation(15, 5));
         }
 
         [Fact]
@@ -844,6 +852,93 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         }
 
         [Fact]
+        public void NormalizeTaskTypes_FunctionPointers()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+unsafe class C<T>
+{
+#pragma warning disable CS0169
+    static delegate*<int, int, C<MyTask<int>>> F0;
+    static delegate*<C<MyTask<int>>, int, int> F1;
+    static delegate*<int, C<MyTask<int>>, int> F2;
+    static delegate*<int, int, int> F3;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics();
+
+            assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
+            assert("F1", "delegate*<C<MyTask<System.Int32>>, System.Int32, System.Int32>", "delegate*<C<System.Threading.Tasks.Task<System.Int32>>, System.Int32, System.Int32>");
+            assert("F2", "delegate*<System.Int32, C<MyTask<System.Int32>>, System.Int32>", "delegate*<System.Int32, C<System.Threading.Tasks.Task<System.Int32>>, System.Int32>");
+            assert("F3", "delegate*<System.Int32, System.Int32, System.Int32>", normalized: null);
+
+            void assert(string fieldName, string original, string normalized)
+            {
+                var type = compilation.GetMember<FieldSymbol>($"C.{fieldName}").Type;
+                FunctionPointerUtilities.CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)type);
+                var normalizedType = type.NormalizeTaskTypes(compilation);
+                Assert.Equal(original, type.ToTestDisplayString());
+                if (normalized is object)
+                {
+                    Assert.Equal(normalized, normalizedType.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Same(type, normalizedType);
+                }
+            }
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_FunctionPointersCustomModifiers()
+        {
+            var ilSource =
+@".class public C
+{
+  .field public static method class MyTask modopt(class MyTask) *(class MyTask modopt(class MyTask)) F0
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncMethodBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
+}
+";
+            var source =
+@"";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("delegate*<MyTask modopt(MyTask), MyTask modopt(MyTask)>", type.ToTestDisplayString());
+            Assert.Equal("delegate*<System.Threading.Tasks.Task modopt(MyTask), System.Threading.Tasks.Task modopt(MyTask)>", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
         public void NormalizeTaskTypes_Errors()
         {
             string source =
@@ -1232,7 +1327,7 @@ class C
             string source = @"
 using System;
 using System.Linq.Expressions;
-class p
+class @p
 {
     static void Goo<T>(ref Func<T, T> a) { }
     static void Bar<T>(out Func<T, T> a) { a = null; }
@@ -6363,7 +6458,7 @@ class Ambig
     static void overload2(byte b, goo f) { }
 }
 
-class goo
+class @goo
 {
     public static implicit operator goo(int i)
     {
@@ -6371,7 +6466,7 @@ class goo
     }
 }
 
-class bar
+class @bar
 {
     public static implicit operator bar(int i)
     {
@@ -6379,7 +6474,7 @@ class bar
     }
 }
 
-class baz
+class @baz
 {
     public static implicit operator baz(int i)
     {
@@ -6963,8 +7058,8 @@ class C : IA
             var source = @"
 public class Test
 {
-    public delegate dynamic nongenerics(dynamic id);
-    public delegate T generics< T>(dynamic id);
+    public delegate dynamic @nongenerics(dynamic id);
+    public delegate T @generics< T>(dynamic id);
     public dynamic Goo(nongenerics Meth, dynamic id)
     {
         return null;
@@ -7007,7 +7102,7 @@ public class Goo
     {
     }
 }
-public struct start
+public struct @start
 {
     static void M(D002<dynamic, object> d) {}
     static public void Main()
@@ -8104,7 +8199,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8140,7 +8235,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8897,7 +8992,7 @@ public interface IDetail<T>
 
 }
 
-public interface IMaster<T>
+public interface IMain<T>
 {
 
 }
@@ -8928,15 +9023,15 @@ public class Permission : IDetail<Principal>
 
 }
 
-public class Principal : IMaster<Permission>
+public class Principal : IMain<Permission>
 {
 }
 
 public static class Class
 {
-    public static void RemoveDetail<TMaster, TChild>(this TMaster master, TChild child)
-        where TMaster : class, IMaster<TChild>
-        where TChild : class, IDetail<TMaster>
+    public static void RemoveDetail<TMain, TChild>(this TMain main, TChild child)
+        where TMain : class, IMain<TChild>
+        where TChild : class, IDetail<TMain>
     {
         System.Console.WriteLine(""RemoveDetail"");
     }
@@ -10906,6 +11001,30 @@ class Program
         }
 
         [Fact]
+        public void GenericInferenceErrorRecovery()
+        {
+            var code = @"
+class Program
+{
+    public static void Method<T>(in T p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        Method((null, 1));
+    }
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'Program.Method<T>(in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((null, 1));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in T)").WithLocation(11, 9));
+        }
+
+        [Fact]
         public void GenericInferenceLambdaVariance()
         {
             var code = @"
@@ -10952,7 +11071,7 @@ public static class Extensions
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
 
 
             var code = @"
@@ -11174,6 +11293,209 @@ public static class Extensions
 }";
 
             CompileAndVerify(code, expectedOutput: @"2");
+        }
+
+        [Fact]
+        public void GenericTypeOverriddenMethod()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue F(TKey key) => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue F(A key) => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d.F(a);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<MethodSymbol>();
+                Assert.Equal("B Derived<B>.F(A key)", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenMethod(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.F(A key)", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenProperty()
+        {
+            var source0 =
+@"public class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public virtual TValue this[TKey key] => throw null;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override TValue this[A key] => throw null;
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        _ = d[a];
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<PropertySymbol>();
+                Assert.Equal("B Derived<B>.this[A key] { get; }", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenProperty(accessingTypeOpt: null);
+                Assert.Equal("B Base<A, B>.this[A key] { get; }", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(46549, "https://github.com/dotnet/roslyn/issues/46549")]
+        public void GenericTypeOverriddenEvent()
+        {
+            var source0 =
+@"public delegate TValue D<TKey, TValue>(TKey key);
+public abstract class Base<TKey, TValue>
+    where TKey : class
+    where TValue : class
+{
+    public abstract event D<TKey, TValue> E;
+}";
+            var source1 =
+@"public class A { }
+public class Derived<TValue> : Base<A, TValue>
+    where TValue : class
+{
+    public override event D<A, TValue> E { add { } remove { } }
+}";
+            var source2 =
+@"class B { }
+class Program
+{
+    static void M(Derived<B> d, A a)
+    {
+        d.E += (A a) => default(B);
+    }
+}";
+
+            var comp = CreateCompilation(new[] { source0, source1, source2 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[2]);
+
+            var ref0 = CreateCompilation(source0).EmitToImageReference();
+            var ref1 = CreateCompilation(source1, references: new[] { ref0 }).EmitToImageReference();
+            comp = CreateCompilation(source2, references: new[] { ref0, ref1 });
+            comp.VerifyEmitDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+                var symbol = model.GetSymbolInfo(expr).Symbol.GetSymbol<EventSymbol>();
+                Assert.Equal("event D<A, B> Derived<B>.E", symbol.ToTestDisplayString());
+                symbol = symbol.GetLeastOverriddenEvent(accessingTypeOpt: null);
+                Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_01()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        System.Action<object> d = F<object>;
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,35): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         System.Action<object> d = F<object>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_02()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        F<object>(default);
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         F<object>(default);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
+                );
         }
     }
 }

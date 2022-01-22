@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -438,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case '\"':
                 case '\'':
-                    this.ScanStringLiteral(ref info);
+                    this.ScanStringLiteral(ref info, inDirective: false);
                     break;
 
                 case '/':
@@ -760,39 +762,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '@':
-                    if (TextWindow.PeekChar(1) == '"')
-                    {
-                        this.ScanVerbatimStringLiteral(ref info);
-                    }
-                    else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
-                    {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
-                        break;
-                    }
-                    else if (!this.ScanIdentifierOrKeyword(ref info))
+                    if (!this.TryScanAtStringToken(ref info) &&
+                        !this.ScanIdentifierOrKeyword(ref info))
                     {
                         TextWindow.AdvanceChar();
                         info.Text = TextWindow.GetText(intern: true);
                         this.AddError(ErrorCode.ERR_ExpectedVerbatimLiteral);
                     }
-
                     break;
 
                 case '$':
-                    if (TextWindow.PeekChar(1) == '"')
+                    if (TryScanInterpolatedString(ref info))
                     {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: false, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
                         break;
                     }
-                    else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '"')
-                    {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
-                        break;
-                    }
-                    else if (this.ModeIs(LexerMode.DebuggerSyntax))
+
+                    if (this.ModeIs(LexerMode.DebuggerSyntax))
                     {
                         goto case 'a';
                     }
@@ -939,6 +924,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        private bool TryScanAtStringToken(ref TokenInfo info)
+        {
+            Debug.Assert(TextWindow.PeekChar() == '@');
+
+            if (TextWindow.PeekChar(1) == '"')
+            {
+                this.ScanVerbatimStringLiteral(ref info);
+                return true;
+            }
+            else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
+            {
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryScanInterpolatedString(ref TokenInfo info)
+        {
+            Debug.Assert(TextWindow.PeekChar() == '$');
+
+            if (TextWindow.PeekChar(1) == '"' ||
+                (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '"'))
+            {
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+
+            return false;
+        }
+
 #nullable enable
         private void CheckFeatureAvailability(MessageID feature)
         {
@@ -948,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AddError(info.Code, info.Arguments);
             }
         }
-#nullable restore
+#nullable disable
 
         private bool ScanInteger()
         {
@@ -2834,6 +2851,11 @@ top:
                     info.Kind = SyntaxKind.CommaToken;
                     break;
 
+                case '-':
+                    TextWindow.AdvanceChar();
+                    info.Kind = SyntaxKind.MinusToken;
+                    break;
+
                 case '!':
                     TextWindow.AdvanceChar();
                     if (TextWindow.PeekChar() == '=')
@@ -2900,7 +2922,7 @@ top:
                     break;
 
                 case '\"':
-                    this.ScanStringLiteral(ref info, false);
+                    this.ScanStringLiteral(ref info, inDirective: true);
                     break;
 
                 case '\\':

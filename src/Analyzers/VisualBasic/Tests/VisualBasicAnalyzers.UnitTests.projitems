@@ -10,7 +10,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertGetTypeToNameOf\ConvertGetTypeToNameOfTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\MultipleBlankLinesTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryByVal\RemoveUnnecessaryByValTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessarySuppressionsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.vb" />
@@ -22,19 +30,34 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\RemoveUnnecessaryParenthesesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\RemoveUnusedMembersTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedParametersTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValueAssignmentTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValueExpressionStatementTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValuesTestsBase.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyConditionalTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\SimplifyInterpolationTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\VisualBasicSimplifyLinqExpressionFixAllTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\VisualBasicSimplifyLinqExpressionTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyObjectCreation\SimplifyObjectCreationTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundAssignmentTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForAssignmentTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForReturnTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\UseInferredMemberNameTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNotExpression\UseIsNotExpressionTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckForReferenceEqualsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseObjectInitializerTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringTests.vb" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

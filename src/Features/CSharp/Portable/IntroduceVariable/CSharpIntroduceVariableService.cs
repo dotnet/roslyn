@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -49,19 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         }
 
         protected override bool IsInParameterInitializer(ExpressionSyntax expression)
-        {
-            return expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.Parameter);
-        }
+            => expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.Parameter);
 
         protected override bool IsInConstructorInitializer(ExpressionSyntax expression)
-        {
-            return expression.GetAncestorOrThis<ConstructorInitializerSyntax>() != null;
-        }
+            => expression.GetAncestorOrThis<ConstructorInitializerSyntax>() != null;
 
         protected override bool IsInAutoPropertyInitializer(ExpressionSyntax expression)
-        {
-            return expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.PropertyDeclaration);
-        }
+            => expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.PropertyDeclaration);
 
         protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)
         {
@@ -136,19 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         }
 
         protected override IEnumerable<SyntaxNode> GetContainingExecutableBlocks(ExpressionSyntax expression)
-        {
-            return expression.GetAncestorsOrThis<BlockSyntax>();
-        }
+            => expression.GetAncestorsOrThis<BlockSyntax>();
 
         protected override IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
-        {
-            return destination.GetInsertionIndices(cancellationToken);
-        }
+            => destination.GetInsertionIndices(cancellationToken);
 
         protected override bool CanReplace(ExpressionSyntax expression)
-        {
-            return true;
-        }
+            => true;
 
         protected override bool IsExpressionInStaticLocalFunction(ExpressionSyntax expression)
         {

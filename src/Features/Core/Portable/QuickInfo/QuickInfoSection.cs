@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -37,9 +35,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// <param name="kind">The kind of the section. Use <see cref="QuickInfoSectionKinds"/> for the most common kinds.</param>
         /// <param name="taggedParts">The individual tagged parts of the section.</param>
         public static QuickInfoSection Create(string? kind, ImmutableArray<TaggedText> taggedParts)
-        {
-            return new QuickInfoSection(kind, taggedParts);
-        }
+            => new(kind, taggedParts);
 
         private string? _text;
 

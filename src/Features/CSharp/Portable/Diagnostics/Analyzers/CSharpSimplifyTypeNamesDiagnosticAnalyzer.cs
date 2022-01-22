@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -39,13 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return codeBlock.IsKind(
                 SyntaxKind.CompilationUnit,
                 SyntaxKind.ClassDeclaration,
+                SyntaxKind.RecordDeclaration,
                 SyntaxKind.StructDeclaration,
+                SyntaxKind.RecordStructDeclaration,
                 SyntaxKind.InterfaceDeclaration,
                 SyntaxKind.DelegateDeclaration,
                 SyntaxKind.EnumDeclaration);
         }
 
-        protected override void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
+        protected override ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context)
         {
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
@@ -54,16 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: null, cancellationToken);
             simplifier.Visit(context.CodeBlock);
-            if (!simplifier.HasDiagnostics)
-                return;
-
-            foreach (var diagnostic in simplifier.Diagnostics)
-            {
-                context.ReportDiagnostic(diagnostic);
-            }
+            return simplifier.Diagnostics;
         }
 
-        protected override void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
+        protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
         {
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
@@ -74,13 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: codeBlockIntervalTree, cancellationToken);
             simplifier.Visit(root);
-            if (!simplifier.HasDiagnostics)
-                return;
-
-            foreach (var diagnostic in simplifier.Diagnostics)
-            {
-                context.ReportDiagnostic(diagnostic);
-            }
+            return simplifier.Diagnostics;
         }
 
         internal override bool IsCandidate(SyntaxNode node)
@@ -143,8 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         protected override string GetLanguageName()
-        {
-            return LanguageNames.CSharp;
-        }
+            => LanguageNames.CSharp;
     }
 }

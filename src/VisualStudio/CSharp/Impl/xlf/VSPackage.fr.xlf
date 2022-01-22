@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -79,53 +81,60 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="needs-review-translation">Afficher les diagnostics pour les fichiers fermés ;
-Coloriser l'expression régulière ; 
-Surligner les composants liés sous le curseur ; 
-Signaler les expressions régulières non valides ;
-Activer l'analyse complète de la solution ;
-Effectuer l'analyse des fonctionnalités de l'éditeur dans un processus externe ;
-Activer la navigation vers les sources décompilées ;
-Directives using ;
-Placer en premier les directives system au moment du tri des using ;
-Séparer les groupes de directives using ;
-Suggérer des using pour les types dans les assemblys de référence ;
-Suggérer des using pour les types dans les packages NuGet ;
-Mise en surbrillance ;
-Mettre en surbrillance les références au symbole sous le curseur ;
-Surligner les mots clés liés sous le curseur ;
-Mode Plan ;
-Passer en mode Plan à l'ouverture des fichiers ;
-Afficher les séparateurs de ligne de procédure ;
-Afficher le mode Plan pour les constructions au niveau des déclarations ;
-Afficher le mode Plan pour les constructions au niveau du code ;
-Afficher le mode Plan pour les commentaires et les régions du préprocesseur ;
-Réduire les régions au moment de la réduction aux définitions ;
-Suppression ;
-Supprimer les using inutilisés ;
-Supprimer le code inaccessible ;
-Repères de structure de bloc ;
-Afficher les repères pour les constructions au niveau des déclarations ;
-Afficher les repères pour les constructions au niveau du code ;
-Aide de l'éditeur ;
-Générer des commentaires de documentation XML pour /// ;
-Insérer * au début des nouvelles lignes pour l'écriture de commentaires /* */ ;
-Afficher un aperçu pour le suivi des renommages ;
-Diviser les littéraux de chaîne avec Entrée ;
-Signaler les espaces réservés non valides dans les appels de string.Format ;
-Extraire la méthode ;
-Ne pas ajouter ref ou out dans un struct personnalisé ;
-Implémenter une interface ou une classe abstraite ;
-Quand vous insérez des propriétés, des événements et des méthodes, placez-les ;
-avec d'autres membres du même genre ;
-à la fin ;
-Durant la génération des propriétés ;
-préférer les propriétés de levée d'exceptions ;
-préférer les propriétés automatiques ;
-regex ;
-expression régulière ;
-Utiliser des couleurs améliorées ;</target>
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="new">Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -273,8 +282,10 @@ Insérer un espace avant et après les opérateurs binaires ;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -283,21 +294,25 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Changer les paramètres de la liste de complétion;Présélectionner le dernier membre utilisé;Listes de complétion;
-Afficher la liste de complétion après la saisie d'un caractère ;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="translated">Changer les paramètres de la liste de complétion;Présélectionner le dernier membre utilisé récemment;Listes de complétion;
+Afficher la liste de complétion une fois qu'un caractère a été tapé ;
 Afficher la liste de complétion après la suppression d'un caractère ;
+Afficher automatiquement la liste de complétion dans les listes d'arguments (expérimental) ;
 Mettre en surbrillance les parties correspondantes des éléments de liste de complétion ;
 Afficher les filtres d'éléments de complétion ;
+Effectuer la complétion automatique de l'instruction après l'entrée d'un point-virgule ;
 Comportement des extraits ;
 Ne jamais inclure d'extraits ;
 Toujours inclure les extraits ;
 Inclure les extraits quand ?-Tab est tapé après un identificateur ;
 Comportement de la touche Entrée ;
 Ne jamais ajouter de nouvelle ligne après Entrée ;
-Ajouter uniquement une nouvelle ligne après avoir appuyé sur Entrée à la fin du mot complet tapé ;
+Ajouter uniquement une nouvelle ligne une fois que la touche Entrée a été enfoncée à la fin du mot complet tapé ;
 Toujours ajouter une nouvelle ligne après Entrée ;
-Afficher les suggestions de nom ;</target>
+Afficher les suggestions de nom ;
+Afficher les éléments des espaces de noms qui ne sont pas importés (expérimental) ;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

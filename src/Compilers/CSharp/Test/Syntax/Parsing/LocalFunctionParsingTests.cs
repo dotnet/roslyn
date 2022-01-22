@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -313,7 +315,7 @@ class C
 
         [A][B] void local() { }
     }
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -501,7 +503,7 @@ class C
     {
         public object local;
     }
-}", TestOptions.RegularPreview);
+}", TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -631,13 +633,13 @@ class C
     }
 }";
 
-            UsingTree(code, TestOptions.RegularPreview).GetDiagnostics().Verify();
+            UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
             verifyTree();
 
             UsingTree(code, TestOptions.Regular8).GetDiagnostics().Verify(
-                // (6,9): error CS8652: The feature 'extern local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         extern void local();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("extern local functions").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
             verifyTree();
 
             void verifyTree()
@@ -703,13 +705,13 @@ class C
     }
 }";
 
-            UsingTree(code, TestOptions.RegularPreview).GetDiagnostics().Verify();
+            UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
             verifyTree();
 
             UsingTree(code, TestOptions.Regular8).GetDiagnostics().Verify(
-                // (6,9): error CS8652: The feature 'extern local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         extern void local() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("extern local functions").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
             verifyTree();
 
             void verifyTree()
@@ -771,7 +773,7 @@ class C
         public void LocalVariable_Extern()
         {
             const string statement = "extern object obj;";
-            UsingStatement(statement, TestOptions.RegularPreview,
+            UsingStatement(statement, TestOptions.Regular9,
                 // (1,1): error CS0106: The modifier 'extern' is not valid for this item
                 // extern object obj;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(1, 1));
@@ -816,7 +818,7 @@ class C
     {
         [A] object local;
     }
-}", TestOptions.RegularPreview);
+}", TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -896,7 +898,7 @@ class C
     {
         [A] object local1, local2;
     }
-}", TestOptions.RegularPreview);
+}", TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1271,10 +1273,10 @@ class c
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "c");
-                N(SyntaxKind.OpenBraceToken);
                 {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
                         N(SyntaxKind.PredefinedType);
@@ -1288,8 +1290,8 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalFunctionStatement);
                             {
                                 N(SyntaxKind.IdentifierName);
@@ -1311,18 +1313,18 @@ class c
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
                                         }
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -1337,41 +1339,40 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.InvocationExpression);
-                                N(SyntaxKind.IdentifierName, "await");
+                                N(SyntaxKind.ParenthesizedLambdaExpression);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "await");
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                                N(SyntaxKind.ExpressionStatement);
-                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
                                     N(SyntaxKind.ObjectCreationExpression);
                                     {
                                         N(SyntaxKind.NewKeyword);
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
                                         }
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -1387,8 +1388,8 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
                                 N(SyntaxKind.AwaitExpression);
@@ -1414,11 +1415,11 @@ class c
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "await");
-                                        N(SyntaxKind.ArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1439,8 +1440,8 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalFunctionStatement);
                             {
                                 N(SyntaxKind.IdentifierName);
@@ -1462,18 +1463,18 @@ class c
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
                                         }
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -1489,8 +1490,8 @@ class c
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.Block);
-                        N(SyntaxKind.OpenBraceToken);
                         {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
                                 N(SyntaxKind.AwaitExpression);
@@ -1519,11 +1520,11 @@ class c
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "await");
-                                        N(SyntaxKind.ArgumentList);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -1531,10 +1532,10 @@ class c
                             N(SyntaxKind.CloseBraceToken);
                         }
                     }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.EndOfFileToken);
             }
-            N(SyntaxKind.EndOfFileToken);
             EOF();
         }
 
@@ -1598,7 +1599,7 @@ class c
             UsingDeclaration(text, options: TestOptions.Regular8);
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.RegularPreview);
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -1677,7 +1678,7 @@ class c
             UsingDeclaration(text, options: TestOptions.Regular8);
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.RegularPreview);
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -1794,7 +1795,7 @@ class c
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.RegularPreview,
+            UsingDeclaration(text, options: TestOptions.Regular9,
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
@@ -1923,7 +1924,7 @@ class c
             UsingDeclaration(text, options: TestOptions.Regular8, expected);
             verify();
 
-            UsingDeclaration(text, options: TestOptions.RegularPreview, expected);
+            UsingDeclaration(text, options: TestOptions.Regular9, expected);
             verify();
 
             void verify()

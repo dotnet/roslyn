@@ -6,7 +6,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expres
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class CastOperatorsKeywordRecommenderTests
-        Private ReadOnly Property AllTypeConversionOperatorKeywords As String()
+        Inherits RecommenderTests
+
+        Private Shared ReadOnly Property AllTypeConversionOperatorKeywords As String()
             Get
                 Dim keywords As New List(Of String) From {"CType", "DirectCast", "TryCast"}
 
@@ -19,144 +21,144 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         End Property
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DirectCastHelpTextTest() As Task
-            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "DirectCast",
+        Public Sub DirectCastHelpTextTest()
+            VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "DirectCast",
 $"{VBFeaturesResources.DirectCast_function}
 {VBWorkspaceResources.Introduces_a_type_conversion_operation_similar_to_CType_The_difference_is_that_CType_succeeds_as_long_as_there_is_a_valid_conversion_whereas_DirectCast_requires_that_one_type_inherit_from_or_implement_the_other_type}
 DirectCast({VBWorkspaceResources.expression}, {VBWorkspaceResources.typeName}) As {VBWorkspaceResources.result}")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TryCastHelpTextTest() As Task
-            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "TryCast",
+        Public Sub TryCastHelpTextTest()
+            VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "TryCast",
 $"{VBFeaturesResources.TryCast_function}
 {VBWorkspaceResources.Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for}
 TryCast({VBWorkspaceResources.expression}, {VBWorkspaceResources.typeName}) As {VBWorkspaceResources.result}")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function CTypeHelpTextTest() As Task
-            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "CType",
+        Public Sub CTypeHelpTextTest()
+            VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "CType",
 $"{VBFeaturesResources.CType_function}
 {VBWorkspaceResources.Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type}
 CType({VBWorkspaceResources.expression}, {VBWorkspaceResources.typeName}) As {VBWorkspaceResources.result}")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function CBoolHelpTextTest() As Task
-            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "CBool",
+        Public Sub CBoolHelpTextTest()
+            VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "CBool",
 $"{String.Format(VBFeaturesResources._0_function, "CBool")}
 {String.Format(VBWorkspaceResources.Converts_an_expression_to_the_0_data_type, "Boolean")}
 CBool({VBWorkspaceResources.expression}) As Boolean")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllInStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllInStatementTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterReturnTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterReturnTest()
+            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterArgument1Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterArgument2Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterBinaryExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterNotTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterTypeOfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterTypeOfTest()
+            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterDoWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterDoWhileTest()
+            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterDoUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterDoUntilTest()
+            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterLoopWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub AllAfterLoopWhileTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterLoopUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub AllAfterLoopUntilTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterIfTest()
+            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterElseIfTest()
+            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterElseSpaceIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterElseSpaceIfTest()
+            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterErrorTest()
+            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterThrowTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterThrowTest()
+            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterInitializerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterInitializerTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterArrayInitializerSquiggleTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterArrayInitializerSquiggleTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterArrayInitializerCommaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, AllTypeConversionOperatorKeywords)
-        End Function
+        Public Sub AllAfterArrayInitializerCommaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, AllTypeConversionOperatorKeywords)
+        End Sub
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInDelegateCreationTest() As Task
+        Public Sub NoneInDelegateCreationTest()
             Dim code =
 <File>
 Module Program
@@ -172,8 +174,7 @@ Module Program
 End Module
 </File>
 
-
-            Await VerifyRecommendationsMissingAsync(code, AllTypeConversionOperatorKeywords)
-        End Function
+            VerifyRecommendationsMissing(code, AllTypeConversionOperatorKeywords)
+        End Sub
     End Class
 End Namespace

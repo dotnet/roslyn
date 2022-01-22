@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -45,10 +47,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 base.VisitToken(token);
             }
 
-            private bool IsNone(SymbolInfo info)
-            {
-                return info.Symbol == null && info.CandidateSymbols.Length == 0;
-            }
+            private static bool IsNone(SymbolInfo info)
+                => info.Symbol == null && info.CandidateSymbols.Length == 0;
         }
     }
 }

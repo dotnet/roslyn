@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public RQOutParameter(RQType type) : base(type) { }
 
         public override SimpleTreeNode CreateSimpleTreeForType()
-        {
-            return new SimpleGroupNode(RQNameStrings.ParamMod, new SimpleLeafNode(RQNameStrings.Out), Type.ToSimpleTree());
-        }
+            => new SimpleGroupNode(RQNameStrings.ParamMod, new SimpleLeafNode(RQNameStrings.Out), Type.ToSimpleTree());
     }
 }

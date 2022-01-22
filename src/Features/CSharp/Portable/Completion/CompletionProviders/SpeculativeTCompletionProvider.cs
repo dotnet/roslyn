@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(SpeculativeTCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
+    [ExtensionOrder(After = nameof(AwaitCompletionProvider))]
     [Shared]
     internal class SpeculativeTCompletionProvider : LSPCompletionProvider
     {
@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
+        internal override string Language => LanguageNames.CSharp;
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         T, displayTextSuffix: "", CompletionItemRules.Default, glyph: Glyph.TypeParameter));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
         }
 
-        private async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
+        private static async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
                 syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))
             {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // If we managed to walk out and get a different SpanStart, we treat it as a simple $$T case.
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
 
             var spanStart = position;
             while (true)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken) ||
+            return syntaxTree.IsMemberDeclarationContext(position, contextOpt: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken) ||
                    syntaxTree.IsStatementContext(position, token, cancellationToken) ||
                    syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                    syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (prevToken.IsPossibleTupleOpenParenOrComma())
             {
-                return prevToken.Parent.SpanStart;
+                return prevToken.Parent!.SpanStart;
             }
 
             return position;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -15,9 +17,6 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
-    // HACK: The Export attribute (as ISnippetInfoService) is used by EditorTestApp to create this
-    // SnippetInfoService on the UI thread.
-    [Export(typeof(ISnippetInfoService))]
     [ExportLanguageService(typeof(ISnippetInfoService), LanguageNames.CSharp), Shared]
     internal class CSharpSnippetInfoService : AbstractSnippetInfoService
     {
@@ -31,13 +30,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, serviceProvider, Guids.CSharpLanguageServiceId, listenerProvider)
+            : base(threadingContext, (IAsyncServiceProvider)serviceProvider, Guids.CSharpLanguageServiceId, listenerProvider)
         {
         }
 
         public override bool ShouldFormatSnippet(SnippetInfo snippetInfo)
-        {
-            return _formatTriggeringSnippets.Contains(snippetInfo.Shortcut);
-        }
+            => _formatTriggeringSnippets.Contains(snippetInfo.Shortcut);
     }
 }

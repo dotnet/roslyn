@@ -860,12 +860,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
 #End Region
 
-        Private Sub Test(
+        Private Shared Sub Test(
             workspaceDefinition As XElement,
             ParamArray presentationNodes As NodeVerifier()
         )
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 

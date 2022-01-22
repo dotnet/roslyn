@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal static class TestSources
@@ -314,6 +316,8 @@ namespace System
         public override int GetHashCode() => _value;
 
         public static implicit operator Index(int value) => FromStart(value);
+
+        public override string ToString() => IsFromEnd ? ""^"" + Value.ToString() : Value.ToString();
     }
 }";
 
@@ -382,6 +386,8 @@ namespace System
                 length = Length;
             }
         }
+
+        public override string ToString() => $""{Start}..{End}"";
     }
 }";
 
@@ -399,6 +405,16 @@ namespace System.Runtime.CompilerServices
             Array.Copy(array, offset, newArray, 0, length);
             return newArray;
         }
+    }
+}";
+
+        public const string ITuple = @"
+namespace System.Runtime.CompilerServices
+{
+    public interface ITuple
+    {
+        int Length { get; }
+        object this[int index] { get; }
     }
 }";
     }

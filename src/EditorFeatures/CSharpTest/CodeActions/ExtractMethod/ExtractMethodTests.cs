@@ -6,11 +6,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
+    Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod.ExtractMethodCodeRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod
 {
@@ -40,7 +44,7 @@ dotnet_naming_style.camel_case.capitalization = camel_case";
         [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
         public async Task LocalFuncExtract()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class C
 {
     int Testing;
@@ -91,7 +95,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestPartialSelection()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -116,9 +120,71 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestSelectionOfSwitchExpressionArm()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    int Foo(int x) => x switch
+    {
+        1 => 1,
+        _ => [|1 + x|]
+    };
+}",
+@"class Program
+{
+    int Foo(int x) => x switch
+    {
+        1 => 1,
+        _ => {|Rename:NewMethod|}(x)
+    };
+    private static int NewMethod(int x) => 1 + x;
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestSelectionOfSwitchExpressionArmContainingVariables()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+    sequence switch
+    {
+        Array { Length: 0 } => default(T),
+        Array { Length: 1 } array => [|(T)array.GetValue(0)|],
+        Array { Length: 2 } array => (T)array.GetValue(1),
+        Array array => (T)array.GetValue(2),
+        _ => throw new NotImplementedException(),
+    };
+}",
+@"using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+    sequence switch
+    {
+        Array { Length: 0 } => default(T),
+        Array { Length: 1 } array => {|Rename:NewMethod|}<T>(array),
+        Array { Length: 2 } array => (T)array.GetValue(1),
+        Array array => (T)array.GetValue(2),
+        _ => throw new NotImplementedException(),
+    };
+    private static T NewMethod<T>(Array array) => (T)array.GetValue(0);
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionBodyWhenPossible()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -137,13 +203,13 @@ class C
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -162,13 +228,13 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -193,13 +259,13 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -223,13 +289,13 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
                     true;
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -253,13 +319,170 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 */true;
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractMethodInCtorInit()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i) : this([|i * 10 + 2|], 2)
+    {}
+}",
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i) : this({|Rename:NewMethod|}(i), 2)
+    { }
+
+    private static int NewMethod(int i) => i * 10 + 2;
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractMethodInCtorInitWithOutVar()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i, out int q) : this([|i * 10 + (q = 2)|], 2)
+    {}
+}",
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i, out int q) : this({|Rename:NewMethod|}(i, out q), 2)
+    { }
+
+    private static int NewMethod(int i, out int q) => i * 10 + (q = 2);
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractMethodInCtorInitWithByRefVar()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+
+namespace Test
+{
+    public class BaseX
+    {
+        public BaseX(out int s, int sx, ref int r, in int inRef)
+        {
+            Console.WriteLine(""begin base ctor"");
+
+            s = 42;
+            Console.WriteLine(sx);
+            Console.WriteLine(r);
+            Console.WriteLine(inRef);
+
+            r = 777;
+            Console.WriteLine(inRef);
+            Console.WriteLine(r);
+
+            Console.WriteLine(""end base ctor"");
+        }
+    }
+
+    public class X : BaseX
+    {
+        static int PrintX(int i)
+        {
+            Console.WriteLine(i);
+            return i;
+        }
+
+
+        public X(out int x, ref int r) :
+            base(out x, x = PrintX(x = 12), ref r, [|r++|])
+        {
+            Console.WriteLine($""in ctor {x}"");
+        }
+
+        static void Main()
+        {
+            int val = 33;
+            var x = new X(out var f, ref val);
+            Console.WriteLine(val);
+        }
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+
+namespace Test
+{
+    public class BaseX
+    {
+        public BaseX(out int s, int sx, ref int r, in int inRef)
+        {
+            Console.WriteLine(""begin base ctor"");
+
+            s = 42;
+            Console.WriteLine(sx);
+            Console.WriteLine(r);
+            Console.WriteLine(inRef);
+
+            r = 777;
+            Console.WriteLine(inRef);
+            Console.WriteLine(r);
+
+            Console.WriteLine(""end base ctor"");
+        }
+    }
+
+    public class X : BaseX
+    {
+        static int PrintX(int i)
+        {
+            Console.WriteLine(i);
+            return i;
+        }
+
+
+        public X(out int x, ref int r) :
+            base(out x, x = PrintX(x = 12), ref r, {|Rename:NewMethod|}(ref r))
+        {
+            Console.WriteLine($""in ctor {x}"");
+        }
+
+        private static int NewMethod(ref int r) => r++;
+
+        static void Main()
+        {
+            int val = 33;
+            var x = new X(out var f, ref val);
+            Console.WriteLine(val);
+        }
+    }
+}
+",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -283,14 +506,14 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 "";
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
         }
 
         [WorkItem(540796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestReadOfDataThatDoesNotFlowIn()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -351,7 +574,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestOnStatementAfterUnconditionalGoto()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"delegate int del(int i);
 
 class C
@@ -391,7 +614,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     void Main()
@@ -416,7 +639,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     void Main()
@@ -441,7 +664,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnBase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     void Main()
@@ -467,7 +690,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestOnActionInvocation()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -507,7 +730,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DisambiguateCallSiteIfNecessary1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class Program
@@ -546,7 +769,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DisambiguateCallSiteIfNecessary2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class Program
@@ -784,7 +1007,7 @@ parseOptions: Options.Regular);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Construct
 {
     public void Do() { }
@@ -826,7 +1049,7 @@ parseOptions: Options.Regular);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Construct
 {
     public void Do() { }
@@ -876,7 +1099,7 @@ parseOptions: Options.Regular);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Construct
 {
     public void Do() { }
@@ -919,11 +1142,11 @@ parseOptions: Options.Regular);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTuple()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -947,11 +1170,11 @@ parseOptions: Options.Regular);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleDeclarationWithNames()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -975,11 +1198,11 @@ parseOptions: Options.Regular);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleDeclarationWithSomeNames()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -1003,11 +1226,11 @@ parseOptions: Options.Regular);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         public async Task TestTupleWith1Arity()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 class Program
 {
@@ -1033,11 +1256,11 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleLiteralWithNames()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -1061,11 +1284,11 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleDeclarationAndLiteralWithNames()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -1089,11 +1312,11 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleIntoVar()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -1117,11 +1340,11 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task RefactorWithoutSystemValueTuple()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -1145,12 +1368,12 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
         public async Task TestTupleWithNestedNamedTuple()
         {
             // This is not the best refactoring, but this is an edge case
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -1174,10 +1397,10 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestDeconstruction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -1201,10 +1424,10 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestDeconstruction2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void Main(string[] args)
@@ -1231,10 +1454,10 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.OutVar)]
+        [CompilerTrait(CompilerFeature.OutVar)]
         public async Task TestOutVar()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     static void M(int i)
@@ -1262,10 +1485,10 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task TestIsPattern()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     static void M(int i)
@@ -1293,10 +1516,10 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task TestOutVarAndIsPattern()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     static void M()
@@ -1324,10 +1547,10 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task ConflictingOutVarLocals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     static void M()
@@ -1365,10 +1588,10 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task ConflictingPatternLocals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     static void M()
@@ -1409,7 +1632,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestCancellationTokenGoesLast()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 using System.Threading;
 
@@ -1452,7 +1675,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseVar1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1493,14 +1716,14 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSuggestionEnforcement));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
         }
 
         [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseVar2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1541,7 +1764,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
         }
 
         [Fact]
@@ -1563,7 +1786,7 @@ class C
         [Fact]
         public async Task ExtractLocalFunctionCall_2()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class C
 {
     public static void Main()
@@ -1622,7 +1845,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionInterior()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class C
 {
     public static void Main()
@@ -1655,10 +1878,10 @@ class C
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task Bug3790()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Test
 {
     void method()
@@ -1696,10 +1919,10 @@ class Test
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task Bug3790_1()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Test
 {
     void method()
@@ -1736,10 +1959,10 @@ class Test
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task Bug3790_2()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Test
 {
     void method()
@@ -1776,10 +1999,10 @@ class Test
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyProperty()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Program
 {
     int field;
@@ -1801,10 +2024,10 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyIndexer()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Program
 {
     int field;
@@ -1826,10 +2049,10 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyPropertyGetAccessor()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Program
 {
     int field;
@@ -1859,10 +2082,10 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyPropertySetAccessor()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Program
 {
     int field;
@@ -1892,10 +2115,10 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyIndexerGetAccessor()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Program
 {
     int field;
@@ -1925,10 +2148,10 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyIndexerSetAccessor()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Program
 {
     int field;
@@ -1957,7 +2180,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestTupleWithInferredNames()
         {
             await TestAsync(@"
@@ -1987,7 +2210,7 @@ class Program
 }", TestOptions.Regular7_1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestDeconstruction4()
         {
             await TestAsync(@"
@@ -2016,7 +2239,7 @@ class Program
 }", TestOptions.Regular7_1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestDeconstruction5()
         {
             await TestAsync(@"
@@ -2048,7 +2271,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestIndexExpression()
         {
-            await TestInRegularAndScriptAsync(TestSources.Index + @"
+            await TestInRegularAndScript1Async(TestSources.Index + @"
 class Program
 {
     static void Main(string[] args)
@@ -2056,9 +2279,6 @@ class Program
         System.Console.WriteLine([|^1|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 @"
 class Program
@@ -2068,7 +2288,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Index NewMethod()
+    private static System.Index NewMethod()
     {
         return ^1;
     }
@@ -2078,7 +2298,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestRangeExpression_Empty()
         {
-            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+            await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2086,9 +2306,6 @@ class Program
         System.Console.WriteLine([|..|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2098,7 +2315,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return ..;
     }
@@ -2108,7 +2325,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestRangeExpression_Left()
         {
-            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+            await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2116,9 +2333,6 @@ class Program
         System.Console.WriteLine([|..1|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2128,7 +2342,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return ..1;
     }
@@ -2138,7 +2352,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestRangeExpression_Right()
         {
-            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+            await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2146,9 +2360,6 @@ class Program
         System.Console.WriteLine([|1..|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2158,7 +2369,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return 1..;
     }
@@ -2168,7 +2379,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestRangeExpression_Both()
         {
-            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+            await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + @"
 class Program
 {
     static void Main(string[] args)
@@ -2176,9 +2387,6 @@ class Program
         System.Console.WriteLine([|1..2|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2188,7 +2396,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return 1..2;
     }
@@ -2197,7 +2405,7 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestAnnotatedNullableReturn()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2229,10 +2437,9 @@ class C
     }
 }");
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestAnnotatedNullableParameters1()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2267,7 +2474,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestAnnotatedNullableParameters2()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2304,7 +2511,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestAnnotatedNullableParameters3()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2337,7 +2544,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestAnnotatedNullableParameters4()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2368,7 +2575,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowStateNullableParameters1()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2399,7 +2606,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowStateNullableParameters2()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2430,7 +2637,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowStateNullableParameters3()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2461,7 +2668,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowStateNullableParameters_MultipleStates()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2507,7 +2714,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2553,7 +2760,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2597,7 +2804,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowStateNullableParameters_RefNotNull()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2645,7 +2852,7 @@ class C
         // that the value is indeed not null.
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowNullableReturn_NotNull1()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2679,7 +2886,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowNullableReturn_NotNull2()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 class C
@@ -2714,7 +2921,7 @@ class C
 }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowNullable_Lambda()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -2762,7 +2969,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestFlowNullable_LambdaWithReturn()
-            => TestInRegularAndScriptAsync(
+            => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -2811,7 +3018,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractReadOnlyMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"struct S1
 {
     readonly int M1() => 42;
@@ -2838,7 +3045,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractReadOnlyMethodInReadOnlyStruct()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"readonly struct S1
 {
     int M1() => 42;
@@ -2865,7 +3072,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"struct S1
 {
     int M1() => 42;
@@ -2889,10 +3096,9 @@ class C
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNullableObjectWithExplicitCast()
-        => TestInRegularAndScriptAsync(
+        => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -2927,7 +3133,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNotNullableObjectWithExplicitCast()
-        => TestInRegularAndScriptAsync(
+        => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -2962,7 +3168,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNotNullableWithExplicitCast()
-        => TestInRegularAndScriptAsync(
+        => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -3011,7 +3217,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNullableWithExplicitCast()
-        => TestInRegularAndScriptAsync(
+        => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -3060,7 +3266,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNotNullableWithExplicitCastSelected()
-        => TestInRegularAndScriptAsync(
+        => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -3095,7 +3301,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNullableWithExplicitCastSelected()
-        => TestInRegularAndScriptAsync(
+        => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -3129,7 +3335,7 @@ class C
 }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
-        => TestInRegularAndScriptAsync(
+        => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -3164,7 +3370,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
-        => TestInRegularAndScriptAsync(
+        => TestInRegularAndScript1Async(
 @"#nullable enable
 
 using System;
@@ -3200,7 +3406,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
     @"class Program
 {
     static void Main(string[] args)
@@ -3221,13 +3427,13 @@ class C
     {
         return b != true;
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.FalseWithSuggestionEnforcement));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.FalseWithSuggestionEnforcement)));
         }
 
         [Fact, WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task ExtractLocalFunctionCallAndDeclaration()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class C
 {
     public static void Main()
@@ -3277,7 +3483,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 class Program
 {
     static void Main(string[] args)
@@ -3310,7 +3516,7 @@ class Program
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractNonAsyncMethodWithAsyncLocalFunction()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M() 
@@ -3337,7 +3543,7 @@ class Program
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitFalse()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3362,7 +3568,7 @@ class Program
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitFalseNamedParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3387,7 +3593,7 @@ class Program
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOnNonTask()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Threading.Tasks
 
 class C
@@ -3416,7 +3622,7 @@ class C
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitTrue()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3441,7 +3647,7 @@ class C
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitNonLiteral()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3466,7 +3672,7 @@ class C
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithNoConfigureAwait()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3491,7 +3697,7 @@ class C
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLambda()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3516,7 +3722,7 @@ class C
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3545,7 +3751,7 @@ class C
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3574,7 +3780,7 @@ class C
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3603,7 +3809,7 @@ class C
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3632,7 +3838,7 @@ class C
         [Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     async Task MyDelay(TimeSpan duration) 
@@ -3701,7 +3907,7 @@ csharp_style_expression_bodied_methods = true:silent
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegularAndScript1Async(input, expected);
         }
 
         [Fact, WorkItem(40188, "https://github.com/dotnet/roslyn/issues/40188"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -3750,7 +3956,7 @@ csharp_style_expression_bodied_methods = false:silent
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegularAndScript1Async(input, expected);
         }
 
         [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -3797,7 +4003,7 @@ class Program1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegularAndScript1Async(input, expected);
         }
 
         [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -3842,7 +4048,7 @@ class MethodExtraction
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegularAndScript1Async(input, expected);
         }
 
         [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
@@ -3872,7 +4078,7 @@ class C
         using System;
     }
 }";
-            await TestInRegularAndScriptAsync(input, expected);
+            await TestInRegularAndScript1Async(input, expected);
         }
 
         [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
@@ -3892,7 +4098,7 @@ class C
         [Fact, WorkItem(19461, "https://github.com/dotnet/roslyn/issues/19461")]
         public async Task TestLocalFunction()
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScript1Async(@"
 using System;
 
 class Program
@@ -3928,6 +4134,488 @@ class Program
         }
     }
 }");
+        }
+
+        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
+        public async Task TestRecursivePatternRewrite()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+namespace N
+{
+    class Context
+    {
+    }
+    class C
+    {
+        public void DoAction(Action<Context> action)
+        {
+        }
+        private void Recursive(object context)
+        {
+            DoAction(context =>
+            {
+                if (context is Context { })
+                {
+                    DoAction(
+                        [|context =>|] context.ToString());
+                }
+            });
+        }
+    }
+}", @"
+using System;
+namespace N
+{
+    class Context
+    {
+    }
+    class C
+    {
+        public void DoAction(Action<Context> action)
+        {
+        }
+        private void Recursive(object context)
+        {
+            DoAction(context =>
+            {
+                if (context is Context { })
+                {
+                    DoAction(
+                        {|Rename:NewMethod|}());
+                }
+            });
+        }
+
+        private static Action<Context> NewMethod()
+        {
+            return context => context.ToString();
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess1()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|ToString|]();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess2()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|ToString|]().Length;
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static int? NewMethod(List<int> b)
+    {
+        return b?.ToString().Length;
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess3()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.Count.[|ToString|]();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.Count.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess4()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|Count|].ToString();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.Count.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess5()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.[|ToString|]()?.ToString();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.ToString()?.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess6()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?.ToString()?.[|ToString|]();
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static string NewMethod(List<int> b)
+    {
+        return b?.ToString()?.ToString();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
+        public async Task TestConditionalAccess7()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = b?[|[0]|];
+    }
+}", @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Test()
+    {
+        List<int> b = null;
+        b?.Clear();
+        _ = {|Rename:NewMethod|}(b);
+    }
+
+    private static int? NewMethod(List<int> b)
+    {
+        return b?[0];
+    }
+}");
+        }
+
+        [WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public async Task TestInRecord(string record)
+        {
+            await TestInRegularAndScript1Async($@"
+{record} Program
+{{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}}",
+$@"
+{record} Program
+{{
+    int field;
+
+    public int this[int i] => {{|Rename:GetField|}}();
+
+    private int GetField()
+    {{
+        return this.field;
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestInRecordStruct()
+        {
+            await TestInRegularAndScript1Async(@"
+record struct Program
+{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}",
+@"
+record struct Program
+{
+    int field;
+
+    public int this[int i] => {|Rename:GetField|}();
+
+    private readonly int GetField()
+    {
+        return this.field;
+    }
+}");
+        }
+
+        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestMethodInNamespace()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+namespace TestNamespace
+{
+    private bool TestMethod() => [|false|];
+}");
+        }
+
+        [WorkItem(53031, "https://github.com/dotnet/roslyn/issues/53031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestMethodInInterface()
+        {
+            await TestInRegularAndScript1Async(@"
+interface TestInterface
+{
+    bool TestMethod() => [|false|];
+}",
+@"
+interface TestInterface
+{
+    bool TestMethod() => {|Rename:NewMethod|}();
+
+    bool NewMethod()
+    {
+        return false;
+    }
+}");
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_FullStatement()
+        {
+            var code = @"
+[|System.Console.WriteLine(""string"");|]
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+            }.RunAsync();
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_MultipleStatements()
+        {
+            var code = @"
+System.Console.WriteLine(""string"");
+
+[|int x = int.Parse(""0"");
+System.Console.WriteLine(x);|]
+
+System.Console.WriteLine(x);
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+            }.RunAsync();
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_MultipleStatementsWithUsingAndClass()
+        {
+            var code = @"
+using System;
+
+Console.WriteLine(""string"");
+
+[|int x = int.Parse(""0"");
+Console.WriteLine(x);|]
+
+Console.WriteLine(x);
+
+class Ignored { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+            }.RunAsync();
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/56969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TopLevelStatement_MultipleStatementsWithInvalidOrdering()
+        {
+            var code = @"
+using System;
+
+Console.WriteLine(""string"");
+
+class Ignored { }
+
+[|{|CS8803:int x = int.Parse(""0"");|}
+Console.WriteLine(x);|]
+
+Console.WriteLine(x);
+
+class Ignored2 { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+            }.RunAsync();
         }
     }
 }

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,9 +21,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal class ImplementAbstractClassData
+    internal sealed class ImplementAbstractClassData
     {
         private readonly Document _document;
+        private readonly ImplementTypeOptions _options;
         private readonly SyntaxNode _classNode;
         private readonly SyntaxToken _classIdentifier;
         private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers;
@@ -33,11 +33,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         public readonly INamedTypeSymbol AbstractClassType;
 
         public ImplementAbstractClassData(
-            Document document, SyntaxNode classNode, SyntaxToken classIdentifier,
+            Document document, ImplementTypeOptions options, SyntaxNode classNode, SyntaxToken classIdentifier,
             INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
         {
             _document = document;
+            _options = options;
             _classNode = classNode;
             _classIdentifier = classIdentifier;
             ClassType = classType;
@@ -46,10 +47,10 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         }
 
         public static async Task<ImplementAbstractClassData?> TryGetDataAsync(
-            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, CancellationToken cancellationToken)
+            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeOptions options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!(semanticModel.GetDeclaredSymbol(classNode) is INamedTypeSymbol classType))
+            if (semanticModel.GetDeclaredSymbol(classNode, cancellationToken) is not INamedTypeSymbol classType)
                 return null;
 
             if (classType.IsAbstract)
@@ -71,14 +72,14 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 return null;
 
             return new ImplementAbstractClassData(
-                document, classNode, classIdentifier,
+                document, options, classNode, classIdentifier,
                 classType, abstractClassType, unimplementedMembers);
         }
 
         public static async Task<Document?> TryImplementAbstractClassAsync(
-            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, CancellationToken cancellationToken)
+            Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeOptions options, CancellationToken cancellationToken)
         {
-            var data = await TryGetDataAsync(document, classNode, classIdentifier, cancellationToken).ConfigureAwait(false);
+            var data = await TryGetDataAsync(document, classNode, classIdentifier, options, cancellationToken).ConfigureAwait(false);
             if (data == null)
                 return null;
 
@@ -89,14 +90,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             ISymbol? throughMember, bool? canDelegateAllMembers, CancellationToken cancellationToken)
         {
             var compilation = await _document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
-
-            var memberDefinitions = GenerateMembers(compilation, throughMember, propertyGenerationBehavior, cancellationToken);
-
-            var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
-            var groupMembers = insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+            var memberDefinitions = GenerateMembers(compilation, throughMember, _options.PropertyGenerationBehavior, cancellationToken);
+            var groupMembers = _options.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
             // If we're implementing through one of our members, but we can't delegate all members
             // through it, then give an error message on the class decl letting the user know.
@@ -110,14 +105,19 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                         FeaturesResources.Base_classes_contain_inaccessible_unimplemented_members)));
             }
 
-            var updatedClassNode = CodeGenerator.AddMemberDeclarations(
+            var context = new CodeGenerationContext(
+                contextLocation: classNodeToAddMembersTo.GetLocation(),
+                autoInsertionLocation: groupMembers,
+                sortMembers: groupMembers);
+
+            var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+            var options = await CodeGenerationOptions.FromDocumentAsync(context, _document, cancellationToken).ConfigureAwait(false);
+
+            var updatedClassNode = codeGenerator.AddMembers(
                 classNodeToAddMembersTo,
                 memberDefinitions,
-                _document.Project.Solution.Workspace,
-                new CodeGenerationOptions(
-                    contextLocation: classNodeToAddMembersTo.GetLocation(),
-                    autoInsertionLocation: groupMembers,
-                    sortMembers: groupMembers));
+                options,
+                cancellationToken);
 
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(_classNode, updatedClassNode);
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 statements: ImmutableArray.Create(statement));
         }
 
-        private bool ShouldGenerateAccessor(IMethodSymbol? method)
+        private bool ShouldGenerateAccessor([NotNullWhen(true)] IMethodSymbol? method)
             => method != null && ClassType.FindImplementationForAbstractMember(method) == null;
 
         public IEnumerable<(ISymbol symbol, bool canDelegateAllMembers)> GetDelegatableMembers()

@@ -50,6 +50,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEmptyStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -80,10 +87,26 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(
+@"global using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNamespace()
         {
             await VerifyKeywordAsync(
 @"namespace N {}
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
 $$");
         }
 
@@ -156,6 +179,22 @@ using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"$$
+global using Goo;");
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"$$
+global using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
             await VerifyKeywordAsync(
@@ -214,9 +253,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAbstract()
@@ -255,9 +292,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterInvalidPublic()
-        {
-            await VerifyAbsenceAsync(@"virtual public $$");
-        }
+            => await VerifyAbsenceAsync(@"virtual public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPrivate()
@@ -295,24 +330,51 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass()
+        public async Task TestNotAfterStaticInGlobalUsingDirective()
         {
-            await VerifyAbsenceAsync(@"class $$");
+            await VerifyAbsenceAsync(
+@"global using static $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterClass()
+            => await VerifyAbsenceAsync(@"class $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDelegate()
+            => await VerifyAbsenceAsync(@"delegate $$");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        public async Task TestNotBetweenUsings()
         {
-            await VerifyAbsenceAsync(@"delegate $$");
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"using Goo;
+$$
+using Bar;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBetweenUsings()
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        public async Task TestNotBetweenGlobalUsings_01()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"using Goo;
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"global using Goo;
 $$
-using Bar;"));
+using Bar;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        public async Task TestNotBetweenGlobalUsings_02()
+        {
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"global using Goo;
+$$
+global using Bar;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

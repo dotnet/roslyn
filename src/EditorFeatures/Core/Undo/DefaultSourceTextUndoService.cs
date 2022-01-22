@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,18 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
         }
 
         public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
-        {
-            return null;
-        }
+            => null;
 
         public bool BeginUndoTransaction(ITextSnapshot snapshot)
-        {
-            return false;
-        }
+            => false;
 
         public bool EndUndoTransaction(ISourceTextUndoTransaction transaction)
-        {
-            return false;
-        }
+            => false;
     }
 }

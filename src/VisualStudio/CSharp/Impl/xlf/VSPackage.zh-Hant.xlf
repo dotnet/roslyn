@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -79,53 +81,60 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="needs-review-translation">顯示已關閉檔案的診斷;
-為規則運算式標示色彩; 
-醒目提示游標下的相關元件; 
-回報無效的規則運算式;
-啟用完整解決方案分析;
-在外部處理序中執行編輯器功能分析;
-允許瀏覽到反向組譯的來源;
-Using 指示詞;
-排序 using 時先放置系統指示詞;
-分隔 using 指示詞群組;
-為參考組件中的類型建議 using;
-為 NuGet 套件中的類型建議 using;
-醒目提示;
-醒目提示游標下的符號參考;
-醒目提示游標下的相關關鍵字;
-大綱;
-在檔案開啟時進入大綱模式;
-顯示程序行分隔符號;
-顯示宣告層級建構的大綱;
-顯示程式碼層級建構的大綱;
-顯示註解和前置處理器區域的大綱;
-在摺疊到定義時摺疊區域;
-淡化;
-淡化未使用的 using;
-淡化無法執行到的程式碼;
-區塊結構輔助線;
-顯示宣告層級建構的輔助線;
-顯示程式碼層級建構的輔助線;
-編輯器說明;
-產生 /// 的 XML 文件註解;
-在撰寫 /* */ 註解時，於新行開頭插入 *;
-顯示重新命名追蹤的預覽;
-在按 Enter 鍵時分割字串常值;
-回報 string.Format 呼叫中的無效預留位置;
-擷取方法;
-不要在自訂結構上放置 ref 或 out;
-實作介面或抽象類別;
-在插入屬性、事件和方法時，予以放置;
-並隨同其他同種類的成員;
-在結尾;
-在產生屬性時;
-建議使用擲回屬性;
-建議使用自動屬性;
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="new">Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
 regex;
-規則運算式;
-使用增強色彩;</target>
+regular expression;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -273,8 +282,10 @@ Insert space before and after binary operators;</source>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -283,21 +294,25 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">變更完成清單設定;預先選取最近使用的成員; 完成清單;
-在鍵入字元後顯示完成清單;
-在刪除字元後顯示完成清單;
-醒目提示完成清單項目的相符部分;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="translated">變更自動完成清單設定;預先選取最近使用的成員; 自動完成清單;
+在鍵入字元後顯示自動完成清單;
+在刪除字元後顯示自動完成清單;
+自動在引數清單中顯示自動完成清單 (實驗性);
+醒目提示自動完成清單項目的相符部分;
 顯示完成項目篩選;
+在遇到分號時自動完成陳述式;
 程式碼片段行為;
-永不包含程式碼片段;
-永遠包含程式碼片段;
+一律不包含程式碼片段;
+一律包含程式碼片段;
 在識別碼後鍵入 ?-Tab 時包含程式碼片段;
-輸入按鍵行為;
-永不在按下 enter 鍵時新增行;
-只在按下 enter 鍵時，於完整鍵入的文字結尾後新增行;
-永遠在按下 enter 鍵時新增行;
-顯示名稱建議;</target>
+Enter 鍵行為;
+一律不在按下 Enter 鍵時新增一行程式碼;
+只在按下 Enter 鍵時，於完整鍵入的文字結尾後新增一行程式碼;
+一律在按下 Enter 鍵時新增一行程式碼;
+顯示名稱建議;
+顯示未匯入命名空間中的項目 (實驗性);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

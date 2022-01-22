@@ -2,196 +2,197 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class OperatorKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorInClassDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>|</ClassDeclaration>, "Operator")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotInMethodDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Operator")
-        End Function
+        Public Sub OperatorInClassDeclarationTest()
+            VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotInNamespaceTest() As Task
-            Await VerifyRecommendationsMissingAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotInMethodDeclarationTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotInInterfaceTest() As Task
-            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotInNamespaceTest()
+            VerifyRecommendationsMissing(<NamespaceDeclaration>|</NamespaceDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotInEnumTest() As Task
-            Await VerifyRecommendationsMissingAsync(<EnumDeclaration>|</EnumDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotInInterfaceTest()
+            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorInStructureTest() As Task
-            Await VerifyRecommendationsContainAsync(<StructureDeclaration>|</StructureDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotInEnumTest()
+            VerifyRecommendationsMissing(<EnumDeclaration>|</EnumDeclaration>, "Operator")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub OperatorInStructureTest()
+            VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <WorkItem(544630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544630")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotInModuleTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterPartialTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Partial |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterPartialTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Partial |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorAfterPublicTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorAfterPublicTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Public |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterProtectedTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Protected |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterProtectedTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Protected |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterFriendTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Friend |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterFriendTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Friend |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterPrivateTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Private |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterPrivateTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Private |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterProtectedFriendTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterProtectedFriendTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorAfterOverloadsTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Overloads |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorAfterOverloadsTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Overloads |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterOverridesTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overrides |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterOverridesTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Overrides |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterOverridableTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overridable |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterOverridableTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Overridable |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterNotOverridableTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterNotOverridableTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterMustOverrideTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterMustOverrideTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterMustOverrideOverridesTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterMustOverrideOverridesTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterNotOverridableOverridesTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterNotOverridableOverridesTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterConstTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Const |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterConstTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Const |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterDefaultTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterDefaultTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Default |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterMustInheritTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterMustInheritTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterNotInheritableTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterNotInheritableTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorCTypeAfterNarrowingTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Operator CType")
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorCTypeAfterNarrowingTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Operator CType")
+            VerifyRecommendationsMissing(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorCTypeAfterWideningTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Widening |</ClassDeclaration>, "Operator CType")
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Widening |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorCTypeAfterWideningTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Widening |</ClassDeclaration>, "Operator CType")
+            VerifyRecommendationsMissing(<ClassDeclaration>Widening |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterReadOnlyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterReadOnlyTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterWriteOnlyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterWriteOnlyTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorNotAfterCustomTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Custom |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorNotAfterCustomTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Custom |</ClassDeclaration>, "Operator")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OperatorAfterSharedTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Operator")
-        End Function
+        Public Sub OperatorAfterSharedTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Shared |</ClassDeclaration>, "Operator")
+        End Sub
 
         <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterHashTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub NotAfterHashTest()
+            VerifyRecommendationsMissing(<File>
 Imports System
 
 #|
@@ -201,6 +202,6 @@ Module Module1
 End Module
 
 </File>, "Operator")
-        End Function
+        End Sub
     End Class
 End Namespace

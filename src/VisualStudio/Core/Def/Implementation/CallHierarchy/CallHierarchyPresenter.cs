@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
@@ -22,15 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CallHierarchy
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CallHierarchyPresenter(SVsServiceProvider serviceProvider)
-        {
-            _serviceProvider = (IServiceProvider)serviceProvider;
-        }
+            => _serviceProvider = serviceProvider;
 
         public void PresentRoot(CallHierarchyItem root)
         {
             var callHierarchy = _serviceProvider.GetService(typeof(SCallHierarchy)) as ICallHierarchy;
             callHierarchy.ShowToolWindow();
-            callHierarchy.AddRootItem((ICallHierarchyMemberItem)root);
+            callHierarchy.AddRootItem(root);
         }
     }
 }

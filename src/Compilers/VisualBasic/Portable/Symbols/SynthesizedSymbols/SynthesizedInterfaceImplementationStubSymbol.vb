@@ -194,8 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim compilation = Me.DeclaringCompilation
             If Me.ReturnType.ContainsTupleNames() AndAlso
-                compilation.HasTupleNamesAttributes AndAlso
-                compilation.CanEmitSpecialType(SpecialType.System_String) Then
+                compilation.HasTupleNamesAttributes Then
 
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Me.ReturnType))
             End If

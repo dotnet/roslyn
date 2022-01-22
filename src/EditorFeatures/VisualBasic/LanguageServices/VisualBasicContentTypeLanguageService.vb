@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     Friend Class VisualBasicContentTypeLanguageService
         Implements IContentTypeLanguageService
 
-        Private _contentTypeRegistry As IContentTypeRegistryService
+        Private ReadOnly _contentTypeRegistry As IContentTypeRegistryService
 
         <ImportingConstructor()>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -59,6 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool IParameterSymbol.IsDiscard => _underlying.IsDiscard;
 
         bool IParameterSymbol.IsParams => _underlying.IsParams;
+
+        bool IParameterSymbol.IsNullChecked => _underlying.IsNullChecked;
 
         bool IParameterSymbol.IsOptional => _underlying.IsOptional;
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,23 +11,30 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     [UseExportProvider]
     public class CSharpFormatterTestsBase : CSharpFormattingEngineTestBase
     {
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestFormattingRuleFactoryServiceFactory));
+
+        public CSharpFormatterTestsBase(ITestOutputHelper output) : base(output) { }
+
         protected const string HtmlMarkup = @"<html>
     <body>
         <%{|S1:|}%>
@@ -73,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
             var rules = formattingRuleProvider.CreateRule(document, position).Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var documentOptions = await document.GetOptionsAsync();
-            var formatter = new CSharpSmartTokenFormatter(documentOptions, rules, root);
-            var changes = await formatter.FormatTokenAsync(workspace, token, CancellationToken.None);
+            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
+            var formatter = new CSharpSmartTokenFormatter(options, rules, root);
+            var changes = await formatter.FormatTokenAsync(workspace.Services, token, CancellationToken.None);
 
             ApplyChanges(buffer, changes);
         }
@@ -91,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             edit.Apply();
         }
 
-        protected async Task<int> GetSmartTokenFormatterIndentationAsync(
+        protected static async Task<int> GetSmartTokenFormatterIndentationAsync(
             string code,
             int indentationLine,
             char ch,
@@ -100,15 +109,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             TextSpan span = default)
         {
             // create tree service
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
 
             if (baseIndentation.HasValue)
             {
-                var factory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()
-                            as TestFormattingRuleFactoryServiceFactory.Factory;
-
+                var factory = (TestFormattingRuleFactoryServiceFactory.Factory)workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
                 factory.BaseIndentation = baseIndentation.Value;
                 factory.TextSpan = span;
             }

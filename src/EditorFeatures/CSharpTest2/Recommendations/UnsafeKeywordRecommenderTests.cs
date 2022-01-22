@@ -50,6 +50,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInEmptyStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -80,10 +87,26 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(
+@"global using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNamespace()
         {
             await VerifyKeywordAsync(
 @"namespace N {}
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
 $$");
         }
 
@@ -147,6 +170,22 @@ using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"$$
+global using Goo;");
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"$$
+global using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
             await VerifyKeywordAsync(
@@ -198,9 +237,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAbstract()
@@ -218,21 +255,15 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUnsafe()
-        {
-            await VerifyAbsenceAsync(@"unsafe $$");
-        }
+            => await VerifyAbsenceAsync(@"unsafe $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterStaticUnsafe()
-        {
-            await VerifyAbsenceAsync(@"static unsafe $$");
-        }
+            => await VerifyAbsenceAsync(@"static unsafe $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUnsafeStatic()
-        {
-            await VerifyAbsenceAsync(@"unsafe static $$");
-        }
+            => await VerifyAbsenceAsync(@"unsafe static $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPrivate()
@@ -270,16 +301,19 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass()
+        public async Task TestNotAfterStaticInGlobalUsingDirective()
         {
-            await VerifyAbsenceAsync(@"class $$");
+            await VerifyAbsenceAsync(
+@"global using static $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterClass()
+            => await VerifyAbsenceAsync(@"class $$");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDelegate()
-        {
-            await VerifyAbsenceAsync(@"delegate $$");
-        }
+            => await VerifyAbsenceAsync(@"delegate $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedAbstract()

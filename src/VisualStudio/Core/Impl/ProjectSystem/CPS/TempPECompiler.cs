@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,9 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TempPECompiler(VisualStudioWorkspace workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public async Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, ISet<string> filesToInclude, CancellationToken cancellationToken)
         {
@@ -37,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 throw new ArgumentException(nameof(filesToInclude), "Must specify some files to compile.");
             }
+
             if (outputFileName == null)
             {
                 throw new ArgumentException(nameof(outputFileName), "Must specify an output file name.");

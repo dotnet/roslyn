@@ -66,8 +66,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             End Class
         End Class
 
-        Private Sub GetMainDocumentAndPreviews(parameters As TestParameters, workspace As TestWorkspace, ByRef document As Document, ByRef previews As SolutionPreviewResult)
-            document = GetDocument(workspace)
+        Private Async Function GetMainDocumentAndPreviewsAsync(
+                parameters As TestParameters,
+                workspace As TestWorkspace) As Task(Of (document As Document, previews As SolutionPreviewResult))
+            Dim document = GetDocument(workspace)
             Dim provider = CreateCodeRefactoringProvider(workspace, parameters)
             Dim span = document.GetSyntaxRootAsync().Result.Span
             Dim refactorings = New List(Of CodeAction)()
@@ -75,16 +77,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             provider.ComputeRefactoringsAsync(context).Wait()
             Dim action = refactorings.Single()
             Dim editHandler = workspace.ExportProvider.GetExportedValue(Of ICodeActionEditHandlerService)()
-            previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None)
-        End Sub
+            Dim previews = Await editHandler.GetPreviewsAsync(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None)
+
+            Return (document, previews)
+        End Function
 
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14421")>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
             Dim parameters As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile("Class D : End Class", parameters)
-                Dim document As Document = Nothing
-                Dim previews As SolutionPreviewResult = Nothing
-                GetMainDocumentAndPreviews(parameters, workspace, document, previews)
+            Using workspace = CreateWorkspaceFromOptions("Class D : End Class", parameters)
+                Dim tuple = Await GetMainDocumentAndPreviewsAsync(parameters, workspace)
+                Dim document = tuple.document
+                Dim previews = tuple.previews
 
                 ' The changed document comes first.
                 Dim previewObjects = Await previews.GetPreviewsAsync()

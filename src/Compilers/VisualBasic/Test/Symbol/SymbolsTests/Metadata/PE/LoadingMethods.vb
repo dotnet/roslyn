@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestResources.General.MDTestLib2,
                     TestResources.SymbolsTests.Methods.CSMethods,
                     TestResources.SymbolsTests.Methods.VBMethods,
-                    TestResources.NetFX.v4_0_21006.mscorlib,
+                    ResourcesNet40.mscorlib,
                     TestResources.SymbolsTests.Methods.ByRefReturn
                 }, importInternals:=True)
 
@@ -433,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationGeneric()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -465,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationConstructed()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -528,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationOfUnrelatedGenericInterfaceMethod()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
 
@@ -557,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestTypeParameterPositions()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -965,5 +965,124 @@ BC30390: 'C2.Private Overloads Sub M2()' is not accessible in this context becau
 ]]></expected>)
         End Sub
 
+        <Fact>
+        <WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")>
+        Public Sub TestAmbiguousImplementationMethod()
+
+            Dim ilSource =
+            <![CDATA[
+.class interface public auto ansi abstract Interface`2<T, U>
+{
+    // Methods
+    .method public hidebysig abstract virtual  
+        void Method (
+            int32 i
+        ) cil managed 
+    {
+    } // end of method Interface`2::Method
+
+    .method public hidebysig abstract virtual  
+        void Method (
+            !T i
+        ) cil managed 
+    {
+    } // end of method Interface`2::Method
+
+    .method public hidebysig abstract virtual  
+        void Method (
+            !U i
+        ) cil managed 
+    {
+    } // end of method Interface`2::Method
+
+} // end of class Interface`2
+
+.class public auto ansi beforefieldinit Base`1<T>
+    extends [mscorlib]System.Object
+    implements class Interface`2<!T, !T>
+{
+    // Methods
+    .method public hidebysig newslot virtual 
+        void Method (
+            int32 i
+        ) cil managed 
+    {
+        .override method instance void class Interface`2<!T, !T>::Method(int32)
+        // Method begins at RVA 0x2050
+        // Code size 2 (0x2)
+        .maxstack 8
+
+        IL_0000: nop
+        IL_0001: ret
+    } // end of method Base`1::Method
+
+    .method public hidebysig newslot virtual 
+        void Method (
+            !T i
+        ) cil managed 
+    {
+        .override method instance void class Interface`2<!T, !T>::Method(!0)
+        .override method instance void class Interface`2<!T, !T>::Method(!1)
+        // Method begins at RVA 0x2050
+        // Code size 2 (0x2)
+        .maxstack 8
+
+        IL_0000: nop
+        IL_0001: ret
+    } // end of method Base`1::Method
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2053
+        // Code size 8 (0x8)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    } // end of method Base`1::.ctor
+
+} // end of class Base`1
+]]>
+
+            Dim compilationDef =
+<compilation name="SimpleTest1">
+    <file name="a.vb">
+Option Strict Off
+
+Imports System
+
+Module Module1
+    Sub Main()
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
+
+            Dim b = compilation.GlobalNamespace.GetTypeMember("Base")
+            Dim bI = b.Interfaces().Single()
+            Dim biMethods = bI.GetMembers()
+
+            Assert.Equal("Sub [Interface](Of T, U).Method(i As System.Int32)", biMethods(0).OriginalDefinition.ToTestDisplayString())
+            Assert.Equal("Sub [Interface](Of T, U).Method(i As T)", biMethods(1).OriginalDefinition.ToTestDisplayString())
+            Assert.Equal("Sub [Interface](Of T, U).Method(i As U)", biMethods(2).OriginalDefinition.ToTestDisplayString())
+
+            Dim bMethods = b.GetMembers()
+
+            Assert.Equal("Sub Base(Of T).Method(i As System.Int32)", bMethods(0).ToTestDisplayString())
+            Assert.Equal("Sub Base(Of T).Method(i As T)", bMethods(1).ToTestDisplayString())
+
+            Dim bM1Impl = DirectCast(bMethods(0), MethodSymbol).ExplicitInterfaceImplementations
+            Dim bM2Impl = DirectCast(bMethods(1), MethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(biMethods(0), bM1Impl.Single())
+
+            Assert.Equal(2, bM2Impl.Length)
+            Assert.Equal(biMethods(1), bM2Impl(0))
+            Assert.Equal(biMethods(2), bM2Impl(1))
+        End Sub
     End Class
 End Namespace

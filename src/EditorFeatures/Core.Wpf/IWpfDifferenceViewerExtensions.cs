@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -123,9 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
 
             private static bool IsNormal(double value)
-            {
-                return !double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0;
-            }
+                => !double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0;
         }
 
         public static Task SizeToFitAsync(this IWpfDifferenceViewer diffViewer, IThreadingContext threadingContext, double minWidth = 400.0, CancellationToken cancellationToken = default)

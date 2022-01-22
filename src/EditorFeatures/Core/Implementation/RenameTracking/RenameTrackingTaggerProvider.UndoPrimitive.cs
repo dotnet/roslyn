@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
@@ -72,14 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             public bool CanMerge(ITextUndoPrimitive older)
-            {
-                return false;
-            }
+                => false;
 
             public ITextUndoPrimitive Merge(ITextUndoPrimitive older)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

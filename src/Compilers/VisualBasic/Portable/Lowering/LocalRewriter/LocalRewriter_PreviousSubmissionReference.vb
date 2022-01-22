@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class LocalRewriter
+    Partial Friend Class LocalRewriter
         Public Overrides Function VisitPreviousSubmissionReference(node As BoundPreviousSubmissionReference) As BoundNode
             Dim targetType = DirectCast(node.Type, ImplicitNamedTypeSymbol)
             Debug.Assert(targetType.TypeKind = TypeKind.Submission)

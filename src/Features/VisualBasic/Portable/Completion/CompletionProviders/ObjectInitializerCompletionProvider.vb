@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(ObjectInitializerCompletionProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After:=NameOf(SymbolCompletionProvider))>
+    <ExtensionOrder(After:=NameOf(PreprocessorCompletionProvider))>
     <[Shared]>
     Friend Class ObjectInitializerCompletionProvider
         Inherits AbstractObjectInitializerCompletionProvider
@@ -24,6 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Protected Overrides Function GetInitializedMembers(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As HashSet(Of String)
             Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
@@ -87,19 +93,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim initializerLocation As Location = token.GetLocation()
             Dim symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken)
             Dim symbol = TryCast(symbolInfo.Symbol, ITypeSymbol)
-            If TypeOf symbol Is ITypeParameterSymbol Then
-                Dim typeParameterSymbol = TryCast(symbolInfo.Symbol, ITypeParameterSymbol)
-                Return Tuple.Create(Of ITypeSymbol, Location)(typeParameterSymbol.GetNamedTypeSymbolConstraint(), initializerLocation)
-            End If
-
             Return Tuple.Create(symbol, initializerLocation)
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return text(characterPosition) = "."c
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("."c)
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("."c)
 
         Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
             ' Object initializers are explicitly indicated by "With", so we're always exclusive.
@@ -118,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return symbol.Name.EscapeIdentifier()
         End Function
 
-        Private Function IsValidProperty(member As ISymbol) As Boolean
+        Private Shared Function IsValidProperty(member As ISymbol) As Boolean
             Dim [property] = TryCast(member, IPropertySymbol)
             If [property] IsNot Nothing Then
                 Return [property].Parameters.IsDefaultOrEmpty OrElse [property].Parameters.All(Function(p) p.IsOptional OrElse p.IsParams)

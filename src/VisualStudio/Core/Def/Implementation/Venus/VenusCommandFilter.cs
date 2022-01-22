@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -39,9 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         protected override ITextBuffer GetSubjectBufferContainingCaret()
-        {
-            return _subjectBuffer;
-        }
+            => _subjectBuffer;
 
         protected override int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
         {

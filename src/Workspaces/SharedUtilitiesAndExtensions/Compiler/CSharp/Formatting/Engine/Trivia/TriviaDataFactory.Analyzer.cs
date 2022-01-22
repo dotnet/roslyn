@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -121,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     {
                         result.HasSkippedTokens = true;
                     }
-                    else if (trivia.Kind() == SyntaxKind.DisabledTextTrivia ||
-                             trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia)
+                    else if (trivia.Kind() is SyntaxKind.DisabledTextTrivia or
+                             SyntaxKind.PreprocessingMessageTrivia)
                     {
                         result.HasSkippedOrDisabledText = true;
                     }

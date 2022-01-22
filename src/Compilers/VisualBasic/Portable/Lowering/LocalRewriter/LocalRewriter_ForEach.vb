@@ -738,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' there's no need to cast the enumerator if it's known to be a value type, because they are implicitly
                 ' sealed the methods cannot ever be overridden.
 
-                ' this will be an constrained call, because the receiver is a value type and the method is an
+                ' this will be a constrained call, because the receiver is a value type and the method is an
                 ' interface method: 
                 ' e.Dispose()    ' constrained call
                 boundCall = New BoundCall(syntaxNode,

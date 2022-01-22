@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,26 +21,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
     [UseExportProvider]
     public abstract class AbstractSemanticQuickInfoSourceTests
     {
-        protected FormattedClassification Text(string text)
+        protected static FormattedClassification Text(string text)
             => FormattedClassifications.Text(text);
 
-        protected string Lines(params string[] lines)
-        {
-            return string.Join("\r\n", lines);
-        }
+        protected static string Lines(params string[] lines)
+            => string.Join("\r\n", lines);
 
-        protected FormattedClassification[] ExpectedClassifications(
+        protected static FormattedClassification[] ExpectedClassifications(
             params FormattedClassification[] expectedClassifications)
         {
             return expectedClassifications;
         }
 
-        protected Tuple<string, string>[] NoClassifications()
-        {
-            return null;
-        }
+        protected static Tuple<string, string>[] NoClassifications()
+            => null;
 
-        internal Action<QuickInfoItem> SymbolGlyph(Glyph expectedGlyph)
+        internal static Action<QuickInfoItem> SymbolGlyph(Glyph expectedGlyph)
         {
             return qi =>
             {
@@ -46,12 +44,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             };
         }
 
-        internal Action<QuickInfoItem> WarningGlyph(Glyph expectedGlyph)
-        {
-            return SymbolGlyph(expectedGlyph);
-        }
+        internal static Action<QuickInfoItem> WarningGlyph(Glyph expectedGlyph)
+            => SymbolGlyph(expectedGlyph);
 
-        internal void AssertSection(
+        internal static void AssertSection(
             string expectedText,
             ImmutableArray<QuickInfoSection> sections,
             string textBlockKind,
@@ -62,72 +58,74 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             AssertTaggedText(expectedText, text, expectedClassifications);
         }
 
-        protected void AssertTaggedText(
+        protected static void AssertTaggedText(
             string expectedText,
             ImmutableArray<TaggedText> taggedText,
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/45893
             FormattedClassification[] expectedClassifications = null)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var actualText = string.Concat(taggedText.Select(tt => tt.Text));
             Assert.Equal(expectedText, actualText);
         }
 
-        protected Action<QuickInfoItem> MainDescription(
+        protected static Action<QuickInfoItem> MainDescription(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Description, expectedClassifications);
         }
 
-        protected Action<QuickInfoItem> Documentation(
+        protected static Action<QuickInfoItem> Documentation(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.DocumentationComments, expectedClassifications);
         }
 
-        protected Action<QuickInfoItem> Remarks(
+        protected static Action<QuickInfoItem> Remarks(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.RemarksDocumentationComments, expectedClassifications);
         }
 
-        protected Action<QuickInfoItem> Returns(
+        protected static Action<QuickInfoItem> Returns(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ReturnsDocumentationComments);
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ReturnsDocumentationComments, expectedClassifications);
         }
 
-        protected Action<QuickInfoItem> Value(
+        protected static Action<QuickInfoItem> Value(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ValueDocumentationComments);
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ValueDocumentationComments, expectedClassifications);
         }
 
-        protected Action<QuickInfoItem> TypeParameterMap(
+        protected static Action<QuickInfoItem> TypeParameterMap(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.TypeParameters, expectedClassifications);
         }
 
-        protected Action<QuickInfoItem> AnonymousTypes(
+        protected static Action<QuickInfoItem> AnonymousTypes(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.AnonymousTypes, expectedClassifications);
         }
 
-        protected Action<QuickInfoItem> NullabilityAnalysis(
+        protected static Action<QuickInfoItem> NullabilityAnalysis(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.NullabilityAnalysis, expectedClassifications);
         }
 
-        protected Action<QuickInfoItem> NoTypeParameterMap
+        protected static Action<QuickInfoItem> NoTypeParameterMap
         {
             get
             {
@@ -135,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             }
         }
 
-        protected Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
+        protected static Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
             return item =>
             {
@@ -152,15 +150,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             };
         }
 
-        protected Action<QuickInfoItem> Exceptions(string expectedText)
-        {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Exception);
-        }
+        protected static Action<QuickInfoItem> Exceptions(string expectedText)
+            => item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Exception);
 
-        protected Action<QuickInfoItem> Captures(string capturesText)
-        {
-            return item => AssertSection(capturesText, item.Sections, QuickInfoSectionKinds.Captures);
-        }
+        protected static Action<QuickInfoItem> Captures(string capturesText)
+            => item => AssertSection(capturesText, item.Sections, QuickInfoSectionKinds.Captures);
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {

@@ -10,30 +10,23 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal abstract class FindUsagesContext : IFindUsagesContext
     {
-        public virtual CancellationToken CancellationToken { get; }
-
         public IStreamingProgressTracker ProgressTracker { get; }
 
         protected FindUsagesContext()
-        {
-            this.ProgressTracker = new StreamingProgressTracker(this.ReportProgressAsync);
-        }
+            => this.ProgressTracker = new StreamingProgressTracker(this.ReportProgressAsync);
 
-        public virtual Task ReportMessageAsync(string message) => Task.CompletedTask;
+        public virtual ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken) => default;
 
-        public virtual Task SetSearchTitleAsync(string title) => Task.CompletedTask;
+        public virtual ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken) => default;
 
-        public virtual Task OnCompletedAsync() => Task.CompletedTask;
+        public virtual ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken) => default;
 
-        public virtual Task OnDefinitionFoundAsync(DefinitionItem definition) => Task.CompletedTask;
+        public virtual ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
 
-        public virtual Task OnReferenceFoundAsync(SourceReferenceItem reference) => Task.CompletedTask;
+        public virtual ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken) => default;
 
-        public virtual Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference) => Task.CompletedTask;
+        public virtual ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken) => default;
 
-        protected virtual Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
-
-        Task IFindUsagesContext.ReportProgressAsync(int current, int maximum)
-            => ReportProgressAsync(current, maximum);
+        protected virtual ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) => default;
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -241,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             ProjectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
-            _metadataReferences = metadataReferences ?? new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib };
+            _metadataReferences = metadataReferences ?? new MetadataReference[] { TestMetadata.Net451.mscorlib };
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             _assemblyName = assemblyName ?? "TestProject";
             _version = VersionStamp.Create();
@@ -273,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        internal void SetSolution(TestHostSolution solution)
+        internal void SetSolution(TestHostSolution _)
         {
             // set up back pointer to this project.
             if (this.Documents != null)
@@ -302,9 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void RemoveDocument(TestHostDocument document)
-        {
-            this.Documents = this.Documents.Where(d => d != document);
-        }
+            => this.Documents = this.Documents.Where(d => d != document);
 
         internal void AddAdditionalDocument(TestHostDocument document)
         {
@@ -313,9 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void RemoveAdditionalDocument(TestHostDocument document)
-        {
-            this.AdditionalDocuments = this.AdditionalDocuments.Where(d => d != document);
-        }
+            => this.AdditionalDocuments = this.AdditionalDocuments.Where(d => d != document);
 
         internal void AddAnalyzerConfigDocument(TestHostDocument document)
         {
@@ -324,9 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void RemoveAnalyzerConfigDocument(TestHostDocument document)
-        {
-            this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Where(d => d != document);
-        }
+            => this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Where(d => d != document);
 
         public string Language
         {
@@ -356,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 OutputFilePath,
                 CompilationOptions,
                 ParseOptions,
-                Documents.Select(d => d.ToDocumentInfo()),
+                Documents.Where(d => !d.IsSourceGenerated).Select(d => d.ToDocumentInfo()),
                 ProjectReferences,
                 MetadataReferences,
                 AnalyzerReferences,

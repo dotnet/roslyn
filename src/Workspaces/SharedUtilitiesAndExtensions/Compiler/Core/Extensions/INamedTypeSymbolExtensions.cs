@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
+        public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
         {
             var stack = GetContainmentStack(symbol);
-            return stack.SelectMany(n => n.TypeParameters);
+            return stack.SelectMany(n => n.TypeParameters).ToImmutableArray();
         }
 
         public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
@@ -70,25 +68,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol.IsAbstract)
             {
                 return type.GetBaseTypesAndThis().SelectMany(t => t.GetMembers(symbol.Name))
-                                                 .FirstOrDefault(s => symbol.Equals(GetOverriddenMember(s)));
+                                                 .FirstOrDefault(s => symbol.Equals(s.GetOverriddenMember()));
             }
 
             return null;
         }
 
-        internal static ISymbol? GetOverriddenMember(this ISymbol? symbol)
-            => symbol switch
-            {
-                IMethodSymbol method => method.OverriddenMethod,
-                IPropertySymbol property => property.OverriddenProperty,
-                IEventSymbol @event => @event.OverriddenEvent,
-                _ => null,
-            };
-
         private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
-        {
-            return classOrStructType.FindImplementationForInterfaceMember(member) != null;
-        }
+            => classOrStructType.FindImplementationForInterfaceMember(member) != null;
 
         private static bool IsImplemented(
             this INamedTypeSymbol classOrStructType,
@@ -217,7 +204,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
                                                                m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
-                                                               !IsPropertyWithNonPublicImplementableAccessor(m));
+                                                               !IsPropertyWithNonPublicImplementableAccessor(m) &&
+                                                               IsImplicitlyImplementable(m, within));
                 }
 
                 return type.GetMembers();
@@ -239,12 +227,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 return accessor != null && IsImplementable(accessor) && accessor.DeclaredAccessibility != Accessibility.Public;
             }
+
+            static bool IsImplicitlyImplementable(ISymbol member, ISymbol within)
+            {
+                if (member is IMethodSymbol { IsStatic: true, IsAbstract: true, MethodKind: MethodKind.UserDefinedOperator } method)
+                {
+                    // For example, the following is not implementable implicitly.
+                    // interface I { static abstract int operator -(I x); }
+                    // But the following is implementable:
+                    // interface I<T> where T : I<T> { static abstract int operator -(T x); }
+
+                    // See https://github.com/dotnet/csharplang/blob/main/spec/classes.md#unary-operators.
+                    return method.Parameters.Any(p => p.Type.Equals(within, SymbolEqualityComparer.Default));
+                }
+
+                return true;
+            }
         }
 
         private static bool IsImplementable(ISymbol m)
-        {
-            return m.IsVirtual || m.IsAbstract;
-        }
+            => m.IsVirtual || m.IsAbstract;
 
         public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
             this INamedTypeSymbol classOrStructType,
@@ -322,9 +324,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsInaccessibleImplementableAccessor(IMethodSymbol? accessor, ISymbol within)
-        {
-            return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
-        }
+            => accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
 
         private static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Contract.ThrowIfNull(interfacesOrAbstractClasses);
             Contract.ThrowIfNull(isImplemented);
 
-            if (classOrStructType.TypeKind != TypeKind.Class && classOrStructType.TypeKind != TypeKind.Struct)
+            if (classOrStructType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
             }
@@ -368,11 +368,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return interfacesOrAbstractClasses.First().TypeKind == TypeKind.Interface
                 ? GetInterfacesToImplement(classOrStructType, interfacesOrAbstractClasses, allowReimplementation, cancellationToken)
-                : GetAbstractClassesToImplement(classOrStructType, interfacesOrAbstractClasses);
+                : GetAbstractClassesToImplement(interfacesOrAbstractClasses);
         }
 
         private static ImmutableArray<INamedTypeSymbol> GetAbstractClassesToImplement(
-            INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> abstractClasses)
         {
             return abstractClasses.SelectMany(a => a.GetBaseTypesAndThis())
@@ -414,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var q = from m in interfaceMemberGetter(interfaceType, classOrStructType)
                     where m.Kind != SymbolKind.NamedType
-                    where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind == MethodKind.Ordinary
+                    where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind is MethodKind.Ordinary or MethodKind.UserDefinedOperator
                     where m.Kind != SymbolKind.Property || ((IPropertySymbol)m).IsIndexer || ((IPropertySymbol)m).CanBeReferencedByName
                     where m.Kind != SymbolKind.Event || ((IEventSymbol)m).CanBeReferencedByName
                     where !isImplemented(classOrStructType, m, isValidImplementation, cancellationToken)
@@ -493,9 +492,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static ImmutableArray<ISymbol> GetMembers(INamedTypeSymbol type, ISymbol within)
-        {
-            return type.GetMembers();
-        }
+            => type.GetMembers();
 
         /// <summary>
         /// Gets the set of members in the inheritance chain of <paramref name="containingType"/> that
@@ -521,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 !containingType.IsImplicitClass &&
                 !containingType.IsStatic)
             {
-                if (containingType.TypeKind == TypeKind.Class || containingType.TypeKind == TypeKind.Struct)
+                if (containingType.TypeKind is TypeKind.Class or TypeKind.Struct)
                 {
                     var baseTypes = containingType.GetBaseTypes().Reverse();
                     foreach (var type in baseTypes)
@@ -560,30 +557,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool IsOverridable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member.IsAbstract || member.IsVirtual || member.IsOverride)
+            if (!member.IsAbstract && !member.IsVirtual && !member.IsOverride)
+                return false;
+
+            if (member.IsSealed)
+                return false;
+
+            if (!member.IsAccessibleWithin(containingType))
+                return false;
+
+            return member switch
             {
-                if (member.IsSealed)
-                {
-                    return false;
-                }
-
-                if (!member.IsAccessibleWithin(containingType))
-                {
-                    return false;
-                }
-
-                switch (member.Kind)
-                {
-                    case SymbolKind.Event:
-                        return true;
-                    case SymbolKind.Method:
-                        return ((IMethodSymbol)member).MethodKind == MethodKind.Ordinary;
-                    case SymbolKind.Property:
-                        return !((IPropertySymbol)member).IsWithEvents;
-                }
-            }
-
-            return false;
+                IEventSymbol => true,
+                IMethodSymbol { MethodKind: MethodKind.Ordinary, CanBeReferencedByName: true } => true,
+                IPropertySymbol { IsWithEvents: false } => true,
+                _ => false,
+            };
         }
 
         private static void RemoveOverriddenMembers(
@@ -593,17 +582,42 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var overriddenMember = member.OverriddenMember();
-                if (overriddenMember != null)
+                // An implicitly declared override is still something the user can provide their own explicit override
+                // for.  This is true for all implicit overrides *except* for the one for `bool object.Equals(object)`.
+                // This override is not one the user is allowed to provide their own override for as it must have a very
+                // particular implementation to ensure proper record equality semantics.
+                if (!member.IsImplicitlyDeclared || IsEqualsObjectOverride(member))
                 {
-                    result.Remove(overriddenMember);
+                    var overriddenMember = member.GetOverriddenMember();
+                    if (overriddenMember != null)
+                        result.Remove(overriddenMember);
                 }
             }
         }
 
-        public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
+        private static bool IsEqualsObjectOverride(ISymbol? member)
         {
-            return typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
+            if (member == null)
+                return false;
+
+            if (IsEqualsObject(member))
+                return true;
+
+            return IsEqualsObjectOverride(member.GetOverriddenMember());
         }
+
+        private static bool IsEqualsObject(ISymbol member)
+        {
+            return member is IMethodSymbol
+            {
+                Name: nameof(Equals),
+                IsStatic: false,
+                ContainingType: { SpecialType: SpecialType.System_Object },
+                Parameters: { Length: 1 },
+            };
+        }
+
+        public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
+            => typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
     }
 }

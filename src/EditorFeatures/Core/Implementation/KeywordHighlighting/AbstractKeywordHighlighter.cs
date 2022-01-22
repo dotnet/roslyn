@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -23,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
     internal abstract class AbstractKeywordHighlighter : IHighlighter
     {
-        private static readonly ObjectPool<List<TextSpan>> s_textSpanListPool = new ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
-        private static readonly ObjectPool<List<SyntaxToken>> s_tokenListPool = new ObjectPool<List<SyntaxToken>>(() => new List<SyntaxToken>());
+        private static readonly ObjectPool<List<TextSpan>> s_textSpanListPool = new(() => new List<TextSpan>());
+        private static readonly ObjectPool<List<SyntaxToken>> s_tokenListPool = new(() => new List<SyntaxToken>());
 
         protected abstract bool IsHighlightableNode(SyntaxNode node);
 
@@ -71,10 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
         protected abstract void AddHighlightsForNode(SyntaxNode node, List<TextSpan> highlights, CancellationToken cancellationToken);
 
-        protected TextSpan EmptySpan(int position)
-        {
-            return new TextSpan(position, 0);
-        }
+        protected static TextSpan EmptySpan(int position)
+            => new(position, 0);
 
         internal static void AddTouchingTokens(SyntaxNode root, int position, List<SyntaxToken> tokens)
         {

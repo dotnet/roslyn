@@ -28,32 +28,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Me.IsDefinition Then
-                Return Me.ErrorInfo
+                Return New UseSiteInfo(Of AssemblySymbol)(Me.ErrorInfo)
             End If
 
             ' Base class handles constructed types.
-            Return MyBase.GetUseSiteErrorInfo()
+            Return MyBase.GetUseSiteInfo()
         End Function
 
         Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
@@ -387,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides Function Equals(obj As Object) As Boolean
+        Public Overrides Function Equals(obj As TypeSymbol, comparison As TypeCompareKind) As Boolean
             Return Me Is obj
         End Function
 

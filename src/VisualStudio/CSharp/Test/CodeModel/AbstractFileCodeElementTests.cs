@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using EnvDTE;
@@ -21,29 +23,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     public abstract class AbstractFileCodeElementTests : IDisposable
     {
         private readonly string _contents;
-        private Tuple<TestWorkspace, FileCodeModel> _workspaceAndCodeModel;
+        private (TestWorkspace workspace, FileCodeModel fileCodeModel)? _workspaceAndCodeModel;
 
-        public AbstractFileCodeElementTests(string contents)
+        protected AbstractFileCodeElementTests(string contents)
         {
             _contents = contents;
         }
 
-        public Tuple<TestWorkspace, FileCodeModel> WorkspaceAndCodeModel
+        public (TestWorkspace workspace, FileCodeModel fileCodeModel) WorkspaceAndCodeModel
         {
             get
             {
-                return _workspaceAndCodeModel ?? (_workspaceAndCodeModel = CreateWorkspaceAndFileCodeModelAsync(_contents));
+                return _workspaceAndCodeModel ??= CreateWorkspaceAndFileCodeModelAsync(_contents);
             }
         }
 
         protected TestWorkspace GetWorkspace()
         {
-            return WorkspaceAndCodeModel.Item1;
+            return WorkspaceAndCodeModel.workspace;
         }
 
         protected FileCodeModel GetCodeModel()
         {
-            return WorkspaceAndCodeModel.Item2;
+            return WorkspaceAndCodeModel.fileCodeModel;
         }
 
         protected Microsoft.CodeAnalysis.Solution GetCurrentSolution()
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         protected Microsoft.CodeAnalysis.Document GetCurrentDocument()
             => GetCurrentProject().Documents.Single();
 
-        protected static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModelAsync(string file)
+        protected static (TestWorkspace workspace, FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModelAsync(string file)
             => FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
 
         protected CodeElement GetCodeElement(params object[] path)

@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -55,9 +56,9 @@ class C
             const string code = @"
 class C
 {
-    $$public string Goo()
+    {|hint:$$public string Goo(){|textspan:
     {
-    }
+    }|}|}
 
     public string Goo2()
     {
@@ -65,13 +66,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(37, 53),
-                    hintSpan: TextSpan.FromBounds(18, 51),
-                    type: BlockTypes.Nonstructural,
-                    bannerText: CSharpStructureHelpers.Ellipsis,
-                    autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]

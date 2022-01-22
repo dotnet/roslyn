@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -45,16 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return leading.Substring(0, lastNewLinePos);
         }
 
-        public static ValueTuple<SyntaxToken, SyntaxToken> GetBracePair(this SyntaxNode node)
-        {
-            return node.GetBraces();
-        }
+        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(this SyntaxNode? node)
+            => node.GetBraces();
 
-        public static bool IsValidBracePair(this ValueTuple<SyntaxToken, SyntaxToken> bracePair)
+        public static bool IsValidBracePair(this (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
         {
-            if (bracePair.Item1.IsKind(SyntaxKind.None) ||
-                bracePair.Item1.IsMissing ||
-                bracePair.Item2.IsKind(SyntaxKind.None))
+            if (bracePair.openBrace.IsKind(SyntaxKind.None) ||
+                bracePair.openBrace.IsMissing ||
+                bracePair.closeBrace.IsKind(SyntaxKind.None))
             {
                 return false;
             }
@@ -64,24 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsOpenParenInParameterListOfAConversionOperatorDeclaration(this SyntaxToken token)
-        {
-            return token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.ConversionOperatorDeclaration);
-        }
+            => token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.ConversionOperatorDeclaration);
 
         public static bool IsOpenParenInParameterListOfAOperationDeclaration(this SyntaxToken token)
-        {
-            return token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.OperatorDeclaration);
-        }
+            => token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.OperatorDeclaration);
 
         public static bool IsOpenParenInParameterList(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.OpenParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;
-        }
+            => token.Kind() == SyntaxKind.OpenParenToken && token.Parent.IsKind(SyntaxKind.ParameterList);
 
         public static bool IsCloseParenInParameterList(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.CloseParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;
-        }
+            => token.Kind() == SyntaxKind.CloseParenToken && token.Parent.IsKind(SyntaxKind.ParameterList);
 
         public static bool IsOpenParenInArgumentListOrPositionalPattern(this SyntaxToken token)
         {
@@ -114,14 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsColonInTypeBaseList(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.ColonToken && token.Parent.Kind() == SyntaxKind.BaseList;
-        }
+            => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKind.BaseList);
 
         public static bool IsCommaInArgumentOrParameterList(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent.Kind() == SyntaxKind.ParameterList);
-        }
+            => token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent.IsKind(SyntaxKind.ParameterList) || token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList));
+
+        public static bool IsOpenParenInParameterListOfParenthesizedLambdaExpression(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.OpenParenToken && token.Parent.IsKind(SyntaxKind.ParameterList) && token.Parent.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression);
 
         public static bool IsLambdaBodyBlock(this SyntaxNode node)
         {
@@ -158,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            if (!(token.Parent is StatementSyntax statement) ||
+            if (token.Parent is not StatementSyntax statement ||
                 statement.GetLastToken() != token)
             {
                 return false;
@@ -184,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            if (!(token.Parent is BlockSyntax block) ||
+            if (token.Parent is not BlockSyntax block ||
                 block.CloseBraceToken != token)
             {
                 return false;
@@ -193,9 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return IsEmbeddedStatement(block);
         }
 
-        public static bool IsEmbeddedStatement(this SyntaxNode node)
+        public static bool IsEmbeddedStatement([NotNullWhen(true)] this SyntaxNode? node)
         {
-            SyntaxNode statementOrElse = node as StatementSyntax;
+            SyntaxNode? statementOrElse = node as StatementSyntax;
             if (statementOrElse == null)
             {
                 statementOrElse = node as ElseClauseSyntax;
@@ -220,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsParenInParenthesizedExpression(this SyntaxToken token)
         {
-            if (!(token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression))
+            if (token.Parent is not ParenthesizedExpressionSyntax parenthesizedExpression)
             {
                 return false;
             }
@@ -230,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsParenInArgumentList(this SyntaxToken token)
         {
-            var parent = token.Parent;
+            var parent = token.Parent ?? throw new ArgumentNullException(nameof(token));
             switch (parent.Kind())
             {
                 case SyntaxKind.SizeOfExpression:
@@ -283,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsCloseParenInStatement(this SyntaxToken token)
         {
-            if (!(token.Parent is StatementSyntax statement))
+            if (token.Parent is not StatementSyntax statement)
             {
                 return false;
             }
@@ -304,13 +293,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsDotInMemberAccessOrQualifiedName(this SyntaxToken token)
-        {
-            return token.IsDotInMemberAccess() || (token.Kind() == SyntaxKind.DotToken && token.Parent.Kind() == SyntaxKind.QualifiedName);
-        }
+            => token.IsDotInMemberAccess() || (token.Kind() == SyntaxKind.DotToken && token.Parent.IsKind(SyntaxKind.QualifiedName));
 
         public static bool IsDotInMemberAccess(this SyntaxToken token)
         {
-            if (!(token.Parent is MemberAccessExpressionSyntax memberAccess))
+            if (token.Parent is not MemberAccessExpressionSyntax memberAccess)
             {
                 return false;
             }
@@ -356,9 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsColonInSwitchLabel(this SyntaxToken token)
-        {
-            return FormattingRangeHelper.IsColonInSwitchLabel(token);
-        }
+            => FormattingRangeHelper.IsColonInSwitchLabel(token);
 
         public static bool IsColonInLabeledStatement(this SyntaxToken token)
         {
@@ -367,15 +352,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 labeledStatement.ColonToken == token;
         }
 
-        public static bool IsEmbeddedStatementOwnerWithCloseParen(this SyntaxNode node)
+        public static bool IsEmbeddedStatementOwnerWithCloseParen([NotNullWhen(true)] this SyntaxNode? node)
         {
-            return node is IfStatementSyntax ||
-                   node is WhileStatementSyntax ||
-                   node is ForStatementSyntax ||
-                   node is CommonForEachStatementSyntax ||
-                   node is UsingStatementSyntax ||
-                   node is FixedStatementSyntax ||
-                   node is LockStatementSyntax;
+            return node is IfStatementSyntax or
+                   WhileStatementSyntax or
+                   ForStatementSyntax or
+                   CommonForEachStatementSyntax or
+                   UsingStatementSyntax or
+                   FixedStatementSyntax or
+                   LockStatementSyntax;
         }
 
         public static bool IsNestedQueryExpression(this SyntaxToken token)
@@ -388,74 +373,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsFirstFromKeywordInExpression(this SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.FromKeyword &&
-                   token.Parent.Parent is QueryExpressionSyntax queryExpression &&
+                   token.Parent.IsParentKind(SyntaxKind.QueryExpression, out QueryExpressionSyntax? queryExpression) &&
                    queryExpression.GetFirstToken().Equals(token);
         }
 
-        public static bool IsInitializerForObjectOrAnonymousObjectCreationExpression(this SyntaxNode node)
+        public static bool IsInitializerForObjectOrAnonymousObjectCreationExpression([NotNullWhen(true)] this SyntaxNode? node)
         {
-            var initializer = node as InitializerExpressionSyntax;
-            AnonymousObjectMemberDeclaratorSyntax anonymousObjectInitializer = null;
-            if (initializer == null)
+            if (node is InitializerExpressionSyntax initializer)
             {
-                anonymousObjectInitializer = node as AnonymousObjectMemberDeclaratorSyntax;
-                if (anonymousObjectInitializer == null)
-                {
-                    return false;
-                }
-            }
-
-            var parent = initializer != null ? initializer.Parent : anonymousObjectInitializer.Parent;
-            if (parent is AnonymousObjectCreationExpressionSyntax)
-            {
-                return true;
-            }
-
-            if (parent is ObjectCreationExpressionSyntax)
-            {
-                if (initializer.Expressions.Count <= 0)
+                var parent = initializer.Parent;
+                if (parent is AnonymousObjectCreationExpressionSyntax)
                 {
                     return true;
                 }
 
-                var expression = initializer.Expressions[0];
-                if (expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
+                if (parent is ObjectCreationExpressionSyntax)
                 {
-                    return true;
-                }
-            }
+                    if (initializer.Expressions.Count <= 0)
+                    {
+                        return true;
+                    }
 
-            return false;
+                    var expression = initializer.Expressions[0];
+                    if (expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            else if (node is AnonymousObjectMemberDeclaratorSyntax anonymousObjectInitializer)
+            {
+                return anonymousObjectInitializer.Parent is AnonymousObjectCreationExpressionSyntax;
+            }
+            else
+            {
+                return false;
+            }
         }
 
-        public static bool IsInitializerForArrayOrCollectionCreationExpression(this SyntaxNode node)
+        public static bool IsInitializerForArrayOrCollectionCreationExpression([NotNullWhen(true)] this SyntaxNode? node)
         {
-            var initializer = node as InitializerExpressionSyntax;
-            AnonymousObjectMemberDeclaratorSyntax anonymousObjectInitializer = null;
-            if (initializer == null)
+            if (node is InitializerExpressionSyntax initializer)
             {
-                anonymousObjectInitializer = node as AnonymousObjectMemberDeclaratorSyntax;
-                if (anonymousObjectInitializer == null)
+                var parent = initializer.Parent;
+                if (parent is ArrayCreationExpressionSyntax ||
+                    parent is ImplicitArrayCreationExpressionSyntax ||
+                    parent is EqualsValueClauseSyntax ||
+                    parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
                 {
-                    return false;
+                    return true;
                 }
-            }
 
-            var parent = initializer != null ? initializer.Parent : anonymousObjectInitializer.Parent;
-            if (parent is ArrayCreationExpressionSyntax ||
-                parent is ImplicitArrayCreationExpressionSyntax ||
-                parent is EqualsValueClauseSyntax ||
-                parent.Kind() == SyntaxKind.SimpleAssignmentExpression)
+                if (parent is ObjectCreationExpressionSyntax)
+                {
+                    return !IsInitializerForObjectOrAnonymousObjectCreationExpression(initializer);
+                }
+
+                return false;
+            }
+            else if (node is AnonymousObjectMemberDeclaratorSyntax anonymousObjectInitializer)
             {
-                return true;
-            }
+                var parent = anonymousObjectInitializer.Parent;
+                if (parent is ArrayCreationExpressionSyntax ||
+                    parent is ImplicitArrayCreationExpressionSyntax ||
+                    parent is EqualsValueClauseSyntax ||
+                    parent is ObjectCreationExpressionSyntax ||
+                    parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    return true;
+                }
 
-            if (parent is ObjectCreationExpressionSyntax)
+                return false;
+            }
+            else
             {
-                return !IsInitializerForObjectOrAnonymousObjectCreationExpression(initializer);
+                return false;
             }
-
-            return false;
         }
 
         public static bool ParenOrBracketContainsNothing(this SyntaxToken token1, SyntaxToken token2)
@@ -466,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsLastTokenInLabelStatement(this SyntaxToken token)
         {
-            if (token.Kind() != SyntaxKind.SemicolonToken && token.Kind() != SyntaxKind.CloseBraceToken)
+            if (token.Kind() is not SyntaxKind.SemicolonToken and not SyntaxKind.CloseBraceToken)
             {
                 return false;
             }
@@ -479,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token.Parent.Parent is LabeledStatementSyntax;
         }
 
-        public static ValueTuple<SyntaxToken, SyntaxToken> GetFirstAndLastMemberDeclarationTokensAfterAttributes(this MemberDeclarationSyntax node)
+        public static (SyntaxToken firstToken, SyntaxToken lastToken) GetFirstAndLastMemberDeclarationTokensAfterAttributes(this MemberDeclarationSyntax node)
         {
             Contract.ThrowIfNull(node);
 
@@ -487,59 +482,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var attributes = node.GetAttributes();
             if (attributes.Count == 0)
             {
-                return ValueTuple.Create(node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
+                return (node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
             }
 
             var lastToken = node.GetLastToken(includeZeroWidth: true);
             var lastAttributeToken = attributes.Last().GetLastToken(includeZeroWidth: true);
             if (lastAttributeToken.Equals(lastToken))
             {
-                return ValueTuple.Create(default(SyntaxToken), default(SyntaxToken));
+                return default;
             }
 
             var firstTokenAfterAttribute = lastAttributeToken.GetNextToken(includeZeroWidth: true);
 
             // there are attributes, get first token after the tokens belong to attributes
-            return ValueTuple.Create(firstTokenAfterAttribute, lastToken);
-        }
-
-        public static bool IsBlockBody(this SyntaxNode node)
-        {
-            Contract.ThrowIfNull(node);
-
-            if (!(node is BlockSyntax blockNode) || blockNode.Parent == null)
-            {
-                return false;
-            }
-
-            switch (blockNode.Parent.Kind())
-            {
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.CheckedStatement:
-                case SyntaxKind.UncheckedStatement:
-                case SyntaxKind.UnsafeStatement:
-                case SyntaxKind.TryStatement:
-                case SyntaxKind.CatchClause:
-                case SyntaxKind.FinallyClause:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.UnknownAccessorDeclaration:
-                    return true;
-                default:
-                    return false;
-            }
+            return (firstTokenAfterAttribute, lastToken);
         }
 
         public static bool IsPlusOrMinusExpression(this SyntaxToken token)
         {
-            if (token.Kind() != SyntaxKind.PlusToken && token.Kind() != SyntaxKind.MinusToken)
+            if (token.Kind() is not SyntaxKind.PlusToken and not SyntaxKind.MinusToken)
             {
                 return false;
             }
@@ -548,9 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsInterpolation(this SyntaxToken currentToken)
-        {
-            return currentToken.Parent.IsKind(SyntaxKind.Interpolation);
-        }
+            => currentToken.Parent.IsKind(SyntaxKind.Interpolation);
 
         /// <summary>
         /// Checks whether currentToken is the opening paren of a deconstruction-declaration in var form, such as <c>var (x, y) = ...</c>

@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -10,37 +9,34 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Notification
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     <[UseExportProvider]>
     Public MustInherit Class AbstractReferenceHighlightingTests
-        Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
-            Await VerifyHighlightsAsync(test, optionIsEnabled, outOfProcess:=False)
-            Await VerifyHighlightsAsync(test, optionIsEnabled, outOfProcess:=True)
-        End Function
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess).AddParts(
+            GetType(NoCompilationContentTypeDefinitions),
+            GetType(NoCompilationContentTypeLanguageService))
 
-        Private Async Function VerifyHighlightsAsync(test As XElement, optionIsEnabled As Boolean, outOfProcess As Boolean) As Tasks.Task
-            Using workspace = TestWorkspace.Create(test)
+        Protected Async Function VerifyHighlightsAsync(test As XElement, testHost As TestHost, Optional optionIsEnabled As Boolean = True) As Task
+            Using workspace = TestWorkspace.Create(test, composition:=s_composition.WithTestHostParts(testHost))
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
 
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    workspace.GetService(Of IForegroundNotificationService),
+                    workspace.GetService(Of IThreadingContext),
+                    globalOptions,
                     AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
 
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(FeatureOnOffOptions.ReferenceHighlighting, hostDocument.Project.Language, optionIsEnabled)))
+                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.ReferenceHighlighting, hostDocument.Project.Language), optionIsEnabled)
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim context = New TaggerContext(Of NavigableHighlightTag)(
@@ -56,14 +52,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim expectedTags As New List(Of String)
 
                 For Each hostDocument In workspace.Documents
-                    For Each nameAndSpans In hostDocument.AnnotatedSpans
-                        For Each span In nameAndSpans.Value
-                            expectedTags.Add(nameAndSpans.Key + ":" + span.ToString())
-                        Next
+                    Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
+                        Function(name) name.Value,
+                        Function(name, span) _
+                        New With {.Name = name.Key,
+                                  .Span = span
+                        })
+
+                    For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
+                        expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.ToString())
                     Next
                 Next
 
                 AssertEx.Equal(expectedTags, producedTags)
+
             End Using
         End Function
     End Class

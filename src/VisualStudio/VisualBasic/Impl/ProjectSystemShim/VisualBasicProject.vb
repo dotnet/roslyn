@@ -39,12 +39,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Friend Sub New(projectSystemName As String,
                        compilerHost As IVbCompilerHost,
                        hierarchy As IVsHierarchy,
+                       isIntellisenseProject As Boolean,
                        serviceProvider As IServiceProvider,
-                       threadingContext As IThreadingContext,
-                       Optional hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource = Nothing,
-                       Optional commandLineParserServiceOpt As ICommandLineParserService = Nothing)
-            MyBase.New(projectSystemName, hierarchy, LanguageNames.VisualBasic,
-                       serviceProvider, threadingContext, "VB", hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
+                       threadingContext As IThreadingContext)
+            MyBase.New(projectSystemName, hierarchy, LanguageNames.VisualBasic, isIntellisenseProject, serviceProvider, threadingContext, "VB")
 
             _compilerHost = compilerHost
 
@@ -146,8 +144,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 End If
 
                 Return VSConstants.S_OK
-            Catch e As Exception When FatalError.Report(e)
-                Return VSConstants.S_OK
+            Catch e As Exception When FatalError.ReportAndPropagate(e)
+                Throw ExceptionUtilities.Unreachable
             End Try
         End Function
 
@@ -323,9 +321,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 ' Ignore paths that are not absolute.
                 If Not String.IsNullOrEmpty(pCompilerOptions.wszOutputPath) Then
                     If PathUtilities.IsAbsolute(pCompilerOptions.wszOutputPath) Then
-                        VisualStudioProject.IntermediateOutputFilePath = Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
+                        VisualStudioProject.CompilationOutputAssemblyFilePath = Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
                     Else
-                        VisualStudioProject.IntermediateOutputFilePath = Nothing
+                        VisualStudioProject.CompilationOutputAssemblyFilePath = Nothing
                     End If
                 End If
             End If

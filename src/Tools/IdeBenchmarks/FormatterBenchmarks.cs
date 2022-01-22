@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace IdeBenchmarks
 {
+    [GcServer(true)]
     public class FormatterBenchmarks
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
@@ -40,7 +43,9 @@ namespace IdeBenchmarks
 
             using var workspace = TestWorkspace.CreateCSharp(text);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            return Formatter.GetFormattedTextChanges(document.GetSyntaxRootSynchronously(CancellationToken.None), workspace);
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
+            var options = SyntaxFormattingOptions.Default;
+            return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
         }
 
         [Benchmark]
@@ -51,7 +56,9 @@ namespace IdeBenchmarks
 
             using var workspace = TestWorkspace.CreateVisualBasic(text);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            return Formatter.GetFormattedTextChanges(document.GetSyntaxRootSynchronously(CancellationToken.None), workspace);
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
+            var options = SyntaxFormattingOptions.Default;
+            return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
         }
     }
 }

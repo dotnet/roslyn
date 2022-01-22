@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -36,8 +38,8 @@ public class Program
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpExtractMethod(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpExtractMethod))
+        public CSharpExtractMethod(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpExtractMethod))
         {
         }
 
@@ -72,7 +74,6 @@ public class Program
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
             VisualStudio.Editor.Verify.TextContains(expectedText);
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
 
             VisualStudio.Editor.SendKeys("SayHello", VirtualKey.Enter);

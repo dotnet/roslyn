@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared ReadOnly s_createTypeParameter As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol) =
             Function(typeParameter, container) New SynthesizedClonedTypeParameterSymbol(
                                                             typeParameter, container,
-                                                            StringConstants.StateMachineTypeParameterPrefix & typeParameter.Name,
+                                                            GeneratedNameConstants.StateMachineTypeParameterPrefix & typeParameter.Name,
                                                             s_typeSubstitutionFactory)
 
         Protected Friend Sub New(topLevelMethod As MethodSymbol,
@@ -198,19 +198,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Me._baseType
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return MakeAcyclicBaseType(diagnostics)
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return Me._interfaces
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return MakeAcyclicInterfaces(diagnostics)
         End Function
 

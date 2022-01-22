@@ -21,30 +21,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// </summary>
         private class ComplexTrivia : AbstractComplexTrivia
         {
-            public ComplexTrivia(AnalyzerConfigOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
+            public ComplexTrivia(SyntaxFormattingOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
                 : base(options, treeInfo, token1, token2)
             {
             }
 
             protected override void ExtractLineAndSpace(string text, out int lines, out int spaces)
-            {
-                text.ProcessTextBetweenTokens(this.TreeInfo, this.Token1, this.Options.GetOption(FormattingOptions2.TabSize), out lines, out spaces);
-            }
+                => text.ProcessTextBetweenTokens(this.TreeInfo, this.Token1, this.Options.GetOption(FormattingOptions2.TabSize), out lines, out spaces);
 
             protected override TriviaData CreateComplexTrivia(int line, int space)
-            {
-                return CreateModifiedComplexTrivia(line, space);
-            }
+                => CreateModifiedComplexTrivia(line, space);
 
             protected override TriviaData CreateComplexTrivia(int line, int space, int indentation)
-            {
-                return CreateModifiedComplexTrivia(line, space);
-            }
+                => CreateModifiedComplexTrivia(line, space);
 
             private TriviaData CreateModifiedComplexTrivia(int line, int space)
-            {
-                return new ModifiedComplexTrivia(this.Options, this, line, space);
-            }
+                => new ModifiedComplexTrivia(this.Options, this, line, space);
 
             protected override TriviaDataWithList Format(
                 FormattingContext context, ChainedFormattingRules formattingRules, int lines, int spaces, CancellationToken cancellationToken)
@@ -53,9 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             protected override bool ContainsSkippedTokensOrText(TriviaList list)
-            {
-                return CodeShapeAnalyzer.ContainsSkippedTokensOrText(list);
-            }
+                => CodeShapeAnalyzer.ContainsSkippedTokensOrText(list);
 
             private bool ShouldFormat(FormattingContext context)
             {
@@ -114,9 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 => throw new NotImplementedException();
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

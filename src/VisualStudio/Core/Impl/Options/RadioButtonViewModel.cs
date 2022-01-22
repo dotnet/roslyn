@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -19,8 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         internal override void SetOptionAndUpdatePreview(AbstractOptionPreviewViewModel info, string preview)
-        {
-            info.SetOptionAndUpdatePreview(_value, _option, preview);
-        }
+            => info.SetOptionAndUpdatePreview(_value, _option, preview);
     }
 }

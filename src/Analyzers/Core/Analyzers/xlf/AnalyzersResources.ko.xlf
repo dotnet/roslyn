@@ -4,227 +4,387 @@
     <body>
       <trans-unit id="A_source_file_contains_a_header_that_does_not_match_the_required_text">
         <source>A source file contains a header that does not match the required text</source>
-        <target state="new">A source file contains a header that does not match the required text</target>
+        <target state="translated">소스 파일에 포함된 헤더가 필요한 텍스트와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_source_file_is_missing_a_required_header">
         <source>A source file is missing a required header.</source>
-        <target state="new">A source file is missing a required header.</target>
+        <target state="translated">소스 파일에 필요한 헤더가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_required">
         <source>Accessibility modifiers required</source>
-        <target state="new">Accessibility modifiers required</target>
+        <target state="translated">접근성 한정자 필요</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="new">Add accessibility modifiers</target>
+        <target state="translated">접근성 한정자 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_for_clarity">
+        <source>Add parentheses for clarity</source>
+        <target state="translated">명확하게 하기 위해 괄호 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
-        <target state="new">Add readonly modifier</target>
+        <target state="translated">읽기 전용 한정자 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
         <source>Add 'this' or 'Me' qualification.</source>
-        <target state="new">Add 'this' or 'Me' qualification.</target>
+        <target state="translated">this' 또는 'Me' 한정자를 추가합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</source>
+        <target state="translated">'SuppressMessageAttribute'에서 레거시 형식 대상 '{0}'을(를) 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target in 'SuppressMessageAttribute'</source>
+        <target state="translated">'SuppressMessageAttribute'에서 레거시 형식 대상을 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_multiple_blank_lines">
+        <source>Avoid multiple blank lines</source>
+        <target state="translated">여러 빈 줄 방지</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">코드에 불필요한 값을 할당하면 값의 중복 계산으로 표시될 수 있으므로 이와 같은 할당을 사용하지 않도록 합니다. 값의 중복 계산이 아닌 할당을 유지하려는 경우 할당 대상을 이름이 밑줄로 시작하고 필요에 따라 뒤에 정수가 있는(예: '_', '_1', '_2' 등) 지역 변수로 변경합니다. 해당 이름은 특수 무시 기호 이름으로 처리됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">코드에 사용되지 않는 매개 변수를 사용하지 않도록 합니다. 매개 변수를 제거할 수 없는 경우 이름을 변경하여 밑줄로 시작하고 필요에 따라 뒤에 정수가 있도록 합니다(예: '_', '_1', '_2' 등). 해당 이름은 특수 무시 기호 이름으로 처리됩니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="translated">블록과 후속 문 사이에 빈 줄이 필요함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_match_folder_structure">
+        <source>Change namespace to match folder structure</source>
+        <target state="translated">폴더 구조가 일치하도록 namespace 변경</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="new">Changes to expression trees may result in behavior changes at runtime</target>
+        <target state="translated">식 트리를 변경하면 런타임에 동작이 변경될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="translated">조건식을 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="translated">조건식으로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
-        <target state="new">Expression value is never used</target>
+        <target state="translated">식 값은 절대 사용되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Collection_initialization_can_be_simplified">
         <source>Collection initialization can be simplified</source>
-        <target state="new">Collection initialization can be simplified</target>
+        <target state="translated">컬렉션 초기화를 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_string_contains_invalid_placeholder">
+        <source>Format string contains invalid placeholder</source>
+        <target state="translated">형식 문자열에 잘못된 자리 표시자가 포함되어 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="translated">'GetHashCode' 구현을 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="translated">보간을 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_format_string">
+        <source>Invalid format string</source>
+        <target state="translated">잘못된 형식 문자열</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_global_SuppressMessageAttribute">
+        <source>Invalid global 'SuppressMessageAttribute'</source>
+        <target state="translated">전역 'SuppressMessageAttribute'가 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_or_missing_target_for_SuppressMessageAttribute">
+        <source>Invalid or missing target for 'SuppressMessageAttribute'</source>
+        <target state="translated">'SuppressMessageAttribute'의 대상이 잘못되었거나 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_scope_for_SuppressMessageAttribute">
+        <source>Invalid scope for 'SuppressMessageAttribute'</source>
+        <target state="translated">'SuppressMessageAttribute'의 범위가 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
         <source>Make field readonly</source>
-        <target state="new">Make field readonly</target>
+        <target state="translated">필드를 읽기 전용으로 만들기</target>
         <note />
       </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">
         <source>Member access should be qualified.</source>
-        <target state="new">Member access should be qualified.</target>
+        <target state="translated">멤버 액세스를 한정해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_cases">
         <source>Add missing cases</source>
-        <target state="new">Add missing cases</target>
+        <target state="translated">누락된 사례 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_name_can_be_simplified">
+        <source>Member name can be simplified</source>
+        <target state="translated">멤버 이름을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
         <source>Modifiers are not ordered</source>
-        <target state="new">Modifiers are not ordered</target>
+        <target state="translated">한정자가 순서대로 정렬되지 않음</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
+        <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
+        <target state="translated">네임스페이스 "{0}"이(가) 폴더 구조와 일치하지 않습니다. "{1}"이(가) 필요합니다.</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Namespace_does_not_match_folder_structure">
+        <source>Namespace does not match folder structure</source>
+        <target state="translated">네임스페이스가 폴더 구조와 일치하지 않습니다.</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
         <source>Naming Styles</source>
-        <target state="new">Naming Styles</target>
+        <target state="translated">명명 스타일</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_rule_violation_0">
         <source>Naming rule violation: {0}</source>
-        <target state="new">Naming rule violation: {0}</target>
+        <target state="translated">명명 규칙 위반: {0}</target>
         <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
       </trans-unit>
       <trans-unit id="Null_check_can_be_simplified">
         <source>Null check can be simplified</source>
-        <target state="new">Null check can be simplified</target>
+        <target state="translated">Null 검사를 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Order_modifiers">
         <source>Order modifiers</source>
-        <target state="new">Order modifiers</target>
+        <target state="translated">순서 한정자</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</target>
+        <target state="translated">'{0}' 매개 변수가 제공된 퍼블릭 API의 일부가 아닌 경우 제거할 수 있습니다. 해당 초기 값은 사용되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed; its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed; its initial value is never used</target>
+        <target state="translated">'{0}' 매개 변수는 제거할 수 있습니다. 해당 초기 값은 사용되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Object_initialization_can_be_simplified">
         <source>Object initialization can be simplified</source>
-        <target state="new">Object initialization can be simplified</target>
+        <target state="translated">개체 초기화를 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_can_be_removed">
+        <source>Parentheses can be removed</source>
+        <target state="translated">괄호를 제거할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_should_be_added_for_clarity">
+        <source>Parentheses should be added for clarity</source>
+        <target state="translated">명확하게 하기 위해 괄호를 추가해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Populate_switch">
         <source>Populate switch</source>
-        <target state="new">Populate switch</target>
+        <target state="translated">스위치 채우기</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
         <source>Prefer explicitly provided tuple element name</source>
-        <target state="new">Prefer explicitly provided tuple element name</target>
+        <target state="translated">명시적으로 제공된 튜플 요소 이름 기본 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
+        <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
+        <target state="translated">프라이빗 멤버 '{0}'에 할당된 값을 읽을 수 없으므로 이 멤버를 제거할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="new">Private member '{0}' is unused.</target>
+        <source>Private member '{0}' is unused</source>
+        <target state="translated">프라이빗 멤버 '{0}'을(를) 사용하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
         <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="new">Private method '{0}' can be removed as it is never invoked.</target>
+        <target state="translated">프라이빗 메서드 '{0}'은(는) 호출되지 않으므로 제거할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
         <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
+        <target state="translated">해당 get 접근자가 호출되지 않았으므로 프라이빗 속성 '{0}'을(를) 메서드로 변환할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Cast">
         <source>Remove Unnecessary Cast</source>
-        <target state="new">Remove Unnecessary Cast</target>
+        <target state="translated">불필요한 캐스트 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_redundant_equality">
+        <source>Remove redundant equality</source>
+        <target state="translated">중복 같음 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_parentheses">
+        <source>Remove unnecessary parentheses</source>
+        <target state="translated">불필요한 괄호 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="translated">불필요한 비표시 오류(Suppression) 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
-        <target state="new">Remove unread private members</target>
+        <target state="translated">읽지 않은 private 멤버 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_member">
         <source>Remove unused member</source>
-        <target state="new">Remove unused member</target>
+        <target state="translated">사용되지 않은 멤버 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
-        <target state="new">Remove unused parameter</target>
+        <target state="translated">사용하지 않는 매개 변수를 제거하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0">
         <source>Remove unused parameter '{0}'</source>
-        <target state="new">Remove unused parameter '{0}'</target>
+        <target state="translated">사용하지 않는 매개 변수 '{0}' 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
         <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
-        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API</target>
+        <target state="translated">제공된 공용 API의 일부가 아닌 경우 사용하지 않는 매개 변수 '{0}' 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
-        <target state="new">Remove unused private members</target>
+        <target state="translated">사용되지 않는 private 멤버 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_LINQ_expression">
+        <source>Simplify LINQ expression</source>
+        <target state="translated">LINQ 식 단순화</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
         <source>Simplify collection initialization</source>
-        <target state="new">Simplify collection initialization</target>
+        <target state="translated">컬렉션 초기화 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="translated">조건식 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="translated">보간 단순화</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_object_initialization">
         <source>Simplify object initialization</source>
-        <target state="new">Simplify object initialization</target>
+        <target state="translated">개체 초기화 단순화</target>
         <note />
       </trans-unit>
       <trans-unit id="The_file_header_does_not_match_the_required_text">
         <source>The file header does not match the required text</source>
-        <target state="new">The file header does not match the required text</target>
+        <target state="translated">파일 헤더가 필요한 텍스트와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_file_header_is_missing_or_not_located_at_the_top_of_the_file">
         <source>The file header is missing or not located at the top of the file</source>
-        <target state="new">The file header is missing or not located at the top of the file</target>
+        <target state="translated">파일 헤더가 없거나 파일 맨 위에 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
-        <target state="new">Unnecessary assignment of a value</target>
+        <target state="translated">불필요한 값 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <target state="translated">'{0}'에 불필요한 값 할당</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="translated">'System.HashCode' 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_auto_property">
+        <source>Use auto property</source>
+        <target state="translated">auto 속성 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
-        <target state="new">Use coalesce expression</target>
+        <target state="translated">COALESCE 식 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="translated">복합형 할당 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_decrement_operator">
+        <source>Use '--' operator</source>
+        <target state="translated">'--' 연산자 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicitly_provided_tuple_name">
         <source>Use explicitly provided tuple name</source>
-        <target state="new">Use explicitly provided tuple name</target>
+        <target state="translated">명시적으로 제공된 튜플 이름 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_increment_operator">
+        <source>Use '++' operator</source>
+        <target state="translated">'++' 연산자 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_inferred_member_name">
+        <source>Use inferred member name</source>
+        <target state="translated">유추 멤버 이름 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
-        <target state="new">Use null propagation</target>
+        <target state="translated">Null 전파 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_throw_expression">
         <source>Use 'throw' expression</source>
-        <target state="new">Use 'throw' expression</target>
+        <target state="translated">throw' 식 사용</target>
         <note />
       </trans-unit>
     </body>

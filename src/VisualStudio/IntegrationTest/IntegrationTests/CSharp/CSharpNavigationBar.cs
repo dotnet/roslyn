@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -32,8 +34,8 @@ struct S
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpNavigationBar))
+        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpNavigationBar))
         {
         }
 
@@ -72,11 +74,6 @@ struct S
             VerifyRightSelected("this[int index]");
 
             VisualStudio.Editor.ExpandTypeNavBar();
-            var expectedItems = new[]
-            {
-                "C",
-                "S",
-            };
 
             VisualStudio.Editor.SelectTypeNavBarItem("S");
 

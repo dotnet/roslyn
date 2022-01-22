@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Windows;
@@ -19,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
-
 
         internal OptionPreviewControl(IServiceProvider serviceProvider, OptionStore optionStore, Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> createViewModel) : base(optionStore)
         {

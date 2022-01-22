@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,17 +23,15 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         private readonly MessageFilter _messageFilter;
         private readonly VisualStudioInstanceFactory _instanceFactory;
-        private readonly ITestOutputHelper _testOutputHelper;
         private VisualStudioInstanceContext _visualStudioContext;
 
-        protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+        protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory)
         {
             Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
 
             // Install a COM message filter to handle retry operations when the first attempt fails
             _messageFilter = RegisterMessageFilter();
             _instanceFactory = instanceFactory;
-            _testOutputHelper = testOutputHelper;
 
             try
             {

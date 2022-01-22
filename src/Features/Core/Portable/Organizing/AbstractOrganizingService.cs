@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,21 +20,15 @@ namespace Microsoft.CodeAnalysis.Organizing
     {
         private readonly IEnumerable<ISyntaxOrganizer> _organizers;
         protected AbstractOrganizingService(IEnumerable<ISyntaxOrganizer> organizers)
-        {
-            _organizers = organizers.ToImmutableArrayOrEmpty();
-        }
+            => _organizers = organizers.ToImmutableArrayOrEmpty();
 
         public IEnumerable<ISyntaxOrganizer> GetDefaultOrganizers()
-        {
-            return _organizers;
-        }
+            => _organizers;
 
         protected abstract Task<Document> ProcessAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers, CancellationToken cancellationToken);
 
         public Task<Document> OrganizeAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers, CancellationToken cancellationToken)
-        {
-            return ProcessAsync(document, organizers ?? GetDefaultOrganizers(), cancellationToken);
-        }
+            => ProcessAsync(document, organizers ?? GetDefaultOrganizers(), cancellationToken);
 
         protected Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> GetNodeToOrganizers(IEnumerable<ISyntaxOrganizer> organizers)
         {

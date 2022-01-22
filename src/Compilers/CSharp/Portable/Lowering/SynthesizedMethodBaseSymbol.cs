@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               Location location,
                                               string name,
                                               DeclarationModifiers declarationModifiers)
-            : base(containingType, syntaxReference, location)
+            : base(containingType, syntaxReference, location, isIterator: false)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);
@@ -47,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,
                 isExtensionMethod: false,
+                isNullableAnalysisEnabled: false,
                 isMetadataVirtualIgnoringModifiers: false);
         }
 
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeParameters = typeParameters;
         }
 
-        protected override void MethodChecks(DiagnosticBag diagnostics)
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             // TODO: move more functionality into here, making these symbols more lazy
         }
@@ -86,8 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         internal override int ParameterCount
         {
@@ -100,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_parameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _parameters, MakeParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _parameters, MakeParameters());
                 }
                 return _parameters;
             }
@@ -132,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     p.Name,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
-                    inheritAttributes ? p as SourceComplexParameterSymbol : null));
+                    inheritAttributes ? p as SourceComplexParameterSymbol : null,
+                    isNullChecked: p.IsNullChecked));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
@@ -186,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? BaseMethod.GetSecurityInformation()
                 : SpecializedCollections.EmptyEnumerable<SecurityAttribute>();
 
-#nullable restore
+#nullable disable
 
         public sealed override RefKind RefKind
         {
@@ -243,5 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Interlocked.Exchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(value));
             }
         }
+
+        internal override bool IsIterator => BaseMethod.IsIterator;
     }
 }

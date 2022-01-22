@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -25,72 +24,64 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableDocumentHighlights>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
-                    nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
-                    solution,
-                    new object[]
-                    {
-                        document.Id,
-                        position,
-                        documentsToSearch.Select(d => d.Id).ToArray()
-                    },
-                    callbackTarget: null,
+                // Call the project overload.  We don't need the full solution synchronized over to the OOP
+                // in order to highlight values in this document.
+                var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
+                    document.Project,
+                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), options, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
+                if (!result.HasValue)
                 {
-                    return result.Value.SelectAsArray(h => h.Rehydrate(solution));
+                    return ImmutableArray<DocumentHighlights>.Empty;
                 }
+
+                return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution)).ConfigureAwait(false);
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
-                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var result = await TryGetEmbeddedLanguageHighlightsAsync(
-                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefaultOrEmpty)
-            {
                 return result;
-            }
 
-            // use speculative semantic model to see whether we are on a symbol we can do HR
-            var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
-            {
                 return ImmutableArray<DocumentHighlights>.Empty;
-            }
-
-            symbol = await GetSymbolToSearchAsync(document, position, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
-            {
-                return ImmutableArray<DocumentHighlights>.Empty;
-            }
 
             // Get unique tags for referenced symbols
-            return await GetTagsForReferencedSymbolAsync(
-                new SymbolAndProjectId(symbol, document.Project.Id),
-                document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+            var tags = await GetTagsForReferencedSymbolAsync(
+                symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+
+            // Only accept these highlights if at least one of them actually intersected with the 
+            // position the caller was asking for.  For example, if the user had `$$new X();` then 
+            // SymbolFinder will consider that the symbol `X`. However, the doc highlights won't include
+            // the `new` part, so it's not appropriate for us to highlight `X` in that case.
+            if (!tags.Any(t => t.HighlightSpans.Any(hs => hs.TextSpan.IntersectsWith(position))))
+                return ImmutableArray<DocumentHighlights>.Empty;
+
+            return tags;
         }
 
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
             if (languagesProvider != null)
@@ -101,7 +92,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     if (highlighter != null)
                     {
                         var highlights = await highlighter.GetDocumentHighlightsAsync(
-                            document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                            document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                         if (!highlights.IsDefaultOrEmpty)
                         {
@@ -114,34 +105,20 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return default;
         }
 
-        private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            // see whether we can use the symbol as it is
-            var currentSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (currentSemanticModel == semanticModel)
-            {
-                return symbol;
-            }
-
-            // get symbols from current document again
-            return await SymbolFinder.FindSymbolAtPositionAsync(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
-        }
-
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Document document,
             IImmutableSet<Document> documentsToSearch,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             Contract.ThrowIfNull(symbol);
             if (ShouldConsiderSymbol(symbol))
             {
                 var progress = new StreamingProgressCollector();
 
-                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+                var options = FindSymbols.FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
-                    symbolAndProjectId, document.Project.Solution, progress,
+                    symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                 return await FilterAndCreateSpansAsync(
@@ -177,22 +154,21 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
-            IEnumerable<ReferencedSymbol> references, Document startingDocument,
+            ImmutableArray<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindSymbols.FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
-
             references = references.FilterToItemsToShow(options);
             references = references.FilterNonMatchingMethodNames(solution, symbol);
             references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 
             if (symbol.IsConstructor())
             {
-                references = references.Where(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
+                references = references.WhereAsArray(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
             }
 
-            var additionalReferences = new List<Location>();
+            using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);
 
             foreach (var currentDocument in documentsToSearch)
             {
@@ -221,7 +197,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Solution solution,
             ISymbol symbol,
             IEnumerable<ReferencedSymbol> references,
-            IEnumerable<Location> additionalReferences,
+            ArrayBuilder<Location> additionalReferences,
             IImmutableSet<Document> documentToSearch,
             CancellationToken cancellationToken)
         {
@@ -259,7 +235,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                             // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
                             if (document == null)
                             {
-                                Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                                Debug.Assert(solution.Workspace.Kind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
                                 continue;
                             }
 
@@ -308,16 +284,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
                 case SymbolKind.NamedType:
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
-
-                case SymbolKind.Parameter:
-                    // If it's an indexer parameter, we will have also cascaded to the accessor
-                    // one that actually receives the references
-                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
-                    {
-                        return false;
-                    }
-
-                    break;
             }
 
             return true;
@@ -342,7 +308,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 {
                     var tree = location.SourceTree;
 
-                    var document = solution.GetDocument(tree);
+                    var document = solution.GetRequiredDocument(tree);
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                     if (syntaxFacts != null)
@@ -357,7 +323,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     }
                 }
             }
-            catch (NullReferenceException e) when (FatalError.ReportWithoutCrash(e))
+            catch (NullReferenceException e) when (FatalError.ReportAndCatch(e))
             {
                 // We currently are seeing a strange null references crash in this code.  We have
                 // a strong belief that this is recoverable, but we'd like to know why it is 

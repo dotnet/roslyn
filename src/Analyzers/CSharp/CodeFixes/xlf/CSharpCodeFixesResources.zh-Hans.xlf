@@ -4,17 +4,47 @@
     <body>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
-        <target state="new">Add 'this.'</target>
+        <target state="translated">添加 "this."</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_typeof_to_nameof">
+        <source>Convert 'typeof' to 'nameof'</source>
+        <target state="translated">将 "typeof" 转换为 "nameof"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pass_in_captured_variables_as_arguments">
+        <source>Pass in captured variables as arguments</source>
+        <target state="translated">以参数形式传入捕获的变量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_colon_on_following_line">
+        <source>Place colon on following line</source>
+        <target state="translated">将冒号另起一行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="translated">将语句另起一行</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
-        <target state="new">Remove Unnecessary Usings</target>
+        <target state="translated">删除不必要的 Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank line between braces</source>
+        <target state="translated">删除括号之间的空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
-        <target state="new">Remove unreachable code</target>
+        <target state="translated">删除无法访问的代码</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
+        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
+        <target state="translated">警告: 将参数添加到本地函数声明可能产生无效的代码。</target>
         <note />
       </trans-unit>
     </body>
