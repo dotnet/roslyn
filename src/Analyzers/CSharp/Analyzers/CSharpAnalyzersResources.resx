@@ -215,6 +215,9 @@
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
   </data>
+  <data name="Prefer_null_check_over_type_check" xml:space="preserve">
+    <value>Prefer 'null' check over type check</value>
+  </data>
   <data name="Use_simple_using_statement" xml:space="preserve">
     <value>Use simple 'using' statement</value>
   </data>
@@ -313,5 +316,37 @@
   </data>
   <data name="Blank_line_not_allowed_after_constructor_initializer_colon" xml:space="preserve">
     <value>Blank line not allowed after constructor initializer colon</value>
+  </data>
+  <data name="Null_check_can_be_clarified" xml:space="preserve">
+    <value>Null check can be clarified</value>
+  </data>
+  <data name="Convert_to_file_scoped_namespace" xml:space="preserve">
+    <value>Convert to file-scoped namespace</value>
+    <comment>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Convert_to_block_scoped_namespace" xml:space="preserve">
+    <value>Convert to block scoped namespace</value>
+    <comment>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Use_pattern_matching_may_change_code_meaning" xml:space="preserve">
+    <value>Use pattern matching (may change code meaning)</value>
+  </data>
+  <data name="Property_pattern_can_be_simplified" xml:space="preserve">
+    <value>Property pattern can be simplified</value>
+  </data>
+  <data name="Simplify_property_pattern" xml:space="preserve">
+    <value>Simplify property pattern</value>
+  </data>
+  <data name="Use_tuple_to_swap_values" xml:space="preserve">
+    <value>Use tuple to swap values</value>
+  </data>
+  <data name="Use_parameter_null_checking" xml:space="preserve">
+    <value>Use parameter null checking</value>
+  </data>
+  <data name="Lambda_expression_can_be_removed" xml:space="preserve">
+    <value>Lambda expression can be removed</value>
+  </data>
+  <data name="Remove_unnecessary_lambda_expression" xml:space="preserve">
+    <value>Remove unnecessary lambda expression</value>
   </data>
 </root>

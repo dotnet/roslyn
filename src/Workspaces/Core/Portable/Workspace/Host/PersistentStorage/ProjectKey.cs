@@ -5,7 +5,7 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.PersistentStorage
+namespace Microsoft.CodeAnalysis.Storage
 {
     /// <summary>
     /// Handle that can be used with <see cref="IChecksummedPersistentStorage"/> to read data for a

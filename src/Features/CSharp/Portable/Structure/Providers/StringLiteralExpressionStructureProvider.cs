@@ -12,9 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal sealed class StringLiteralExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<LiteralExpressionSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             LiteralExpressionSyntax node,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             if (node.IsKind(SyntaxKind.StringLiteralExpression) &&

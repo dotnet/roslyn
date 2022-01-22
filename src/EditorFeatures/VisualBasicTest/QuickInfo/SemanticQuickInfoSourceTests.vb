@@ -887,7 +887,7 @@ Class C
 End Class]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Function
 
         <WorkItem(543226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543226")>
@@ -905,7 +905,7 @@ Module Program
 End Module]]></Text>.NormalizedValue,
             MainDescription("ReadOnly Property 'a.Name As String"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Function
 
         <WorkItem(543223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543223")>
@@ -920,7 +920,7 @@ End Class
 ]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Goo As ? }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Goo As ? }}"))
         End Function
 
         <WorkItem(543242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543242")>
@@ -950,7 +950,8 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription($"({FeaturesResources.local_variable}) a As <Sub()>"))
+            MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} Delegate Sub ()"))
         End Function
 
         <WorkItem(543624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543624")>
@@ -966,7 +967,8 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription($"({FeaturesResources.local_variable}) a As <Function() As Integer>"))
+            MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} Delegate Function () As Integer"))
         End Function
 
         <WorkItem(543624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543624")>
@@ -981,9 +983,10 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription($"({FeaturesResources.local_variable}) a As <Function() As 'a>"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf &
-                           $"    'a {FeaturesResources.is_} New With {{ .Goo As String }}"))
+            MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf &
+                           $"    'a {FeaturesResources.is_} Delegate Function () As 'b" & vbCrLf &
+                           $"    'b {FeaturesResources.is_} New With {{ .Goo As String }}"))
         End Function
 
         <WorkItem(543624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543624")>
@@ -999,9 +1002,11 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription($"({FeaturesResources.local_variable}) a As <Function(i As Integer) As 'a>"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf &
-                           $"    'a {FeaturesResources.is_} New With {{ .Sq As Integer, .M As <Function(j As Integer) As Integer> }}"))
+            MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf &
+                           $"    'a {FeaturesResources.is_} Delegate Function (i As Integer) As 'b" & vbCrLf &
+                           $"    'b {FeaturesResources.is_} New With {{ .Sq As Integer, .M As 'c }}" & vbCrLf &
+                           $"    'c {FeaturesResources.is_} Delegate Function (j As Integer) As Integer"))
         End Function
 
         <WorkItem(543389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543389")>
@@ -2642,6 +2647,193 @@ End Class",
                 MainDescription("Property Get C.M() As Integer"),
                 Documentation("Summary text"),
                 Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")>
+        Public Async Function QuickInfo_DotInInvocation() As Task
+            Await TestAsync("
+Public Class C
+    Public Sub M(ByVal a As Integer)
+    End Sub
+
+    Public Sub M(ByVal a As Integer, ParamArray b As Integer())
+    End Sub
+End Class
+
+Class Program
+    Private Shared Sub Main()
+        Dim c = New C()
+        c$$.M(1, 2)
+    End Sub
+End Class
+",
+                MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")>
+        Public Async Function QuickInfo_BeforeMemberNameInInvocation() As Task
+            Await TestAsync("
+Public Class C
+    Public Sub M(ByVal a As Integer)
+    End Sub
+
+    Public Sub M(ByVal a As Integer, ParamArray b As Integer())
+    End Sub
+End Class
+
+Class Program
+    Private Shared Sub Main()
+        Dim c = New C()
+        c.$$M(1, 2)
+    End Sub
+End Class
+",
+                MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")>
+        Public Async Function QuickInfo_AfterMemberNameInInvocation() As Task
+            Await TestAsync("
+Public Class C
+    Public Sub M(ByVal a As Integer)
+    End Sub
+
+    Public Sub M(ByVal a As Integer, ParamArray b As Integer())
+    End Sub
+End Class
+
+Class Program
+    Private Shared Sub Main()
+        Dim c = New C()
+        c.M$$(1, 2)
+    End Sub
+End Class
+",
+                MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestSingleTupleType() As Task
+            Await TestInClassAsync(
+"sub M(t as (x as integer, y as string))
+ end sub
+
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(t As (x As Integer, y As String))"),
+                NoTypeParameterMap)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesSameType() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), t As (x As Integer, y As String)) { }
+  void N()
+  {
+    $$M(default)
+  }",
+                MainDescription("Sub C.M(s As 'a, t As 'a)"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (x As Integer, y As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesDifferentTypes1() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), u As (a As Integer, b As String))
+ end sub
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(s As (x As Integer, y As String), u As (a As Integer, b As String))"),
+                NoTypeParameterMap)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesDifferentTypes2() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), t As (x As Integer, y As String), u As (a As Integer, b As String), v as (a As Integer, b As String))
+ end sub
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(s As 'a, t As 'a, u As 'b, v As 'b)"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (x As Integer, y As String)
+    'b {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesDifferentTypes3() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), t As (x As Integer, y As String), u As (a As Integer, b As String))
+ end sub
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(s As 'a, t As 'a, u As 'b)"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (x As Integer, y As String)
+    'b {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesInference() As Task
+            Await TestInClassAsync(
+"function M(of T)(t as T) as T
+ end function
+  sub N()
+    dim x as (a As Integer, b As String) = nothing
+    $$M(x)
+  end sub",
+                MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestAnonymousTypeWithTupleTypesInference1() As Task
+            Await TestInClassAsync(
+"function M(of T)(t as T) as T
+ end function
+  sub N()
+    dim x as new with { key .x = directcast(nothing, (a As Integer, b As String)) }
+    $$M(x)
+  end sub",
+                MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} New With {{ Key .x As (a As Integer, b As String) }}"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestAnonymousTypeWithTupleTypesInference2() As Task
+            Await TestInClassAsync(
+"function M(of T)(t as T) as T
+ end function
+  sub N()
+    dim x as new with { key .x = directcast(nothing, (a As Integer, b As String),  key .y = directcast(nothing, (a As Integer, b As String)) }
+    $$M(x)
+  end sub",
+                MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} New With {{ Key .x As 'b, Key .y As 'b }}
+    'b {FeaturesResources.is_} (a As Integer, b As String)"))
         End Function
     End Class
 End Namespace

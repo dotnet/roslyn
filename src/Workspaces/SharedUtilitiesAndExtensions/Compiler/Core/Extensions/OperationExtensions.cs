@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation is IDeclarationPatternOperation)
             {
-                while (operation.Parent is IBinaryPatternOperation ||
-                       operation.Parent is INegatedPatternOperation ||
-                       operation.Parent is IRelationalPatternOperation)
+                while (operation.Parent is IBinaryPatternOperation or
+                       INegatedPatternOperation or
+                       IRelationalPatternOperation)
                 {
                     operation = operation.Parent;
                 }
@@ -126,6 +126,12 @@ namespace Microsoft.CodeAnalysis
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
+            else if (operation.Parent is ISimpleAssignmentOperation simpleAssignmentOperation &&
+                simpleAssignmentOperation.Value == operation &&
+                simpleAssignmentOperation.IsRef)
+            {
+                return ValueUsageInfo.ReadableWritableReference;
+            }
             else if (operation.Parent is IIncrementOrDecrementOperation)
             {
                 return ValueUsageInfo.ReadWrite;
@@ -138,9 +144,9 @@ namespace Microsoft.CodeAnalysis
                 return parenthesizedOperation.GetValueUsageInfo(containingSymbol) &
                     ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
             }
-            else if (operation.Parent is INameOfOperation ||
-                     operation.Parent is ITypeOfOperation ||
-                     operation.Parent is ISizeOfOperation)
+            else if (operation.Parent is INameOfOperation or
+                     ITypeOfOperation or
+                     ISizeOfOperation)
             {
                 return ValueUsageInfo.Name;
             }
@@ -364,5 +370,20 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsNullLiteral(this IOperation operand)
             => operand is ILiteralOperation { ConstantValue: { HasValue: true, Value: null } };
+
+        /// <summary>
+        /// Walks down consecutive conversion operations until an operand is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation? WalkDownConversion(this IOperation? operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
     }
 }

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class EnumMemberGenerator
     {
-        internal static EnumDeclarationSyntax AddEnumMemberTo(EnumDeclarationSyntax destination, IFieldSymbol enumMember, CodeGenerationOptions options)
+        internal static EnumDeclarationSyntax AddEnumMemberTo(EnumDeclarationSyntax destination, IFieldSymbol enumMember, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
         {
             var members = new List<SyntaxNodeOrToken>();
             members.AddRange(destination.Members.GetWithSeparators());
 
-            var member = GenerateEnumMemberDeclaration(enumMember, destination, options);
+            var member = GenerateEnumMemberDeclaration(enumMember, destination, options, cancellationToken);
 
             if (members.Count == 0)
             {
@@ -50,8 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public static EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration(
             IFieldSymbol enumMember,
-            EnumDeclarationSyntax destinationOpt,
-            CodeGenerationOptions options)
+            EnumDeclarationSyntax? destination,
+            CSharpCodeGenerationOptions options,
+            CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<EnumMemberDeclarationSyntax>(enumMember, options);
             if (reusableSyntax != null)
@@ -59,38 +59,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var value = CreateEnumMemberValue(destinationOpt, enumMember);
+            var value = CreateEnumMemberValue(destination, enumMember);
             var member = SyntaxFactory.EnumMemberDeclaration(enumMember.Name.ToIdentifierToken())
                 .WithEqualsValue(value == null ? null : SyntaxFactory.EqualsValueClause(value: value));
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(member, enumMember, options));
+                ConditionallyAddDocumentationCommentTo(member, enumMember, options, cancellationToken));
         }
 
-        private static ExpressionSyntax CreateEnumMemberValue(EnumDeclarationSyntax destinationOpt, IFieldSymbol enumMember)
+        private static ExpressionSyntax? CreateEnumMemberValue(EnumDeclarationSyntax? destination, IFieldSymbol enumMember)
         {
             if (!enumMember.HasConstantValue)
             {
                 return null;
             }
 
-            if (!(enumMember.ConstantValue is byte) &&
-                !(enumMember.ConstantValue is sbyte) &&
-                !(enumMember.ConstantValue is ushort) &&
-                !(enumMember.ConstantValue is short) &&
-                !(enumMember.ConstantValue is int) &&
-                !(enumMember.ConstantValue is uint) &&
-                !(enumMember.ConstantValue is long) &&
-                !(enumMember.ConstantValue is ulong))
+            if (enumMember.ConstantValue is not byte and
+                not sbyte and
+                not ushort and
+                not short and
+                not int and
+                not uint and
+                not long and
+                not ulong)
             {
                 return null;
             }
 
             var value = IntegerUtilities.ToInt64(enumMember.ConstantValue);
 
-            if (destinationOpt != null)
+            if (destination != null)
             {
-                if (destinationOpt.Members.Count == 0)
+                if (destination.Members.Count == 0)
                 {
                     if (value == 0)
                     {
@@ -101,17 +101,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     // Don't generate an initializer if no other members have them, and our value
                     // would be correctly inferred from our position.
-                    if (destinationOpt.Members.Count == value &&
-                        destinationOpt.Members.All(m => m.EqualsValue == null))
+                    if (destination.Members.Count == value &&
+                        destination.Members.All(m => m.EqualsValue == null))
                     {
                         return null;
                     }
 
                     // Existing members, try to stay consistent with their style.
-                    var lastMember = destinationOpt.Members.LastOrDefault(m => m.EqualsValue != null);
+                    var lastMember = destination.Members.LastOrDefault(m => m.EqualsValue != null);
                     if (lastMember != null)
                     {
-                        var lastExpression = lastMember.EqualsValue.Value;
+                        var lastExpression = lastMember.EqualsValue!.Value;
                         if (lastExpression.Kind() == SyntaxKind.LeftShiftExpression &&
                             IntegerUtilities.HasOneBitSet(value))
                         {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 }
                             }
                         }
-                        else if (lastExpression.IsKind(SyntaxKind.NumericLiteralExpression, out LiteralExpressionSyntax numericLiteral))
+                        else if (lastExpression.IsKind(SyntaxKind.NumericLiteralExpression, out LiteralExpressionSyntax? numericLiteral))
                         {
                             var numericToken = numericLiteral.Token;
                             var numericText = numericToken.ToString();

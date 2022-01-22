@@ -41,22 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         ISet<string> INavigateToItemProvider2.KindsProvided => KindsProvided;
 
         public ImmutableHashSet<string> KindsProvided
-        {
-            get
-            {
-                var result = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
-                foreach (var project in _workspace.CurrentSolution.Projects)
-                {
-                    var navigateToSearchService = project.GetLanguageService<INavigateToSearchService>();
-                    if (navigateToSearchService != null)
-                    {
-                        result = result.Union(navigateToSearchService.KindsProvided);
-                    }
-                }
-
-                return result;
-            }
-        }
+            => NavigateToUtilities.GetKindsProvided(_workspace.CurrentSolution);
 
         public bool CanFilter
         {
@@ -124,11 +109,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _asyncListener,
                 roslynCallback,
                 searchValue,
-                searchCurrentDocument,
                 kinds,
                 _threadingContext.DisposalToken);
 
-            _ = searcher.SearchAsync(_cancellationTokenSource.Token);
+            _ = searcher.SearchAsync(searchCurrentDocument, _cancellationTokenSource.Token);
         }
     }
 }

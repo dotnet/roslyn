@@ -58,16 +58,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.PropertyDeclaration:
                     var propertyDeclaration = (PropertyDeclarationSyntax)node;
-                    if (propertyDeclaration.Initializer != null)
-                    {
-                        result = propertyDeclaration.Initializer.Value;
-                        break;
-                    }
+                    result = propertyDeclaration.Initializer?.Value;
+                    break;
 
-                    return propertyDeclaration.ExpressionBody?.Expression;
-
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)node).ExpressionBody?.Expression;
+                case SyntaxKind.ArrowExpressionClause:
+                    // We associate the body of expression-bodied property/indexer with the ArrowExpressionClause
+                    // since that's the syntax node associated with the getter symbol.
+                    // The property/indexer itself is considered to not have a body unless the property has an initializer.
+                    result = node.Parent.IsKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration) ?
+                        ((ArrowExpressionClauseSyntax)node).Expression : null;
+                    break;
 
                 default:
                     return null;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (LambdaUtilities.IsLambdaBody(syntax))
             {
                 Debug.Assert(allowLambda);
-                Debug.Assert(syntax is ExpressionSyntax || syntax is BlockSyntax);
+                Debug.Assert(syntax is ExpressionSyntax or BlockSyntax);
                 return;
             }
 
@@ -116,8 +116,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return;
             }
 
+            // special case for top level statements, which have no containing block other than the compilation unit
+            if (syntax is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
+            {
+                return;
+            }
+
             Debug.Assert(false);
         }
+
+        public static bool ContainsGlobalStatements(this CompilationUnitSyntax compilationUnit)
+            => compilationUnit.Members.Count > 0 && compilationUnit.Members[0] is GlobalStatementSyntax;
 
         public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt)
         {

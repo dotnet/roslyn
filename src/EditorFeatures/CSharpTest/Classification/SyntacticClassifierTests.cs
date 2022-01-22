@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,6 +41,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("var"),
                 Field("goo"),
                 Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNamespace(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace N
+{
+}",
+                testHost,
+                Keyword("namespace"),
+                Namespace("N"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestFileScopedNamespace(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace N;
+",
+                testHost,
+                Keyword("namespace"),
+                Namespace("N"),
+                Punctuation.Semicolon);
         }
 
         [Theory]
@@ -4861,6 +4887,51 @@ int (foo, bar) = (1, 2);",
                 Number("2"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestListPattern(TestHost testHost)
+        {
+            await TestInMethodAsync(@"
+_ = new int[0] switch
+{
+    case [1, 2]:
+        break;
+    case [1, .. var end]:
+        break;
+}",
+testHost,
+            Identifier("_"),
+            Operators.Equals,
+            Keyword("new"),
+            Keyword("int"),
+            Punctuation.OpenBracket,
+            Number("0"),
+            Punctuation.CloseBracket,
+            ControlKeyword("switch"),
+            Punctuation.OpenCurly,
+            Keyword("case"),
+            Punctuation.OpenBracket,
+            Number("1"),
+            Punctuation.Comma,
+            Number("2"),
+            Punctuation.CloseBracket,
+            Punctuation.Colon,
+            ControlKeyword("break"),
+            Punctuation.Semicolon,
+            Keyword("case"),
+            Punctuation.OpenBracket,
+            Number("1"),
+            Punctuation.Comma,
+            Punctuation.DotDot,
+            Identifier("var"),
+            Identifier("end"),
+            Punctuation.CloseBracket,
+            Punctuation.Colon,
+            ControlKeyword("break"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly);
         }
 
         [Theory]

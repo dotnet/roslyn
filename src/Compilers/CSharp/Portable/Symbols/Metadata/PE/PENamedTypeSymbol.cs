@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -141,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
+            internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
 
 #if DEBUG
             internal bool IsDefaultValue()
@@ -154,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyContainsExtensionMethods.HasValue() &&
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
-                    !lazyHasEmbeddedAttribute.HasValue();
+                    !lazyHasEmbeddedAttribute.HasValue() &&
+                    !lazyHasInterpolatedStringHandlerAttribute.HasValue();
             }
 #endif
         }
@@ -384,6 +387,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
+        }
+
+        internal sealed override bool IsInterpolatedStringHandlerType
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyHasInterpolatedStringHandlerAttribute.HasValue())
+                {
+                    uncommon.lazyHasInterpolatedStringHandlerAttribute = ContainingPEModule.Module.HasInterpolatedStringHandlerAttribute(_handle).ToThreeState();
+                }
+
+                return uncommon.lazyHasInterpolatedStringHandlerAttribute.Value();
+            }
+        }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute
         {
@@ -978,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     var method = (MethodSymbol)members[index];
 
-                    // Don't emit the default value type constructor - the runtime handles that
+                    // Don't emit the default value type constructor - the runtime handles that.
                     if (!method.IsDefaultValueTypeConstructor())
                     {
                         yield return method;
@@ -1320,8 +1346,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (IsTupleType)
                 {
                     int originalCount = members.Count;
-                    members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
-                    membersCount += (members.Count - originalCount); // account for added tuple error fields
+                    var peMembers = members.ToImmutableAndFree();
+                    members = MakeSynthesizedTupleMembers(peMembers);
+                    membersCount += members.Count; // account for added tuple error fields
+                    members.AddRange(peMembers);
                     Debug.Assert(members is object);
                 }
 
@@ -1854,7 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
                 {
-                    if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(methodHandle, moduleSymbol.ImportOptions))
+                    if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
                     {
                         var method = new PEMethodSymbol(moduleSymbol, this, methodHandle);
                         members.Add(method);
@@ -1881,8 +1909,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         var methods = module.GetPropertyMethodsOrThrow(propertyDef);
 
-                        PEMethodSymbol getMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.Getter);
-                        PEMethodSymbol setMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.Setter);
+                        PEMethodSymbol getMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Getter);
+                        PEMethodSymbol setMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Setter);
 
                         if (((object)getMethod != null) || ((object)setMethod != null))
                         {
@@ -1914,8 +1942,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         var methods = module.GetEventMethodsOrThrow(eventRid);
 
                         // NOTE: C# ignores all other accessors (most notably, raise/fire).
-                        PEMethodSymbol addMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.Adder);
-                        PEMethodSymbol removeMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.Remover);
+                        PEMethodSymbol addMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Adder);
+                        PEMethodSymbol removeMethod = GetAccessorMethod(module, methodHandleToSymbol, _handle, methods.Remover);
 
                         // NOTE: both accessors are required, but that will be reported separately.
                         // Create the symbol unless both accessors are missing.
@@ -1932,7 +1960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             { }
         }
 
-        private PEMethodSymbol GetAccessorMethod(PEModule module, Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, MethodDefinitionHandle methodDef)
+        private PEMethodSymbol GetAccessorMethod(PEModule module, Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, TypeDefinitionHandle typeDef, MethodDefinitionHandle methodDef)
         {
             if (methodDef.IsNil)
             {
@@ -1941,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             PEMethodSymbol method;
             bool found = methodHandleToSymbol.TryGetValue(methodDef, out method);
-            Debug.Assert(found || !module.ShouldImportMethod(methodDef, this.ContainingPEModule.ImportOptions));
+            Debug.Assert(found || !module.ShouldImportMethod(typeDef, methodDef, this.ContainingPEModule.ImportOptions));
             return method;
         }
 
@@ -2294,6 +2322,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 yield return (TSymbol)member;
             }
+        }
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
 
         /// <summary>

@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Utilities
@@ -118,7 +118,8 @@ End Class"
         Private Shared Function ExtractSymbol(workspace As TestWorkspace, position As Integer) As Task(Of INavigableSymbol)
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Return)
-            Dim service = New NavigableSymbolService(workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)(), threadingContext, presenter)
+            Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
+            Dim service = New NavigableSymbolService(workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)(), threadingContext, presenter, listenerProvider)
             Dim view = workspace.Documents.First().GetTextView()
             Dim buffer = workspace.Documents.First().GetTextBuffer()
             Dim triggerSpan = New SnapshotSpan(buffer.CurrentSnapshot, New Span(position, 0))
@@ -135,7 +136,9 @@ End Class"
             Assert.NotNull(symbol)
             Assert.Equal(highlightedSpan.ToSpan(), symbol.SymbolSpan.Span)
 
+            Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
             symbol.Navigate(symbol.Relationships.First())
+            Await listenerProvider.GetWaiter(FeatureAttribute.NavigableSymbols).ExpeditedWaitAsync()
 
             Dim navigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
             Assert.Equal(True, navigationService.TryNavigateToLineAndOffsetReturnValue)

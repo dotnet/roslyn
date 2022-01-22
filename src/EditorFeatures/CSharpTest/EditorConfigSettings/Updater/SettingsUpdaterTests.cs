@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,7 +13,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices(), WorkspaceKind.Host);
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
-                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj1", "proj1.dll", LanguageNames.CSharp, filePath: "/a/b/proj1.csproj"))
                 .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", "text")
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From(""), filePath: EditorconfigPath)));
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_new_line_before_else=true",
+                "[*.cs]\r\ncsharp_new_line_before_else = true",
                 (CSharpFormattingOptions2.NewLineForElse, true));
         }
 
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option = option.WithValue(true).WithNotification(NotificationOption2.Suggestion);
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_style_throw_expression=true:suggestion",
+                "[*.cs]\r\ncsharp_style_throw_expression = true:suggestion",
                 (CSharpCodeStyleOptions.PreferThrowExpression, option));
         }
 
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option = option.WithValue(AddImportPlacement.InsideNamespace).WithNotification(NotificationOption2.Warning);
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace:warning",
+                "[*.cs]\r\ncsharp_using_directive_placement = inside_namespace:warning",
                 (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, option));
         }
 
@@ -129,11 +130,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             var id = "Test001";
             var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
-            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, null!, language);
+            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, null!, language, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
 
             await TestAsync(
                 string.Empty,
-                $"{expectedHeader}\r\ndotnet_diagnostic.{id}.severity={expectedSeverity}",
+                $"{expectedHeader}\r\ndotnet_diagnostic.{id}.severity = {expectedSeverity}",
                 (analyzerSetting, severity));
         }
 
@@ -141,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public async Task TestUpdateExistingWhitespaceOptionAsync()
         {
             await TestAsync(
-                "[*.cs]\r\ncsharp_new_line_before_else=true",
-                "[*.cs]\r\ncsharp_new_line_before_else=false",
+                "[*.cs]\r\ncsharp_new_line_before_else = true",
+                "[*.cs]\r\ncsharp_new_line_before_else = false",
                 (CSharpFormattingOptions2.NewLineForElse, false));
         }
 
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 [*.{cs,vb}]
 
 # CA1000: Do not declare static members on generic types
-dotnet_diagnostic.CA1000.severity=false
+dotnet_diagnostic.CA1000.severity = false
 
 ";
 
@@ -161,11 +162,11 @@ dotnet_diagnostic.CA1000.severity=false
 [*.{cs,vb}]
 
 # CA1000: Do not declare static members on generic types
-dotnet_diagnostic.CA1000.severity=false
+dotnet_diagnostic.CA1000.severity = false
 
 
 [*.cs]
-csharp_new_line_before_else=true";
+csharp_new_line_before_else = true";
             await TestAsync(
                 initialEditorConfig,
                 updatedEditorConfig,
@@ -189,7 +190,7 @@ root = true
 [*.xml]
 indent_size = 2
 [*.cs]
-csharp_new_line_before_else=true";
+csharp_new_line_before_else = true";
             await TestAsync(
                 initialEditorConfig,
                 updatedEditorConfig,
@@ -224,7 +225,7 @@ indent_size = 2
 
 # CSharp code style settings:
 [*.cs]
-csharp_new_line_before_else=true";
+csharp_new_line_before_else = true";
 
             await TestAsync(
                 initialEditorConfig,
@@ -237,7 +238,7 @@ csharp_new_line_before_else=true";
         {
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_new_line_before_else=true\r\ncsharp_new_line_before_catch=true\r\ncsharp_new_line_before_finally=true",
+                "[*.cs]\r\ncsharp_new_line_before_else = true\r\ncsharp_new_line_before_catch = true\r\ncsharp_new_line_before_finally = true",
                 (CSharpFormattingOptions2.NewLineForElse, true),
                 (CSharpFormattingOptions2.NewLineForCatch, true),
                 (CSharpFormattingOptions2.NewLineForFinally, true));
@@ -268,7 +269,7 @@ indent_size = 2
 
 # Dotnet code style settings:
 [*.{cs,vb}]
-dotnet_sort_system_directives_first=true
+dotnet_sort_system_directives_first = true
 
 # CSharp code style settings:
 [*.cs]";
@@ -313,7 +314,7 @@ indent_size = 2
 
 # CSharp code style settings:
 [*.cs]
-csharp_new_line_before_else=true";
+csharp_new_line_before_else = true";
 
             await TestAsync(
                 initialEditorConfig,
@@ -328,11 +329,11 @@ csharp_new_line_before_else=true";
             var updater = new AnalyzerSettingsUpdater(workspace, "/a/b/config");
             var id = "Test001";
             var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
-            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp);
+            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
             analyzerSetting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity=error", update.NewText);
+            Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity = error", update.NewText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -346,11 +347,12 @@ csharp_new_line_before_else=true";
                                                   "",
                                                   editorOptions,
                                                   workspace.Options,
-                                                  updater);
+                                                  updater,
+                                                  null!);
             setting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false:error", update.NewText);
+            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:error", update.NewText);
             value = "false:error";
             var editorconfig = workspace.CurrentSolution.Projects.SelectMany(p => p.AnalyzerConfigDocuments.Where(a => a.FilePath == EditorconfigPath)).Single();
             var text = await editorconfig.GetTextAsync();
@@ -359,19 +361,223 @@ csharp_new_line_before_else=true";
             setting.ChangeValue(0);
             updates = await updater.GetChangedEditorConfigAsync(default);
             update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true:error", update.NewText);
+            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:error", update.NewText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public async Task TestFormattingSettingUpdaterService()
+        public async Task TestWhitespaceSettingUpdaterService()
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
             var updater = new OptionUpdater(workspace, "/a/b/config");
-            var setting = FormattingSetting.Create(CSharpFormattingOptions2.NewLineForElse, "", TestAnalyzerConfigOptions.Instance, workspace.Options, updater);
+            var setting = WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForElse, "", TestAnalyzerConfigOptions.Instance, workspace.Options, updater, null!);
             setting.SetValue(false);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else=false", update.NewText);
+            Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else = false", update.NewText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public async Task TestNamingStyleSettingsUpdater()
+        {
+            var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var settingsProviderFactory = workspace.Services.GetRequiredService<IWorkspaceSettingsProviderFactory<NamingStyleSetting>>();
+            var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
+            var model = new TestViewModel();
+            settingsProvider.RegisterViewModel(model);
+            var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
+            Assert.Equal(3, dataSnapShot.Length);
+
+            var setting0 = dataSnapShot[0];
+            var setting1 = dataSnapShot[1];
+            var setting2 = dataSnapShot[2];
+
+            setting0.ChangeSeverity(ReportDiagnostic.Error);
+
+            var newText = await settingsProvider.GetChangedEditorConfigAsync(SourceText.From(string.Empty));
+            var fileText = newText.ToString();
+            Assert.Equal(ExpectedInitialEditorConfig, fileText);
+            Assert.Equal(ReportDiagnostic.Error, setting0.Severity);
+
+            setting1.ChangeSeverity(ReportDiagnostic.Error);
+            setting2.ChangeSeverity(ReportDiagnostic.Error);
+
+            newText = await settingsProvider.GetChangedEditorConfigAsync(newText);
+            fileText = newText.ToString();
+            Assert.Equal(ExpectedEditorConfigAfterAllSeveritiesChanged, fileText);
+            Assert.Equal(ReportDiagnostic.Error, setting0.Severity);
+            Assert.Equal(ReportDiagnostic.Error, setting0.Severity);
+
+            var selectedStyleIndex0 = Array.IndexOf(setting0.AllStyles, setting0.StyleName);
+            Assert.Equal(1, selectedStyleIndex0);
+
+            setting0.ChangeStyle(0);
+            newText = await settingsProvider.GetChangedEditorConfigAsync(newText);
+            fileText = newText.ToString();
+            Assert.Equal(ExpectedEditorConfigAfterSymbolSpecChange, fileText);
+            Assert.Equal("pascal_case", setting0.StyleName);
+        }
+
+        private readonly string ExpectedInitialEditorConfig =
+@$"
+[*.{{cs,vb}}]
+#### {CompilerExtensionsResources.Naming_styles} ####
+
+# {CompilerExtensionsResources.Naming_rules}
+
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I.Replace(' ', '_')).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I.Replace(' ', '_')).ToLowerInvariant()}.symbols = {CompilerExtensionsResources.Interface.ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}
+
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.severity = suggestion
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.symbols = {CompilerExtensionsResources.Types.ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}
+
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.severity = suggestion
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.symbols = { CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}
+
+# {CompilerExtensionsResources.Symbol_specifications}
+
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_kinds = interface
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.required_modifiers = 
+
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_kinds = class, struct, interface, enum
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.required_modifiers = 
+
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}.applicable_kinds = property, event, method
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}.required_modifiers = 
+
+# {CompilerExtensionsResources.Naming_styles}
+
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.required_prefix = I
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
+
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
+
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
+";
+
+        private readonly string ExpectedEditorConfigAfterAllSeveritiesChanged =
+@$"
+[*.{{cs,vb}}]
+#### {CompilerExtensionsResources.Naming_styles} ####
+
+# {CompilerExtensionsResources.Naming_rules}
+
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I.Replace(' ', '_')).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I.Replace(' ', '_')).ToLowerInvariant()}.symbols = {CompilerExtensionsResources.Interface.ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}
+
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.symbols = {CompilerExtensionsResources.Types.ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}
+
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.symbols = {CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}
+
+# {CompilerExtensionsResources.Symbol_specifications}
+
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_kinds = interface
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.required_modifiers = 
+
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_kinds = class, struct, interface, enum
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.required_modifiers = 
+
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}.applicable_kinds = property, event, method
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}.required_modifiers = 
+
+# {CompilerExtensionsResources.Naming_styles}
+
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.required_prefix = I
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
+
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
+
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
+";
+
+        private readonly string ExpectedEditorConfigAfterSymbolSpecChange =
+@$"
+[*.{{cs,vb}}]
+#### {CompilerExtensionsResources.Naming_styles} ####
+
+# {CompilerExtensionsResources.Naming_rules}
+
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I.Replace(' ', '_')).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I.Replace(' ', '_')).ToLowerInvariant()}.symbols = {CompilerExtensionsResources.Interface.ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}
+
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.symbols = {CompilerExtensionsResources.Types.ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}
+
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.symbols = {CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_') + "_should_be_" + CompilerExtensionsResources.Pascal_Case.Replace(' ', '_')).ToLowerInvariant()}.style = {CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}
+
+# {CompilerExtensionsResources.Symbol_specifications}
+
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_kinds = interface
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.required_modifiers = 
+
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_kinds = class, struct, interface, enum
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.required_modifiers = 
+
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}.applicable_kinds = property, event, method
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.Replace(' ', '_').Replace('-', '_').ToLowerInvariant()}.required_modifiers = 
+
+# {CompilerExtensionsResources.Naming_styles}
+
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.required_prefix = I
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
+
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
+
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.Replace(' ', '_').ToLowerInvariant()}.capitalization = pascal_case
+";
+
+        private class TestViewModel : ISettingsEditorViewModel
+        {
+            public void NotifyOfUpdate() { }
+
+            Task<SourceText> ISettingsEditorViewModel.UpdateEditorConfigAsync(SourceText sourceText)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

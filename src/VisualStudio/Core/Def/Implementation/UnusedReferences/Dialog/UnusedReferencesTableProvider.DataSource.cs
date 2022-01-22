@@ -123,8 +123,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                             content = ReferenceUpdate.ReferenceInfo.ReferenceType;
                             break;
                         case UnusedReferencesTableKeyNames.ReferenceName:
-                            // It is unnecessary to display the full path to project and assembly files.
-                            content = Path.GetFileNameWithoutExtension(ReferenceUpdate.ReferenceInfo.ItemSpecification);
+                            // For Project and Assembly references, use the file name instead of overwhelming the user with the full path.
+                            content = ReferenceUpdate.ReferenceInfo.ReferenceType != ReferenceType.Package
+                                ? Path.GetFileName(ReferenceUpdate.ReferenceInfo.ItemSpecification)
+                                : ReferenceUpdate.ReferenceInfo.ItemSpecification;
                             break;
                         case UnusedReferencesTableKeyNames.UpdateAction:
                             content = ReferenceUpdate.Action;

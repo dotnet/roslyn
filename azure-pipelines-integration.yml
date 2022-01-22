@@ -8,37 +8,77 @@ trigger:
 
 # Branches that trigger builds on PR
 pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .github/*
 
 jobs:
-- job: VS_Integration
-  pool:
-    name: NetCorePublic-Pool
-    queue: $(queueName)
-  strategy:
-    maxParallel: 4
-    matrix:
-      debug_32:
-        _configuration: Debug
-        _oop64bit: false
-      debug_64:
-        _configuration: Debug
-        _oop64bit: true
-      release_32:
-        _configuration: Release
-        _oop64bit: false
-      release_64:
-        _configuration: Release
-        _oop64bit: true
-  timeoutInMinutes: 135
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - job: VS_Integration_Debug_32
+    pool:
+      name: $(poolName)
+      demands: ImageOverride -equals $(queueName)
+    timeoutInMinutes: 135
+    variables:
+      - name: XUNIT_LOGS
+        value: $(Build.SourcesDirectory)\artifacts\log\Debug
+    steps:
+      - template: eng/pipelines/test-integration-job.yml
+        parameters:
+          configuration: Debug
+          oop64bit: false
+          lspEditor: false
 
+- job: VS_Integration_Debug_64
+  pool:
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
+  timeoutInMinutes: 135
+  variables:
+    - name: XUNIT_LOGS
+      value: $(Build.SourcesDirectory)\artifacts\log\Debug
   steps:
     - template: eng/pipelines/test-integration-job.yml
       parameters:
-        configuration: $(_configuration)
-        oop64bit: $(_oop64bit)
+        configuration: Debug
+        oop64bit: true
         lspEditor: false
+
+- job: VS_Integration_Release_32
+  pool:
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
+  timeoutInMinutes: 135
+  variables:
+    - name: XUNIT_LOGS
+      value: $(Build.SourcesDirectory)\artifacts\log\Release
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: Release
+        oop64bit: false
+        lspEditor: false
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - job: VS_Integration_Release_64
+    pool:
+      name: $(poolName)
+      demands: ImageOverride -equals $(queueName)
+    timeoutInMinutes: 135
+    variables:
+      - name: XUNIT_LOGS
+        value: $(Build.SourcesDirectory)\artifacts\log\Release
+    steps:
+      - template: eng/pipelines/test-integration-job.yml
+        parameters:
+          configuration: Release
+          oop64bit: true
+          lspEditor: false

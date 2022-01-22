@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // If there was only one member in the group, and it was non-generic itself, then this
             // change is commonly safe to make without having to actually change to `var` and
             // speculatively determine if the change is ok or not.
-            if (!(declarationExpression.Parent is ArgumentSyntax argument) ||
-                !(argument.Parent is ArgumentListSyntax argumentList) ||
-                !(argumentList.Parent is InvocationExpressionSyntax invocationExpression))
+            if (declarationExpression.Parent is not ArgumentSyntax argument ||
+                argument.Parent is not ArgumentListSyntax argumentList ||
+                argumentList.Parent is not InvocationExpressionSyntax invocationExpression)
             {
                 return false;
             }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class WellKnownCommandNames
@@ -14,6 +12,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_GoToAll = "Edit.GoToAll";
         public const string Edit_GoToDefinition = "Edit.GoToDefinition";
         public const string Edit_GoToImplementation = "Edit.GoToImplementation";
+        public const string Edit_GoToBase = "Edit.GoToBase";
         public const string Edit_ListMembers = "Edit.ListMembers";
         public const string Edit_ParameterInfo = "Edit.ParameterInfo";
         public const string Edit_ToggleCompletionMode = "Edit.ToggleCompletionMode";

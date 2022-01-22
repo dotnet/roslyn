@@ -398,11 +398,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets custom tags for the diagnostic.
         /// </summary>
-        internal virtual IReadOnlyList<string> CustomTags { get { return (IReadOnlyList<string>)this.Descriptor.CustomTags; } }
+        internal virtual ImmutableArray<string> CustomTags { get { return this.Descriptor.ImmutableCustomTags; } }
 
         /// <summary>
-        /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/> 
-        /// if there is no entry. This can be used to put diagnostic specific information you want 
+        /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>
+        /// if there is no entry. This can be used to put diagnostic specific information you want
         /// to pass around. for example, to corresponding fixer.
         /// </summary>
         public virtual ImmutableDictionary<string, string?> Properties

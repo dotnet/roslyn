@@ -4,19 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.IO.Pipelines;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -25,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class SolutionAssetProvider : ISolutionAssetProvider
     {
-        public const string ServiceName = ServiceDescriptors.ServiceNameTopLevelPrefix + ServiceDescriptors.ComponentName + ".SolutionAssetProvider";
+        public const string ServiceName = "SolutionAssetProvider";
 
-        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceName, ServiceDescriptors.GetFeatureDisplayName);
+        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
 
         private readonly HostWorkspaceServices _services;
 
@@ -102,22 +97,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 finally
                 {
                     await localPipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
-
-                    if (cancellationToken.IsCancellationRequested && exception is null or OperationCanceledException)
-                    {
-                        // Throw rather than close the pipe writer. The caller will coordinate cancellation and closing
-                        // of the reader and writer together.
-                        cancellationToken.ThrowIfCancellationRequested();
-                    }
-                    else
-                    {
-                        await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
-                    }
+                    await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
                 }
             }
         }
-
-        public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
     }
 }

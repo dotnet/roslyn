@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis
 
         public static string GetGeneratorTypeName(ISourceGenerator generator)
         {
-            return generator.GetType().FullName!;
+            return generator.GetGeneratorType().FullName!;
         }
 
         public static string GetGeneratorAssemblyName(ISourceGenerator generator)
         {
-            return generator.GetType().Assembly.FullName!;
+            return generator.GetGeneratorType().Assembly.FullName!;
         }
 
         public static SourceGeneratedDocumentIdentity Generate(ProjectId projectId, string hintName, ISourceGenerator generator, string filePath)

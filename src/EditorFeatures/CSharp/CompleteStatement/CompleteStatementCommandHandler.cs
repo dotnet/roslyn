@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -42,22 +43,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     {
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler) => nextCommandHandler();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompleteStatementCommandHandler(ITextUndoHistoryRegistry textUndoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
+        public CompleteStatementCommandHandler(
+            ITextUndoHistoryRegistry textUndoHistoryRegistry,
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
         {
             _textUndoHistoryRegistry = textUndoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _globalOptions = globalOptions;
         }
 
         public string DisplayName => CSharpEditorResources.Complete_statement_on_semicolon;
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            var willMoveSemicolon = BeforeExecuteCommand(speculative: true, args: args, executionContext: executionContext);
+            var willMoveSemicolon = BeforeExecuteCommand(speculative: true, args, executionContext);
             if (!willMoveSemicolon)
             {
                 // Pass this on without altering the undo stack
@@ -68,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             using var transaction = CaretPreservingEditTransaction.TryCreate(CSharpEditorResources.Complete_statement_on_semicolon, args.TextView, _textUndoHistoryRegistry, _editorOperationsFactoryService);
 
             // Determine where semicolon should be placed and move caret to location
-            BeforeExecuteCommand(speculative: false, args: args, executionContext: executionContext);
+            BeforeExecuteCommand(speculative: false, args, executionContext);
 
             // Insert the semicolon using next command handler
             nextCommandHandler();
@@ -76,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             transaction.Complete();
         }
 
-        private static bool BeforeExecuteCommand(bool speculative, TypeCharCommandArgs args, CommandExecutionContext executionContext)
+        private bool BeforeExecuteCommand(bool speculative, TypeCharCommandArgs args, CommandExecutionContext executionContext)
         {
             if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
             {
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
             {
                 return false;
             }
@@ -101,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
-
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+
             if (!TryGetStartingNode(root, caret, out var currentNode, cancellationToken))
             {
                 return false;
@@ -223,6 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     return MoveCaretToFinalPositionInStatement(speculative, currentNode, args, originalCaret, caret, true);
                 }
+
                 return false;
             }
             else if (syntaxFacts.IsStatement(currentNode)

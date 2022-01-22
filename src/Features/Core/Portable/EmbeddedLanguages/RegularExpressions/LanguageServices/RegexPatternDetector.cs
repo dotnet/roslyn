@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
             else if (syntaxFacts.IsObjectCreationExpression(invocationOrCreation))
             {
-                var typeNode = syntaxFacts.GetObjectCreationType(invocationOrCreation);
+                var typeNode = syntaxFacts.GetTypeOfObjectCreationExpression(invocationOrCreation);
                 var name = GetNameOfType(typeNode, syntaxFacts);
                 if (name != null)
                 {

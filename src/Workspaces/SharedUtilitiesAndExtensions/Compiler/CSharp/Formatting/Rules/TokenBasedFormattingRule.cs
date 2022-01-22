@@ -5,10 +5,12 @@
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -31,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             _options = options;
         }
 
-        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
         {
-            var cachedOptions = new CachedOptions(options);
+            var cachedOptions = new CachedOptions(options.Options);
 
             if (cachedOptions == _options)
             {
@@ -203,9 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var attributeOwner = previousToken.Parent?.Parent;
 
-                if (attributeOwner is CompilationUnitSyntax ||
-                    attributeOwner is MemberDeclarationSyntax ||
-                    attributeOwner is AccessorDeclarationSyntax)
+                if (attributeOwner is CompilationUnitSyntax or
+                    MemberDeclarationSyntax or
+                    AccessorDeclarationSyntax)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -220,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken previousToken, SyntaxToken currentToken)
         {
             // between anything that isn't a using directive, we don't touch newlines after a semicolon
-            if (!(previousToken.Parent is UsingDirectiveSyntax previousUsing))
+            if (previousToken.Parent is not UsingDirectiveSyntax previousUsing)
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
 
             // if the user is separating using-groups, and we're between two usings, and these
@@ -250,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => node switch
             {
                 CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
-                NamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
+                BaseNamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 
@@ -311,12 +313,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // new (int, int)[]
-            if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
-                previousToken.Kind() == SyntaxKind.NewKeyword &&
-                previousToken.Parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression))
+            if (previousToken.Kind() == SyntaxKind.NewKeyword)
             {
-                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                // After a 'new' we almost always want a space.  only exceptions are `new()` as an implicit object 
+                // creation, or `new()` as a constructor constraint or `new[] {}` for an implicit array creation.
+                var spaces = previousToken.Parent?.Kind() is
+                    SyntaxKind.ConstructorConstraint or
+                    SyntaxKind.ImplicitObjectCreationExpression or
+                    SyntaxKind.ImplicitArrayCreationExpression ? 0 : 1;
+                return CreateAdjustSpacesOperation(spaces, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // some * "(" cases
@@ -326,7 +331,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     previousToken.Kind() == SyntaxKind.DefaultKeyword ||
                     previousToken.Kind() == SyntaxKind.BaseKeyword ||
                     previousToken.Kind() == SyntaxKind.ThisKeyword ||
-                    previousToken.Kind() == SyntaxKind.NewKeyword ||
                     previousToken.IsGenericGreaterThanToken() ||
                     currentToken.IsParenInArgumentList())
                 {
@@ -371,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * [
             if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
+                !currentToken.Parent.IsKind(SyntaxKind.AttributeList) &&
                 !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
                 if (previousToken.IsOpenBraceOfAccessorList() ||
@@ -387,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // case * :
             // default:
             // <label> :
+            // { Property1.Property2: ... }
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
                 if (currentToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
@@ -395,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
                                                SyntaxKind.NameColon,
+                                               SyntaxKind.ExpressionColon,
                                                SyntaxKind.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -468,6 +475,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
             if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
                 currentToken.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression))
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // paramName!!
+            if (currentToken.IsKind(SyntaxKind.ExclamationExclamationToken) &&
+                currentToken.Parent.IsKind(SyntaxKind.Parameter))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

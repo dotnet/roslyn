@@ -27,7 +27,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             MyBase.New(s_defaultRules)
         End Sub
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Dim isStartOfTag = text(characterPosition) = "<"c
             Dim isClosingTag = (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
             Dim isDoubleQuote = text(characterPosition) = """"c
@@ -194,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim nameToken = name.LocalName
             If Not nameToken.IsMissing AndAlso nameToken.ValueText.Length > 0 Then
-                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, nameToken.ValueText & ">", String.Empty))
+                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, beforeCaretText:=nameToken.ValueText & ">", afterCaretText:=String.Empty))
             End If
 
             Return Nothing
@@ -336,6 +342,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Function(attribute As XmlCrefAttributeSyntax) attribute.Name)
 
             Return nameSyntax?.LocalName.ValueText
+        End Function
+
+        Protected Overrides Function GetParameters(symbol As ISymbol) As ImmutableArray(Of IParameterSymbol)
+            Return symbol.GetParameters()
         End Function
 
         Private Shared ReadOnly s_defaultRules As CompletionItemRules =

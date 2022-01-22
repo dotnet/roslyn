@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
+            // Current total = 28 bits.
 
             private const int WellKnownAttributeDataOffset = 0;
             private const int WellKnownAttributeCompletionFlagOffset = 8;
@@ -138,8 +139,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PEModuleSymbol _moduleSymbol;
 
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private ConstantValue _lazyDefaultValue = ConstantValue.Unset;
+        private ConstantValue? _lazyDefaultValue = ConstantValue.Unset;
         private ThreeState _lazyIsParams;
+
+        private static readonly ImmutableArray<int> s_defaultStringHandlerAttributeIndexes = ImmutableArray.Create(int.MinValue);
+        private ImmutableArray<int> _lazyInterpolatedStringHandlerAttributeIndexes = s_defaultStringHandlerAttributeIndexes;
+
+        /// <summary>
+        /// The index of a CallerArgumentExpression. The value -2 means uninitialized, -1 means
+        /// not found. Otherwise, the index of the CallerArgumentExpression.
+        /// </summary>        
+        private int _lazyCallerArgumentExpressionParameterIndex = -2;
 
         /// <summary>
         /// Attributes filtered out from m_lazyCustomAttributes, ParamArray, etc.
@@ -286,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             Debug.Assert(refKind == this.RefKind);
             Debug.Assert(hasNameInMetadata == this.HasNameInMetadata);
+            Debug.Assert(_name is not null);
         }
 
         private bool HasNameInMetadata
@@ -394,6 +405,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
+        }
+
         internal ParameterAttributes Flags
         {
             get
@@ -446,14 +462,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <remarks>
         /// Internal for testing.  Non-test code should use <see cref="ExplicitDefaultConstantValue"/>.
         /// </remarks>
-        internal ConstantValue ImportConstantValue(bool ignoreAttributes = false)
+        internal ConstantValue? ImportConstantValue(bool ignoreAttributes = false)
         {
             Debug.Assert(!_handle.IsNil);
 
             // Metadata Spec 22.33: 
             //   6. If Flags.HasDefault = 1 then this row [of Param table] shall own exactly one row in the Constant table [ERROR]
             //   7. If Flags.HasDefault = 0, then there shall be no rows in the Constant table owned by this row [ERROR]
-            ConstantValue value = null;
+            ConstantValue? value = null;
 
             if ((_flags & ParameterAttributes.HasDefault) != 0)
             {
@@ -468,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return value;
         }
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get
             {
@@ -478,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // From the C# point of view, there is no need to import a parameter's default value
                     // if the language isn't going to treat it as optional. However, we might need metadata constant value for NoPia.
                     // NOTE: Ignoring attributes for non-Optional parameters disrupts round-tripping, but the trade-off seems acceptable.
-                    ConstantValue value = ImportConstantValue(ignoreAttributes: !IsMetadataOptional);
+                    ConstantValue? value = ImportConstantValue(ignoreAttributes: !IsMetadataOptional);
                     Interlocked.CompareExchange(ref _lazyDefaultValue, value, ConstantValue.Unset);
                 }
 
@@ -486,10 +502,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private ConstantValue GetDefaultDecimalOrDateTimeValue()
+        private ConstantValue? GetDefaultDecimalOrDateTimeValue()
         {
             Debug.Assert(!_handle.IsNil);
-            ConstantValue value = null;
+            ConstantValue? value = null;
 
             // It is possible in Visual Basic for a parameter of object type to have a default value of DateTime type.
             // If it's present, use it.  We'll let the call-site figure out whether it can actually be used.
@@ -656,6 +672,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get
+            {
+                if (_lazyCallerArgumentExpressionParameterIndex != -2)
+                {
+                    return _lazyCallerArgumentExpressionParameterIndex;
+                }
+
+                var info = _moduleSymbol.Module.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                bool isCallerArgumentExpression = info.HasValue
+                    && !HasCallerLineNumberAttribute
+                    && !HasCallerFilePathAttribute
+                    && !HasCallerMemberNameAttribute
+                    && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
+
+                if (isCallerArgumentExpression)
+                {
+                    _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
+                    var parameters = ContainingSymbol.GetParameters();
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
+                        {
+                            _lazyCallerArgumentExpressionParameterIndex = i;
+                            return i;
+                        }
+                    }
+                }
+
+                _lazyCallerArgumentExpressionParameterIndex = -1;
+                return -1;
+            }
+        }
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get
@@ -701,6 +753,95 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return annotations;
         }
+
+#nullable enable
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
+        {
+            get
+            {
+                EnsureInterpolatedStringHandlerArgumentAttributeDecoded();
+                ImmutableArray<int> indexes = _lazyInterpolatedStringHandlerAttributeIndexes;
+                Debug.Assert(indexes != s_defaultStringHandlerAttributeIndexes);
+                return indexes.NullToEmpty();
+            }
+        }
+
+        internal override bool HasInterpolatedStringHandlerArgumentError
+        {
+            get
+            {
+                EnsureInterpolatedStringHandlerArgumentAttributeDecoded();
+                ImmutableArray<int> indexes = _lazyInterpolatedStringHandlerAttributeIndexes;
+                Debug.Assert(indexes != s_defaultStringHandlerAttributeIndexes);
+                return indexes.IsDefault;
+            }
+        }
+
+        private void EnsureInterpolatedStringHandlerArgumentAttributeDecoded()
+        {
+            ImmutableArray<int> indexes = _lazyInterpolatedStringHandlerAttributeIndexes;
+            if (indexes == s_defaultStringHandlerAttributeIndexes)
+            {
+                indexes = DecodeInterpolatedStringHandlerArgumentAttribute();
+                Debug.Assert(indexes != s_defaultStringHandlerAttributeIndexes);
+                var initialized = ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInterpolatedStringHandlerAttributeIndexes, value: indexes, comparand: s_defaultStringHandlerAttributeIndexes);
+                Debug.Assert(initialized == s_defaultStringHandlerAttributeIndexes || indexes == initialized || indexes.SequenceEqual(initialized));
+            }
+        }
+
+        private ImmutableArray<int> DecodeInterpolatedStringHandlerArgumentAttribute()
+        {
+            var (paramNames, hasAttribute) = _moduleSymbol.Module.GetInterpolatedStringHandlerArgumentAttributeValues(_handle);
+
+            if (!hasAttribute)
+            {
+                return ImmutableArray<int>.Empty;
+            }
+            else if (paramNames.IsDefault || Type is not NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
+            {
+                return default;
+            }
+
+            if (paramNames.IsEmpty)
+            {
+                return ImmutableArray<int>.Empty;
+            }
+
+            var builder = ArrayBuilder<int>.GetInstance(paramNames.Length);
+            var parameters = ContainingSymbol.GetParameters();
+
+            foreach (var name in paramNames)
+            {
+                switch (name)
+                {
+                    case null:
+                    case "" when !ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke }:
+                        // Invalid data, bail
+                        builder.Free();
+                        return default;
+
+                    case "":
+                        builder.Add(BoundInterpolatedStringArgumentPlaceholder.InstanceParameter);
+                        break;
+
+                    default:
+                        var param = parameters.FirstOrDefault(static (p, name) => string.Equals(p.Name, name, StringComparison.Ordinal), name);
+                        if (param is not null && (object)param != this)
+                        {
+                            builder.Add(param.Ordinal);
+                            break;
+                        }
+                        else
+                        {
+                            builder.Free();
+                            return default;
+                        }
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+#nullable disable
 
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull
         {
@@ -918,6 +1059,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get { return null; }
         }
+
+        public override bool IsNullChecked => false;
 
         public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {

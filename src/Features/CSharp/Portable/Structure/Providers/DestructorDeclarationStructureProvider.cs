@@ -12,12 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class DestructorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<DestructorDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             DestructorDeclarationSyntax destructorDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, ref spans, options);
 
             // fault tolerance
             if (destructorDeclaration.Body == null ||

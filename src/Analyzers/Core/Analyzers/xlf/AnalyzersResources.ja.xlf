@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../AnalyzersResources.resx">
     <body>
@@ -79,17 +79,12 @@
       </trans-unit>
       <trans-unit id="Conditional_expression_can_be_simplified">
         <source>Conditional expression can be simplified</source>
-        <target state="translated">条件式を簡略化できます</target>
+        <target state="translated">条件式を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">条件式に変換します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">タプルに変換</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -99,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Collection_initialization_can_be_simplified">
         <source>Collection initialization can be simplified</source>
-        <target state="translated">コレクションの初期化を簡略化できます</target>
+        <target state="translated">コレクションの初期化を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
@@ -109,12 +104,12 @@
       </trans-unit>
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">'GetHashCode' の実装を簡略化できます</target>
+        <target state="translated">'GetHashCode' の実装を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="translated">補間を簡略化することができます</target>
+        <target state="translated">補間を簡素化することができます</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_format_string">
@@ -154,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
-        <target state="translated">メンバーの名前を単純化できます</target>
+        <target state="translated">メンバーの名前を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -184,7 +179,7 @@
       </trans-unit>
       <trans-unit id="Null_check_can_be_simplified">
         <source>Null check can be simplified</source>
-        <target state="translated">Null チェックを簡略化できます</target>
+        <target state="translated">Null チェックを簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Order_modifiers">
@@ -204,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Object_initialization_can_be_simplified">
         <source>Object initialization can be simplified</source>
-        <target state="translated">オブジェクトの初期化を簡略化できます</target>
+        <target state="translated">オブジェクトの初期化を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_can_be_removed">

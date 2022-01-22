@@ -151,6 +151,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public static BitVector FromWords(Word bits0, Word[] bits, int capacity)
+        {
+            return new BitVector(bits0, bits, capacity);
+        }
+
         /// <summary>
         /// Create BitArray with at least the specified number of bits.
         /// </summary>

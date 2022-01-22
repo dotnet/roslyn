@@ -33,6 +33,11 @@ namespace Roslyn.Test.Utilities
             _checksum = Checksum.From(checksumArray);
         }
 
+        public TestGeneratorReference(IIncrementalGenerator generator)
+            : this(generator.AsSourceGenerator())
+        {
+        }
+
         public override string? FullPath => null;
         public override object Id => this;
         public Guid Guid { get; }

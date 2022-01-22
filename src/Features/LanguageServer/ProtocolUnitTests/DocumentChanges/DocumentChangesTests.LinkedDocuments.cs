@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
@@ -24,25 +25,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
         [Fact]
         public async Task LinkedDocuments_AllTracked()
         {
+            var documentText = "class C { }";
             var workspaceXml =
-@"<Workspace>
+@$"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        <Document FilePath=""C:\C.cs"">{|caret:|}</Document>
+        <Document FilePath=""C:\C.cs"">{documentText}{{|caret:|}}</Document>
     </Project>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
         <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1""></Document>
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
-            var documentText = "class C { }";
-
-            await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(caretLocation, documentText));
+            await DidOpen(testLspServer, caretLocation.Uri);
 
             var trackedDocuments = testLspServer.GetQueueAccessor().GetTrackedTexts();
-            Assert.Equal(1, trackedDocuments.Count);
+            Assert.Equal(1, trackedDocuments.Length);
 
             var solution = await GetLSPSolution(testLspServer, caretLocation.Uri);
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
                 Assert.Equal(documentText, document.GetTextSynchronously(CancellationToken.None).ToString());
             }
 
-            await DidClose(testLspServer, CreateDidCloseTextDocumentParams(caretLocation));
+            await DidClose(testLspServer, caretLocation.Uri);
 
             Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
         }
@@ -59,27 +59,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
         [Fact]
         public async Task LinkedDocuments_AllTextChanged()
         {
+            var initialText =
+@"class A
+{
+    void M()
+    {
+        {|caret:|}
+    }
+}";
             var workspaceXml =
-@"<Workspace>
+@$"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        <Document FilePath=""C:\C.cs"">{|caret:|}</Document>
+        <Document FilePath=""C:\C.cs"">{initialText}</Document>
     </Project>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
         <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1""></Document>
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
-            var initialText =
-@"class A
-{
-    void M()
-    {
-        
-    }
-}";
             var updatedText =
 @"class A
 {
@@ -89,11 +89,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     }
 }";
 
-            await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(caretLocation, initialText));
+            await DidOpen(testLspServer, caretLocation.Uri);
 
-            Assert.Equal(1, testLspServer.GetQueueAccessor().GetTrackedTexts().Count);
+            Assert.Equal(1, testLspServer.GetQueueAccessor().GetTrackedTexts().Length);
 
-            await DidChange(testLspServer, CreateDidChangeTextDocumentParams(caretLocation.Uri, (4, 8, "// hi there")));
+            await DidChange(testLspServer, caretLocation.Uri, (4, 8, "// hi there"));
 
             var solution = await GetLSPSolution(testLspServer, caretLocation.Uri);
 
@@ -102,17 +102,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
                 Assert.Equal(updatedText, document.GetTextSynchronously(CancellationToken.None).ToString());
             }
 
-            await DidClose(testLspServer, CreateDidCloseTextDocumentParams(caretLocation));
+            await DidClose(testLspServer, caretLocation.Uri);
 
             Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
         }
 
-        private static Task<Solution> GetLSPSolution(TestLspServer testLspServer, Uri uri)
+        private static async Task<Solution> GetLSPSolution(TestLspServer testLspServer, Uri uri)
         {
-            return testLspServer.ExecuteRequestAsync<Uri, Solution>(nameof(GetLSPSolutionHandler), uri, new ClientCapabilities(), null, CancellationToken.None);
+            var result = await testLspServer.ExecuteRequestAsync<Uri, Solution>(nameof(GetLSPSolutionHandler), uri, new ClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
         }
 
-        [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
+        [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
         [ProvidesMethod(GetLSPSolutionHandler.MethodName)]
         private class GetLspSolutionHandlerProvider : AbstractRequestHandlerProvider
         {

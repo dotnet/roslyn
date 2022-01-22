@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -369,7 +370,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // PERF: Compute whole compilation diagnostics without doing any partial analysis state tracking.
             await ComputeAnalyzerDiagnosticsWithoutStateTrackingAsync(cancellationToken).ConfigureAwait(false);
 
-            return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
+            var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
+            var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -568,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analysisScope = new AnalysisScope(analyzers, file, filterSpan: null, isSyntacticSingleFileAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSyntaxDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
-            return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
+            return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsCoreAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -663,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analysisScope = new AnalysisScope(analyzers, new SourceOrAdditionalFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSemanticDiagnosticsAsync(model, analysisScope, cancellationToken).ConfigureAwait(false);
-            return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
+            return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -782,7 +785,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     GenerateCompilationEvents(analysisScope, cancellationToken);
 
-                    await PopulateEventsCacheAsync(cancellationToken).ConfigureAwait(false);
+                    await PopulateEventsCacheAsync(analysisScope, cancellationToken).ConfigureAwait(false);
 
                     // Track if this task was suspended by another tree diagnostics request for the same tree.
                     // If so, we wait for the high priority requests to complete before restarting analysis.
@@ -884,12 +887,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else if (!analysisScope.IsSyntacticSingleFileAnalysis)
             {
+                // Get the mapped model and invoke GetDiagnostics for the given filter span, if any.
+                // Limiting the GetDiagnostics scope to the filter span ensures we only generate compilation events
+                // for the required symbols whose declaration intersects with this span, instead of all symbols in the tree.
                 var mappedModel = _compilation.GetSemanticModel(analysisScope.FilterFileOpt!.Value.SourceTree!);
-                _ = mappedModel.GetDiagnostics(cancellationToken: cancellationToken);
+                _ = mappedModel.GetDiagnostics(analysisScope.FilterSpanOpt, cancellationToken);
             }
         }
 
-        private async Task PopulateEventsCacheAsync(CancellationToken cancellationToken)
+        private async Task PopulateEventsCacheAsync(AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             if (_compilation.EventQueue?.Count > 0)
             {
@@ -900,7 +906,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     cancellationToken.ThrowIfCancellationRequested();
 
                     Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents =
-                        (eventQueue, additionalFiles) => dequeueGeneratedCompilationEvents(eventQueue, additionalFiles);
+                        (eventQueue, additionalFiles) => dequeueGeneratedCompilationEvents(eventQueue, _compilation, analysisScope, additionalFiles);
                     var additionalFiles = _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
                     await _analysisState.OnCompilationEventsGeneratedAsync(getCompilationEvents, _compilation.EventQueue, additionalFiles, driver, cancellationToken).ConfigureAwait(false);
                 }
@@ -910,9 +916,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            static ImmutableArray<CompilationEvent> dequeueGeneratedCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, ImmutableArray<AdditionalText> additionalFiles)
+            static ImmutableArray<CompilationEvent> dequeueGeneratedCompilationEvents(
+                AsyncQueue<CompilationEvent> eventQueue,
+                Compilation compilation,
+                AnalysisScope analysisScope,
+                ImmutableArray<AdditionalText> additionalFiles)
             {
-                var builder = ImmutableArray.CreateBuilder<CompilationEvent>();
+                var builder = ArrayBuilder<CompilationEvent>.GetInstance();
+
+                // We synthesize a span-based CompilationUnitCompletedEvent for improved performance for computing semantic diagnostics
+                // of compiler diagnostic analyzer. See https://github.com/dotnet/roslyn/issues/56843 for more details.
+                var needsSpanBasedCompilationUnitCompletedEvent = analysisScope.FilterSpanOpt.HasValue &&
+                    analysisScope.IsSingleFileAnalysis &&
+                    !analysisScope.IsSyntacticSingleFileAnalysis;
 
                 while (eventQueue.TryDequeue(out CompilationEvent compilationEvent))
                 {
@@ -922,10 +938,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         compilationEvent = compilationStartedEvent.WithAdditionalFiles(additionalFiles);
                     }
 
+                    // We don't need to synthesize a span-based CompilationUnitCompletedEvent if the event queue already
+                    // has a CompilationUnitCompletedEvent for the entire source tree.
+                    if (needsSpanBasedCompilationUnitCompletedEvent &&
+                        compilationEvent is CompilationUnitCompletedEvent compilationUnitCompletedEvent &&
+                        compilationUnitCompletedEvent.CompilationUnit == analysisScope.FilterFileOpt!.Value.SourceTree)
+                    {
+                        needsSpanBasedCompilationUnitCompletedEvent = false;
+                    }
+
                     builder.Add(compilationEvent);
                 }
 
-                return builder.ToImmutable();
+                if (needsSpanBasedCompilationUnitCompletedEvent)
+                {
+                    builder.Add(new CompilationUnitCompletedEvent(compilation, analysisScope.FilterFileOpt!.Value.SourceTree!, analysisScope.FilterSpanOpt));
+                }
+
+                return builder.ToImmutableAndFree();
             }
         }
 

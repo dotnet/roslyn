@@ -87,15 +87,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property UseEnhancedColorsForManagedLanguages As Integer
-            Get
-                Return GetOption(FeatureOnOffOptions.UseEnhancedColors)
-            End Get
-            Set(value As Integer)
-                SetOption(FeatureOnOffOptions.UseEnhancedColors, value)
-            End Set
-        End Property
-
         Public Property AddImportsOnPaste As Integer
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste)
@@ -111,6 +102,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
             Set(value As Integer)
                 SetBooleanOption(FeatureOnOffOptions.OfferRemoveUnusedReferences, value)
+            End Set
+        End Property
+
+        Public Property SkipAnalyzersForImplicitlyTriggeredBuilds As Integer
+            Get
+                Return If(GetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds), 1, 0)
+            End Get
+            Set(value As Integer)
+                SetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, value <> 0)
             End Set
         End Property
     End Class
