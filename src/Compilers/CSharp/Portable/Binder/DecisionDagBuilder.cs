@@ -1994,7 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SyntaxNode syntax = test.Syntax;
                     BoundDagTest other = this.Test;
                     if (other is BoundDagEvaluation ||
-                        !builder.CheckInputRelation(syntax, state, test, other, 
+                        !builder.CheckInputRelation(syntax, state, test, other,
                             relationCondition: out Tests relationCondition,
                             relationEffect: out Tests relationEffect))
                     {
