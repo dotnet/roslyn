@@ -2754,12 +2754,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">Konwertowanie literału o wartości null lub możliwej wartości null na nienullowalny typ.</target>
+        <target state="translated">Konwertowanie literału null lub możliwej wartości null na nienullowalny typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">Konwertowanie literału o wartości null lub możliwej wartości null na nienullowalny typ.</target>
+        <target state="translated">Konwertowanie literału null lub możliwej wartości null na nienullowalny typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
