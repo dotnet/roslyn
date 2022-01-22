@@ -75,6 +75,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             this.Children = children;
         }
 
+        public new JsonValueNode this[int index]
+            => Children[index];
+
         internal override JsonNodeOrToken ChildAt(int index)
             => Children[index];
 

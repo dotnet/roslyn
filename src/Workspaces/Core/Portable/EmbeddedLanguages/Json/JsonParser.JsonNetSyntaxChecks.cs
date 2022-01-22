@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // a comma.
                 for (int i = 0, n = node.ChildCount - 1; i < n; i++)
                 {
-                    var child = node.ChildAt(i);
-                    var nextChild = node.ChildAt(i + 1);
+                    var child = node[i];
+                    var nextChild = node[i + 1];
                     if (child.Kind != JsonKind.CommaValue &&
                         nextChild.Kind != JsonKind.CommaValue)
                     {
@@ -182,28 +182,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 for (int i = 0, n = node.Sequence.ChildCount; i < n; i++)
                 {
-                    var child = node.Sequence.ChildAt(i);
-                    if (child.IsNode)
+                    var child = node.Sequence[i];
+                    if (i % 2 == 0)
                     {
-                        var childNode = child.Node;
-
-                        if (i % 2 == 0)
+                        if (child.Kind != JsonKind.Property)
                         {
-                            if (childNode.Kind != JsonKind.Property)
-                            {
-                                return new EmbeddedDiagnostic(
-                                   WorkspacesResources.Only_properties_allowed_in_an_object,
-                                   GetFirstToken(child).GetSpan());
-                            }
+                            return new EmbeddedDiagnostic(
+                               WorkspacesResources.Only_properties_allowed_in_an_object,
+                               GetFirstToken(child).GetSpan());
                         }
-                        else
+                    }
+                    else
+                    {
+                        if (child.Kind != JsonKind.CommaValue)
                         {
-                            if (childNode.Kind != JsonKind.CommaValue)
-                            {
-                                return new EmbeddedDiagnostic(
-                                   string.Format(WorkspacesResources._0_expected, ','),
-                                   GetFirstToken(child).GetSpan());
-                            }
+                            return new EmbeddedDiagnostic(
+                               string.Format(WorkspacesResources._0_expected, ','),
+                               GetFirstToken(child).GetSpan());
                         }
                     }
                 }
