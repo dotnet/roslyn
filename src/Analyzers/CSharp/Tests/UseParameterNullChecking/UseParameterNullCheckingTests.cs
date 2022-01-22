@@ -3,16 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseParameterNullChecking
 {
@@ -45,6 +41,36 @@ using System;
 class C
 {
     void M(string s!!)
+    {
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullableParameterType()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"#nullable enable
+using System;
+
+class C
+{
+    void M(string? s)
+    {
+        [|if (s is null)
+            throw new ArgumentNullException(nameof(s));|]
+    }
+}",
+                FixedCode = @"#nullable enable
+using System;
+
+class C
+{
+    void M(string? s!!)
     {
     }
 }",
@@ -615,9 +641,9 @@ using System;
 
 class C
 {
-    public C(out string s)
+    public {|CS0177:C|}(out string s)
     {
-        if (s is null)
+        if ({|CS0269:s|} is null)
             throw new ArgumentNullException(nameof(s));
     }
 }";
@@ -625,7 +651,6 @@ class C
             {
                 TestCode = testCode,
                 FixedCode = testCode,
-                CompilerDiagnostics = Testing.CompilerDiagnostics.None,
                 LanguageVersion = LanguageVersionExtensions.CSharpNext
             }.RunAsync();
         }
