@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundIsPatternExpression isPatternExpression, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel)
             {
                 BoundDecisionDag decisionDag = isPatternExpression.DecisionDag;
+                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
                 BoundExpression loweredInput = _localRewriter.VisitExpression(isPatternExpression.Expression);
 
                 // The optimization of sharing pattern-matching temps with user variables can always apply to
