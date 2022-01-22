@@ -7,15 +7,12 @@ without taking action to enable them.
 For that purpose, we have the compiler flag "`/warn:n`"
 where `n` is a whole number.
 
-The compiler shipped with dotnet 5 (the C# 9 compiler) contains some warnings, documented below, that
-are reported only under `/warn:5` or higher.
-
-The default warning level when the command-line compiler is used is `4`.
-
-If you want the compiler to produce all applicable warnings, you can specify
+The default warning level when the command-line compiler is used is `4`. If you want the compiler to produce all applicable warnings, you can specify
 `/warn:9999`.
 
-The table below describes all of the warnings controlled by warning levels `5` or greater.
+## Warning level 5
+
+The compiler shipped with .NET 5 (the C# 9 compiler) contains the following warnings which are reported only under `/warn:5` or higher.
 
 | Warning ID | warning level | Description |
 |------------|---------|-------------|
@@ -33,4 +30,19 @@ The table below describes all of the warnings controlled by warning levels `5` o
 | CS8892 | 5 | [Multiple entry points](https://github.com/dotnet/roslyn/issues/46831) |
 | CS8897 | 5 | [Static class used as the parameter type of a method in an interface type](https://github.com/dotnet/roslyn/issues/38256) |
 | CS8898 | 5 | [Static class used as the return type of a method in an interface type](https://github.com/dotnet/roslyn/issues/38256) |
+
+# Warning level 6
+
+The compiler shipped with .NET 6 (the C# 10 compiler) contains the following warnings which are reported only under `/warn:6` or higher.
+
+| Warning ID | warning level | Description |
+|------------|---------|-------------|
+| CS8826 | 6 | [Partial method declarations have signature differences](https://github.com/dotnet/roslyn/issues/47838) |
+
+## Warning level 7
+
+The compiler shipped with .NET 7 (the C# 11 compiler) contains the following warnings which are reported only under `/warn:7` or higher.
+
+| Warning ID | warning level | Description |
+|------------|---------|-------------|
 | CS8981 | 7 | [Type names only containing lower-cased ascii characters may become reserved for the language](https://github.com/dotnet/roslyn/issues/56653) |
