@@ -85,10 +85,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             // more trivia
-            if (char.IsWhiteSpace(ch))
-            {
+            if (ch.IsWhiteSpace)
                 return true;
-            }
 
             return false;
         }
@@ -248,8 +246,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             var result = ArrayBuilder<JsonTrivia>.GetInstance();
 
-            var start = Position;
-
             while (Position < Text.Length)
             {
                 var comment = ScanComment();
@@ -402,16 +398,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private JsonTrivia? ScanWhitespace()
         {
             var start = Position;
-            while (Position < Text.Length &&
-                   char.IsWhiteSpace(this.CurrentChar))
-            {
+            while (Position < Text.Length && this.CurrentChar.IsWhiteSpace)
                 Position++;
-            }
 
             if (Position > start)
-            {
                 return CreateTrivia(JsonKind.WhitespaceTrivia, GetCharsToCurrentPosition(start));
-            }
 
             return null;
         }

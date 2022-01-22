@@ -113,12 +113,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 var sequence = node.Sequence;
                 foreach (var child in sequence)
                 {
-                    var childNode = child.Node;
-                    if (childNode.Kind != JsonKind.Property && childNode.Kind != JsonKind.CommaValue)
+                    if (child.IsNode)
                     {
-                        return new EmbeddedDiagnostic(
-                            WorkspacesResources.Only_properties_allowed_in_an_object,
-                            GetFirstToken(childNode).GetSpan());
+                        var childNode = child.Node;
+                        if (childNode.Kind != JsonKind.Property && childNode.Kind != JsonKind.CommaValue)
+                        {
+                            return new EmbeddedDiagnostic(
+                                WorkspacesResources.Only_properties_allowed_in_an_object,
+                                GetFirstToken(childNode).GetSpan());
+                        }
                     }
                 }
 
@@ -129,12 +132,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var child in node.Sequence)
                 {
-                    var childNode = child.Node;
-                    if (childNode.Kind == JsonKind.Property)
+                    if (child.IsNode)
                     {
-                        return new EmbeddedDiagnostic(
-                            WorkspacesResources.Properties_not_allowed_in_an_array,
-                            ((JsonPropertyNode)childNode).ColonToken.GetSpan());
+                        var childNode = child.Node;
+                        if (childNode.Kind == JsonKind.Property)
+                        {
+                            return new EmbeddedDiagnostic(
+                                WorkspacesResources.Properties_not_allowed_in_an_array,
+                                ((JsonPropertyNode)childNode).ColonToken.GetSpan());
+                        }
                     }
                 }
 
@@ -146,32 +152,41 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // Ensure that this sequence is actually a separated list.
                 for (int i = 0, n = sequence.ChildCount; i < n; i++)
                 {
-                    var child = sequence.ChildAt(i).Node;
-                    if (i % 2 == 0)
+                    var child = sequence.ChildAt(i);
+                    if (child.IsNode)
                     {
-                        if (child.Kind == JsonKind.CommaValue)
+                        var childNode = child.Node;
+                        if (i % 2 == 0)
                         {
-                            return new EmbeddedDiagnostic(
-                                string.Format(WorkspacesResources._0_unexpected, ","),
-                                child.GetSpan());
+                            if (childNode.Kind == JsonKind.CommaValue)
+                            {
+                                return new EmbeddedDiagnostic(
+                                    string.Format(WorkspacesResources._0_unexpected, ","),
+                                    childNode.GetSpan());
+                            }
                         }
-                    }
-                    else
-                    {
-                        if (child.Kind != JsonKind.CommaValue)
+                        else
                         {
-                            return new EmbeddedDiagnostic(
-                                string.Format(WorkspacesResources._0_expected, ","),
-                                GetFirstToken(child).GetSpan());
+                            if (childNode.Kind != JsonKind.CommaValue)
+                            {
+                                return new EmbeddedDiagnostic(
+                                    string.Format(WorkspacesResources._0_expected, ","),
+                                    GetFirstToken(child).GetSpan());
+                            }
                         }
                     }
                 }
 
-                if (sequence.ChildCount != 0 && sequence.ChildCount % 2 == 0)
+                if (sequence.ChildCount != 0 &&
+                    sequence.ChildCount % 2 == 0)
                 {
-                    return new EmbeddedDiagnostic(
-                        WorkspacesResources.Trailing_comma_not_allowed,
-                        sequence.ChildAt(sequence.ChildCount - 1).Node.GetSpan());
+                    var lastChild = sequence.ChildAt(sequence.ChildCount - 1);
+                    if (lastChild.IsNode)
+                    {
+                        return new EmbeddedDiagnostic(
+                            WorkspacesResources.Trailing_comma_not_allowed,
+                            lastChild.Node.GetSpan());
+                    }
                 }
 
                 return null;

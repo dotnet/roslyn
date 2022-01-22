@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         /// diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static JsonTree TryParse(VirtualCharSequence text, bool strict)
+        public static JsonTree? TryParse(VirtualCharSequence text, bool strict)
         {
             try
             {
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return true;
         }
 
-        private static bool IsDigit(char ch)
+        private static bool IsDigit(VirtualChar ch)
             => ch >= '0' && ch <= '9';
 
         private static JsonLiteralNode ParseLiteral(JsonToken textToken, JsonKind kind)
