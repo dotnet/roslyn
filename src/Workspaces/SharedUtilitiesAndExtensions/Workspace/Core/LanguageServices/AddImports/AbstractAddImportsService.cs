@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
-        protected abstract bool PlaceImportsInsideNamespaces(CodeGenerationPreferences preferences);
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;
@@ -128,8 +127,6 @@ namespace Microsoft.CodeAnalysis.AddImports
         {
             contextLocation ??= root;
 
-            var placeSystemNamespaceFirst = preferences.Options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, compilation.Language);
-
             var globalImports = GetGlobalImports(compilation, generator);
             var containers = GetAllContainers(root, contextLocation);
             var filteredImports = newImports.Where(i => !HasExistingImport(i, containers, globalImports)).ToArray();
@@ -145,7 +142,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             var newRoot = Rewrite(
                 externAliases, usingDirectives, staticUsingDirectives, aliasDirectives,
                 externContainer, usingContainer, staticUsingContainer, aliasContainer,
-                placeSystemNamespaceFirst, allowInHiddenRegions, root, cancellationToken);
+                preferences.PlaceSystemNamespaceFirst, allowInHiddenRegions, root, cancellationToken);
 
             return newRoot;
         }
@@ -167,7 +164,7 @@ namespace Microsoft.CodeAnalysis.AddImports
 
             // If there aren't any existing imports then make sure we honour the inside namespace preference
             // for using directings if it's set
-            if (fallbackNode is null && PlaceImportsInsideNamespaces(preferences))
+            if (fallbackNode is null && preferences.PlaceImportsInsideNamespaces)
                 fallbackNode = contextSpine.OfType<TNamespaceDeclarationSyntax>().FirstOrDefault();
 
             // If all else fails use the root

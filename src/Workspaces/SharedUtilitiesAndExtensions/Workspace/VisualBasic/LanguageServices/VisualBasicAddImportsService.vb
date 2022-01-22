@@ -58,11 +58,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                                                FirstOrDefault()?.Alias
         End Function
 
-        Protected Overrides Function PlaceImportsInsideNamespaces(preferences As CodeGenerationPreferences) As Boolean
-            ' Visual Basic doesn't support imports inside namespaces
-            Return False
-        End Function
-
         Protected Overrides Function IsStaticUsing(usingOrAlias As ImportsStatementSyntax) As Boolean
             ' Visual Basic doesn't support static imports
             Return False
