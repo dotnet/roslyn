@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable disable warnings
 
@@ -153,7 +153,7 @@ namespace Analyzer.Utilities.Extensions
             {
                 IMethodSymbol m => m.Parameters,
                 IPropertySymbol p => p.Parameters,
-                _ => ImmutableArray.Create<IParameterSymbol>()
+                _ => ImmutableArray<IParameterSymbol>.Empty,
             };
         }
 
@@ -287,6 +287,14 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Gets the parameters whose type is equal to the given special type.
+        /// </summary>
+        public static IEnumerable<IParameterSymbol> GetParametersOfType(this IEnumerable<IParameterSymbol> parameters, SpecialType specialType)
+        {
+            return parameters.Where(p => p.Type.SpecialType == specialType);
+        }
+
+        /// <summary>
         /// Check whether given overloads has any overload whose parameters has the given type as its parameter type.
         /// </summary>
         public static bool HasOverloadWithParameterOfType(this IEnumerable<IMethodSymbol> overloads, IMethodSymbol self, INamedTypeSymbol type, CancellationToken cancellationToken)
@@ -379,14 +387,14 @@ namespace Analyzer.Utilities.Extensions
 
             // this doesn't account for type conversion but FxCop implementation seems doesn't either
             // so this should match FxCop implementation.
-            return type2.Equals(type1);
+            return SymbolEqualityComparer.Default.Equals(type2, type1);
         }
 
         /// <summary>
         /// Check whether return type, parameters count and parameter types are same for the given methods.
         /// </summary>
         public static bool ReturnTypeAndParametersAreSame(this IMethodSymbol method, IMethodSymbol otherMethod)
-            => method.ReturnType.Equals(otherMethod.ReturnType) &&
+            => SymbolEqualityComparer.Default.Equals(method.ReturnType, otherMethod.ReturnType) &&
                method.ParametersAreSame(otherMethod);
 
         /// <summary>
@@ -395,7 +403,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsFromMscorlib(this ISymbol symbol, Compilation compilation)
         {
             var @object = compilation.GetSpecialType(SpecialType.System_Object);
-            return symbol.ContainingAssembly?.Equals(@object.ContainingAssembly) == true;
+            return SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, @object.ContainingAssembly);
         }
 
         /// <summary>
@@ -408,7 +416,7 @@ namespace Analyzer.Utilities.Extensions
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // does not account for method with optional parameters
-                if (method.Equals(overload) || overload.Parameters.Length != method.Parameters.Length)
+                if (SymbolEqualityComparer.Default.Equals(method, overload) || overload.Parameters.Length != method.Parameters.Length)
                 {
                     // either itself, or signature is not same
                     continue;
@@ -420,7 +428,7 @@ namespace Analyzer.Utilities.Extensions
                     continue;
                 }
 
-                if (overload.Parameters[parameterIndex].Type.Equals(type))
+                if (SymbolEqualityComparer.Default.Equals(overload.Parameters[parameterIndex].Type, type))
                 {
                     // we no longer interested in this overload. there can be only 1 match
                     return overload;
@@ -494,7 +502,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsImplementationOfInterfaceMember(this ISymbol symbol, [NotNullWhen(returnValue: true)] ISymbol? interfaceMember)
         {
             return interfaceMember != null &&
-                   symbol.Equals(symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
+                SymbolEqualityComparer.Default.Equals(symbol, symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
         }
 
         /// <summary>
@@ -645,7 +653,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute)))
+                if (symbol.GetAttributes().Any(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attribute)))
                 {
                     return true;
                 }
@@ -684,7 +692,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute)))
+                if (symbol.GetAttributes().Any(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attribute)))
                 {
                     return true;
                 }
@@ -714,7 +722,7 @@ namespace Analyzer.Utilities.Extensions
             {
                 for (int i = 0; i < attributes.Length; i++)
                 {
-                    if (attributeData.AttributeClass.Equals(attributes[i]))
+                    if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, attributes[i]))
                     {
                         isAttributePresent[i] = true;
                     }
@@ -738,7 +746,7 @@ namespace Analyzer.Utilities.Extensions
                 return Enumerable.Empty<AttributeData>();
             }
 
-            return symbol.GetAttributes().Where(attr => attr.AttributeClass.Equals(attributeType));
+            return symbol.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attributeType));
         }
 
         /// <summary>

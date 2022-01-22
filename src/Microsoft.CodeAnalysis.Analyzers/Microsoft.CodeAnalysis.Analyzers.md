@@ -292,7 +292,7 @@ MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGe
 |CodeFix|False|
 ---
 
-## RS1024: Compare symbols correctly
+## RS1024: Symbols should be compared for equality
 
 Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.
 

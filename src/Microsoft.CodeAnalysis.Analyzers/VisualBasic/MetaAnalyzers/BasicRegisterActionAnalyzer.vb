@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 Imports Analyzer.Utilities.Extensions
 Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicRegisterActionAnalyzer
-        Inherits RegisterActionAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, ArgumentSyntax, SyntaxKind)
+        Inherits RegisterActionAnalyzer(Of InvocationExpressionSyntax, ArgumentSyntax, SyntaxKind)
 
         Private Const BasicSyntaxKindFullName As String = "Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"
         Private Const CSharpSyntaxKindFullName As String = "Microsoft.CodeAnalysis.CSharp.SyntaxKind"

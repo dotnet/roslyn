@@ -22,3 +22,11 @@ RS0036 | ApiDesign | Warning | DeclarePublicApiAnalyzer, [Documentation](https:/
 RS0037 | ApiDesign | Warning | DeclarePublicApiAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md)
 RS0041 | ApiDesign | Warning | DeclarePublicApiAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md)
 RS0048 | ApiDesign | Warning | DeclarePublicApiAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md)
+
+## Release 3.3.3
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+RS0050 | ApiDesign | Warning | DeclarePublicApiAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md)

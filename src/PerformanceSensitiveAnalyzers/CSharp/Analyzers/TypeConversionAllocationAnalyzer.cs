@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
+    using static AnalyzersResources;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class TypeConversionAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
@@ -20,53 +21,41 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string MethodGroupAllocationRuleId = "HAA0603";
         public const string ReadonlyMethodGroupAllocationRuleId = "HAA0604";
 
-        private static readonly LocalizableString s_localizableValueTypeToReferenceTypeConversionRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeConversionRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableValueTypeToReferenceTypeConversionRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeConversionRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        private static readonly LocalizableString s_localizableDelegateOnStructInstanceRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.DelegateOnStructInstanceRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableDelegateOnStructInstanceRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.DelegateOnStructInstanceRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        private static readonly LocalizableString s_localizableMethodGroupAllocationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.MethodGroupAllocationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableMethodGroupAllocationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.MethodGroupAllocationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        private static readonly LocalizableString s_localizableReadonlyMethodGroupAllocationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ReadonlyMethodGroupAllocationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableReadonlyMethodGroupAllocationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ReadonlyMethodGroupAllocationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        internal static DiagnosticDescriptor ValueTypeToReferenceTypeConversionRule = new(
+        internal static readonly DiagnosticDescriptor ValueTypeToReferenceTypeConversionRule = new(
             ValueTypeToReferenceTypeConversionRuleId,
-            s_localizableValueTypeToReferenceTypeConversionRuleTitle,
-            s_localizableValueTypeToReferenceTypeConversionRuleMessage,
+            CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeConversionRuleTitle)),
+            CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeConversionRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor DelegateOnStructInstanceRule = new(
+        internal static readonly DiagnosticDescriptor DelegateOnStructInstanceRule = new(
             DelegateOnStructInstanceRuleId,
-            s_localizableDelegateOnStructInstanceRuleTitle,
-            s_localizableDelegateOnStructInstanceRuleMessage,
+            CreateLocalizableResourceString(nameof(DelegateOnStructInstanceRuleTitle)),
+            CreateLocalizableResourceString(nameof(DelegateOnStructInstanceRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor MethodGroupAllocationRule = new(
+        internal static readonly DiagnosticDescriptor MethodGroupAllocationRule = new(
             MethodGroupAllocationRuleId,
-            s_localizableMethodGroupAllocationRuleTitle,
-            s_localizableMethodGroupAllocationRuleMessage,
+            CreateLocalizableResourceString(nameof(MethodGroupAllocationRuleTitle)),
+            CreateLocalizableResourceString(nameof(MethodGroupAllocationRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor ReadonlyMethodGroupAllocationRule = new(
+        internal static readonly DiagnosticDescriptor ReadonlyMethodGroupAllocationRule = new(
             ReadonlyMethodGroupAllocationRuleId,
-            s_localizableReadonlyMethodGroupAllocationRuleTitle,
-            s_localizableReadonlyMethodGroupAllocationRuleMessage,
+            CreateLocalizableResourceString(nameof(ReadonlyMethodGroupAllocationRuleTitle)),
+            CreateLocalizableResourceString(nameof(ReadonlyMethodGroupAllocationRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ValueTypeToReferenceTypeConversionRule, DelegateOnStructInstanceRule, MethodGroupAllocationRule, ReadonlyMethodGroupAllocationRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ValueTypeToReferenceTypeConversionRule, DelegateOnStructInstanceRule, MethodGroupAllocationRule, ReadonlyMethodGroupAllocationRule);
 
-        protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(
+        protected override ImmutableArray<SyntaxKind> Expressions { get; } = ImmutableArray.Create(
             SyntaxKind.SimpleAssignmentExpression,
             SyntaxKind.ReturnStatement,
             SyntaxKind.YieldReturnStatement,

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -11,39 +11,35 @@ using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
+    using static AnalyzersResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class ConcatenationAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
         public const string StringConcatenationAllocationRuleId = "HAA0201";
         public const string ValueTypeToReferenceTypeInAStringConcatenationRuleId = "HAA0202";
 
-        private static readonly LocalizableString s_localizableStringConcatenationAllocationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.StringConcatenationAllocationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableStringConcatenationAllocationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.StringConcatenationAllocationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        private static readonly LocalizableString s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeInAStringConcatenationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeInAStringConcatenationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
-        internal static DiagnosticDescriptor StringConcatenationAllocationRule = new(
+        internal static readonly DiagnosticDescriptor StringConcatenationAllocationRule = new(
             StringConcatenationAllocationRuleId,
-            s_localizableStringConcatenationAllocationRuleTitle,
-            s_localizableStringConcatenationAllocationRuleMessage,
+            CreateLocalizableResourceString(nameof(StringConcatenationAllocationRuleTitle)),
+            CreateLocalizableResourceString(nameof(StringConcatenationAllocationRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             helpLinkUri: "http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx");
 
-        internal static DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new(
+        internal static readonly DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new(
             ValueTypeToReferenceTypeInAStringConcatenationRuleId,
-            s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleTitle,
-            s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleMessage,
+            CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeInAStringConcatenationRuleTitle)),
+            CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeInAStringConcatenationRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             helpLinkUri: "http://msdn.microsoft.com/en-us/library/yz2be5wk.aspx");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(StringConcatenationAllocationRule, ValueTypeToReferenceTypeInAStringConcatenationRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(StringConcatenationAllocationRule, ValueTypeToReferenceTypeInAStringConcatenationRule);
 
-        protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression);
+        protected override ImmutableArray<SyntaxKind> Expressions { get; } = ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression);
 
         private static readonly object[] EmptyMessageArgs = Array.Empty<object>();
 

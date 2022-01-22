@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #if HAS_IOPERATION
 
@@ -146,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 if (effectiveChildrenCount > 0)
                 {
                     avgComputationalComplexityVolume = computationalComplexityMetrics.Volume / effectiveChildrenCount;
-                    avgEffectiveLinesOfCode = computationalComplexityMetrics.EffectiveLinesOfCode / effectiveChildrenCount;
-                    avgCyclomaticComplexity = cyclomaticComplexity / effectiveChildrenCount;
+                    avgEffectiveLinesOfCode = (double)computationalComplexityMetrics.EffectiveLinesOfCode / effectiveChildrenCount;
+                    avgCyclomaticComplexity = (double)cyclomaticComplexity / effectiveChildrenCount;
                 }
 
                 double logAvgComputationalComplexityVolume = Math.Max(0.0, Math.Log(avgComputationalComplexityVolume));   //avoid Log(0) = -Infinity

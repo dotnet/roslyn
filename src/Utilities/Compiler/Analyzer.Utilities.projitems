@@ -8,13 +8,13 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' &gt;= '3.3'">
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR $([MSBuild]::VersionGreaterThanOrEquals($(MicrosoftCodeAnalysisVersion),'3.3'))">
     <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_OR_BETTER</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' &gt;= '3.7'">
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR $([MSBuild]::VersionGreaterThanOrEquals($(MicrosoftCodeAnalysisVersion),'3.7'))">
     <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_7_OR_BETTER</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' != '1.2.1'">
+  <PropertyGroup Condition="$([MSBuild]::VersionNotEquals($(MicrosoftCodeAnalysisVersion),'1.2.1'))">
     <DefineConstants>$(DefineConstants);HAS_IOPERATION</DefineConstants>
     <HasIOperation>true</HasIOperation>
     <!-- Explicitly enable nullable for all projects that link Analyzer.Utilities.
@@ -47,6 +47,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticDescriptorHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DoNotCatchGeneralUnlessRethrown.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArrayBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISetExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolModifiers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\Unit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\ValueUsageInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PathHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionary.cs" />
@@ -128,6 +130,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayStringCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolByDisplayStringComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeProvider.cs" />

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #if NET_ANALYZERS || TEXT_ANALYZERS || MICROSOFT_CODEANALYSIS_ANALYZERS
 
@@ -11,9 +11,16 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore CA1008 // Enums should have zero value
     {
         /// <summary>
-        /// Correctness rule which should have <b>no false positives</b>, and is required to be fixed by users.
-        /// This rule will be <b>enabled in CI and IDE live analysis</b> by default with severity <see cref="DiagnosticSeverity.Error"/>.
+        /// Correctness rule which prevents the compiler from producing a well-defined output binary, and must have
+        /// <b>no false positives</b>. Violations of this rule must be fixed by users before any other testing work can
+        /// continue. This rule will be <b>enabled in CI and IDE live analysis</b> by default with severity
+        /// <see cref="DiagnosticSeverity.Error"/>.
         /// </summary>
+        /// <remarks>
+        /// Since analyzers cannot directly influence output binaries, this value is typically only valid in the
+        /// implementation of source generators. Rare exceptions may occur at the request of a director in coordination
+        /// with the core compiler team.
+        /// </remarks>
         BuildError = 1,
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         private const string SourceDocumentEquivalenceKeySuffix = nameof(SourceDocumentEquivalenceKeySuffix);
         private const string AdditionalDocumentEquivalenceKeySuffix = nameof(AdditionalDocumentEquivalenceKeySuffix);
 
-        public override ImmutableArray<string> FixableDiagnosticIds =>
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId,
                                   DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId,
                                   DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);

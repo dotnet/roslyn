@@ -1,11 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #if CODEANALYSIS_V3_OR_BETTER
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Analyzer.Utilities.Extensions;
@@ -159,9 +158,7 @@ namespace Analyzer.Utilities
             }
         }
 
-#pragma warning disable IDE0051 // Remove unused private members - Used in some projects that include this shared project.
         private static TEnum GetNonFlagsEnumOptionValue<TEnum>(
-#pragma warning restore IDE0051 // Remove unused private members
             this AnalyzerOptions options,
             string optionName,
             DiagnosticDescriptor rule,
@@ -169,13 +166,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             TEnum defaultValue)
             where TEnum : struct
-        {
-            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
-            return analyzerConfigOptions.GetOptionValue(
-                optionName, tree, rule,
-                tryParseValue: (string value, out TEnum result) => Enum.TryParse(value, ignoreCase: true, result: out result),
-                defaultValue: defaultValue);
-        }
+            => GetFlagsEnumOptionValue(options, optionName, rule, tree, compilation, defaultValue);
 
         public static bool GetBoolOptionValue(
             this AnalyzerOptions options,
@@ -587,11 +578,6 @@ namespace Analyzer.Utilities
         private static ICategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(
             this AnalyzerOptions options, Compilation compilation)
         {
-            if (options.AdditionalFiles.Any(f => Path.GetFileName(f.Path).Equals(".editorconfig", StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new InvalidOperationException("Passing '.editorconfig' files as additional files is no longer needed. It will be implicitly discovered (if the file is in the project's directory or any ancestor directory), or it should be converted into a 'globalconfig'. See 'https://docs.microsoft.com/dotnet/fundamentals/code-analysis/configuration-files'.");
-            }
-
             // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists.
             if (s_cachedOptions.TryGetValue(options, out var categorizedAnalyzerConfigOptions))
             {

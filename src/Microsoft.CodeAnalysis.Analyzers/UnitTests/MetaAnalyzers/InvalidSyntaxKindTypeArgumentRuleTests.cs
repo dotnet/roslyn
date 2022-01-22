@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Helpers;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class InvalidSyntaxKindTypeArgumentRuleTests
     {
         [Fact]
-        public async Task CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -65,7 +65,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -107,7 +107,7 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCasesAsync()
         {
             var source = @"
 using System;
@@ -151,7 +151,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
             var source = @"
 Imports System

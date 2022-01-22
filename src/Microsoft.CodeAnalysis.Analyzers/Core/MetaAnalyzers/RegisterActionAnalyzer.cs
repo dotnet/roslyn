@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,103 +14,88 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
-    public abstract class RegisterActionAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax, TArgumentSyntax, TLanguageKindEnum> : DiagnosticAnalyzerCorrectnessAnalyzer
-        where TClassDeclarationSyntax : SyntaxNode
+    using static CodeAnalysisDiagnosticsResources;
+
+    public abstract class RegisterActionAnalyzer<TInvocationExpressionSyntax, TArgumentSyntax, TLanguageKindEnum> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TInvocationExpressionSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
         where TLanguageKindEnum : struct
     {
-        private static readonly LocalizableString s_localizableTitleMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageMissingSymbolKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingSymbolKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageMissingSyntaxKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingSyntaxKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageMissingOperationKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingOperationKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescriptionMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitleMissingKindArgument = CreateLocalizableResourceString(nameof(MissingKindArgumentToRegisterActionTitle));
+        private static readonly LocalizableString s_localizableDescriptionMissingKindArgument = CreateLocalizableResourceString(nameof(MissingKindArgumentToRegisterActionDescription));
 
         public static readonly DiagnosticDescriptor MissingSymbolKindArgumentRule = new(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
-            s_localizableMessageMissingSymbolKindArgument,
+            CreateLocalizableResourceString(nameof(MissingSymbolKindArgumentToRegisterActionMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescriptionMissingKindArgument,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor MissingSyntaxKindArgumentRule = new(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
-            s_localizableMessageMissingSyntaxKindArgument,
+            CreateLocalizableResourceString(nameof(MissingSyntaxKindArgumentToRegisterActionMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescriptionMissingKindArgument,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor MissingOperationKindArgumentRule = new(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
-            s_localizableMessageMissingOperationKindArgument,
+            CreateLocalizableResourceString(nameof(MissingOperationKindArgumentToRegisterActionMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescriptionMissingKindArgument,
-            customTags: WellKnownDiagnosticTags.Telemetry);
-
-        private static readonly LocalizableString s_localizableTitleUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor UnsupportedSymbolKindArgumentRule = new(
             DiagnosticIds.UnsupportedSymbolKindArgumentRuleId,
-            s_localizableTitleUnsupportedSymbolKindArgument,
-            s_localizableMessageUnsupportedSymbolKindArgument,
+            CreateLocalizableResourceString(nameof(UnsupportedSymbolKindArgumentToRegisterActionTitle)),
+            CreateLocalizableResourceString(nameof(UnsupportedSymbolKindArgumentToRegisterActionMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
-
-        private static readonly LocalizableString s_localizableTitleInvalidSyntaxKindTypeArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageInvalidSyntaxKindTypeArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescriptionInvalidSyntaxKindTypeArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(DiagnosticWellKnownNames.TLanguageKindEnumName));
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor InvalidSyntaxKindTypeArgumentRule = new(
             DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId,
-            s_localizableTitleInvalidSyntaxKindTypeArgument,
-            s_localizableMessageInvalidSyntaxKindTypeArgument,
+            CreateLocalizableResourceString(nameof(InvalidSyntaxKindTypeArgumentTitle)),
+            CreateLocalizableResourceString(nameof(InvalidSyntaxKindTypeArgumentMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescriptionInvalidSyntaxKindTypeArgument,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(InvalidSyntaxKindTypeArgumentDescription), nameof(DiagnosticWellKnownNames.TLanguageKindEnumName)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        private static readonly LocalizableString s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.StatefulAnalyzerRegisterActionsDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(DiagnosticWellKnownNames.TLanguageKindEnumName));
-
-        private static readonly LocalizableString s_localizableTitleStartActionWithNoRegisteredActions = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageStartActionWithNoRegisteredActions = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription = CreateLocalizableResourceString(nameof(StatefulAnalyzerRegisterActionsDescription), nameof(DiagnosticWellKnownNames.TLanguageKindEnumName));
 
         public static readonly DiagnosticDescriptor StartActionWithNoRegisteredActionsRule = new(
             DiagnosticIds.StartActionWithNoRegisteredActionsRuleId,
-            s_localizableTitleStartActionWithNoRegisteredActions,
-            s_localizableMessageStartActionWithNoRegisteredActions,
+            CreateLocalizableResourceString(nameof(StartActionWithNoRegisteredActionsTitle)),
+            CreateLocalizableResourceString(nameof(StartActionWithNoRegisteredActionsMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
-
-        private static readonly LocalizableString s_localizableTitleStartActionWithOnlyEndAction = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessageStartActionWithOnlyEndAction = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor StartActionWithOnlyEndActionRule = new(
             DiagnosticIds.StartActionWithOnlyEndActionRuleId,
-            s_localizableTitleStartActionWithOnlyEndAction,
-            s_localizableMessageStartActionWithOnlyEndAction,
+            CreateLocalizableResourceString(nameof(StartActionWithOnlyEndActionTitle)),
+            CreateLocalizableResourceString(nameof(StartActionWithOnlyEndActionMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             MissingSymbolKindArgumentRule,
             MissingSyntaxKindArgumentRule,
             MissingOperationKindArgumentRule,
@@ -295,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     foreach (INamedTypeSymbol contextType in allowedContextTypes)
                     {
-                        if (namedType.Equals(contextType))
+                        if (SymbolEqualityComparer.Default.Equals(namedType, contextType))
                         {
                             return true;
                         }
@@ -330,54 +315,52 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 bool isRegisterCodeBlockStartAction = IsRegisterAction(DiagnosticWellKnownNames.RegisterCodeBlockStartActionName, method, _analysisContext, _compilationStartAnalysisContext);
                 bool isRegisterOperationAction = IsRegisterAction(DiagnosticWellKnownNames.RegisterOperationActionName, method, _analysisContext, _compilationStartAnalysisContext, _operationBlockStartAnalysisContext);
 
-                if (isRegisterSymbolAction || isRegisterSyntaxNodeAction || isRegisterOperationAction)
+                if ((isRegisterSymbolAction || isRegisterSyntaxNodeAction || isRegisterOperationAction) &&
+                    method.Parameters.Length == 2 && method.Parameters[1].IsParams)
                 {
-                    if (method.Parameters.Length == 2 && method.Parameters[1].IsParams)
+                    IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(invocation);
+                    if (arguments != null)
                     {
-                        IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(invocation);
-                        if (arguments != null)
+                        int argumentCount = arguments.Count();
+                        if (argumentCount >= 1)
                         {
-                            int argumentCount = arguments.Count();
-                            if (argumentCount >= 1)
+                            ITypeSymbol type = semanticModel.GetTypeInfo(arguments.First(), context.CancellationToken).ConvertedType;
+                            if (type == null || type.Name.Equals(nameof(Action), StringComparison.Ordinal))
                             {
-                                ITypeSymbol type = semanticModel.GetTypeInfo(arguments.First(), context.CancellationToken).ConvertedType;
-                                if (type == null || type.Name.Equals(nameof(Action), StringComparison.Ordinal))
+                                if (argumentCount == 1)
                                 {
-                                    if (argumentCount == 1)
+                                    DiagnosticDescriptor rule;
+                                    if (isRegisterSymbolAction)
                                     {
-                                        DiagnosticDescriptor rule;
-                                        if (isRegisterSymbolAction)
-                                        {
-                                            rule = MissingSymbolKindArgumentRule;
-                                        }
-                                        else if (isRegisterOperationAction)
-                                        {
-                                            rule = MissingOperationKindArgumentRule;
-                                        }
-                                        else
-                                        {
-                                            rule = MissingSyntaxKindArgumentRule;
-                                        }
-
-                                        SyntaxNode invocationExpression = GetInvocationExpression(invocation);
-                                        Diagnostic diagnostic = invocationExpression.CreateDiagnostic(rule);
-                                        context.ReportDiagnostic(diagnostic);
+                                        rule = MissingSymbolKindArgumentRule;
                                     }
-                                    else if (isRegisterSymbolAction)
+                                    else if (isRegisterOperationAction)
                                     {
-                                        foreach (SyntaxNode argument in arguments.Skip(1))
-                                        {
-                                            symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
-                                            if (symbol != null &&
+                                        rule = MissingOperationKindArgumentRule;
+                                    }
+                                    else
+                                    {
+                                        rule = MissingSyntaxKindArgumentRule;
+                                    }
+
+                                    SyntaxNode invocationExpression = GetInvocationExpression(invocation);
+                                    Diagnostic diagnostic = invocationExpression.CreateDiagnostic(rule);
+                                    context.ReportDiagnostic(diagnostic);
+                                }
+                                else if (isRegisterSymbolAction)
+                                {
+                                    foreach (SyntaxNode argument in arguments.Skip(1))
+                                    {
+                                        symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
+                                        if (symbol != null &&
 #pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/4519
-                                                symbol.Kind == SymbolKind.Field &&
+                                            symbol.Kind == SymbolKind.Field &&
 #pragma warning restore CA1508 // Avoid dead conditional code
-                                                _symbolKind.Equals(symbol.ContainingType) &&
-                                                !s_supportedSymbolKinds.Contains(symbol.Name))
-                                            {
-                                                Diagnostic diagnostic = argument.CreateDiagnostic(UnsupportedSymbolKindArgumentRule, symbol.Name);
-                                                context.ReportDiagnostic(diagnostic);
-                                            }
+                                            SymbolEqualityComparer.Default.Equals(_symbolKind, symbol.ContainingType) &&
+                                            !s_supportedSymbolKinds.Contains(symbol.Name))
+                                        {
+                                            Diagnostic diagnostic = argument.CreateDiagnostic(UnsupportedSymbolKindArgumentRule, symbol.Name);
+                                            context.ReportDiagnostic(diagnostic);
                                         }
                                     }
                                 }
@@ -428,12 +411,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private void AnalyzeArgumentSyntax(SyntaxNodeAnalysisContext context)
             {
                 SyntaxNode argumentExpression = GetArgumentExpression((TArgumentSyntax)context.Node);
-                if (argumentExpression != null)
+                if (argumentExpression != null &&
+                    context.SemanticModel.GetSymbolInfo(argumentExpression, context.CancellationToken).Symbol is IParameterSymbol parameter)
                 {
-                    if (context.SemanticModel.GetSymbolInfo(argumentExpression, context.CancellationToken).Symbol is IParameterSymbol parameter)
-                    {
-                        AnalyzeParameterReference(parameter);
-                    }
+                    AnalyzeParameterReference(parameter);
                 }
             }
 
@@ -467,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private void NoteRegisterActionInvocation(IMethodSymbol method, TInvocationExpressionSyntax invocation, SemanticModel model, CancellationToken cancellationToken)
             {
-                if (method.ContainingType.Equals(_analysisContext))
+                if (SymbolEqualityComparer.Default.Equals(method.ContainingType, _analysisContext))
                 {
                     // Not a nested action.
                     return;
@@ -550,8 +531,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private void ReportDiagnostic(CodeBlockAnalysisContext codeBlockContext, IParameterSymbol contextParameter, bool hasEndAction)
             {
                 Debug.Assert(IsContextType(contextParameter.Type, _codeBlockStartAnalysisContext, _compilationStartAnalysisContext, _operationBlockStartAnalysisContext));
-                bool isCompilationStartAction = contextParameter.Type.OriginalDefinition.Equals(_compilationStartAnalysisContext.OriginalDefinition);
-                bool isOperationBlockStartAction = !isCompilationStartAction && contextParameter.Type.OriginalDefinition.Equals(_operationBlockStartAnalysisContext.OriginalDefinition);
+                bool isCompilationStartAction = SymbolEqualityComparer.Default.Equals(contextParameter.Type.OriginalDefinition, _compilationStartAnalysisContext.OriginalDefinition);
+                bool isOperationBlockStartAction = !isCompilationStartAction && SymbolEqualityComparer.Default.Equals(contextParameter.Type.OriginalDefinition, _operationBlockStartAnalysisContext.OriginalDefinition);
 
                 Location location = contextParameter.DeclaringSyntaxReferences.First()
                         .GetSyntax(codeBlockContext.CancellationToken).GetLocation();

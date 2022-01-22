@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable enable
 
@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Text.Analyzers
 {
+    using static TextAnalyzersResources;
+
     /// <summary>
     /// CA1714: Flags enums should have plural names
     /// CA1717: Only Flags enums should have plural names
@@ -22,67 +24,31 @@ namespace Text.Analyzers
     {
         internal const string RuleId_Plural = "CA1714";
 
-        private static readonly LocalizableString s_localizableTitle_CA1714 =
-            new LocalizableResourceString(
-                nameof(TextAnalyzersResources.FlagsEnumsShouldHavePluralNamesTitle),
-                TextAnalyzersResources.ResourceManager,
-                typeof(TextAnalyzersResources));
-
-        private static readonly LocalizableString s_localizableMessage_CA1714 =
-            new LocalizableResourceString(
-                nameof(TextAnalyzersResources.FlagsEnumsShouldHavePluralNamesMessage),
-                TextAnalyzersResources.ResourceManager,
-                typeof(TextAnalyzersResources));
-
-        private static readonly LocalizableString s_localizableDescription_CA1714 =
-            new LocalizableResourceString(
-                nameof(TextAnalyzersResources.FlagsEnumsShouldHavePluralNamesDescription),
-                TextAnalyzersResources.ResourceManager,
-                typeof(TextAnalyzersResources));
-
-        internal static DiagnosticDescriptor Rule_CA1714 =
+        internal static readonly DiagnosticDescriptor Rule_CA1714 =
             DiagnosticDescriptorHelper.Create(
                 RuleId_Plural,
-                s_localizableTitle_CA1714,
-                s_localizableMessage_CA1714,
+                CreateLocalizableResourceString(nameof(FlagsEnumsShouldHavePluralNamesTitle)),
+                CreateLocalizableResourceString(nameof(FlagsEnumsShouldHavePluralNamesMessage)),
                 DiagnosticCategory.Naming,
                 RuleLevel.Disabled,
-                description: s_localizableDescription_CA1714,
+                description: CreateLocalizableResourceString(nameof(FlagsEnumsShouldHavePluralNamesDescription)),
                 isPortedFxCopRule: true,
                 isDataflowRule: false);
 
         internal const string RuleId_NoPlural = "CA1717";
 
-        private static readonly LocalizableString s_localizableTitle_CA1717 =
-            new LocalizableResourceString(
-                nameof(TextAnalyzersResources.OnlyFlagsEnumsShouldHavePluralNamesTitle),
-                TextAnalyzersResources.ResourceManager,
-                typeof(TextAnalyzersResources));
-
-        private static readonly LocalizableString s_localizableMessage_CA1717 =
-            new LocalizableResourceString(
-                nameof(TextAnalyzersResources.OnlyFlagsEnumsShouldHavePluralNamesMessage),
-                TextAnalyzersResources.ResourceManager,
-                typeof(TextAnalyzersResources));
-
-        private static readonly LocalizableString s_localizableDescription_CA1717 =
-            new LocalizableResourceString(
-                nameof(TextAnalyzersResources.OnlyFlagsEnumsShouldHavePluralNamesDescription),
-                TextAnalyzersResources.ResourceManager,
-                typeof(TextAnalyzersResources));
-
-        internal static DiagnosticDescriptor Rule_CA1717 =
+        internal static readonly DiagnosticDescriptor Rule_CA1717 =
             DiagnosticDescriptorHelper.Create(
                 RuleId_NoPlural,
-                s_localizableTitle_CA1717,
-                s_localizableMessage_CA1717,
+                CreateLocalizableResourceString(nameof(OnlyFlagsEnumsShouldHavePluralNamesTitle)),
+                CreateLocalizableResourceString(nameof(OnlyFlagsEnumsShouldHavePluralNamesMessage)),
                 DiagnosticCategory.Naming,
                 RuleLevel.Disabled,
-                description: s_localizableDescription_CA1717,
+                description: CreateLocalizableResourceString(nameof(OnlyFlagsEnumsShouldHavePluralNamesDescription)),
                 isPortedFxCopRule: true,
                 isDataflowRule: false);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule_CA1714, Rule_CA1717);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule_CA1714, Rule_CA1717);
 
         public override void Initialize(AnalysisContext context)
         {

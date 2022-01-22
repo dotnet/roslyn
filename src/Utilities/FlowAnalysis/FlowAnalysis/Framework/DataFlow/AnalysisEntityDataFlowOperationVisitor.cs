@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValue)
         {
-            Debug.Assert(Equals(analysisEntity.Symbol, parameter));
+            Debug.Assert(SymbolEqualityComparer.Default.Equals(analysisEntity.Symbol, parameter));
             if (assignedValue != null)
             {
                 SetAbstractValueForAssignment(analysisEntity, assignedValue.Operation, assignedValue.Value);
@@ -801,13 +801,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     // Root tuple entity, compare the underlying tuple types.
                     return childEntity.Parent == null &&
-                        tupleElementEntity.Type.OriginalDefinition.Equals(childEntity.Type.OriginalDefinition);
+                        SymbolEqualityComparer.Default.Equals(tupleElementEntity.Type.OriginalDefinition, childEntity.Type.OriginalDefinition);
                 }
 
                 // Must be a tuple element field entity.
                 return tupleElementEntity.Symbol is IFieldSymbol tupleElementField &&
                     childEntity.Symbol is IFieldSymbol childEntityField &&
-                    tupleElementField.OriginalDefinition.Equals(childEntityField.OriginalDefinition) &&
+                    SymbolEqualityComparer.Default.Equals(tupleElementField.OriginalDefinition, childEntityField.OriginalDefinition) &&
                     IsMatchingAssignedEntity(tupleElementEntity.Parent, childEntity.Parent);
             }
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -137,6 +137,16 @@ namespace Analyzer.Utilities.Extensions
             public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
             public bool Remove(int item) => throw new NotImplementedException();
             IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        }
+
+        [Fact]
+        public void Concat_WhenCollectionIsNull_ThrowsDirectly()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                IEnumerable<int> collection = null;
+                collection.Concat(1);
+            });
         }
     }
 }

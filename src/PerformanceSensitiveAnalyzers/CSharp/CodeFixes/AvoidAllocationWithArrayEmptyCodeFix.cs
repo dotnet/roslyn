@@ -1,13 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
-using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -21,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
     {
         private readonly string _title = CodeFixesResources.AvoidAllocationByUsingArrayEmpty;
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(ExplicitAllocationAnalyzer.ObjectCreationRuleId, ExplicitAllocationAnalyzer.ArrayCreationRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(ExplicitAllocationAnalyzer.ObjectCreationRuleId, ExplicitAllocationAnalyzer.ArrayCreationRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -35,18 +32,18 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
 
             if (IsReturnStatement(node))
             {
-                await TryToRegisterCodeFixesForReturnStatement(context, node, diagnostic).ConfigureAwait(false);
+                await TryToRegisterCodeFixesForReturnStatementAsync(context, node, diagnostic).ConfigureAwait(false);
                 return;
             }
 
             if (IsMethodInvocationParameter(node))
             {
-                await TryToRegisterCodeFixesForMethodInvocationParameter(context, node, diagnostic).ConfigureAwait(false);
+                await TryToRegisterCodeFixesForMethodInvocationParameterAsync(context, node, diagnostic).ConfigureAwait(false);
                 return;
             }
         }
 
-        private async Task TryToRegisterCodeFixesForMethodInvocationParameter(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
+        private async Task TryToRegisterCodeFixesForMethodInvocationParameterAsync(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
         {
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             if (IsExpectedParameterReadonlySequence(node, semanticModel) && node is ArgumentSyntax argument)
@@ -55,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
             }
         }
 
-        private async Task TryToRegisterCodeFixesForReturnStatement(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
+        private async Task TryToRegisterCodeFixesForReturnStatementAsync(CodeFixContext context, SyntaxNode node, Diagnostic diagnostic)
         {
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             if (IsInsideMemberReturningEnumerable(node, semanticModel))
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                             objectCreation.Type is GenericNameSyntax genericName)
                         {
                             var codeAction = CodeAction.Create(_title,
-                                token => Transform(context.Document, node, genericName.TypeArgumentList.Arguments[0], token),
+                                token => TransformAsync(context.Document, node, genericName.TypeArgumentList.Arguments[0], token),
                                 _title);
                             context.RegisterCodeFix(codeAction, diagnostic);
                         }
@@ -85,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                         if (CanBeReplaceWithEnumerableEmpty(arrayCreation))
                         {
                             var codeAction = CodeAction.Create(_title,
-                                token => Transform(context.Document, node, arrayCreation.Type.ElementType, token),
+                                token => TransformAsync(context.Document, node, arrayCreation.Type.ElementType, token),
                                 _title);
                             context.RegisterCodeFix(codeAction, diagnostic);
                         }
@@ -133,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
             return methodDeclaration != null && IsReturnTypeReadonlySequence(semanticModel, methodDeclaration);
         }
 
-        private static async Task<Document> Transform(Document contextDocument, SyntaxNode node, TypeSyntax typeArgument, CancellationToken cancellationToken)
+        private static async Task<Document> TransformAsync(Document contextDocument, SyntaxNode node, TypeSyntax typeArgument, CancellationToken cancellationToken)
         {
             var noAllocation = SyntaxFactory.ParseExpression($"Array.Empty<{typeArgument}>()");
             var newNode = ReplaceExpression(node, noAllocation);
@@ -166,19 +163,18 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
         private static bool IsCopyConstructor(SemanticModel semanticModel, ObjectCreationExpressionSyntax objectCreation)
             => objectCreation.ArgumentList?.Arguments.Count > 0 &&
                semanticModel.GetSymbolInfo(objectCreation).Symbol is IMethodSymbol methodSymbol &&
-               methodSymbol.Parameters.Any(x => x.Type is INamedTypeSymbol namedType && ImplementsGenericICollectionInterface(namedType, semanticModel));
+               methodSymbol.Parameters.Any(x => x.Type is INamedTypeSymbol namedType && ImplementsGenericICollectionInterface(namedType));
 
         private static bool IsInitializationBlockEmpty(InitializerExpressionSyntax initializer)
             => initializer == null || initializer.Expressions.Count == 0;
 
         private static bool IsCollectionType(SemanticModel semanticModel, ObjectCreationExpressionSyntax objectCreationExpressionSyntax)
             => semanticModel.GetTypeInfo(objectCreationExpressionSyntax).Type is INamedTypeSymbol createdType &&
-               (createdType.TypeKind == TypeKind.Array || ImplementsGenericICollectionInterface(createdType, semanticModel));
+               (createdType.TypeKind == TypeKind.Array || ImplementsGenericICollectionInterface(createdType));
 
-        private static bool ImplementsGenericICollectionInterface(INamedTypeSymbol typeSymbol, SemanticModel semanticModel)
+        private static bool ImplementsGenericICollectionInterface(INamedTypeSymbol typeSymbol)
         {
-            var genericICollectionType = semanticModel.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1);
-            return typeSymbol.ConstructedFrom.Interfaces.Any(x => x.ConstructedFrom.Equals(genericICollectionType));
+            return typeSymbol.ConstructedFrom.Interfaces.Any(x => x.ConstructedFrom.SpecialType == SpecialType.System_Collections_Generic_ICollection_T);
         }
 
         private static bool IsPropertyTypeReadonlySequence(SemanticModel semanticModel, PropertyDeclarationSyntax propertyDeclaration)
@@ -196,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
                     methodSymbol.Parameters.Length > argumentIndex)
                 {
                     var parameterType = methodSymbol.Parameters[argumentIndex].Type;
-                    if (IsTypeReadonlySequence(semanticModel, parameterType))
+                    if (IsTypeReadonlySequence(parameterType))
                     {
                         return true;
                     }
@@ -209,10 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
         private static bool IsTypeReadonlySequence(SemanticModel semanticModel, TypeSyntax typeSyntax)
         {
             var returnType = ModelExtensions.GetTypeInfo(semanticModel, typeSyntax).Type;
-            return IsTypeReadonlySequence(semanticModel, returnType);
+            return IsTypeReadonlySequence(returnType);
         }
 
-        private static bool IsTypeReadonlySequence(SemanticModel semanticModel, ITypeSymbol type)
+        private static bool IsTypeReadonlySequence(ITypeSymbol type)
         {
             if (type.Kind == SymbolKind.ArrayType)
             {
@@ -221,15 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
 
             return type is INamedTypeSymbol namedType &&
                 namedType.IsGenericType &&
-                GetReadonlySequenceTypes(semanticModel).Any(readonlySequence => namedType.ConstructedFrom.Equals(readonlySequence));
+                _readonlySequenceSpecialTypes.Any(readonlySequence => namedType.ConstructedFrom.SpecialType == readonlySequence);
         }
 
-        private static readonly ImmutableArray<string> _readonlySequenceTypeNames = ImmutableArray.Create(
-            WellKnownTypeNames.SystemCollectionsGenericIEnumerable1,
-            WellKnownTypeNames.SystemCollectionsGenericIReadOnlyList1,
-            WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
-
-        private static IEnumerable<INamedTypeSymbol?> GetReadonlySequenceTypes(SemanticModel semanticModel)
-            => _readonlySequenceTypeNames.Select(name => semanticModel.Compilation.GetOrCreateTypeByMetadataName(name));
+        private static readonly ImmutableArray<SpecialType> _readonlySequenceSpecialTypes = ImmutableArray.Create(
+            SpecialType.System_Collections_Generic_IEnumerable_T,
+            SpecialType.System_Collections_Generic_IReadOnlyList_T,
+            SpecialType.System_Collections_Generic_IReadOnlyCollection_T);
     }
 }

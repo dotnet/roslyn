@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
@@ -124,7 +124,7 @@ End Namespace";
         }
 
         [Fact]
-        public async Task CSharp_NoIVT_NoRestrictedIVT_NoDiagnostic()
+        public async Task CSharp_NoIVT_NoRestrictedIVT_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 namespace N1
@@ -144,7 +144,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_NoIVT_NoRestrictedIVT_NoDiagnostic()
+        public async Task Basic_NoIVT_NoRestrictedIVT_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 Namespace N1
@@ -162,7 +162,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_NoRestrictedIVT_NoDiagnostic()
+        public async Task CSharp_IVT_NoRestrictedIVT_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -184,7 +184,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_NoRestrictedIVT_NoDiagnostic()
+        public async Task Basic_IVT_NoRestrictedIVT_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -204,7 +204,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_NoIVT_RestrictedIVT_NoDiagnostic()
+        public async Task CSharp_NoIVT_RestrictedIVT_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""NonExistentNamespace"")]
@@ -226,7 +226,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_NoIVT_RestrictedIVT_NoDiagnostic()
+        public async Task Basic_NoIVT_RestrictedIVT_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""NonExistentNamespace"")>
@@ -246,7 +246,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_BasicScenario_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_BasicScenario_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -269,7 +269,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_BasicScenario_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_BasicScenario_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -290,7 +290,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_BasicScenario_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_BasicScenario_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -314,7 +314,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_BasicScenario_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_BasicScenario_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -336,7 +336,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_MultipleAttributes_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_MultipleAttributes_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -365,7 +365,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_MultipleAttributes_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_MultipleAttributes_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -392,7 +392,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_MultipleAttributes_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_MultipleAttributes_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -427,7 +427,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_MultipleAttributes_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_MultipleAttributes_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -460,7 +460,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -483,7 +483,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -504,7 +504,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -529,7 +529,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -552,7 +552,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -575,7 +575,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -596,7 +596,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -622,7 +622,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -645,7 +645,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -674,7 +674,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_QualifiedNamespace_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_QualifiedNamespace_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -701,7 +701,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_AncestorNamespace_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_AncestorNamespace_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -727,7 +727,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_AncestorNamespace_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_AncestorNamespace_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -750,7 +750,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_AncestorNamespace_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_AncestorNamespace_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -779,7 +779,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_AncestorNamespace_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_AncestorNamespace_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -806,7 +806,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -832,7 +832,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -855,7 +855,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_NestedType_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_NestedType_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -878,7 +878,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_NestedType_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_NestedType_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -901,7 +901,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_NestedType_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_NestedType_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -925,7 +925,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_NestedType_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_NestedType_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -949,7 +949,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInAttributes_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInAttributes_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -988,7 +988,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInAttributes_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInAttributes_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1024,7 +1024,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInAttributes_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInAttributes_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1080,7 +1080,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInAttributes_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInAttributes_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1131,7 +1131,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1158,7 +1158,7 @@ class C2 : N1.C1
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1191,7 +1191,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1231,7 +1231,7 @@ class B : {|#0:N1.C1|}
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInDeclaration_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInDeclaration_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1283,7 +1283,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1326,7 +1326,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1375,7 +1375,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1402,7 +1402,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1425,7 +1425,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalField_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalField_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1453,7 +1453,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalField_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalField_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1477,7 +1477,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMethod_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMethod_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1505,7 +1505,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalMethod_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalMethod_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1531,7 +1531,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1562,7 +1562,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1591,7 +1591,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1623,7 +1623,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1653,7 +1653,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalProperty_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalProperty_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1681,7 +1681,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalProperty_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalProperty_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1705,7 +1705,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalEvent_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalEvent_DiagnosticAsync()
         {
             var apiProviderSource = @"using System;
 
@@ -1734,7 +1734,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalEvent_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalEvent_DiagnosticAsync()
         {
             var apiProviderSource = @"Imports System
 
@@ -1759,7 +1759,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalConstructor_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalConstructor_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1787,7 +1787,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalConstructor_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalConstructor_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1812,7 +1812,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_Conversions_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_Conversions_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1840,7 +1840,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_Conversions_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_Conversions_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1869,7 +1869,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1900,7 +1900,7 @@ class C2 : C1<C3>
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1933,7 +1933,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1978,7 +1978,7 @@ class C2 : C1<{|#0:C3|}>
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -2024,7 +2024,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsingAlias_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsingAlias_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -2047,7 +2047,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsingAlias_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsingAlias_NoDiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -2068,7 +2068,7 @@ End Class";
         }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsingAlias_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsingAlias_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -2092,7 +2092,7 @@ class C2
         }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsingAlias_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsingAlias_DiagnosticAsync()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -2115,7 +2115,7 @@ End Class";
 
         [Fact]
         [WorkItem(2655, "https://github.com/dotnet/roslyn-analyzers/issues/2655")]
-        public async Task CSharp_IVT_RestrictedIVT_InternalOperators_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_InternalOperators_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -2159,7 +2159,7 @@ class C2
 
         [Fact]
         [WorkItem(2655, "https://github.com/dotnet/roslyn-analyzers/issues/2655")]
-        public async Task CSharp_IVT_RestrictedIVT_TypeArgumentUsage_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_TypeArgumentUsage_DiagnosticAsync()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]

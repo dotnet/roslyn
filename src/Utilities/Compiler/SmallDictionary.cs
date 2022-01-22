@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -665,17 +665,17 @@ namespace Analyzer.Utilities
                     _current = curr;
                     _next = curr.Next;
 
-                    PushIfNotNull(curr.Left);
-                    PushIfNotNull(curr.Right);
+                    PushIfNotNull(_stack, curr.Left);
+                    PushIfNotNull(_stack, curr.Right);
 
                     return true;
-                }
 
-                private void PushIfNotNull(AvlNode? child)
-                {
-                    if (child != null)
+                    static void PushIfNotNull(Stack<AvlNode> stack, AvlNode? child)
                     {
-                        _stack!.Push(child);
+                        if (child != null)
+                        {
+                            stack.Push(child);
+                        }
                     }
                 }
             }
@@ -783,17 +783,17 @@ namespace Analyzer.Utilities
                     _current = curr;
                     _next = curr.Next;
 
-                    PushIfNotNull(curr.Left);
-                    PushIfNotNull(curr.Right);
+                    PushIfNotNull(_stack, curr.Left);
+                    PushIfNotNull(_stack, curr.Right);
 
                     return true;
-                }
 
-                private void PushIfNotNull(AvlNode? child)
-                {
-                    if (child != null)
+                    static void PushIfNotNull(Stack<AvlNode> stack, AvlNode? child)
                     {
-                        _stack!.Push(child);
+                        if (child != null)
+                        {
+                            stack.Push(child);
+                        }
                     }
                 }
             }
@@ -889,17 +889,17 @@ namespace Analyzer.Utilities
                 _current = curr;
                 _next = curr.Next;
 
-                PushIfNotNull(curr.Left);
-                PushIfNotNull(curr.Right);
+                PushIfNotNull(_stack, curr.Left);
+                PushIfNotNull(_stack, curr.Right);
 
                 return true;
-            }
 
-            private void PushIfNotNull(AvlNode? child)
-            {
-                if (child != null)
+                static void PushIfNotNull(Stack<AvlNode> stack, AvlNode? child)
                 {
-                    _stack!.Push(child);
+                    if (child != null)
+                    {
+                        stack.Push(child);
+                    }
                 }
             }
         }

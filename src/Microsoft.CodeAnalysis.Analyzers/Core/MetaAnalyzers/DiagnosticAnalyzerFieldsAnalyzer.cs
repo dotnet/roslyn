@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     public abstract class DiagnosticAnalyzerFieldsAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax, TTypeSyntax, TVariableTypeDeclarationSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TClassDeclarationSyntax : SyntaxNode
         where TStructDeclarationSyntax : SyntaxNode
@@ -17,24 +19,21 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         where TTypeSyntax : SyntaxNode
         where TVariableTypeDeclarationSyntax : SyntaxNode
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(AnalysisContext), DiagnosticWellKnownNames.RegisterCompilationStartActionName);
         private static readonly string s_compilationTypeFullName = typeof(Compilation).FullName;
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
         private static readonly string s_operationTypeFullName = typeof(IOperation).FullName;
 
         public static readonly DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new(
             DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(DoNotStorePerCompilationDataOntoFieldsTitle)),
+            CreateLocalizableResourceString(nameof(DoNotStorePerCompilationDataOntoFieldsMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(DoNotStorePerCompilationDataOntoFieldsDescription), nameof(AnalysisContext), DiagnosticWellKnownNames.RegisterCompilationStartActionName),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotStorePerCompilationDataOntoFieldsRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DoNotStorePerCompilationDataOntoFieldsRule);
 
 #pragma warning disable RS1025 // Configure generated code analysis
         public override void Initialize(AnalysisContext context)
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     {
                         foreach (ITypeSymbol innerType in type.GetBaseTypesAndThis())
                         {
-                            if (innerType.Equals(_compilationType))
+                            if (SymbolEqualityComparer.Default.Equals(innerType, _compilationType))
                             {
                                 ReportDiagnostic(type, typeNode, symbolContext);
                                 return;
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                         foreach (INamedTypeSymbol iface in type.AllInterfaces)
                         {
-                            if (iface.Equals(_symbolType) || iface.Equals(_operationType))
+                            if (SymbolEqualityComparer.Default.Equals(iface, _symbolType) || SymbolEqualityComparer.Default.Equals(iface, _operationType))
                             {
                                 ReportDiagnostic(type, typeNode, symbolContext);
                                 return;

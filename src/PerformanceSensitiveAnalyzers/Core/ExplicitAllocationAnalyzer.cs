@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 {
+    using static PerformanceSensitiveAnalyzersResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal sealed class ExplicitAllocationAnalyzer : AbstractAllocationAnalyzer
     {
@@ -19,12 +21,12 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
         // HAA0505 is retired and should not be reused
         public const string LetCauseRuleId = "HAA0506";
 
-        private static readonly LocalizableString s_localizableArrayCreationRuleTitleAndMessage = new LocalizableResourceString(nameof(PerformanceSensitiveAnalyzersResources.NewArrayRuleTitleAndMessage), PerformanceSensitiveAnalyzersResources.ResourceManager, typeof(PerformanceSensitiveAnalyzersResources));
-        private static readonly LocalizableString s_localizableObjectCreationRuleTitleAndMessage = new LocalizableResourceString(nameof(PerformanceSensitiveAnalyzersResources.NewObjectRuleTitleAndMessage), PerformanceSensitiveAnalyzersResources.ResourceManager, typeof(PerformanceSensitiveAnalyzersResources));
-        private static readonly LocalizableString s_localizablAnonymousObjectCreationRuleTitleAndMessage = new LocalizableResourceString(nameof(PerformanceSensitiveAnalyzersResources.AnonymousNewObjectRuleTitleAndMessage), PerformanceSensitiveAnalyzersResources.ResourceManager, typeof(PerformanceSensitiveAnalyzersResources));
-        private static readonly LocalizableString s_localizableLetCauseRuleTitleAndMessage = new LocalizableResourceString(nameof(PerformanceSensitiveAnalyzersResources.LetCauseRuleTitleAndMessage), PerformanceSensitiveAnalyzersResources.ResourceManager, typeof(PerformanceSensitiveAnalyzersResources));
+        private static readonly LocalizableString s_localizableArrayCreationRuleTitleAndMessage = CreateLocalizableResourceString(nameof(NewArrayRuleTitleAndMessage));
+        private static readonly LocalizableString s_localizableObjectCreationRuleTitleAndMessage = CreateLocalizableResourceString(nameof(NewObjectRuleTitleAndMessage));
+        private static readonly LocalizableString s_localizablAnonymousObjectCreationRuleTitleAndMessage = CreateLocalizableResourceString(nameof(AnonymousNewObjectRuleTitleAndMessage));
+        private static readonly LocalizableString s_localizableLetCauseRuleTitleAndMessage = CreateLocalizableResourceString(nameof(LetCauseRuleTitleAndMessage));
 
-        internal static DiagnosticDescriptor ArrayCreationRule = new(
+        internal static readonly DiagnosticDescriptor ArrayCreationRule = new(
             ArrayCreationRuleId,
             s_localizableArrayCreationRuleTitleAndMessage,
             s_localizableArrayCreationRuleTitleAndMessage,
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor ObjectCreationRule = new(
+        internal static readonly DiagnosticDescriptor ObjectCreationRule = new(
             ObjectCreationRuleId,
             s_localizableObjectCreationRuleTitleAndMessage,
             s_localizableObjectCreationRuleTitleAndMessage,
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor AnonymousObjectCreationRule = new(
+        internal static readonly DiagnosticDescriptor AnonymousObjectCreationRule = new(
             AnonymousObjectCreationRuleId,
             s_localizablAnonymousObjectCreationRuleTitleAndMessage,
             s_localizablAnonymousObjectCreationRuleTitleAndMessage,
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             isEnabledByDefault: true,
             helpLinkUri: "http://msdn.microsoft.com/en-us/library/bb397696.aspx");
 
-        internal static DiagnosticDescriptor LetCauseRule = new(
+        internal static readonly DiagnosticDescriptor LetCauseRule = new(
             LetCauseRuleId,
             s_localizableLetCauseRuleTitleAndMessage,
             s_localizableLetCauseRuleTitleAndMessage,
@@ -59,13 +61,13 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
         private static readonly object[] EmptyMessageArgs = Array.Empty<object>();
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             ArrayCreationRule,
             ObjectCreationRule,
             AnonymousObjectCreationRule,
             LetCauseRule);
 
-        protected override ImmutableArray<OperationKind> Operations => ImmutableArray.Create(
+        protected override ImmutableArray<OperationKind> Operations { get; } = ImmutableArray.Create(
             OperationKind.ArrayCreation,
             OperationKind.ObjectCreation,
             OperationKind.AnonymousObjectCreation,

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable disable warnings
 
@@ -171,12 +171,10 @@ namespace Analyzer.Utilities
         private static Document? GetReportedDocument(Diagnostic diagnostic, ImmutableDictionary<SyntaxTree, Document> treeToDocumentsMap)
         {
             var tree = diagnostic.Location.SourceTree;
-            if (tree != null)
+            if (tree != null &&
+                treeToDocumentsMap.TryGetValue(tree, out var document))
             {
-                if (treeToDocumentsMap.TryGetValue(tree, out var document))
-                {
-                    return document;
-                }
+                return document;
             }
 
             return null;

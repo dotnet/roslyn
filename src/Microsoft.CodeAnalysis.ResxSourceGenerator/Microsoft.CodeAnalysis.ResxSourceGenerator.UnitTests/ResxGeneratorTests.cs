@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Text;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
         [InlineData(CSharpLanguageVersion.CSharp7)]
         [InlineData(CSharpLanguageVersion.CSharp8)]
         [InlineData(CSharpLanguageVersion.CSharp9)]
-        public async Task SingleString_DefaultCSharp(CSharpLanguageVersion languageVersion)
+        public async Task SingleString_DefaultCSharpAsync(CSharpLanguageVersion languageVersion)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -158,7 +158,7 @@ namespace TestProject
         }
 
         [Fact]
-        public async Task SingleString_DefaultVisualBasic()
+        public async Task SingleString_DefaultVisualBasicAsync()
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -215,7 +215,7 @@ End Namespace
         }
 
         [Fact]
-        public async Task SingleString_DisableCodeGen()
+        public async Task SingleString_DisableCodeGenAsync()
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -263,7 +263,7 @@ build_metadata.AdditionalFiles.GenerateSource = false
         [InlineData("", Skip = "Empty root namespaces are not supported")]
         [InlineData("NS")]
         [InlineData("NS1.NS2")]
-        public async Task SingleString_RootNamespaceCSharp(string rootNamespace)
+        public async Task SingleString_RootNamespaceCSharpAsync(string rootNamespace)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -319,7 +319,7 @@ build_property.RootNamespace = {rootNamespace}
         [InlineData("", Skip = "Empty root namespaces are not supported")]
         [InlineData("NS")]
         [InlineData("NS1.NS2")]
-        public async Task SingleString_RootNamespaceVisualBasic(string rootNamespace)
+        public async Task SingleString_RootNamespaceVisualBasicAsync(string rootNamespace)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -387,7 +387,7 @@ build_property.RootNamespace = {rootNamespace}
         [InlineData("")]
         [InlineData("NS")]
         [InlineData("NS1.NS2")]
-        public async Task SingleString_RelativeDirCSharp(string relativeDir)
+        public async Task SingleString_RelativeDirCSharpAsync(string relativeDir)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -453,7 +453,7 @@ build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
         [InlineData("")]
         [InlineData("NS")]
         [InlineData("NS1.NS2")]
-        public async Task SingleString_RelativeDirVisualBasic(string relativeDir)
+        public async Task SingleString_RelativeDirVisualBasicAsync(string relativeDir)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -529,7 +529,7 @@ build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
 
         [Theory]
         [CombinatorialData]
-        public async Task SingleString_OmitGetResourceStringCSharp(bool omitGetResourceString)
+        public async Task SingleString_OmitGetResourceStringCSharpAsync(bool omitGetResourceString)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -601,7 +601,7 @@ build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ?
 
         [Theory]
         [CombinatorialData]
-        public async Task SingleString_OmitGetResourceStringVisualBasic(bool omitGetResourceString)
+        public async Task SingleString_OmitGetResourceStringVisualBasicAsync(bool omitGetResourceString)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -684,7 +684,7 @@ build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ?
 
         [Theory]
         [CombinatorialData]
-        public async Task SingleString_AsConstantsCSharp(bool asConstants)
+        public async Task SingleString_AsConstantsCSharpAsync(bool asConstants)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -744,7 +744,7 @@ build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
 
         [Theory]
         [CombinatorialData]
-        public async Task SingleString_AsConstantsVisualBasic(bool asConstants)
+        public async Task SingleString_AsConstantsVisualBasicAsync(bool asConstants)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -816,7 +816,7 @@ build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
 
         [Theory]
         [CombinatorialData]
-        public async Task SingleString_IncludeDefaultValuesCSharp(bool includeDefaultValues)
+        public async Task SingleString_IncludeDefaultValuesCSharpAsync(bool includeDefaultValues)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -876,7 +876,7 @@ build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "
 
         [Theory]
         [CombinatorialData]
-        public async Task SingleString_IncludeDefaultValuesVisualBasic(bool includeDefaultValues)
+        public async Task SingleString_IncludeDefaultValuesVisualBasicAsync(bool includeDefaultValues)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -948,7 +948,7 @@ build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "
 
         [Theory]
         [CombinatorialData]
-        public async Task SingleString_EmitFormatMethodsCSharp(
+        public async Task SingleString_EmitFormatMethodsCSharpAsync(
             [CombinatorialValues("0", "x", "replacement")] string placeholder,
             bool emitFormatMethods)
         {
@@ -1044,7 +1044,7 @@ build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" 
         [Theory]
         [InlineData(true, Skip = "Not yet supported")]
         [InlineData(false)]
-        public async Task SingleString_EmitFormatMethodsVisualBasic(bool emitFormatMethods)
+        public async Task SingleString_EmitFormatMethodsVisualBasicAsync(bool emitFormatMethods)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">

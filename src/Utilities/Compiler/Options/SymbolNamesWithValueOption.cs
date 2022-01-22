@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -293,15 +293,13 @@ namespace Analyzer.Utilities
             var symbolDeclarationId = _symbolToDeclarationId.GetOrAdd(symbol, s => GetDeclarationId(s));
 
             // We start by trying to match with the most precise definition (prefix)...
-            if (_wildcardNamesBySymbolKind.TryGetValue(symbol.Kind, out var names))
+            if (_wildcardNamesBySymbolKind.TryGetValue(symbol.Kind, out var names) &&
+                names.FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var prefixedFirstMatchOrDefault &&
+                !string.IsNullOrWhiteSpace(prefixedFirstMatchOrDefault.Key))
             {
-                if (names.FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var prefixedFirstMatchOrDefault &&
-                    !string.IsNullOrWhiteSpace(prefixedFirstMatchOrDefault.Key))
-                {
-                    (firstMatchName, firstMatchValue) = prefixedFirstMatchOrDefault;
-                    _wildcardMatchResult.AddOrUpdate(symbol, prefixedFirstMatchOrDefault.AsNullable(), (s, match) => prefixedFirstMatchOrDefault.AsNullable());
-                    return true;
-                }
+                (firstMatchName, firstMatchValue) = prefixedFirstMatchOrDefault;
+                _wildcardMatchResult.AddOrUpdate(symbol, prefixedFirstMatchOrDefault.AsNullable(), (s, match) => prefixedFirstMatchOrDefault.AsNullable());
+                return true;
             }
 
             // If not found, then we try to match with the symbol full declaration ID...

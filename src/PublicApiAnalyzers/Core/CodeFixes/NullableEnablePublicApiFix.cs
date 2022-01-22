@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = "NullableEnablePublicApiFix"), Shared]
     public sealed class NullableEnablePublicApiFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(DiagnosticIds.ShouldAnnotateApiFilesRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(DiagnosticIds.ShouldAnnotateApiFilesRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
             => new PublicSurfaceAreaFixAllProvider();
@@ -32,14 +32,15 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
-                TextDocument? document = PublicApiFixHelpers.GetShippedDocument(project);
+                TextDocument? document = project.GetShippedDocument();
 
                 if (document != null)
                 {
                     context.RegisterCodeFix(
                             new DeclarePublicApiFix.AdditionalDocumentChangeAction(
                                 $"Add '#nullable enable' to public API",
-                                c => GetFix(document, c)),
+                                document.Id,
+                                c => GetFixAsync(document, c)),
                             diagnostic);
                 }
             }
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, CancellationToken cancellationToken)
+        private static async Task<Solution> GetFixAsync(TextDocument publicSurfaceAreaDocument, CancellationToken cancellationToken)
         {
             SourceText sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             SourceText newSourceText = AddNullableEnable(sourceText);
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private static SourceText AddNullableEnable(SourceText sourceText)
         {
-            string extraLine = "#nullable enable" + PublicApiFixHelpers.GetEndOfLine(sourceText);
+            string extraLine = "#nullable enable" + sourceText.GetEndOfLine();
             SourceText newSourceText = sourceText.WithChanges(new TextChange(new TextSpan(0, 0), extraLine));
             return newSourceText;
         }
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 using var uniqueShippedDocuments = PooledHashSet<string>.GetInstance();
                 foreach (var project in _projectsToFix)
                 {
-                    TextDocument? shippedDocument = PublicApiFixHelpers.GetShippedDocument(project);
+                    TextDocument? shippedDocument = project.GetShippedDocument();
                     if (shippedDocument == null ||
                         shippedDocument.FilePath != null && !uniqueShippedDocuments.Add(shippedDocument.FilePath))
                     {

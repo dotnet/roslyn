@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -30,6 +30,7 @@ namespace Analyzer.Utilities
                 () =>
                 {
                     return ImmutableHashSet.Create<IAssemblySymbol>(
+                        SymbolEqualityComparer.Default,
                         Compilation.Assembly.Modules
                             .SelectMany(m => m.ReferencedAssemblySymbols)
                             .ToArray());
@@ -200,7 +201,8 @@ namespace Analyzer.Utilities
         {
             return typeSymbol != null
                 && typeSymbol.OriginalDefinition != null
-                && typeSymbol.OriginalDefinition.Equals(GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask1))
+                && SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition,
+                    GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask1))
                 && typeSymbol is INamedTypeSymbol namedTypeSymbol
                 && namedTypeSymbol.TypeArguments.Length == 1
                 && typeArgumentPredicate(namedTypeSymbol.TypeArguments[0]);
