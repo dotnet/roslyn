@@ -152,27 +152,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // Ensure that this sequence is actually a separated list.
                 for (int i = 0, n = sequence.ChildCount; i < n; i++)
                 {
-                    var child = sequence.ChildAt(i);
-                    if (child.IsNode)
+                    var child = sequence[i];
+                    if (i % 2 == 0)
                     {
-                        var childNode = child.Node;
-                        if (i % 2 == 0)
+                        if (child.Kind == JsonKind.CommaValue)
                         {
-                            if (childNode.Kind == JsonKind.CommaValue)
-                            {
-                                return new EmbeddedDiagnostic(
-                                    string.Format(WorkspacesResources._0_unexpected, ","),
-                                    childNode.GetSpan());
-                            }
+                            return new EmbeddedDiagnostic(
+                                string.Format(WorkspacesResources._0_unexpected, ","),
+                                child.GetSpan());
                         }
-                        else
+                    }
+                    else
+                    {
+                        if (child.Kind != JsonKind.CommaValue)
                         {
-                            if (childNode.Kind != JsonKind.CommaValue)
-                            {
-                                return new EmbeddedDiagnostic(
-                                    string.Format(WorkspacesResources._0_expected, ","),
-                                    GetFirstToken(child).GetSpan());
-                            }
+                            return new EmbeddedDiagnostic(
+                                string.Format(WorkspacesResources._0_expected, ","),
+                                GetFirstToken(child).GetSpan());
                         }
                     }
                 }
@@ -180,13 +176,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 if (sequence.ChildCount != 0 &&
                     sequence.ChildCount % 2 == 0)
                 {
-                    var lastChild = sequence.ChildAt(sequence.ChildCount - 1);
-                    if (lastChild.IsNode)
-                    {
-                        return new EmbeddedDiagnostic(
-                            WorkspacesResources.Trailing_comma_not_allowed,
-                            lastChild.Node.GetSpan());
-                    }
+                    var lastChild = sequence[sequence.ChildCount - 1];
+                    return new EmbeddedDiagnostic(
+                        WorkspacesResources.Trailing_comma_not_allowed,
+                        lastChild.GetSpan());
                 }
 
                 return null;
