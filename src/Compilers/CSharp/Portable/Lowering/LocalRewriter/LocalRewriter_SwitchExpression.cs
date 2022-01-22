@@ -54,7 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundDecisionDag decisionDag = node.DecisionDag;
                 if (decisionDag.ContainsAnySynthesizedNodes())
                 {
-                    decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(_factory.Compilation, node, out defaultLabel);
+                    // there's no default label if the original switch is exhaustive.
+                    // we generate a new label here because the new dag might not be.
+                    defaultLabel ??= new GeneratedLabelSymbol("default");
+                    decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(_factory.Compilation, node, defaultLabel);
                     Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
                 }
 

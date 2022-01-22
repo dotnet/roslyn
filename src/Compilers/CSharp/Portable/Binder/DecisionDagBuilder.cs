@@ -120,16 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BoundDecisionDag CreateDecisionDagForSwitchExpression(
             CSharpCompilation compilation,
             BoundSwitchExpression node,
-            out LabelSymbol defaultLabel)
+            LabelSymbol defaultLabel)
         {
             return CreateDecisionDagForSwitchExpression(
                 compilation,
                 node.Syntax,
                 node.Expression,
                 node.SwitchArms,
-                // there's no default label if the original switch is exhaustive.
-                // we generate a new label here because the new dag might not be.
-                defaultLabel = node.DefaultLabel ?? new GeneratedLabelSymbol("default"),
+                defaultLabel,
                 BindingDiagnosticBag.Discarded,
                 considerAlternativeIndexers: false);
         }
