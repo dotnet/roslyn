@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CSharpFeaturesResources.resx">
     <body>
@@ -122,6 +122,11 @@
         <target state="translated">Объявить как тип, допускающий значения null</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="translated">Включить типы ссылок, допускающие значение NULL, в проекте</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">Исправить тип возвращаемых значений</target>
@@ -162,6 +167,16 @@
         <target state="translated">Обратить оператор "for"</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="translated">Выбор не может включать глобальные операторы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="translated">Выбор не может включать операторы верхнего уровня</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">Упростить лямбда-выражение</target>
@@ -180,6 +195,16 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">Распечатать класс "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">Использовать рекурсивные шаблоны</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="translated">Внимание! Выражение может иметь побочные эффекты. Значение кода может измениться.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -297,21 +322,6 @@
         <target state="translated">Недопустимое выделение.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">Выделение не содержит допустимый токен.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Нет допустимого выделения для извлечения.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Нет стандартного корневого узла для извлечения.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">Содержит недопустимое выделение.</target>
@@ -419,7 +429,7 @@
       </trans-unit>
       <trans-unit id="record_struct">
         <source>record struct</source>
-        <target state="new">record struct</target>
+        <target state="translated">структура записей</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">
@@ -689,7 +699,7 @@
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt; имя интерфейса &gt;</target>
+        <target state="translated">&lt;имя интерфейса&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">

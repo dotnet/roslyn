@@ -11,13 +11,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public abstract ImmutableArray<ICodeCleanupProvider> GetDefaultProviders();
         protected abstract ImmutableArray<TextSpan> GetSpansToAvoid(SyntaxNode root);
 
-        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_CleanupAsync, cancellationToken))
             {
@@ -45,20 +46,17 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
                 {
                     // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(document, document, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(document, document, options, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
-                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                Debug.Assert(syntaxFactsService != null);
-
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
-                var (newNode, annotations) = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
+                var (newNode, annotations) = AnnotateNodeForTextSpans(root, normalizedSpan, cancellationToken);
 
                 // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
                 if (newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(document, document, n => ImmutableArray.Create(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(document, document, options, n => ImmutableArray.Create(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Replace the initial node and document with the annotated node.
@@ -67,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 // Run the actual cleanup.
                 return await IterateAllCodeCleanupProvidersAsync(
-                    document, annotatedDocument,
+                    document, annotatedDocument, options,
                     r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
                     codeCleaners, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_Cleanup, cancellationToken))
             {
@@ -90,20 +88,17 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
                 {
                     // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(root, root, r => ImmutableArray.Create(r.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(root, root, options, r => ImmutableArray.Create(r.FullSpan), services, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
-                var syntaxFactsService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxFactsService>();
-                Debug.Assert(syntaxFactsService != null);
-
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
-                var (newNode, annotations) = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
+                var (newNode, annotations) = AnnotateNodeForTextSpans(root, normalizedSpan, cancellationToken);
 
                 // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
                 if (newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(root, root, n => ImmutableArray.Create(n.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(root, root, options, n => ImmutableArray.Create(n.FullSpan), services, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Replace the initial node and document with the annotated node.
@@ -111,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 // Run the actual cleanup.
                 return await IterateAllCodeCleanupProvidersAsync(
-                    root, annotatedRoot,
+                    root, annotatedRoot, options,
                     r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
-                    workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
+                    services, codeCleaners, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -273,10 +268,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// Inject annotations into the node so that it can re-calculate spans for each code cleaner after each tree transformation.
         /// </summary>
         private static (SyntaxNode newNode, List<(SyntaxAnnotation previous, SyntaxAnnotation next)> annotations) AnnotateNodeForTextSpans(
-            ISyntaxFactsService syntaxFactsService, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+            SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             // Get spans where the tokens around the spans are not overlapping with the spans.
-            var nonOverlappingSpans = GetNonOverlappingSpans(syntaxFactsService, root, spans, cancellationToken);
+            var nonOverlappingSpans = GetNonOverlappingSpans(root, spans, cancellationToken);
 
             // Build token annotation map
             var tokenAnnotationMap = new Dictionary<SyntaxToken, List<SyntaxAnnotation>>();
@@ -323,7 +318,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Make sure annotations are positioned outside of any spans. If not, merge two adjacent spans to one.
         /// </summary>
-        private static ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+        private static ImmutableArray<TextSpan> GetNonOverlappingSpans(
+            SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             // Create interval tree for spans
             var intervalTree = SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), spans);
@@ -333,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             foreach (var span in spans)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                _ = GetSpanAlignedToTokens(syntaxFactsService, root, span, out var startToken, out var endToken);
+                _ = GetSpanAlignedToTokens(root, span, out var startToken, out var endToken);
 
                 var previousToken = startToken.GetPreviousToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
                 var nextToken = endToken.GetNextToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
@@ -384,10 +380,11 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// Adjust provided span to align to either token's start position or end position.
         /// </summary>
         private static TextSpan GetSpanAlignedToTokens(
-            ISyntaxFactsService syntaxFactsService, SyntaxNode root, TextSpan span, out SyntaxToken startToken, out SyntaxToken endToken)
+            SyntaxNode root, TextSpan span,
+            out SyntaxToken startToken, out SyntaxToken endToken)
         {
-            startToken = FindTokenOnLeftOfPosition(syntaxFactsService, root, span.Start);
-            endToken = FindTokenOnRightOfPosition(syntaxFactsService, root, span.End);
+            startToken = FindTokenOnLeftOfPosition(root, span.Start);
+            endToken = FindTokenOnRightOfPosition(root, span.End);
 
             // Found two different tokens
             if (startToken.Span.End <= endToken.SpanStart)
@@ -405,9 +402,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Find closest token (including one in structured trivia) right of given position
         /// </summary>
-        private static SyntaxToken FindTokenOnRightOfPosition(ISyntaxFactsService syntaxFactsService, SyntaxNode root, int position)
+        private static SyntaxToken FindTokenOnRightOfPosition(SyntaxNode root, int position)
         {
-            var token = syntaxFactsService.FindTokenOnRightOfPosition(root, position, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+            var token = root.FindTokenOnRightOfPosition(position, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
             if (token.RawKind == 0)
             {
                 return root.GetLastToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
@@ -419,10 +416,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Find closest token (including one in structured trivia) left of given position
         /// </summary>
-        private static SyntaxToken FindTokenOnLeftOfPosition(ISyntaxFactsService syntaxFactsService, SyntaxNode root, int position)
+        private static SyntaxToken FindTokenOnLeftOfPosition(SyntaxNode root, int position)
         {
             // find token on left
-            var token = syntaxFactsService.FindTokenOnLeftOfPosition(root, position, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+            var token = root.FindTokenOnLeftOfPosition(position, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
             if (token.RawKind == 0)
             {
                 // if there is no token on left, return the first token
@@ -458,6 +455,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<Document> IterateAllCodeCleanupProvidersAsync(
             Document originalDocument,
             Document annotatedDocument,
+            SyntaxFormattingOptions options,
             Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
             ImmutableArray<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
@@ -496,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                     using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
                     {
-                        currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, cancellationToken).ConfigureAwait(false);
+                        currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, options, cancellationToken).ConfigureAwait(false);
                     }
 
 #if DEBUG
@@ -538,8 +536,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<SyntaxNode> IterateAllCodeCleanupProvidersAsync(
             SyntaxNode originalRoot,
             SyntaxNode annotatedRoot,
+            SyntaxFormattingOptions options,
             Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
-            Workspace workspace,
+            HostWorkspaceServices services,
             ImmutableArray<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
         {
@@ -572,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                     using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
                     {
-                        currentRoot = await codeCleaner.CleanupAsync(currentRoot, spans, workspace, cancellationToken).ConfigureAwait(false);
+                        currentRoot = await codeCleaner.CleanupAsync(currentRoot, spans, options, services, cancellationToken).ConfigureAwait(false);
                     }
                 }
 

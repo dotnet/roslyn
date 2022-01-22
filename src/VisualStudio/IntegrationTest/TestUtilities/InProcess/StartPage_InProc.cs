@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.VisualStudio.Shell.Interop;
 using vsStartUp = EnvDTE.vsStartUp;
@@ -70,7 +68,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        private EnvDTE.Property GetProperty()
-            => GetDTE().Properties["Environment", "Startup"].Item("OnStartUp");
+        private static EnvDTE.Property GetProperty()
+            => GetDTE().get_Properties("Environment", "Startup").Item("OnStartUp");
     }
 }

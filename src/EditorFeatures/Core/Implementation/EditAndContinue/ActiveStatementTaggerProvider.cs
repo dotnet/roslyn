@@ -6,11 +6,14 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -37,8 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ActiveStatementTaggerProvider(
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
         }
 
@@ -54,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context)
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<ITextMarkerTag> context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
 
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             var snapshot = spanToTag.SnapshotSpan.Snapshot;
 
-            var activeStatementSpans = await activeStatementTrackingService.GetAdjustedTrackingSpansAsync(document, snapshot, context.CancellationToken).ConfigureAwait(false);
+            var activeStatementSpans = await activeStatementTrackingService.GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
             foreach (var activeStatementSpan in activeStatementSpans)
             {
                 if (activeStatementSpan.IsLeaf)

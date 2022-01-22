@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             await SearchWorkerAsync(symbol, project, callback, documents, cancellationToken).ConfigureAwait(false);
         }
 
-        private IImmutableSet<Document> IncludeDocuments(CallHierarchySearchScope scope, Project project)
+        private static IImmutableSet<Document> IncludeDocuments(CallHierarchySearchScope scope, Project project)
         {
-            if (scope == CallHierarchySearchScope.CurrentDocument || scope == CallHierarchySearchScope.CurrentProject)
+            if (scope is CallHierarchySearchScope.CurrentDocument or CallHierarchySearchScope.CurrentProject)
             {
                 var documentTrackingService = project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
                 var activeDocument = documentTrackingService.TryGetActiveDocument();

@@ -12,8 +12,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -52,10 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public VisualStudioSymbolSearchService(
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
+            IGlobalOptionService globalOptions,
             VSShell.SVsServiceProvider serviceProvider)
-            : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
-                              SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
-                              SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+            : base(threadingContext, workspace, globalOptions, SymbolSearchGlobalOptions.Enabled,
+                  SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
             _installerService = workspace.Services.GetService<IPackageInstallerService>();
@@ -80,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.
-            Task.Run(() => UpdateSourceInBackgroundAsync(SymbolSearchUpdateEngine.NugetOrgSource, ThreadingContext.DisposalToken));
+            Task.Run(() => UpdateSourceInBackgroundAsync(PackageSourceHelper.NugetOrgSourceName, ThreadingContext.DisposalToken));
         }
 
         private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)

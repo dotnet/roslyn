@@ -4,11 +4,11 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            if (logMessage.LogLevel < LogLevel.Information)
+            if (IgnoreMessage(logMessage))
             {
                 return;
             }
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
-            if (!(logMessage is KeyValueLogMessage kvLogMessage))
+            if (IgnoreMessage(logMessage))
             {
                 return;
             }
@@ -63,7 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             try
             {
                 // guard us from exception thrown by telemetry
-                _pendingScopes[blockId] = CreateAndStartScope(kvLogMessage.Kind, functionId);
+                var kind = GetKind(logMessage);
+
+                _pendingScopes[blockId] = CreateAndStartScope(kind, functionId);
             }
             catch
             {
@@ -72,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int blockId, int delta, CancellationToken cancellationToken)
         {
-            if (!(logMessage is KeyValueLogMessage kvLogMessage))
+            if (IgnoreMessage(logMessage))
             {
                 return;
             }
@@ -80,14 +82,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             try
             {
                 // guard us from exception thrown by telemetry
-                var kind = kvLogMessage.Kind;
+                var kind = GetKind(logMessage);
+
                 switch (kind)
                 {
                     case LogType.Trace:
-                        EndScope<OperationEvent>(functionId, blockId, kvLogMessage, cancellationToken);
+                        EndScope<OperationEvent>(functionId, blockId, logMessage, cancellationToken);
                         return;
                     case LogType.UserAction:
-                        EndScope<UserTaskEvent>(functionId, blockId, kvLogMessage, cancellationToken);
+                        EndScope<UserTaskEvent>(functionId, blockId, logMessage, cancellationToken);
                         return;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);
@@ -98,7 +101,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             }
         }
 
-        private void EndScope<T>(FunctionId functionId, int blockId, KeyValueLogMessage kvLogMessage, CancellationToken cancellationToken)
+        private static bool IgnoreMessage(LogMessage logMessage)
+            => logMessage.LogLevel < LogLevel.Information;
+
+        private static LogType GetKind(LogMessage logMessage)
+            => logMessage is KeyValueLogMessage kvLogMessage
+                                ? kvLogMessage.Kind
+                                : logMessage.LogLevel switch
+                                {
+                                    >= LogLevel.Information => LogType.UserAction,
+                                    _ => LogType.Trace
+                                };
+
+        private void EndScope<T>(FunctionId functionId, int blockId, LogMessage logMessage, CancellationToken cancellationToken)
             where T : OperationEvent
         {
             if (!_pendingScopes.TryRemove(blockId, out var value))
@@ -109,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
             var operation = (TelemetryScope<T>)value;
 
-            AppendProperties(operation.EndEvent, functionId, kvLogMessage);
+            UpdateEvent(operation.EndEvent, functionId, logMessage);
             operation.End(cancellationToken.IsCancellationRequested ? TelemetryResult.UserCancel : TelemetryResult.Success);
         }
 
@@ -132,34 +147,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             var eventName = functionId.GetEventName();
             var telemetryEvent = new TelemetryEvent(eventName);
 
+            return UpdateEvent(telemetryEvent, functionId, logMessage);
+        }
+
+        private static TelemetryEvent UpdateEvent(TelemetryEvent telemetryEvent, FunctionId functionId, LogMessage logMessage)
+        {
             if (logMessage is KeyValueLogMessage kvLogMessage)
             {
-                telemetryEvent = AppendProperties(telemetryEvent, functionId, kvLogMessage);
+                AppendProperties(telemetryEvent, functionId, kvLogMessage);
+            }
+            else
+            {
+                var message = logMessage.GetMessage();
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    var propertyName = functionId.GetPropertyName("Message");
+                    telemetryEvent.Properties.Add(propertyName, message);
+                }
             }
 
             return telemetryEvent;
         }
 
-        private static T AppendProperties<T>(T @event, FunctionId functionId, KeyValueLogMessage logMessage)
-            where T : TelemetryEvent
+        private static void AppendProperties(TelemetryEvent telemetryEvent, FunctionId functionId, KeyValueLogMessage logMessage)
         {
-            if (!logMessage.ContainsProperty)
+            foreach (var (key, value) in logMessage.Properties)
             {
-                return @event;
-            }
-
-            foreach (var kv in logMessage.Properties)
-            {
-                var propertyName = functionId.GetPropertyName(kv.Key);
-
                 // call SetProperty. VS telemetry will take care of finding correct
                 // API based on given object type for us.
                 // 
                 // numeric data will show up in ES with measurement prefix.
-                @event.Properties.Add(propertyName, kv.Value);
-            }
 
-            return @event;
+                telemetryEvent.Properties.Add(functionId.GetPropertyName(key), value switch
+                {
+                    PiiValue pii => new TelemetryPiiProperty(pii.Value),
+                    IEnumerable<object> items => new TelemetryComplexProperty(items.Select(item => (item is PiiValue pii) ? pii.Value : item)),
+                    _ => value
+                });
+            }
         }
     }
 }

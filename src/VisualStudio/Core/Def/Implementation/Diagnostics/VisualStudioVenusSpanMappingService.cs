@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return startChanged || endChanged;
         }
 
-        private LinePositionSpan GetLinePositionSpan(LinePosition position1, LinePosition position2)
+        private static LinePositionSpan GetLinePositionSpan(LinePosition position1, LinePosition position2)
         {
             if (position1 <= position2)
             {
@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         public static LinePosition GetAdjustedLineColumn(Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
         {
-            if (!(workspace is VisualStudioWorkspaceImpl vsWorkspace))
+            if (workspace is not VisualStudioWorkspaceImpl vsWorkspace)
             {
                 return new LinePosition(mappedLine, mappedColumn);
             }

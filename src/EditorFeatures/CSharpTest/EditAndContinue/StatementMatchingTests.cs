@@ -938,6 +938,29 @@ F(a =>
             expected.AssertEqual(actual);
         }
 
+        [Fact]
+        public void Lambdas_ParameterToDiscard()
+        {
+            var src1 = "var x = F((a, b) => 1);";
+            var src2 = "var x = F((_, _) => 2);";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var x = F((a, b) => 1);", "var x = F((_, _) => 2);" },
+                { "var x = F((a, b) => 1)", "var x = F((_, _) => 2)" },
+                { "x = F((a, b) => 1)", "x = F((_, _) => 2)" },
+                { "(a, b) => 1", "(_, _) => 2" },
+                { "(a, b)", "(_, _)" },
+                { "a", "_" },
+                { "b", "_" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
         #endregion
 
         #region Local Functions
@@ -2112,6 +2135,52 @@ switch(shape)
                 { "Method() switch { true => G(), _ => F2() switch { 1 => 0, _ => 2 } }", "Method() switch { true => G(), _ => 1 }" },
                 { "true => G()", "true => G()" },
                 { "_ => F2() switch { 1 => 0, _ => 2 }", "_ => 1" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        #endregion
+
+        #region Top Level Statements
+
+        [Fact]
+        public void TopLevelStatements()
+        {
+            var src1 = @"
+Console.WriteLine(1);
+Console.WriteLine(2);
+
+var x = 0;
+while (true)
+{
+    x++;
+}
+
+Console.WriteLine(3);
+";
+            var src2 = @"
+Console.WriteLine(4);
+Console.WriteLine(5);
+
+var x = 1;
+while (true)
+{
+    x--;
+}
+
+Console.WriteLine(6);
+";
+            var match = GetTopEdits(src1, src2).Match;
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "Console.WriteLine(1);", "Console.WriteLine(4);" },
+                { "Console.WriteLine(2);", "Console.WriteLine(5);" },
+                { "var x = 0;", "var x = 1;" },
+                { "while (true) {     x++; }", "while (true) {     x--; }" },
+                { "Console.WriteLine(3);", "Console.WriteLine(6);" }
             };
 
             expected.AssertEqual(actual);

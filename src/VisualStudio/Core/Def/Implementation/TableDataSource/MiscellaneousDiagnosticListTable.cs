@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -11,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -21,23 +20,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         internal const string IdentifierString = nameof(MiscellaneousDiagnosticListTable);
 
         private readonly ITableManagerProvider _tableManagerProvider;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MiscellaneousDiagnosticListTableWorkspaceEventListener(ITableManagerProvider tableManagerProvider)
-            => _tableManagerProvider = tableManagerProvider;
+        public MiscellaneousDiagnosticListTableWorkspaceEventListener(
+            ITableManagerProvider tableManagerProvider,
+            IGlobalOptionService globalOptions)
+        {
+            _tableManagerProvider = tableManagerProvider;
+            _globalOptions = globalOptions;
+        }
 
         public void StartListening(Workspace workspace, IDiagnosticService diagnosticService)
-            => new MiscellaneousDiagnosticListTable(workspace, diagnosticService, _tableManagerProvider);
+            => _ = new MiscellaneousDiagnosticListTable(workspace, _globalOptions, diagnosticService, _tableManagerProvider);
 
         private sealed class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
         {
             private readonly LiveTableDataSource _source;
 
-            public MiscellaneousDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-                base(workspace, provider)
+            public MiscellaneousDiagnosticListTable(Workspace workspace, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+                : base(workspace, provider)
             {
-                _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
+                _source = new LiveTableDataSource(workspace, globalOptions, diagnosticService, IdentifierString);
 
                 AddInitialTableSource(workspace.CurrentSolution, _source);
                 ConnectWorkspaceEvents();

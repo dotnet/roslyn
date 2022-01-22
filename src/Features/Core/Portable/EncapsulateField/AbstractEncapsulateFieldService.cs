@@ -315,14 +315,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
 
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
-            var options = new CodeGenerationOptions(
-                contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span),
-                parseOptions: fieldDeclaration.SyntaxTree.Options,
-                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+
+            var context = new CodeGenerationContext(
+                contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span));
 
             var destination = field.ContainingType;
             var updatedDocument = await codeGenerationService.AddPropertyAsync(
-                destinationSolution, destination, property, options, cancellationToken).ConfigureAwait(false);
+                destinationSolution, destination, property, context, cancellationToken).ConfigureAwait(false);
 
             updatedDocument = await Formatter.FormatAsync(updatedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             updatedDocument = await Simplifier.ReduceAsync(updatedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -437,7 +436,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

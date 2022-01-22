@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return false;
         }
 
-        private ImmutableArray<ObjectListItem> CreateListItemsFromSymbols<TSymbol>(
+        private static ImmutableArray<ObjectListItem> CreateListItemsFromSymbols<TSymbol>(
             ImmutableArray<TSymbol> symbols,
             Compilation compilation,
             ProjectId projectId,
@@ -232,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            if (!(parentListItem is TypeListItem parentTypeItem))
+            if (parentListItem is not TypeListItem parentTypeItem)
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -245,8 +245,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         public ImmutableArray<ObjectListItem> GetFolderListItems(ObjectListItem parentListItem, Compilation compilation)
         {
             Debug.Assert(parentListItem != null);
-            Debug.Assert(parentListItem is TypeListItem ||
-                         parentListItem is ProjectListItem);
+            Debug.Assert(parentListItem is TypeListItem or
+                         ProjectListItem);
             Debug.Assert(compilation != null);
 
             // Hierarchies are parented by either a project or a type. In the case that it's a project, we show a folder
@@ -313,7 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return builder.ToImmutable();
         }
 
-        private ImmutableArray<ISymbol> GetMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
+        private static ImmutableArray<ISymbol> GetMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
         {
             var members = namedTypeSymbol.GetMembers();
             var symbolBuilder = ImmutableArray.CreateBuilder<ISymbol>(members.Length);
@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return symbolBuilder.ToImmutable();
         }
 
-        private ImmutableArray<ISymbol> GetInheritedMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
+        private static ImmutableArray<ISymbol> GetInheritedMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
         {
             var symbolBuilder = ImmutableArray.CreateBuilder<ISymbol>();
 
@@ -373,7 +373,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return symbolBuilder.ToImmutable();
         }
 
-        private void AddOverriddenMembers(INamedTypeSymbol namedTypeSymbol, ref HashSet<ISymbol> overriddenMembers)
+        private static void AddOverriddenMembers(INamedTypeSymbol namedTypeSymbol, ref HashSet<ISymbol> overriddenMembers)
         {
             foreach (var member in namedTypeSymbol.GetMembers())
             {
@@ -394,7 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            if (!(parentListItem is TypeListItem parentTypeItem))
+            if (parentListItem is not TypeListItem parentTypeItem)
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -442,8 +442,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         public ImmutableArray<ObjectListItem> GetNamespaceListItems(ObjectListItem parentListItem, Compilation compilation)
         {
             Debug.Assert(parentListItem != null);
-            Debug.Assert(parentListItem is ProjectListItem ||
-                         parentListItem is ReferenceListItem);
+            Debug.Assert(parentListItem is ProjectListItem or
+                         ReferenceListItem);
             Debug.Assert(compilation != null);
 
             var assemblySymbol = parentListItem is ReferenceListItem
@@ -539,7 +539,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return set.ToImmutable();
         }
 
-        private bool ContainsAccessibleTypeMember(INamespaceOrTypeSymbol namespaceOrTypeSymbol, IAssemblySymbol assemblySymbol)
+        private static bool ContainsAccessibleTypeMember(INamespaceOrTypeSymbol namespaceOrTypeSymbol, IAssemblySymbol assemblySymbol)
         {
             foreach (var typeMember in namespaceOrTypeSymbol.GetTypeMembers())
             {
@@ -552,7 +552,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return false;
         }
 
-        private ImmutableArray<INamedTypeSymbol> GetAccessibleTypeMembers(INamespaceOrTypeSymbol namespaceOrTypeSymbol, IAssemblySymbol assemblySymbol)
+        private static ImmutableArray<INamedTypeSymbol> GetAccessibleTypeMembers(INamespaceOrTypeSymbol namespaceOrTypeSymbol, IAssemblySymbol assemblySymbol)
         {
             var typeMembers = namespaceOrTypeSymbol.GetTypeMembers();
             var builder = ImmutableArray.CreateBuilder<INamedTypeSymbol>(typeMembers.Length);
@@ -568,7 +568,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return builder.ToImmutable();
         }
 
-        private bool IncludeTypeMember(INamedTypeSymbol typeMember, IAssemblySymbol assemblySymbol)
+        private static bool IncludeTypeMember(INamedTypeSymbol typeMember, IAssemblySymbol assemblySymbol)
         {
             if (!IncludeSymbol(typeMember))
             {
@@ -670,7 +670,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<INamedTypeSymbol> GetAccessibleTypes(INamespaceSymbol namespaceSymbol, Compilation compilation)
+        private static ImmutableArray<INamedTypeSymbol> GetAccessibleTypes(INamespaceSymbol namespaceSymbol, Compilation compilation)
         {
             var typeMembers = GetAccessibleTypeMembers(namespaceSymbol, compilation.Assembly);
             var builder = ImmutableArray.CreateBuilder<INamedTypeSymbol>(typeMembers.Length);
@@ -730,9 +730,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         public ImmutableArray<ObjectListItem> GetTypeListItems(ObjectListItem parentListItem, Compilation compilation)
         {
             Debug.Assert(parentListItem != null);
-            Debug.Assert(parentListItem is NamespaceListItem ||
-                         parentListItem is ProjectListItem ||
-                         parentListItem is ReferenceListItem);
+            Debug.Assert(parentListItem is NamespaceListItem or
+                         ProjectListItem or
+                         ReferenceListItem);
             Debug.Assert(compilation != null);
 
             INamespaceSymbol namespaceSymbol;

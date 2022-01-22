@@ -436,5 +436,40 @@ public  class D3 : C3
             var retargetedClassC3Event1Impl = retargetedClassC3Event1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Event1, retargetedClassC3Event1Impl.OriginalDefinition);
         }
+
+        [Fact]
+        public void ExplicitInterfaceImplementationRetargetingGenericType()
+        {
+            var source1 = @"
+public class C1<T>
+{
+    public interface I1
+    {
+        void M(T x);
+    }
+}
+";
+            var ref1 = CreateEmptyCompilation("").ToMetadataReference();
+            var compilation1 = CreateCompilation(source1, references: new[] { ref1 });
+
+            var source2 = @"
+public class C2<U> : C1<U>.I1
+{
+    void C1<U>.I1.M(U x) {}
+}
+";
+            var compilation2 = CreateCompilation(source2, references: new[] { compilation1.ToMetadataReference(), ref1, CreateEmptyCompilation("").ToMetadataReference() });
+
+            var compilation3 = CreateCompilation("", references: new[] { compilation1.ToMetadataReference(), compilation2.ToMetadataReference() });
+
+            Assert.NotSame(compilation2.GetTypeByMetadataName("C1`1"), compilation3.GetTypeByMetadataName("C1`1"));
+
+            var c2 = compilation3.GetTypeByMetadataName("C2`1");
+            Assert.IsType<RetargetingNamedTypeSymbol>(c2);
+
+            var m = c2.GetMethod("C1<U>.I1.M");
+
+            Assert.Equal(c2.Interfaces().Single().GetMethod("M"), m.ExplicitInterfaceImplementations.Single());
+        }
     }
 }

@@ -62,12 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources, value); }
         }
 
-        public int UseEnhancedColors
-        {
-            get { return GetOption(FeatureOnOffOptions.UseEnhancedColors); }
-            set { SetOption(FeatureOnOffOptions.UseEnhancedColors, value); }
-        }
-
         public int AddImportsOnPaste
         {
             get { return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste); }
@@ -84,6 +78,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon); }
             set { SetBooleanOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, value); }
+        }
+
+        public int SkipAnalyzersForImplicitlyTriggeredBuilds
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds); }
+            set { SetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, value); }
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +34,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             var expressions = dte.Debugger.CurrentStackFrame.Locals;
-            EnvDTE.Expression entry = null;
+            EnvDTE.Expression? entry = null;
 
             var i = 0;
             while (i < entryNames.Length && TryGetEntryInternal(entryNames[i], expressions, out entry))
@@ -55,7 +53,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             throw new Exception($"\nCould not find the local named {localHierarchicalName}.\nAll available locals are: \n{allLocalsString}");
         }
 
-        private bool TryGetEntryInternal(string entryName, EnvDTE.Expressions expressions, out EnvDTE.Expression expression)
+        private static bool TryGetEntryInternal(string entryName, EnvDTE.Expressions expressions, out EnvDTE.Expression expression)
         {
             expression = expressions.Cast<EnvDTE.Expression>().FirstOrDefault(e => e.Name == entryName);
             if (expression != null)

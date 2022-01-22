@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             _text = ComputeText(location);
         }
 
-        private string ComputeText(Location location)
+        private static string ComputeText(Location location)
         {
             var lineSpan = location.GetLineSpan();
             var start = location.SourceTree.GetText().Lines[lineSpan.StartLinePosition.Line].Start;
@@ -60,13 +60,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public void NavigateTo()
         {
-            var document = _workspace.CurrentSolution.GetDocument(_documentId);
+            var solution = _workspace.CurrentSolution;
+            var document = solution.GetDocument(_documentId);
 
             if (document != null)
             {
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
-                var options = _workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)
-                                                .WithChangedOption(NavigationOptions.ActivateTab, false);
+                var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)
+                                              .WithChangedOption(NavigationOptions.ActivateTab, false);
                 // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
                 navigator.TryNavigateToSpan(_workspace, document.Id, _span, options, CancellationToken.None);
             }

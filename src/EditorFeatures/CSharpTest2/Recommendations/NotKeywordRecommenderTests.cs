@@ -219,6 +219,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideSubpattern_ExtendedProperty()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    public C P { get; }
+    public int P2 { get; }
+
+    void M(C test)
+    {
+        if (test is { P.P2: $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideSubpattern_AfterOpenParen()
         {
             await VerifyKeywordAsync(

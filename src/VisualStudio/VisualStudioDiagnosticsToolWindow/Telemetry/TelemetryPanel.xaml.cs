@@ -54,7 +54,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Telemetry
             Clipboard.SetText(this.Result.Text);
         }
 
-        private string GetTelemetryString()
+        private static string GetTelemetryString()
         {
             var fixAllScopeValues = Enum.GetValues(typeof(FixAllScope));
 
@@ -135,7 +135,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Telemetry
             }
         }
 
-        private IDisposable Disable(UIElement control)
+        private static IDisposable Disable(UIElement control)
         {
             control.IsEnabled = false;
             return new RAII(() => control.IsEnabled = true);

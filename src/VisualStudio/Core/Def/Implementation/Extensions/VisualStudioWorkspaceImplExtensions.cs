@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                 {
                     if (ErrorHandler.Succeeded(imageListData.GetHIMAGELIST(out var imageListInt)))
                     {
-                        imageList = (IntPtr)imageListInt;
+                        imageList = imageListInt;
                         index = 0;
                         return true;
                     }

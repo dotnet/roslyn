@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractExtractInterfaceCommandHandler(IThreadingContext threadingContext)
-            => this._threadingContext = threadingContext;
+            => _threadingContext = threadingContext;
 
         public string DisplayName => EditorFeaturesResources.Extract_Interface;
 

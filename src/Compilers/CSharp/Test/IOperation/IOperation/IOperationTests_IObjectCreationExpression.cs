@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IObjectCreationExpression : SemanticModelTestBase
     {
         private static readonly CSharpParseOptions ImplicitObjectCreationOptions = TestOptions.Regular9;
 
@@ -48,105 +48,117 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C x1 = new(3, 4)')
       Declarators:
           IVariableDeclaratorOperation (Symbol: C x1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x1 = new(3, 4)')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new(3, 4)')
-                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(3, 4)')
-                  Arguments(2):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '3')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: '4')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Initializer: 
-                    null
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'new(3, 4)')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(3, 4)')
+                      Arguments(2):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '3')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: '4')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        null
+      Initializer:
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'C x2 = new(j: 3, i: 4);')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C x2 = new(j: 3, i: 4)')
       Declarators:
           IVariableDeclaratorOperation (Symbol: C x2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x2 = new(j: 3, i: 4)')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new(j: 3, i: 4)')
-                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(j: 3, i: 4)')
-                  Arguments(2):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: 'j: 3')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i: 4')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 4, IsImplicit) (Syntax: '4')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Initializer: 
-                    null
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'new(j: 3, i: 4)')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(j: 3, i: 4)')
+                      Arguments(2):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: 'j: 3')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 3, IsImplicit) (Syntax: '3')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i: 4')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 4, IsImplicit) (Syntax: '4')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        null
+      Initializer:
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'C x3 = new(3, j: 4);')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C x3 = new(3, j: 4)')
       Declarators:
           IVariableDeclaratorOperation (Symbol: C x3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x3 = new(3, j: 4)')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new(3, j: 4)')
-                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(3, j: 4)')
-                  Arguments(2):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '3')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: 'j: 4')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Initializer: 
-                    null
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'new(3, j: 4)')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(3, j: 4)')
+                      Arguments(2):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '3')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: 'j: 4')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        null
+      Initializer:
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'C x4 = new(i: 3, 4);')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C x4 = new(i: 3, 4)')
       Declarators:
           IVariableDeclaratorOperation (Symbol: C x4) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x4 = new(i: 3, 4)')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new(i: 3, 4)')
-                IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(i: 3, 4)')
-                  Arguments(2):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i: 3')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: '4')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Initializer: 
-                    null
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'new(i: 3, 4)')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: C..ctor(System.Byte i, System.Int64 j)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new(i: 3, 4)')
+                      Arguments(2):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i: 3')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null) (Syntax: '4')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        null
+      Initializer:
         null
 ";
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
@@ -194,150 +206,171 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'F x1 = new()')
       Declarators:
           IVariableDeclaratorOperation (Symbol: F x1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x1 = new()')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new()')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new()')
-                  Arguments(0)
-                  Initializer: 
-                    null
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new()')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new()')
+                      Arguments(0)
+                      Initializer:
+                        null
+      Initializer:
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'F x2 = new( ... ield = 2 };')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'F x2 = new( ... Field = 2 }')
       Declarators:
           IVariableDeclaratorOperation (Symbol: F x2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x2 = new() { Field = 2 }')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new() { Field = 2 }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Field = 2 }')
-                  Arguments(0)
-                  Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Field = 2 }')
-                      Initializers(1):
-                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Field = 2')
-                            Left: 
-                              IFieldReferenceOperation: System.Int32 F.Field (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
-                                Instance Receiver: 
-                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Field')
-                            Right: 
-                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new() { Field = 2 }')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Field = 2 }')
+                      Arguments(0)
+                      Initializer:
+                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Field = 2 }')
+                          Initializers(1):
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Field = 2')
+                                Left:
+                                  IFieldReferenceOperation: System.Int32 F.Field (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Field')
+                                Right:
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      Initializer:
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'F x3 = new( ... ty1 = """" };')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'F x3 = new( ... rty1 = """" }')
       Declarators:
           IVariableDeclaratorOperation (Symbol: F x3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x3 = new()  ... rty1 = """" }')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new() { P ... rty1 = """" }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Property1 = """" }')
-                  Arguments(0)
-                  Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Property1 = """" }')
-                      Initializers(1):
-                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Property1 = """"')
-                            Left: 
-                              IPropertyReferenceOperation: System.String F.Property1 { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Property1')
-                                Instance Receiver: 
-                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Property1')
-                            Right: 
-                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new() { Property1 = """" }')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Property1 = """" }')
+                      Arguments(0)
+                      Initializer:
+                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Property1 = """" }')
+                          Initializers(1):
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Property1 = """"')
+                                Left:
+                                  IPropertyReferenceOperation: System.String F.Property1 { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Property1')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Property1')
+                                Right:
+                                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
+      Initializer:
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'F x4 = new( ... ield = 2 };')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'F x4 = new( ... Field = 2 }')
       Declarators:
           IVariableDeclaratorOperation (Symbol: F x4) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x4 = new()  ... Field = 2 }')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new() { P ... Field = 2 }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ... Field = 2 }')
-                  Arguments(0)
-                  Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Property1 ... Field = 2 }')
-                      Initializers(2):
-                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Property1 = """"')
-                            Left: 
-                              IPropertyReferenceOperation: System.String F.Property1 { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Property1')
-                                Instance Receiver: 
-                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Property1')
-                            Right: 
-                              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
-                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Field = 2')
-                            Left: 
-                              IFieldReferenceOperation: System.Int32 F.Field (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
-                                Instance Receiver: 
-                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Field')
-                            Right: 
-                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new() { Pro ... Field = 2 }')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ... Field = 2 }')
+                      Arguments(0)
+                      Initializer:
+                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Property1 ... Field = 2 }')
+                          Initializers(2):
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Property1 = """"')
+                                Left:
+                                  IPropertyReferenceOperation: System.String F.Property1 { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Property1')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Property1')
+                                Right:
+                                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Field = 2')
+                                Left:
+                                  IFieldReferenceOperation: System.Int32 F.Field (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Field')
+                                Right:
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      Initializer:
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'F x5 = new( ... = true } };')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'F x5 = new( ...  = true } }')
       Declarators:
           IVariableDeclaratorOperation (Symbol: F x5) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x5 = new()  ...  = true } }')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new() { P ...  = true } }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ...  = true } }')
-                  Arguments(0)
-                  Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Property2 ...  = true } }')
-                      Initializers(1):
-                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B) (Syntax: 'Property2 = ... ld = true }')
-                            Left: 
-                              IPropertyReferenceOperation: B F.Property2 { get; set; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Property2')
-                                Instance Receiver: 
-                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Property2')
-                            Right: 
-                              IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B { Field = true }')
-                                Arguments(0)
-                                Initializer: 
-                                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: B) (Syntax: '{ Field = true }')
-                                    Initializers(1):
-                                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'Field = true')
-                                          Left: 
-                                            IFieldReferenceOperation: System.Boolean B.Field (OperationKind.FieldReference, Type: System.Boolean) (Syntax: 'Field')
-                                              Instance Receiver: 
-                                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Field')
-                                          Right: 
-                                            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new() { Pro ...  = true } }')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ...  = true } }')
+                      Arguments(0)
+                      Initializer:
+                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F) (Syntax: '{ Property2 ...  = true } }')
+                          Initializers(1):
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B) (Syntax: 'Property2 = ... ld = true }')
+                                Left:
+                                  IPropertyReferenceOperation: B F.Property2 { get; set; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Property2')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Property2')
+                                Right:
+                                  IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B { Field = true }')
+                                    Arguments(0)
+                                    Initializer:
+                                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: B) (Syntax: '{ Field = true }')
+                                        Initializers(1):
+                                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'Field = true')
+                                              Left:
+                                                IFieldReferenceOperation: System.Boolean B.Field (OperationKind.FieldReference, Type: System.Boolean) (Syntax: 'Field')
+                                                  Instance Receiver:
+                                                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Field')
+                                              Right:
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+      Initializer:
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'F e1 = new( ... rty2 = 1 };')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'F e1 = new( ... erty2 = 1 }')
       Declarators:
           IVariableDeclaratorOperation (Symbol: F e1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e1 = new()  ... erty2 = 1 }')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new() { P ... erty2 = 1 }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { Property2 = 1 }')
-                  Arguments(0)
-                  Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F, IsInvalid) (Syntax: '{ Property2 = 1 }')
-                      Initializers(1):
-                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B, IsInvalid) (Syntax: 'Property2 = 1')
-                            Left: 
-                              IPropertyReferenceOperation: B F.Property2 { get; set; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Property2')
-                                Instance Receiver: 
-                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Property2')
-                            Right: 
-                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsInvalid, IsImplicit) (Syntax: '1')
-                                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                Operand: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsInvalid, IsImplicit) (Syntax: 'new() { Property2 = 1 }')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { Property2 = 1 }')
+                      Arguments(0)
+                      Initializer:
+                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F, IsInvalid) (Syntax: '{ Property2 = 1 }')
+                          Initializers(1):
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B, IsInvalid) (Syntax: 'Property2 = 1')
+                                Left:
+                                  IPropertyReferenceOperation: B F.Property2 { get; set; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Property2')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: F, IsImplicit) (Syntax: 'Property2')
+                                Right:
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand:
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      Initializer:
         null
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'F e2 = new() { """" };')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'F e2 = new() { """" }')
       Declarators:
           IVariableDeclaratorOperation (Symbol: F e2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'e2 = new() { """" }')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new() { """" }')
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { """" }')
-                  Arguments(0)
-                  Initializer: 
-                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F, IsInvalid) (Syntax: '{ """" }')
-                      Initializers(1):
-                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '""""')
-                            Children(1):
-                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsInvalid) (Syntax: '""""')
-      Initializer: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsInvalid, IsImplicit) (Syntax: 'new() { """" }')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { """" }')
+                      Arguments(0)
+                      Initializer:
+                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: F, IsInvalid) (Syntax: '{ """" }')
+                          Initializers(1):
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '""""')
+                                Children(1):
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsInvalid) (Syntax: '""""')
+      Initializer:
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -362,13 +395,17 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: F, IsImplicit) (Syntax: 'x1 = new()')
-              Left: 
+              Left:
                 ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: F, IsImplicit) (Syntax: 'x1 = new()')
-              Right: 
-                IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new()')
-                  Arguments(0)
-                  Initializer: 
-                    null
+              Right:
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new()')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (ObjectCreation)
+                  Operand:
+                    IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new()')
+                      Arguments(0)
+                      Initializer:
+                        null
         Next (Regular) Block[B2]
             Entering: {R2}
     .locals {R2}
@@ -378,23 +415,27 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (3)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() { Field = 2 }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Field = 2 }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Field = 2')
-                  Left: 
+                  Left:
                     IFieldReferenceOperation: System.Int32 F.Field (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Field = 2 }')
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: F, IsImplicit) (Syntax: 'x2 = new() { Field = 2 }')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: x2 (IsDeclaration: True) (OperationKind.LocalReference, Type: F, IsImplicit) (Syntax: 'x2 = new() { Field = 2 }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Field = 2 }')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new() { Field = 2 }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Field = 2 }')
             Next (Regular) Block[B3]
                 Leaving: {R2}
                 Entering: {R3}
@@ -406,23 +447,27 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (3)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() { Property1 = """" }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Property1 = """" }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Property1 = """"')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.String F.Property1 { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Property1')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Property1 = """" }')
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: F, IsImplicit) (Syntax: 'x3 = new()  ... rty1 = """" }')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: x3 (IsDeclaration: True) (OperationKind.LocalReference, Type: F, IsImplicit) (Syntax: 'x3 = new()  ... rty1 = """" }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Property1 = """" }')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new() { Property1 = """" }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Property1 = """" }')
             Next (Regular) Block[B4]
                 Leaving: {R3}
                 Entering: {R4}
@@ -434,30 +479,34 @@ Block[B0] - Entry
             Predecessors: [B3]
             Statements (4)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() { Pro ... Field = 2 }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ... Field = 2 }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Property1 = """"')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.String F.Property1 { get; set; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Property1')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Pro ... Field = 2 }')
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Field = 2')
-                  Left: 
+                  Left:
                     IFieldReferenceOperation: System.Int32 F.Field (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Field')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Pro ... Field = 2 }')
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: F, IsImplicit) (Syntax: 'x4 = new()  ... Field = 2 }')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: x4 (IsDeclaration: True) (OperationKind.LocalReference, Type: F, IsImplicit) (Syntax: 'x4 = new()  ... Field = 2 }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Pro ... Field = 2 }')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new() { Pro ... Field = 2 }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Pro ... Field = 2 }')
             Next (Regular) Block[B5]
                 Leaving: {R4}
                 Entering: {R5}
@@ -469,10 +518,10 @@ Block[B0] - Entry
             Predecessors: [B4]
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() { Pro ...  = true } }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F) (Syntax: 'new() { Pro ...  = true } }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
             Next (Regular) Block[B6]
                 Entering: {R6}
@@ -483,24 +532,24 @@ Block[B0] - Entry
                 Predecessors: [B5]
                 Statements (3)
                     IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new B { Field = true }')
-                      Value: 
+                      Value:
                         IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B { Field = true }')
                           Arguments(0)
-                          Initializer: 
+                          Initializer:
                             null
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'Field = true')
-                      Left: 
+                      Left:
                         IFieldReferenceOperation: System.Boolean B.Field (OperationKind.FieldReference, Type: System.Boolean) (Syntax: 'Field')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'new B { Field = true }')
-                      Right: 
+                      Right:
                         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B) (Syntax: 'Property2 = ... ld = true }')
-                      Left: 
+                      Left:
                         IPropertyReferenceOperation: B F.Property2 { get; set; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Property2')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Pro ...  = true } }')
-                      Right: 
+                      Right:
                         IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'new B { Field = true }')
                 Next (Regular) Block[B7]
                     Leaving: {R6}
@@ -509,10 +558,14 @@ Block[B0] - Entry
             Predecessors: [B6]
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: F, IsImplicit) (Syntax: 'x5 = new()  ...  = true } }')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: x5 (IsDeclaration: True) (OperationKind.LocalReference, Type: F, IsImplicit) (Syntax: 'x5 = new()  ...  = true } }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Pro ...  = true } }')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsImplicit) (Syntax: 'new() { Pro ...  = true } }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: F, IsImplicit) (Syntax: 'new() { Pro ...  = true } }')
             Next (Regular) Block[B8]
                 Leaving: {R5}
                 Entering: {R7}
@@ -524,27 +577,31 @@ Block[B0] - Entry
             Predecessors: [B7]
             Statements (3)
                 IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new() { Property2 = 1 }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { Property2 = 1 }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B, IsInvalid) (Syntax: 'Property2 = 1')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: B F.Property2 { get; set; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Property2')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: F, IsInvalid, IsImplicit) (Syntax: 'new() { Property2 = 1 }')
-                  Right: 
+                  Right:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsInvalid, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (NoConversion)
-                      Operand: 
+                      Operand:
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: F, IsInvalid, IsImplicit) (Syntax: 'e1 = new()  ... erty2 = 1 }')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: e1 (IsDeclaration: True) (OperationKind.LocalReference, Type: F, IsInvalid, IsImplicit) (Syntax: 'e1 = new()  ... erty2 = 1 }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: F, IsInvalid, IsImplicit) (Syntax: 'new() { Property2 = 1 }')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsInvalid, IsImplicit) (Syntax: 'new() { Property2 = 1 }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: F, IsInvalid, IsImplicit) (Syntax: 'new() { Property2 = 1 }')
             Next (Regular) Block[B9]
                 Leaving: {R7}
                 Entering: {R8}
@@ -556,19 +613,23 @@ Block[B0] - Entry
             Predecessors: [B8]
             Statements (3)
                 IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new() { """" }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: F..ctor()) (OperationKind.ObjectCreation, Type: F, IsInvalid) (Syntax: 'new() { """" }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '""""')
                   Children(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsInvalid) (Syntax: '""""')
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: F, IsInvalid, IsImplicit) (Syntax: 'e2 = new() { """" }')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: e2 (IsDeclaration: True) (OperationKind.LocalReference, Type: F, IsInvalid, IsImplicit) (Syntax: 'e2 = new() { """" }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: F, IsInvalid, IsImplicit) (Syntax: 'new() { """" }')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: F, IsInvalid, IsImplicit) (Syntax: 'new() { """" }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: F, IsInvalid, IsImplicit) (Syntax: 'new() { """" }')
             Next (Regular) Block[B10]
                 Leaving: {R8} {R1}
     }
@@ -660,26 +721,26 @@ class C
             string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: 'new() { ... }')
   Arguments(0)
-  Initializer: 
+  Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '{ ... }')
       Initializers(2):
           IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new[] { x, y }.ToList()')
-            Instance Receiver: 
+            Instance Receiver:
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'new() { ... }')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new[] { x, y }.ToList()')
                   IInvocationOperation (System.Collections.Generic.List<System.Int32> System.Linq.Enumerable.ToList<System.Int32>(this System.Collections.Generic.IEnumerable<System.Int32> source)) (OperationKind.Invocation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new[] { x, y }.ToList()')
-                    Instance Receiver: 
+                    Instance Receiver:
                       null
                     Arguments(1):
                         IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new[] { x, y }')
                           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'new[] { x, y }')
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                            Operand: 
+                            Operand:
                               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new[] { x, y }')
                                 Dimension Sizes(1):
                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new[] { x, y }')
-                                Initializer: 
+                                Initializer:
                                   IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ x, y }')
                                     Element Values(2):
                                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
@@ -689,25 +750,28 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Co
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new() { field }')
-            Instance Receiver: 
+            Instance Receiver:
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'new() { ... }')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new() { field }')
-                  IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new() { field }')
-                    Arguments(0)
-                    Initializer: 
-                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ field }')
-                        Initializers(1):
-                            IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'field')
-                              Instance Receiver: 
-                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: 'new() { field }')
-                              Arguments(1):
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'field')
-                                    IFieldReferenceOperation: System.Int32 C.field (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'field')
-                                      Instance Receiver: 
-                                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'field')
-                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: 'new() { field }')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new() { field }')
+                        Arguments(0)
+                        Initializer:
+                          IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ field }')
+                            Initializers(1):
+                                IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'field')
+                                  Instance Receiver:
+                                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: 'new() { field }')
+                                  Arguments(1):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'field')
+                                        IFieldReferenceOperation: System.Int32 C.field (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'field')
+                                          Instance Receiver:
+                                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'field')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -721,7 +785,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [System.Int32 y] [System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> x1]
@@ -729,14 +792,12 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'y = 0')
-              Left: 
+              Left:
                 ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'y = 0')
-              Right: 
+              Right:
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-
         Next (Regular) Block[B2]
             Entering: {R2}
-
     .locals {R2}
     {
         CaptureIds: [0]
@@ -744,30 +805,29 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (2)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() { ... }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: 'new() { ... }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
-
                 IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new[] { x, y }.ToList()')
-                  Instance Receiver: 
+                  Instance Receiver:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'new() { ... }')
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new[] { x, y }.ToList()')
                         IInvocationOperation (System.Collections.Generic.List<System.Int32> System.Linq.Enumerable.ToList<System.Int32>(this System.Collections.Generic.IEnumerable<System.Int32> source)) (OperationKind.Invocation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new[] { x, y }.ToList()')
-                          Instance Receiver: 
+                          Instance Receiver:
                             null
                           Arguments(1):
                               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new[] { x, y }')
                                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'new[] { x, y }')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                     (ImplicitReference)
-                                  Operand: 
+                                  Operand:
                                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new[] { x, y }')
                                       Dimension Sizes(1):
                                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new[] { x, y }')
-                                      Initializer: 
+                                      Initializer:
                                         IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ x, y }')
                                           Element Values(2):
                                               IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
@@ -776,10 +836,8 @@ Block[B0] - Entry
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
             Next (Regular) Block[B3]
                 Entering: {R3}
-
         .locals {R3}
         {
             CaptureIds: [1]
@@ -787,50 +845,52 @@ Block[B0] - Entry
                 Predecessors: [B2]
                 Statements (3)
                     IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() { field }')
-                      Value: 
+                      Value:
                         IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new() { field }')
                           Arguments(0)
-                          Initializer: 
+                          Initializer:
                             null
-
                     IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'field')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: 'new() { field }')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'field')
                             IFieldReferenceOperation: System.Int32 C.field (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'field')
-                              Instance Receiver: 
+                              Instance Receiver:
                                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'field')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
                     IInvocationOperation ( void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new() { field }')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'new() { ... }')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new() { field }')
-                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: 'new() { field }')
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: 'new() { field }')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (ObjectCreation)
+                              Operand:
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: 'new() { field }')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
                 Next (Regular) Block[B4]
                     Leaving: {R3}
         }
-
         Block[B4] - Block
             Predecessors: [B3]
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x1 = /*<bin ... }')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'x1 = /*<bin ... }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'new() { ... }')
-
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'new() { ... }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsImplicit) (Syntax: 'new() { ... }')
             Next (Regular) Block[B5]
                 Leaving: {R2} {R1}
     }
 }
-
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -1013,7 +1073,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [C a]
@@ -1022,15 +1081,13 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() { a = ... [1] = 2 } }')
-              Value: 
+              Value:
                 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new() { a = ... [1] = 2 } }')
                   Arguments(0)
-                  Initializer: 
+                  Initializer:
                     null
-
         Next (Regular) Block[B2]
             Entering: {R2}
-
     .locals {R2}
     {
         CaptureIds: [1]
@@ -1038,21 +1095,19 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (2)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '0')
-                  Value: 
+                  Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[0] = 1')
-                  Left: 
+                  Left:
                     IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: '[0]')
-                      Array reference: 
+                      Array reference:
                         IFieldReferenceOperation: System.Int32[] C.a (OperationKind.FieldReference, Type: System.Int32[]) (Syntax: 'a')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new() { a = ... [1] = 2 } }')
                       Indices(1):
                           IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '0')
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
             Next (Regular) Block[B3]
                 Leaving: {R2}
                 Entering: {R3}
@@ -1064,38 +1119,37 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (2)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
-                  Value: 
+                  Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[1] = 2')
-                  Left: 
+                  Left:
                     IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: '[1]')
-                      Array reference: 
+                      Array reference:
                         IFieldReferenceOperation: System.Int32[] C.a (OperationKind.FieldReference, Type: System.Int32[]) (Syntax: 'a')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new() { a = ... [1] = 2 } }')
                       Indices(1):
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-
             Next (Regular) Block[B4]
                 Leaving: {R3}
     }
-
     Block[B4] - Block
         Predecessors: [B3]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'a = /*<bind ... [1] = 2 } }')
-              Left: 
+              Left:
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'a = /*<bind ... [1] = 2 } }')
-              Right: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new() { a = ... [1] = 2 } }')
-
+              Right:
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'new() { a = ... [1] = 2 } }')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (ObjectCreation)
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new() { a = ... [1] = 2 } }')
         Next (Regular) Block[B5]
             Leaving: {R1}
 }
-
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -1245,7 +1299,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [C x1]
@@ -1254,15 +1307,13 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new(){ Miss ... t>() { 1 }}')
-              Value: 
+              Value:
                 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new(){ Miss ... t>() { 1 }}')
                   Arguments(0)
-                  Initializer: 
+                  Initializer:
                     null
-
         Next (Regular) Block[B2]
             Entering: {R2}
-
     .locals {R2}
     {
         CaptureIds: [1] [2]
@@ -1270,52 +1321,49 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (4)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'MissingField')
-                  Value: 
+                  Value:
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'MissingField')
                       Children(1):
                           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'MissingField')
                             Children(1):
                                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'new(){ Miss ... t>() { 1 }}')
-
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new List<int>() { 1 }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new List<int>() { 1 }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
-
                 IInvocationOperation ( void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '1')
-                  Instance Receiver: 
+                  Instance Receiver:
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: 'new List<int>() { 1 }')
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: item) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'MissingFiel ... nt>() { 1 }')
-                  Left: 
+                  Left:
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'MissingField')
-                  Right: 
+                  Right:
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.List<System.Int32>, IsImplicit) (Syntax: 'new List<int>() { 1 }')
-
             Next (Regular) Block[B3]
                 Leaving: {R2}
     }
-
     Block[B3] - Block
         Predecessors: [B2]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'x1 = /*<bin ... t>() { 1 }}')
-              Left: 
+              Left:
                 ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'x1 = /*<bin ... t>() { 1 }}')
-              Right: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'new(){ Miss ... t>() { 1 }}')
-
+              Right:
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'new(){ Miss ... t>() { 1 }}')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (ObjectCreation)
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'new(){ Miss ... t>() { 1 }}')
         Next (Regular) Block[B4]
             Leaving: {R1}
 }
-
 Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
@@ -1529,7 +1577,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [dynamic x] [A _]
@@ -1537,18 +1584,16 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic, IsImplicit) (Syntax: 'x = 1')
-              Left: 
+              Left:
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: dynamic, IsImplicit) (Syntax: 'x = 1')
-              Right: 
+              Right:
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (Boxing)
-                  Operand: 
+                  Operand:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
         Next (Regular) Block[B2]
             Entering: {R2}
-
     .locals {R2}
     {
         CaptureIds: [0]
@@ -1556,15 +1601,13 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (1)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() {/*<b ... </bind>*/ }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new() {/*<b ... </bind>*/ }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
-
             Next (Regular) Block[B3]
                 Entering: {R3}
-
         .locals {R3}
         {
             CaptureIds: [1] [2]
@@ -1572,20 +1615,18 @@ Block[B0] - Entry
                 Predecessors: [B2]
                 Statements (5)
                     IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-                      Value: 
+                      Value:
                         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
-
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-                      Value: 
+                      Value:
                         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
-
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'X = 1')
-                      Left: 
+                      Left:
                         IDynamicMemberReferenceOperation (Member Name: ""X"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'X')
                           Type Arguments(0)
-                          Instance Receiver: 
+                          Instance Receiver:
                             IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: '[y: x, x: x]')
-                              Expression: 
+                              Expression:
                                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new() {/*<b ... </bind>*/ }')
                               Arguments(2):
                                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'x')
@@ -1594,16 +1635,15 @@ Block[B0] - Entry
                                 ""y""
                                 ""x""
                               ArgumentRefKinds(0)
-                      Right: 
+                      Right:
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Y = 1')
-                      Left: 
+                      Left:
                         IDynamicMemberReferenceOperation (Member Name: ""Y"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'Y')
                           Type Arguments(0)
-                          Instance Receiver: 
+                          Instance Receiver:
                             IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: '[y: x, x: x]')
-                              Expression: 
+                              Expression:
                                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new() {/*<b ... </bind>*/ }')
                               Arguments(2):
                                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'x')
@@ -1612,16 +1652,15 @@ Block[B0] - Entry
                                 ""y""
                                 ""x""
                               ArgumentRefKinds(0)
-                      Right: 
+                      Right:
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Z = 1')
-                      Left: 
+                      Left:
                         IDynamicMemberReferenceOperation (Member Name: ""Z"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'Z')
                           Type Arguments(0)
-                          Instance Receiver: 
+                          Instance Receiver:
                             IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: '[y: x, x: x]')
-                              Expression: 
+                              Expression:
                                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new() {/*<b ... </bind>*/ }')
                               Arguments(2):
                                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'x')
@@ -1630,31 +1669,31 @@ Block[B0] - Entry
                                 ""y""
                                 ""x""
                               ArgumentRefKinds(0)
-                      Right: 
+                      Right:
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
                 Next (Regular) Block[B4]
                     Leaving: {R3}
         }
-
         Block[B4] - Block
             Predecessors: [B3]
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: A, IsImplicit) (Syntax: '_ = new() { ... </bind>*/ }')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: _ (IsDeclaration: True) (OperationKind.LocalReference, Type: A, IsImplicit) (Syntax: '_ = new() { ... </bind>*/ }')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new() {/*<b ... </bind>*/ }')
-
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: A, IsImplicit) (Syntax: 'new() {/*<b ... </bind>*/ }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new() {/*<b ... </bind>*/ }')
             Next (Regular) Block[B5]
                 Leaving: {R2} {R1}
     }
 }
-
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
-            ");
+");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2240,7 +2279,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0] [1]
@@ -2248,19 +2286,16 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (2)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
-              Value: 
+              Value:
                 IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C1) (Syntax: 'c1')
-
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() /*<bi ... { A = 1 } }')
-              Value: 
+              Value:
                 IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new() /*<bi ... { A = 1 } }')
                   Arguments(0)
-                  Initializer: 
+                  Initializer:
                     null
-
         Next (Regular) Block[B2]
             Entering: {R2}
-
     .locals {R2}
     {
         CaptureIds: [2]
@@ -2268,43 +2303,42 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (2)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
-                  Value: 
+                  Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'A = 1')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.Int32 C2.A { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'A')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[1]')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new() /*<bi ... { A = 1 } }')
                           Arguments(1):
                               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '1')
                                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
             Next (Regular) Block[B3]
                 Leaving: {R2}
     }
-
     Block[B3] - Block
         Predecessors: [B2]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c1 = new()  ... *</bind>*/;')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1) (Syntax: 'c1 = new()  ... { A = 1 } }')
-                  Left: 
+                  Left:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new() /*<bi ... { A = 1 } }')
-
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsImplicit) (Syntax: 'new() /*<bi ... { A = 1 } }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new() /*<bi ... { A = 1 } }')
         Next (Regular) Block[B4]
             Leaving: {R1}
 }
-
 Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
@@ -2375,13 +2409,13 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (2)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
-              Value: 
+              Value:
                 IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C1) (Syntax: 'c1')
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() /*<bi ... ] = { 1 } }')
-              Value: 
+              Value:
                 IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new() /*<bi ... ] = { 1 } }')
                   Arguments(0)
-                  Initializer: 
+                  Initializer:
                     null
         Next (Regular) Block[B2]
             Entering: {R2}
@@ -2392,12 +2426,12 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (2)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
-                  Value: 
+                  Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                 IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '1')
-                  Instance Receiver: 
+                  Instance Receiver:
                     IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[1]')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new() /*<bi ... ] = { 1 } }')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '1')
@@ -2416,12 +2450,16 @@ Block[B0] - Entry
         Predecessors: [B2]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c1 = new()  ... *</bind>*/;')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1) (Syntax: 'c1 = new()  ... ] = { 1 } }')
-                  Left: 
+                  Left:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new() /*<bi ... ] = { 1 } }')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C1, IsImplicit) (Syntax: 'new() /*<bi ... ] = { 1 } }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ObjectCreation)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new() /*<bi ... ] = { 1 } }')
         Next (Regular) Block[B4]
             Leaving: {R1}
 }

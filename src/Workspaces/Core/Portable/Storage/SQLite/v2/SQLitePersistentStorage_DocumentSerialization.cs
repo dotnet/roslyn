@@ -5,7 +5,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override (DocumentId, string) GetWriteQueueKey((DocumentKey documentKey, string name) key)
                 => (key.documentKey.Id, key.name);
 
-            protected override bool TryGetDatabaseId(SqlConnection connection, (DocumentKey documentKey, string name) key, out long dataId)
-                => Storage.TryGetDocumentDataId(connection, key.documentKey, key.name, out dataId);
+            protected override bool TryGetDatabaseId(SqlConnection connection, (DocumentKey documentKey, string name) key, bool allowWrite, out long dataId)
+                => Storage.TryGetDocumentDataId(connection, key.documentKey, key.name, allowWrite, out dataId);
 
             protected override void BindFirstParameter(SqlStatement statement, long dataId)
                 => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);

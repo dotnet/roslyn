@@ -129,7 +129,7 @@ class C
             End Using
         End Function
 
-        Private Function CreateCSharpSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
+        Private Shared Function CreateCSharpSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
             Dim state = TestStateFactory.CreateCSharpTestState(
                 xElement,
                 extraExportedTypes:=New List(Of Type) From {GetType(CSharpMockCompletionProvider), GetType(TestCSharpSnippetInfoService)})

@@ -306,8 +306,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 
         private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected, bool insertSpaces = true, int tabSize = 4)
         {
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var locationTyped = locations["type"].Single();
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var locationTyped = testLspServer.GetLocations("type").Single();
 
             var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
             var documentText = await document.GetTextAsync();
@@ -322,8 +322,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 
         private async Task VerifyNoResult(string characterTyped, string markup, bool insertSpaces = true, int tabSize = 4)
         {
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var locationTyped = locations["type"].Single();
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
             var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces, tabSize);
@@ -331,23 +331,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             Assert.Null(result);
         }
 
-        private static async Task<LSP.DocumentOnAutoInsertResponseItem?> RunOnAutoInsertAsync(
+        private static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> RunOnAutoInsertAsync(
             TestLspServer testLspServer,
             string characterTyped,
             LSP.Location locationTyped,
             bool insertSpaces,
             int tabSize)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>(MSLSPMethods.OnAutoInsertName,
+            return await testLspServer.ExecuteRequestAsync<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>(VSInternalMethods.OnAutoInsertName,
                 CreateDocumentOnAutoInsertParams(characterTyped, locationTyped, insertSpaces, tabSize), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 
-        private static LSP.DocumentOnAutoInsertParams CreateDocumentOnAutoInsertParams(
+        private static LSP.VSInternalDocumentOnAutoInsertParams CreateDocumentOnAutoInsertParams(
             string characterTyped,
             LSP.Location locationTyped,
             bool insertSpaces,
             int tabSize)
-            => new LSP.DocumentOnAutoInsertParams
+            => new LSP.VSInternalDocumentOnAutoInsertParams
             {
                 Position = locationTyped.Range.Start,
                 Character = characterTyped,

@@ -32,9 +32,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override string ParameterName(int index) { return _parameters[index].Name; }
             public override bool ParameterIsDiscard(int index) { return false; }
+            public override bool ParameterIsNullChecked(int index) { return false; }
             public override SyntaxList<AttributeListSyntax> ParameterAttributes(int index) => default;
             public override bool HasNames { get { return true; } }
             public override bool HasSignature { get { return true; } }
+
+            public override bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
+            {
+                refKind = default;
+                returnType = default;
+                return false;
+            }
+
             public override bool HasExplicitlyTypedParameterList { get { return false; } }
             public override int ParameterCount { get { return _parameters.Length; } }
             public override bool IsAsync { get { return false; } }

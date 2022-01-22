@@ -24,15 +24,15 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             private const string AppliedColorSchemeName = "AppliedColorScheme";
 
             private readonly IServiceProvider _serviceProvider;
-            private readonly VisualStudioWorkspace _workspace;
+            private readonly IGlobalOptionService _globalOptions;
 
-            public ColorSchemeSettings(IServiceProvider serviceProvider, VisualStudioWorkspace visualStudioWorkspace)
+            public ColorSchemeSettings(IServiceProvider serviceProvider, IGlobalOptionService globalOptions)
             {
                 _serviceProvider = serviceProvider;
-                _workspace = visualStudioWorkspace;
+                _globalOptions = globalOptions;
             }
 
-            public ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
+            public static ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
             {
                 return new[]
                 {
@@ -41,13 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
             }
 
-            private ColorScheme GetColorScheme(SchemeName schemeName)
+            private static ColorScheme GetColorScheme(SchemeName schemeName)
             {
                 using var colorSchemeStream = GetColorSchemeXmlStream(schemeName);
                 return ColorSchemeReader.ReadColorScheme(colorSchemeStream);
             }
 
-            private Stream GetColorSchemeXmlStream(SchemeName schemeName)
+            private static Stream GetColorSchemeXmlStream(SchemeName schemeName)
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 return assembly.GetManifestResourceStream($"Microsoft.VisualStudio.LanguageServices.ColorSchemes.{schemeName}.xml");
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 foreach (var item in registryItems)
                 {
                     using var itemKey = registryRoot.CreateSubKey(item.SectionName);
-                    itemKey.SetValue(item.ValueName, item.ValueData);
+                    itemKey.SetValue(RegistryItem.ValueName, item.ValueData);
                     // Flush RegistryKeys out of paranoia
                     itemKey.Flush();
                 }
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             public SchemeName GetConfiguredColorScheme()
             {
-                var schemeName = _workspace.Options.GetOption(ColorSchemeOptions.ColorScheme);
+                var schemeName = _globalOptions.GetOption(ColorSchemeOptions.ColorScheme);
                 return schemeName != SchemeName.None
                     ? schemeName
                     : ColorSchemeOptions.ColorScheme.DefaultValue;
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             public void MigrateToColorSchemeSetting()
             {
                 // Get the preview feature flag value.
-                var useEnhancedColorsSetting = _workspace.Options.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
+                var useEnhancedColorsSetting = _globalOptions.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
 
                 // Return if we have already migrated.
                 if (useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.Migrated)
@@ -121,8 +121,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     ? SchemeName.VisualStudio2017
                     : SchemeName.VisualStudio2019;
 
-                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.ColorScheme, colorScheme));
-                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated));
+                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
+                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
             }
         }
     }

@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal interface ISupportsNavigation
     {
-        bool TryNavigateTo(bool isPreview, CancellationToken cancellationToken);
+        bool CanNavigateTo();
+        Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken);
     }
 }

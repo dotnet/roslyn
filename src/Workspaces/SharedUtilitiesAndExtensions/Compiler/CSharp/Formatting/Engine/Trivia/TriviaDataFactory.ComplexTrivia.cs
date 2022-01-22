@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// </summary>
         private class ComplexTrivia : AbstractComplexTrivia
         {
-            public ComplexTrivia(AnalyzerConfigOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
+            public ComplexTrivia(SyntaxFormattingOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
                 : base(options, treeInfo, token1, token2)
             {
             }

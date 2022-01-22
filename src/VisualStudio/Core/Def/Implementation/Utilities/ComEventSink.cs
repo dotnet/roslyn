@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 throw new InvalidOperationException();
             }
 
-            if (!(obj is IConnectionPointContainer connectionPointContainer))
+            if (obj is not IConnectionPointContainer connectionPointContainer)
             {
                 throw new ArgumentException("Not an IConnectionPointContainer", nameof(obj));
             }

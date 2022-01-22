@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 await ProvideCompletionsAsync(context, pathThroughLastSlash).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }

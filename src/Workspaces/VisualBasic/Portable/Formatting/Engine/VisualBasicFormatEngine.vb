@@ -13,22 +13,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Inherits AbstractFormatEngine
 
         Public Sub New(node As SyntaxNode,
-                       options As AnalyzerConfigOptions,
+                       options As SyntaxFormattingOptions,
                        formattingRules As IEnumerable(Of AbstractFormattingRule),
-                       token1 As SyntaxToken,
-                       token2 As SyntaxToken)
+                       startToken As SyntaxToken,
+                       endToken As SyntaxToken)
             MyBase.New(TreeData.Create(node),
                        options,
                        formattingRules,
-                       token1,
-                       token2)
+                       startToken,
+                       endToken)
         End Sub
 
-        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
-            Get
-                Return VisualBasicSyntaxFacts.Instance
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property HeaderFacts As IHeaderFacts = VisualBasicHeaderFacts.Instance
 
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
             Return New TriviaDataFactory(Me.TreeData, Me.Options)

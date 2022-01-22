@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ErrorDirectiveTrivia:
                 case SyntaxKind.WarningDirectiveTrivia:
                 case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.LineSpanDirectiveTrivia:
                 case SyntaxKind.PragmaWarningDirectiveTrivia:
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:
@@ -353,7 +354,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
-            => IsTypeDeclaration(kind) || (kind == SyntaxKind.NamespaceDeclaration);
+            => IsTypeDeclaration(kind) ||
+               kind == SyntaxKind.NamespaceDeclaration ||
+               kind == SyntaxKind.FileScopedNamespaceDeclaration;
 
         public static bool IsAnyUnaryExpression(SyntaxKind token)
         {
@@ -1381,6 +1384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "??=";
                 case SyntaxKind.DotDotToken:
                     return "..";
+                case SyntaxKind.ExclamationExclamationToken:
+                    return "!!";
 
                 // Keywords
                 case SyntaxKind.BoolKeyword:

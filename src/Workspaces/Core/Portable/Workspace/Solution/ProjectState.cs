@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// The additional documents in this project. They are sorted by <see cref="DocumentId.Id"/> to provide a stable sort for
         /// <see cref="GetChecksumAsync(CancellationToken)"/>.
         /// </summary>
-        public readonly TextDocumentStates<TextDocumentState> AdditionalDocumentStates;
+        public readonly TextDocumentStates<AdditionalDocumentState> AdditionalDocumentStates;
 
         /// <summary>
         /// The analyzer config documents in this project.  They are sorted by <see cref="DocumentId.Id"/> to provide a stable sort for
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis
         private readonly ValueSource<ProjectStateChecksums> _lazyChecksums;
 
         /// <summary>
-        /// The <see cref="AnalyzerConfigSet"/> to be used for analyzer options for specific trees.
+        /// Analyzer config options to be used for specific trees.
         /// </summary>
-        private readonly ValueSource<CachingAnalyzerConfigSet> _lazyAnalyzerConfigSet;
+        private readonly ValueSource<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigOptions;
 
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis
             HostLanguageServices languageServices,
             SolutionServices solutionServices,
             TextDocumentStates<DocumentState> documentStates,
-            TextDocumentStates<TextDocumentState> additionalDocumentStates,
+            TextDocumentStates<AdditionalDocumentState> additionalDocumentStates,
             TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-            ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
+            ValueSource<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
         {
             _solutionServices = solutionServices;
             _languageServices = languageServices;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
             AnalyzerConfigDocumentStates = analyzerConfigDocumentStates;
             _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
             _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
-            _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
+            _lazyAnalyzerConfigOptions = lazyAnalyzerConfigSet;
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
             // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
@@ -103,20 +103,20 @@ namespace Microsoft.CodeAnalysis
             // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
             AnalyzerConfigDocumentStates = new TextDocumentStates<AnalyzerConfigDocumentState>(projectInfoFixed.AnalyzerConfigDocuments, info => new AnalyzerConfigDocumentState(info, solutionServices));
 
-            _lazyAnalyzerConfigSet = ComputeAnalyzerConfigSetValueSource(AnalyzerConfigDocumentStates);
+            _lazyAnalyzerConfigOptions = ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates);
 
             // Add analyzer config information to the compilation options
             if (projectInfoFixed.CompilationOptions != null)
             {
                 projectInfoFixed = projectInfoFixed.WithCompilationOptions(
                     projectInfoFixed.CompilationOptions.WithSyntaxTreeOptionsProvider(
-                        new WorkspaceSyntaxTreeOptionsProvider(_lazyAnalyzerConfigSet)));
+                        new ProjectSyntaxTreeOptionsProvider(_lazyAnalyzerConfigOptions)));
             }
 
             var parseOptions = projectInfoFixed.ParseOptions;
 
             DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions));
-            AdditionalDocumentStates = new TextDocumentStates<TextDocumentState>(projectInfoFixed.AdditionalDocuments, info => new TextDocumentState(info, solutionServices));
+            AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(info, solutionServices));
 
             _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
             _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
@@ -161,11 +161,11 @@ namespace Microsoft.CodeAnalysis
             return projectInfo;
         }
 
-        private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+        private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var state in documentStates.States)
+            foreach (var (_, state) in documentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            foreach (var state in additionalDocumentStates.States)
+            foreach (var (_, state) in additionalDocumentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis
         private AsyncLazy<VersionStamp> CreateLazyLatestDocumentTopLevelChangeVersion(
             TextDocumentState newDocument,
             TextDocumentStates<DocumentState> newDocumentStates,
-            TextDocumentStates<TextDocumentState> newAdditionalDocumentStates)
+            TextDocumentStates<AdditionalDocumentState> newAdditionalDocumentStates)
         {
             if (_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var oldVersion))
             {
@@ -208,11 +208,11 @@ namespace Microsoft.CodeAnalysis
             return newVersion.GetNewerVersion(oldVersion);
         }
 
-        private static async Task<VersionStamp> ComputeLatestDocumentTopLevelChangeVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+        private static async Task<VersionStamp> ComputeLatestDocumentTopLevelChangeVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var state in documentStates.States)
+            foreach (var (_, state) in documentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis
                 latestVersion = version.GetNewerVersion(latestVersion);
             }
 
-            foreach (var state in additionalDocumentStates.States)
+            foreach (var (_, state) in additionalDocumentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -245,14 +245,14 @@ namespace Microsoft.CodeAnalysis
 
         public AnalyzerOptions AnalyzerOptions
             => _lazyAnalyzerOptions ??= new AnalyzerOptions(
-                additionalFiles: AdditionalDocumentStates.SelectAsArray<AdditionalText>(static state => new AdditionalTextWithState(state)),
-                optionsProvider: new WorkspaceAnalyzerConfigOptionsProvider(this));
+                additionalFiles: AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
+                optionsProvider: new ProjectAnalyzerConfigOptionsProvider(this));
 
         public async Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsForPathAsync(
             string path,
             CancellationToken cancellationToken)
         {
-            var configSet = await _lazyAnalyzerConfigSet.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var configSet = await _lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return configSet.GetOptionsForSourcePath(path).AnalyzerOptions;
         }
 
@@ -286,47 +286,37 @@ namespace Microsoft.CodeAnalysis
                     return null;
             }
 
-            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
+            return _lazyAnalyzerConfigOptions.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
         }
 
-        internal sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+        internal sealed class ProjectAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         {
             private readonly ProjectState _projectState;
 
-            public WorkspaceAnalyzerConfigOptionsProvider(ProjectState projectState)
+            public ProjectAnalyzerConfigOptionsProvider(ProjectState projectState)
                 => _projectState = projectState;
 
             public override AnalyzerConfigOptions GlobalOptions
-                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(string.Empty));
+                => GetOptionsForSourcePath(string.Empty);
 
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(tree.FilePath));
+                => GetOptionsForSourcePath(tree.FilePath);
 
             public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             {
                 // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
-                return new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(textFile.Path));
+                return GetOptionsForSourcePath(textFile.Path);
             }
 
             public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
-                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path));
-
-            private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
-            {
-                private readonly ImmutableDictionary<string, string> _backing;
-
-                public WorkspaceAnalyzerConfigOptions(AnalyzerConfigOptionsResult analyzerConfigOptions)
-                    => _backing = analyzerConfigOptions.AnalyzerOptions;
-
-                public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value) => _backing.TryGetValue(key, out value);
-            }
+                => new DictionaryAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigOptions.GetValue(CancellationToken.None).GetOptionsForSourcePath(path).AnalyzerOptions);
         }
 
-        private sealed class WorkspaceSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
+        private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
         {
-            private readonly ValueSource<CachingAnalyzerConfigSet> _lazyAnalyzerConfigSet;
+            private readonly ValueSource<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigSet;
 
-            public WorkspaceSyntaxTreeOptionsProvider(ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
+            public ProjectSyntaxTreeOptionsProvider(ValueSource<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
                 => _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
 
             public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
@@ -352,31 +342,50 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(object? obj)
             {
-                return obj is WorkspaceSyntaxTreeOptionsProvider other
+                return obj is ProjectSyntaxTreeOptionsProvider other
                     && _lazyAnalyzerConfigSet == other._lazyAnalyzerConfigSet;
             }
 
             public override int GetHashCode() => _lazyAnalyzerConfigSet.GetHashCode();
         }
 
-        private static ValueSource<CachingAnalyzerConfigSet> ComputeAnalyzerConfigSetValueSource(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
+        private static ValueSource<AnalyzerConfigOptionsCache> ComputeAnalyzerConfigOptionsValueSource(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
         {
-            return new AsyncLazy<CachingAnalyzerConfigSet>(
+            return new AsyncLazy<AnalyzerConfigOptionsCache>(
                 asynchronousComputeFunction: async cancellationToken =>
                 {
-                    var tasks = analyzerConfigDocumentStates.States.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
+                    var tasks = analyzerConfigDocumentStates.States.Values.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
                     var analyzerConfigs = await Task.WhenAll(tasks).ConfigureAwait(false);
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    return new CachingAnalyzerConfigSet(AnalyzerConfigSet.Create(analyzerConfigs));
+                    return new AnalyzerConfigOptionsCache(AnalyzerConfigSet.Create(analyzerConfigs));
                 },
                 synchronousComputeFunction: cancellationToken =>
                 {
                     var analyzerConfigs = analyzerConfigDocumentStates.SelectAsArray(a => a.GetAnalyzerConfig(cancellationToken));
-                    return new CachingAnalyzerConfigSet(AnalyzerConfigSet.Create(analyzerConfigs));
+                    return new AnalyzerConfigOptionsCache(AnalyzerConfigSet.Create(analyzerConfigs));
                 },
                 cacheResult: true);
+        }
+
+        private readonly struct AnalyzerConfigOptionsCache
+        {
+            private readonly ConcurrentDictionary<string, AnalyzerConfigOptionsResult> _sourcePathToResult = new();
+            private readonly Func<string, AnalyzerConfigOptionsResult> _computeFunction;
+            private readonly AnalyzerConfigSet _configSet;
+
+            public AnalyzerConfigOptionsCache(AnalyzerConfigSet configSet)
+            {
+                _configSet = configSet;
+                _computeFunction = _configSet.GetOptionsForSourcePath;
+            }
+
+            public AnalyzerConfigOptionsResult GlobalConfigOptions
+                => _configSet.GlobalConfigOptions;
+
+            public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
+                => _sourcePathToResult.GetOrAdd(sourcePath, _computeFunction);
         }
 
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken)
@@ -385,6 +394,12 @@ namespace Microsoft.CodeAnalysis
         public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         {
             var docVersion = await _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+            // This is unfortunate, however the impact of this is that *any* change to our project-state version will 
+            // cause us to think the semantic version of the project has changed.  Thus, any change to a project property
+            // that does *not* flow into the compiler still makes us think the semantic version has changed.  This is 
+            // likely to not be too much of an issue as these changes should be rare, and it's better to be conservative
+            // and assume there was a change than to wrongly presume there was not.
             return docVersion.GetNewerVersion(this.Version);
         }
 
@@ -461,11 +476,11 @@ namespace Microsoft.CodeAnalysis
         private ProjectState With(
             ProjectInfo? projectInfo = null,
             TextDocumentStates<DocumentState>? documentStates = null,
-            TextDocumentStates<TextDocumentState>? additionalDocumentStates = null,
+            TextDocumentStates<AdditionalDocumentState>? additionalDocumentStates = null,
             TextDocumentStates<AnalyzerConfigDocumentState>? analyzerConfigDocumentStates = null,
             AsyncLazy<VersionStamp>? latestDocumentVersion = null,
             AsyncLazy<VersionStamp>? latestDocumentTopLevelChangeVersion = null,
-            ValueSource<CachingAnalyzerConfigSet>? analyzerConfigSet = null)
+            ValueSource<AnalyzerConfigOptionsCache>? analyzerConfigSet = null)
         {
             return new ProjectState(
                 projectInfo ?? _projectInfo,
@@ -476,7 +491,7 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigDocumentStates ?? AnalyzerConfigDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
                 latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-                analyzerConfigSet ?? _lazyAnalyzerConfigSet);
+                analyzerConfigSet ?? _lazyAnalyzerConfigOptions);
         }
 
         private ProjectInfo.ProjectAttributes Attributes
@@ -519,7 +534,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var newProvider = new WorkspaceSyntaxTreeOptionsProvider(_lazyAnalyzerConfigSet);
+            var newProvider = new ProjectSyntaxTreeOptionsProvider(_lazyAnalyzerConfigOptions);
 
             return With(projectInfo: ProjectInfo.WithCompilationOptions(options.WithSyntaxTreeOptionsProvider(newProvider))
                        .WithVersion(Version.GetNewerVersion()));
@@ -609,7 +624,7 @@ namespace Microsoft.CodeAnalysis
                 documentStates: DocumentStates.AddRange(documents));
         }
 
-        public ProjectState AddAdditionalDocuments(ImmutableArray<TextDocumentState> documents)
+        public ProjectState AddAdditionalDocuments(ImmutableArray<AdditionalDocumentState> documents)
         {
             Debug.Assert(!documents.Any(d => AdditionalDocumentStates.Contains(d.Id)));
 
@@ -629,13 +644,13 @@ namespace Microsoft.CodeAnalysis
 
         private ProjectState CreateNewStateForChangedAnalyzerConfigDocuments(TextDocumentStates<AnalyzerConfigDocumentState> newAnalyzerConfigDocumentStates)
         {
-            var newAnalyzerConfigSet = ComputeAnalyzerConfigSetValueSource(newAnalyzerConfigDocumentStates);
+            var newAnalyzerConfigSet = ComputeAnalyzerConfigOptionsValueSource(newAnalyzerConfigDocumentStates);
             var projectInfo = ProjectInfo.WithVersion(Version.GetNewerVersion());
 
             // Changing analyzer configs changes compilation options
             if (CompilationOptions != null)
             {
-                var newProvider = new WorkspaceSyntaxTreeOptionsProvider(newAnalyzerConfigSet);
+                var newProvider = new ProjectSyntaxTreeOptionsProvider(newAnalyzerConfigSet);
                 projectInfo = projectInfo
                     .WithCompilationOptions(CompilationOptions.WithSyntaxTreeOptionsProvider(newProvider));
             }
@@ -653,7 +668,7 @@ namespace Microsoft.CodeAnalysis
             return With(
                 projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
                 documentStates: DocumentStates.RemoveRange(documentIds),
-                analyzerConfigSet: ComputeAnalyzerConfigSetValueSource(AnalyzerConfigDocumentStates));
+                analyzerConfigSet: ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates));
         }
 
         public ProjectState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
@@ -677,7 +692,7 @@ namespace Microsoft.CodeAnalysis
             return With(
                 projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
                 documentStates: TextDocumentStates<DocumentState>.Empty,
-                analyzerConfigSet: ComputeAnalyzerConfigSetValueSource(AnalyzerConfigDocumentStates));
+                analyzerConfigSet: ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates));
         }
 
         public ProjectState UpdateDocument(DocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
@@ -699,7 +714,7 @@ namespace Microsoft.CodeAnalysis
                 latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
         }
 
-        public ProjectState UpdateAdditionalDocument(TextDocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
+        public ProjectState UpdateAdditionalDocument(AdditionalDocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
         {
             var oldDocument = AdditionalDocumentStates.GetRequiredState(newDocument.Id);
             if (oldDocument == newDocument)
@@ -745,7 +760,7 @@ namespace Microsoft.CodeAnalysis
 
         private void GetLatestDependentVersions(
             TextDocumentStates<DocumentState> newDocumentStates,
-            TextDocumentStates<TextDocumentState> newAdditionalDocumentStates,
+            TextDocumentStates<AdditionalDocumentState> newAdditionalDocumentStates,
             TextDocumentState oldDocument, TextDocumentState newDocument,
             bool recalculateDependentVersions, bool textChanged,
             out AsyncLazy<VersionStamp> dependentDocumentVersion, out AsyncLazy<VersionStamp> dependentSemanticVersion)

@@ -15,19 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         public CSharpFormatEngine(
             SyntaxNode node,
-            AnalyzerConfigOptions options,
+            SyntaxFormattingOptions options,
             IEnumerable<AbstractFormattingRule> formattingRules,
-            SyntaxToken token1,
-            SyntaxToken token2)
+            SyntaxToken startToken,
+            SyntaxToken endToken)
             : base(TreeData.Create(node),
                  options,
                  formattingRules,
-                 token1,
-                 token2)
+                 startToken,
+                 endToken)
         {
         }
 
-        internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
 
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
             => new TriviaDataFactory(this.TreeData, this.Options);
