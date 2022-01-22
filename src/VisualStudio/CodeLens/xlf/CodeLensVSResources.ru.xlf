@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="_0_reference">
         <source>{0} reference</source>
-        <target state="translated">ссылка: {0}</target>
+        <target state="translated">Cсылок: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">
@@ -24,17 +24,17 @@
       </trans-unit>
       <trans-unit id="method">
         <source>method</source>
-        <target state="translated">метод</target>
+        <target state="translated">метода</target>
         <note />
       </trans-unit>
       <trans-unit id="property">
         <source>property</source>
-        <target state="translated">Свойство</target>
+        <target state="translated">свойства</target>
         <note />
       </trans-unit>
       <trans-unit id="type">
         <source>type</source>
-        <target state="translated">тип</target>
+        <target state="translated">типа</target>
         <note />
       </trans-unit>
     </body>
