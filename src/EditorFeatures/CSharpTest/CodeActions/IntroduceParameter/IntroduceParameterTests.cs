@@ -1981,7 +1981,7 @@ public class C
 
         void localFunction(string s)
         {
-            _ = s.ToString();
+            _ = {|Rename:s|}.ToString();
         }
     }
 }
