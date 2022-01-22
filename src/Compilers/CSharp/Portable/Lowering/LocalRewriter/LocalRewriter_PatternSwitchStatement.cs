@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -93,8 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The set of variables attached to the outer block
                 outerVariables.AddRange(node.InnerLocals);
 
+                BoundDecisionDag decisionDag = node.DecisionDag;
+                if (decisionDag.TopologicallySortedNodes.Any(node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation))
+                {
+                    decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(_factory.Compilation, node);
+                }
+
                 // Evaluate the input and set up sharing for dag temps with user variables
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result, out _);
+                decisionDag = ShareTempsIfPossibleAndEvaluateInput(decisionDag, loweredSwitchGoverningExpression, result, out _);
 
                 // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
                 // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into

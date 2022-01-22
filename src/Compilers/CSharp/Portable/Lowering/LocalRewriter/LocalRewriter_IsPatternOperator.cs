@@ -192,8 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = test.Syntax;
                 switch (test)
                 {
-                    case BoundDagAssignmentEvaluation:
-                        return;
                     case BoundDagEvaluation eval:
                         {
                             var sideEffect = LowerEvaluation(eval);

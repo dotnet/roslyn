@@ -60,13 +60,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Conversions _conversions;
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly LabelSymbol _defaultLabel;
+        private readonly bool _considerAlternativeIndexers;
 
-        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, BindingDiagnosticBag diagnostics)
+        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, bool considerAlternativeIndexers, BindingDiagnosticBag diagnostics)
         {
             this._compilation = compilation;
             this._conversions = compilation.Conversions;
             _diagnostics = diagnostics;
             _defaultLabel = defaultLabel;
+            _considerAlternativeIndexers = considerAlternativeIndexers;
         }
 
         /// <summary>
@@ -78,10 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchGoverningExpression,
             ImmutableArray<BoundSwitchSection> switchSections,
             LabelSymbol defaultLabel,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool considerAlternativeIndexers = true)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, considerAlternativeIndexers, diagnostics);
             return builder.CreateDecisionDagForSwitchStatement(syntax, switchGoverningExpression, switchSections);
+        }
+
+        public static BoundDecisionDag CreateDecisionDagForSwitchStatement(
+            CSharpCompilation compilation,
+            BoundSwitchStatement node)
+        {
+            return CreateDecisionDagForSwitchStatement(
+                compilation,
+                node.Syntax,
+                node.Expression,
+                node.SwitchSections,
+                node.DefaultLabel?.Label ?? node.BreakLabel,
+                BindingDiagnosticBag.Discarded,
+                considerAlternativeIndexers: false);
         }
 
         /// <summary>
@@ -93,9 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchExpressionInput,
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             LabelSymbol defaultLabel,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool considerAlternativeIndexers = true)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, considerAlternativeIndexers, diagnostics);
             return builder.CreateDecisionDagForSwitchExpression(syntax, switchExpressionInput, switchArms);
         }
 
@@ -109,9 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern,
             LabelSymbol whenTrueLabel,
             LabelSymbol whenFalseLabel,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool considerAlternativeIndexers = true)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, considerAlternativeIndexers, diagnostics);
             return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
         }
 
@@ -1340,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Returns true if the tests are related i.e. they have the same input, otherwise false.</summary>
         /// <param name="relationCondition">The pre-condition under which these tests are related.</param>
         /// <param name="relationEffect">A possible assignment node which will correspond two non-identical but related test inputs.</param>
-        private static bool CheckInputRelation(
+        private bool CheckInputRelation(
             SyntaxNode syntax,
             DagState state,
             BoundDagTest test,
@@ -1430,7 +1449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
 
-                                if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue) && _considerAlternativeIndexers)
                                 {
                                     // Otherwise, we add a test to make the result conditional on the length value.
                                     (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
@@ -1975,7 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SyntaxNode syntax = test.Syntax;
                     BoundDagTest other = this.Test;
                     if (other is BoundDagEvaluation ||
-                        !CheckInputRelation(syntax, state, test, other,
+                        !builder.CheckInputRelation(syntax, state, test, other, 
                             relationCondition: out Tests relationCondition,
                             relationEffect: out Tests relationEffect))
                     {
