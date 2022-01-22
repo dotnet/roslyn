@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // the top level can't have more than one actual value.
                 var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
                 return new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
+                    string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0]),
                     firstToken.GetSpan());
             }
 
@@ -182,12 +182,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return null;
         }
 
-        private static JsonToken GetFirstToken(JsonNode node)
+        private static JsonToken GetFirstToken(JsonNodeOrToken nodeOrToken)
         {
-            var child = node.ChildAt(0);
-            return child.IsNode
-                ? GetFirstToken(child.Node)
-                : child.Token;
+            return nodeOrToken.IsNode ? GetFirstToken(nodeOrToken.Node.ChildAt(0)) : nodeOrToken.Token;
         }
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNode node)
@@ -370,7 +367,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             // Look for constructors (a json.net extension).  We'll report them as an error
             // in strict model.
-            if (Matches(token, "new"))
+            if (JsonParser.Matches(token, "new"))
             {
                 return ParseConstructor(token);
             }
@@ -378,17 +375,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             // Check for certain literal values.  Some of these (like NaN) are json.net only.
             // We'll check for these later in the strict-mode pass.
             Debug.Assert(token.VirtualChars.Length > 0);
-            if (TryMatch(token, "NaN", JsonKind.NaNLiteralToken, out var newKind) ||
-                TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
-                TryMatch(token, "null", JsonKind.NullLiteralToken, out newKind) ||
-                TryMatch(token, "false", JsonKind.FalseLiteralToken, out newKind) ||
-                TryMatch(token, "Infinity", JsonKind.InfinityLiteralToken, out newKind) ||
-                TryMatch(token, "undefined", JsonKind.UndefinedLiteralToken, out newKind))
+            if (JsonParser.TryMatch(token, "NaN", JsonKind.NaNLiteralToken, out var newKind) ||
+                JsonParser.TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
+                JsonParser.TryMatch(token, "null", JsonKind.NullLiteralToken, out newKind) ||
+                JsonParser.TryMatch(token, "false", JsonKind.FalseLiteralToken, out newKind) ||
+                JsonParser.TryMatch(token, "Infinity", JsonKind.InfinityLiteralToken, out newKind) ||
+                JsonParser.TryMatch(token, "undefined", JsonKind.UndefinedLiteralToken, out newKind))
             {
                 return new JsonLiteralNode(token.With(kind: newKind));
             }
 
-            if (Matches(token, "-Infinity"))
+            if (JsonParser.Matches(token, "-Infinity"))
             {
                 SplitLiteral(token, out var minusToken, out var newLiteralToken);
 
@@ -404,7 +401,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             return new JsonTextNode(
                 token.With(kind: JsonKind.TextToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources._0_unexpected, firstChar.Char),
+                    string.Format(WorkspacesResources._0_unexpected, firstChar.ToString()),
                     firstChar.Span)));
         }
 
@@ -428,9 +425,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return result;
         }
 
-        private bool TryMatch(JsonToken token, string val, JsonKind kind, out JsonKind newKind)
+        private static bool TryMatch(JsonToken token, string val, JsonKind kind, out JsonKind newKind)
         {
-            if (Matches(token, val))
+            if (JsonParser.Matches(token, val))
             {
                 newKind = kind;
                 return true;
@@ -440,20 +437,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return false;
         }
 
-        private bool Matches(JsonToken token, string val)
+        private static bool Matches(JsonToken token, string val)
         {
             var chars = token.VirtualChars;
             if (chars.Length != val.Length)
-            {
                 return false;
-            }
 
-            for (int i = 0; i < val.Length; i++)
+            for (var i = 0; i < val.Length; i++)
             {
-                if (chars[i].Char != val[i])
-                {
+                if (chars[i] != val[i])
                     return false;
-                }
             }
 
             return true;

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // https://github.com/JamesNK/Newtonsoft.Json/blob/993215529562866719689206e27e413013d4439c/Src/Newtonsoft.Json/JsonTextReader.cs#L1926
                 // So as to match Newtonsoft.Json's behavior around number parsing.
                 var chars = numberToken.VirtualChars;
-                var firstChar = chars[0].Char;
+                var firstChar = chars[0];
 
                 var singleDigit = char.IsDigit(firstChar) && chars.Length == 1;
                 if (singleDigit)
@@ -165,17 +165,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // a comma.
                 for (int i = 0, n = node.ChildCount - 1; i < n; i++)
                 {
-                    var child = node.ChildAt(i).Node;
-                    if (child.Kind != JsonKind.CommaValue)
+                    var child = node.ChildAt(i);
+                    var nextChild = node.ChildAt(i + 1);
+                    if (child.Kind != JsonKind.CommaValue &&
+                        nextChild.Kind != JsonKind.CommaValue)
                     {
-                        var next = node.ChildAt(i + 1).Node;
-
-                        if (next.Kind != JsonKind.CommaValue)
-                        {
-                            return new EmbeddedDiagnostic(
-                               string.Format(WorkspacesResources._0_expected, ','),
-                               GetFirstToken(next).GetSpan());
-                        }
+                        return new EmbeddedDiagnostic(
+                           string.Format(WorkspacesResources._0_expected, ','),
+                           GetFirstToken(nextChild).GetSpan());
                     }
                 }
 

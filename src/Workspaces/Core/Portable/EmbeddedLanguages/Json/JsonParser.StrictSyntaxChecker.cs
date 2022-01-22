@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var ch in trivia.VirtualChars)
                 {
-                    switch (ch.Char)
+                    switch (ch.Value)
                     {
                         case ' ':
                         case '\t':
@@ -272,7 +272,7 @@ $",
             private static EmbeddedDiagnostic? CheckString(JsonToken literalToken)
             {
                 var chars = literalToken.VirtualChars;
-                if (chars[0].Char == '\'')
+                if (chars[0] == '\'')
                 {
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Strings_must_start_with_double_quote_not_single_quote,
@@ -281,7 +281,7 @@ $",
 
                 for (int i = 1, n = chars.Length - 1; i < n; i++)
                 {
-                    if (chars[i].Char < ' ')
+                    if (chars[i] < ' ')
                     {
                         return new EmbeddedDiagnostic(
                             WorkspacesResources.Illegal_string_character,

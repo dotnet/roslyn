@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         public VirtualChar CurrentChar => Position < Text.Length
             ? Text[Position]
-            : new VirtualChar((char)0, span: default);
+            : VirtualChar.Create((char)0, span: default);
 
         public VirtualCharSequence GetCharsToCurrentPosition(int start)
             => this.Text.GetSubSequence(TextSpan.FromBounds(start, Position));
@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return token;
         }
 
-        private bool IsSpecial(char ch)
+        private static bool IsSpecial(VirtualChar ch)
         {
             // Standard tokens.
-            switch (ch)
+            switch (ch.Value)
             {
                 case '{':
                 case '}':
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic? diagnostic) ScanNextTokenWorker()
         {
             Debug.Assert(Position < Text.Length);
-            switch (this.CurrentChar)
+            switch (this.CurrentChar.Value)
             {
                 case '{': return ScanSingleCharToken(JsonKind.OpenBraceToken);
                 case '}': return ScanSingleCharToken(JsonKind.CloseBraceToken);
@@ -131,28 +131,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanString()
         {
             var start = Position;
-            var openChar = this.CurrentChar.Char;
+            var openChar = this.CurrentChar;
             Position++;
 
             EmbeddedDiagnostic? diagnostic = null;
             while (Position < Text.Length)
             {
-                var currentCh = this.CurrentChar.Char;
+                var currentCh = this.CurrentChar;
 
                 Position++;
-                switch (currentCh)
+                switch (currentCh.Value)
                 {
                     case '"':
                     case '\'':
                         if (currentCh == openChar)
-                        {
                             return (GetCharsToCurrentPosition(start), JsonKind.StringToken, diagnostic);
-                        }
+
                         continue;
 
                     case '\\':
                         var escapeDiag = ScanEscape(start, Position - 1);
-                        diagnostic = diagnostic ?? escapeDiag;
+                        diagnostic ??= escapeDiag;
                         continue;
                 }
             }
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             var currentCh = this.CurrentChar;
-            switch (currentCh)
+            switch (currentCh.Value)
             {
                 case 'b':
                 case 't':
@@ -204,7 +203,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private EmbeddedDiagnostic? ScanUnicodeChars(int escapeStart, int unicodeCharStart)
         {
             var invalid = false;
-            for (int i = 0; this.Position < Text.Length && i < 4; i++)
+            for (var i = 0; this.Position < Text.Length && i < 4; i++)
             {
                 var ch = this.CurrentChar;
                 Position++;
@@ -221,7 +220,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return null;
         }
 
-        private static bool IsHexDigit(char c)
+        private static bool IsHexDigit(VirtualChar c)
         {
             return (c >= '0' && c <= '9') ||
                    (c >= 'A' && c <= 'F') ||
@@ -232,11 +231,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             var start = Position;
 
-            var firstChar = this.CurrentChar;
             while (Position < Text.Length && !IsSpecial(this.CurrentChar))
-            {
                 Position++;
-            }
 
             return (GetCharsToCurrentPosition(start), JsonKind.TextToken, null);
         }

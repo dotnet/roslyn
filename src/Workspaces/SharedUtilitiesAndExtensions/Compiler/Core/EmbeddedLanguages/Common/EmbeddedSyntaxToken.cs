@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         /// Returns the value of the token. For example, if the token represents an integer capture,
         /// then this property would return the actual integer.
         /// </summary>
-        public readonly object Value;
+        public readonly object? Value;
 
         public EmbeddedSyntaxToken(
             TSyntaxKind kind,
             ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> leadingTrivia,
             VirtualCharSequence virtualChars,
             ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia,
-            ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
+            ImmutableArray<EmbeddedDiagnostic> diagnostics, object? value)
         {
             Debug.Assert(!leadingTrivia.IsDefault);
             Debug.Assert(!virtualChars.IsDefault);
