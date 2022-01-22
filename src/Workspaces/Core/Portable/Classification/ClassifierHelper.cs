@@ -138,6 +138,9 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (i > 0 && intersection != null)
                 {
                     // The additiveType's may appear before or after their modifier due to sorting.
+                    var previousSpan = spans[i - 1];
+                    var isAdditiveClassification = previousSpan.TextSpan == span.TextSpan &&
+                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType) || ClassificationTypeNames.AdditiveTypeNames.Contains(previousSpan.ClassificationType);
                     var isAdditiveClassification = spans[i - 1].TextSpan == span.TextSpan &&
                         ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType) || ClassificationTypeNames.AdditiveTypeNames.Contains(spans[i - 1].ClassificationType);
 
