@@ -282,143 +282,150 @@ public class X
         AssertEx.Multiple(
             () => verifier.VerifyIL("X.Test1", @"
 {
-  // Code size       32 (0x20)
+  // Code size       29 (0x1d)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_001e
+  IL_0001:  brfalse.s  IL_001b
   IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  blt.s      IL_001e
-  IL_000e:  ldarg.0
-  IL_000f:  ldloc.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_001b
+  IL_000b:  ldarg.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  sub
+  IL_000f:  ldelem.i4
   IL_0010:  ldc.i4.1
-  IL_0011:  sub
-  IL_0012:  ldelem.i4
-  IL_0013:  ldc.i4.1
-  IL_0014:  bne.un.s   IL_001e
-  IL_0016:  ldarg.0
-  IL_0017:  ldc.i4.0
-  IL_0018:  ldelem.i4
-  IL_0019:  ldc.i4.1
-  IL_001a:  bne.un.s   IL_001e
-  IL_001c:  ldc.i4.0
-  IL_001d:  ret
-  IL_001e:  ldc.i4.1
-  IL_001f:  ret
+  IL_0011:  bne.un.s   IL_001b
+  IL_0013:  ldarg.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldelem.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  bne.un.s   IL_001b
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
 }"),
             () => verifier.VerifyIL("X.Test2", @"
 {
-  // Code size       32 (0x20)
+  // Code size       29 (0x1d)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_001e
+  IL_0001:  brfalse.s  IL_001b
   IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  blt.s      IL_001e
-  IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldelem.i4
-  IL_0011:  ldc.i4.2
-  IL_0012:  bne.un.s   IL_001e
-  IL_0014:  ldarg.0
-  IL_0015:  ldloc.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_001b
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i4
+  IL_000e:  ldc.i4.2
+  IL_000f:  bne.un.s   IL_001b
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  sub
+  IL_0015:  ldelem.i4
   IL_0016:  ldc.i4.1
-  IL_0017:  sub
-  IL_0018:  ldelem.i4
-  IL_0019:  ldc.i4.1
-  IL_001a:  bne.un.s   IL_001e
-  IL_001c:  ldc.i4.0
-  IL_001d:  ret
-  IL_001e:  ldc.i4.3
-  IL_001f:  ret
+  IL_0017:  bne.un.s   IL_001b
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.3
+  IL_001c:  ret
 }"),
             () => verifier.VerifyIL("X.Test3", @"
 {
-  // Code size       36 (0x24)
+  // Code size       33 (0x21)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0022
+  IL_0001:  brfalse.s  IL_001f
   IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  blt.s      IL_0022
-  IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldelem.i4
-  IL_0011:  ldc.i4.2
-  IL_0012:  beq.s      IL_001e
-  IL_0014:  ldarg.0
-  IL_0015:  ldloc.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_001f
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i4
+  IL_000e:  ldc.i4.2
+  IL_000f:  beq.s      IL_001b
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  sub
+  IL_0015:  ldelem.i4
   IL_0016:  ldc.i4.1
-  IL_0017:  sub
-  IL_0018:  ldelem.i4
-  IL_0019:  ldc.i4.1
-  IL_001a:  beq.s      IL_0020
-  IL_001c:  br.s       IL_0022
-  IL_001e:  ldc.i4.4
-  IL_001f:  ret
-  IL_0020:  ldc.i4.5
-  IL_0021:  ret
-  IL_0022:  ldc.i4.3
-  IL_0023:  ret
+  IL_0017:  beq.s      IL_001d
+  IL_0019:  br.s       IL_001f
+  IL_001b:  ldc.i4.4
+  IL_001c:  ret
+  IL_001d:  ldc.i4.5
+  IL_001e:  ret
+  IL_001f:  ldc.i4.3
+  IL_0020:  ret
 }"),
             () => verifier.VerifyIL("X.Test4", @"
 {
-  // Code size       50 (0x32)
+  // Code size       51 (0x33)
   .maxstack  3
   .locals init (int V_0,
-                int V_1,
-                int V_2)
+              int V_1,
+              int V_2)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0030
+  IL_0001:  brfalse.s  IL_0031
   IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  blt.s      IL_0030
-  IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldelem.i4
-  IL_0011:  stloc.1
-  IL_0012:  ldloc.1
-  IL_0013:  ldc.i4.2
-  IL_0014:  beq.s      IL_002a
-  IL_0016:  ldarg.0
-  IL_0017:  ldloc.0
-  IL_0018:  ldc.i4.1
-  IL_0019:  sub
-  IL_001a:  ldelem.i4
-  IL_001b:  stloc.2
-  IL_001c:  ldloc.2
-  IL_001d:  ldc.i4.1
-  IL_001e:  beq.s      IL_002c
-  IL_0020:  ldloc.1
-  IL_0021:  ldc.i4.6
-  IL_0022:  bne.un.s   IL_0030
-  IL_0024:  ldloc.2
-  IL_0025:  ldc.i4.7
-  IL_0026:  beq.s      IL_002e
-  IL_0028:  br.s       IL_0030
-  IL_002a:  ldc.i4.4
-  IL_002b:  ret
-  IL_002c:  ldc.i4.5
-  IL_002d:  ret
-  IL_002e:  ldc.i4.8
-  IL_002f:  ret
-  IL_0030:  ldc.i4.3
-  IL_0031:  ret
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_0031
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i4
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4.2
+  IL_0011:  beq.s      IL_002b
+  IL_0013:  ldarg.0
+  IL_0014:  ldloc.0
+  IL_0015:  ldc.i4.1
+  IL_0016:  sub
+  IL_0017:  ldelem.i4
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  beq.s      IL_002d
+  IL_001d:  ldloc.0
+  IL_001e:  ldc.i4.2
+  IL_001f:  blt.s      IL_0031
+  IL_0021:  ldloc.1
+  IL_0022:  ldc.i4.6
+  IL_0023:  bne.un.s   IL_0031
+  IL_0025:  ldloc.2
+  IL_0026:  ldc.i4.7
+  IL_0027:  beq.s      IL_002f
+  IL_0029:  br.s       IL_0031
+  IL_002b:  ldc.i4.4
+  IL_002c:  ret
+  IL_002d:  ldc.i4.5
+  IL_002e:  ret
+  IL_002f:  ldc.i4.8
+  IL_0030:  ret
+  IL_0031:  ldc.i4.3
+  IL_0032:  ret
 }
 ")
         );

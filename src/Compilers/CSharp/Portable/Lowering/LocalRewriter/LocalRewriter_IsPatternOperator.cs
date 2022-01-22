@@ -109,8 +109,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = node.Syntax;
                 var resultBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 var inputExpression = _localRewriter.VisitExpression(node.Expression);
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
-                    node.DecisionDag, inputExpression, resultBuilder, out _);
+
+                BoundDecisionDag decisionDag = node.DecisionDag;
+                if (decisionDag.ContainsAnySynthesizedNodes())
+                {
+                    decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(_factory.Compilation, node);
+                    Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
+                }
+
+                decisionDag = ShareTempsIfPossibleAndEvaluateInput(decisionDag, inputExpression, resultBuilder, out _);
 
                 // lower the decision dag.
                 ImmutableArray<BoundStatement> loweredDag = LowerDecisionDagCore(decisionDag);

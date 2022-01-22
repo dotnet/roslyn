@@ -117,6 +117,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.CreateDecisionDagForSwitchExpression(syntax, switchExpressionInput, switchArms);
         }
 
+        public static BoundDecisionDag CreateDecisionDagForSwitchExpression(
+            CSharpCompilation compilation,
+            BoundSwitchExpression node,
+            out LabelSymbol defaultLabel)
+        {
+            return CreateDecisionDagForSwitchExpression(
+                compilation,
+                node.Syntax,
+                node.Expression,
+                node.SwitchArms,
+                // there's no default label if the original switch is exhaustive.
+                // we generate a new label here because the new dag might not be.
+                defaultLabel = node.DefaultLabel ?? new GeneratedLabelSymbol("default"),
+                BindingDiagnosticBag.Discarded,
+                considerAlternativeIndexers: false);
+        }
+
         /// <summary>
         /// Translate the pattern of an is-pattern expression.
         /// </summary>
@@ -132,6 +149,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, considerAlternativeIndexers, diagnostics);
             return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
+        }
+
+        public static BoundDecisionDag CreateDecisionDagForIsPattern(
+            CSharpCompilation compilation,
+            BoundIsPatternExpression node)
+        {
+            return CreateDecisionDagForIsPattern(
+                compilation,
+                node.Syntax,
+                node.Expression,
+                node.Pattern,
+                node.WhenTrueLabel,
+                node.WhenFalseLabel,
+                BindingDiagnosticBag.Discarded,
+                considerAlternativeIndexers: false);
         }
 
         private BoundDecisionDag CreateDecisionDagForIsPattern(

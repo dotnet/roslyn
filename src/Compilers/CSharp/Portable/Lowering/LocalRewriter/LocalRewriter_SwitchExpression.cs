@@ -49,8 +49,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
                 var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
-                    node.DecisionDag, loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
+
+                LabelSymbol? defaultLabel = node.DefaultLabel;
+                BoundDecisionDag decisionDag = node.DecisionDag;
+                if (decisionDag.ContainsAnySynthesizedNodes())
+                {
+                    decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(_factory.Compilation, node, out defaultLabel);
+                    Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
+                }
+
+                decisionDag = ShareTempsIfPossibleAndEvaluateInput(decisionDag,
+                    loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
+
                 Debug.Assert(savedInputExpression != null);
 
                 object restorePointForEnclosingStatement = new object();
@@ -115,9 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 _factory.Syntax = node.Syntax;
-                if (node.DefaultLabel != null)
+                if (defaultLabel is not null)
                 {
-                    result.Add(_factory.Label(node.DefaultLabel));
+                    result.Add(_factory.Label(defaultLabel));
                     if (produceDetailedSequencePoints)
                         result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForSwitchBody));
                     var objectType = _factory.SpecialType(SpecialType.System_Object);

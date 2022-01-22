@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -95,9 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(node.InnerLocals);
 
                 BoundDecisionDag decisionDag = node.DecisionDag;
-                if (decisionDag.TopologicallySortedNodes.Any(node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation))
+                if (decisionDag.ContainsAnySynthesizedNodes())
                 {
                     decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(_factory.Compilation, node);
+                    Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
                 }
 
                 // Evaluate the input and set up sharing for dag temps with user variables
