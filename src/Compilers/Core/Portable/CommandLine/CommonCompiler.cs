@@ -792,6 +792,8 @@ namespace Microsoft.CodeAnalysis
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            Console.OutputEncoding = Encoding.UTF8;
+
             if (Arguments.DisplayVersion)
             {
                 PrintVersion(consoleOutput);
