@@ -1680,7 +1680,7 @@ class C
             TestPropertyDescriptors(Of EnvDTE80.CodeProperty2)(code)
         End Sub
 
-        Private Function GetAutoImplementedPropertyExtender(codeElement As EnvDTE80.CodeProperty2) As ICSAutoImplementedPropertyExtender
+        Private Shared Function GetAutoImplementedPropertyExtender(codeElement As EnvDTE80.CodeProperty2) As ICSAutoImplementedPropertyExtender
             Return CType(codeElement.Extender(ExtenderNames.AutoImplementedProperty), ICSAutoImplementedPropertyExtender)
         End Function
 

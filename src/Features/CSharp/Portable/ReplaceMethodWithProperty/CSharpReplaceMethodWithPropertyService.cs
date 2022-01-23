@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
-            var languageVersion = ((CSharpParseOptions)parseOptions).LanguageVersion;
+            var languageVersion = parseOptions.LanguageVersion();
             var newProperty = ConvertMethodsToProperty(
                 documentOptions, languageVersion,
                 semanticModel, editor.Generator,

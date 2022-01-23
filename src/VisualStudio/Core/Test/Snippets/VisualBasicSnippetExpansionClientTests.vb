@@ -371,7 +371,7 @@ End Class</Test>
             End Using
         End Sub
 
-        Private Async Function TestSnippetAddImportsAsync(
+        Private Shared Async Function TestSnippetAddImportsAsync(
                 markupCode As String,
                 namespacesToAdd As String(),
                 placeSystemNamespaceFirst As Boolean,

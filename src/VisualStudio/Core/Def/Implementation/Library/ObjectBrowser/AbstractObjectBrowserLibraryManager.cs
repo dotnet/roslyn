@@ -512,7 +512,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return false;
         }
 
-        private async Task FindReferencesAsync(
+        private static async Task FindReferencesAsync(
             IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project)
         {
             try

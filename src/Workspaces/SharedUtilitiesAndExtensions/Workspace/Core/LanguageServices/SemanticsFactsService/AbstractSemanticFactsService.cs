@@ -162,6 +162,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
             => SemanticFacts.GetLocalFunctionSymbols(compilation, symbol, cancellationToken);
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => SemanticFacts.IsInExpressionTree(semanticModel, node, expressionTypeOpt, cancellationToken);
+
         #endregion
     }
 }

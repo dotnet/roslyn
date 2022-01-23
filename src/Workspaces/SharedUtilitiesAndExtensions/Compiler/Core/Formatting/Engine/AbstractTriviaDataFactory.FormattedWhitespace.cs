@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly string _newString;
 
-            public FormattedWhitespace(AnalyzerConfigOptions options, int lineBreaks, int indentation, string language)
+            public FormattedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, string language)
                 : base(options, language)
             {
                 this.LineBreaks = Math.Max(0, lineBreaks);

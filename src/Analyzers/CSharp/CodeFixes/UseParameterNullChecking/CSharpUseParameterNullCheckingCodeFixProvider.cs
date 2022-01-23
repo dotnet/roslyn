@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -54,15 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
                 switch (node)
                 {
-                    case IfStatementSyntax ifStatement:
-                        editor.RemoveNode(ifStatement);
-                        break;
-                    case ExpressionStatementSyntax expressionStatement:
+                    case ExpressionSyntax { Parent: BinaryExpressionSyntax(SyntaxKind.CoalesceExpression) nullCoalescing }:
                         // this.item = item ?? throw new ArgumentNullException(nameof(item));
-                        var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
-                        var nullCoalescing = (BinaryExpressionSyntax)assignment.Right;
                         var parameterReferenceSyntax = nullCoalescing.Left;
                         editor.ReplaceNode(nullCoalescing, parameterReferenceSyntax.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker));
+                        break;
+                    case IfStatementSyntax:
+                    case ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax { Right: BinaryExpressionSyntax(SyntaxKind.CoalesceExpression) } }:
+                        editor.RemoveNode(node);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(node);

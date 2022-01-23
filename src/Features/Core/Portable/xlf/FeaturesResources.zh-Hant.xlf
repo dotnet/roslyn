@@ -2352,7 +2352,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="translated">Silent</target>
+        <target state="translated">靜音</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
