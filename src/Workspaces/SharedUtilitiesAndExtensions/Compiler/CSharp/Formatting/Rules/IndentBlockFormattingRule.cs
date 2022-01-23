@@ -331,28 +331,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        private readonly record struct CachedOptions(
+            LabelPositionOptions LabelPositioning,
+            bool IndentBlock,
+            bool IndentSwitchCaseSection,
+            bool IndentSwitchCaseSectionWhenBlock,
+            bool IndentSwitchSection
+            )
         {
-            public readonly LabelPositionOptions LabelPositioning;
-            public readonly bool IndentBlock;
-            public readonly bool IndentSwitchCaseSection;
-            public readonly bool IndentSwitchCaseSectionWhenBlock;
-            public readonly bool IndentSwitchSection;
 
-            public CachedOptions(AnalyzerConfigOptions? options)
+            public CachedOptions(AnalyzerConfigOptions? options) : this(
+                LabelPositioning: GetOptionOrDefault(options, CSharpFormattingOptions2.LabelPositioning),
+                IndentBlock: GetOptionOrDefault(options, CSharpFormattingOptions2.IndentBlock),
+                IndentSwitchCaseSection: GetOptionOrDefault(options, CSharpFormattingOptions2.IndentSwitchCaseSection),
+                IndentSwitchCaseSectionWhenBlock: GetOptionOrDefault(options, CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock),
+                IndentSwitchSection: GetOptionOrDefault(options, CSharpFormattingOptions2.IndentSwitchSection)
+                )
             {
-                LabelPositioning = GetOptionOrDefault(options, CSharpFormattingOptions2.LabelPositioning);
-                IndentBlock = GetOptionOrDefault(options, CSharpFormattingOptions2.IndentBlock);
-                IndentSwitchCaseSection = GetOptionOrDefault(options, CSharpFormattingOptions2.IndentSwitchCaseSection);
-                IndentSwitchCaseSectionWhenBlock = GetOptionOrDefault(options, CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock);
-                IndentSwitchSection = GetOptionOrDefault(options, CSharpFormattingOptions2.IndentSwitchSection);
             }
-
-            public static bool operator ==(CachedOptions left, CachedOptions right)
-                => left.Equals(right);
-
-            public static bool operator !=(CachedOptions left, CachedOptions right)
-                => !(left == right);
 
             private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
             {
@@ -360,29 +356,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return option.DefaultValue;
 
                 return options.GetOption(option);
-            }
-
-            public override bool Equals(object? obj)
-                => obj is CachedOptions options && Equals(options);
-
-            public bool Equals(CachedOptions other)
-            {
-                return LabelPositioning == other.LabelPositioning
-                    && IndentBlock == other.IndentBlock
-                    && IndentSwitchCaseSection == other.IndentSwitchCaseSection
-                    && IndentSwitchCaseSectionWhenBlock == other.IndentSwitchCaseSectionWhenBlock
-                    && IndentSwitchSection == other.IndentSwitchSection;
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = 0;
-                hashCode = (hashCode << 2) + (int)LabelPositioning;
-                hashCode = (hashCode << 1) + (IndentBlock ? 1 : 0);
-                hashCode = (hashCode << 1) + (IndentSwitchCaseSection ? 1 : 0);
-                hashCode = (hashCode << 1) + (IndentSwitchCaseSectionWhenBlock ? 1 : 0);
-                hashCode = (hashCode << 1) + (IndentSwitchSection ? 1 : 0);
-                return hashCode;
             }
         }
     }

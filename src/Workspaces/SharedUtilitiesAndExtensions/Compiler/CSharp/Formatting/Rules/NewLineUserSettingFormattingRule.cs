@@ -455,48 +455,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return operation;
         }
 
-        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        private readonly record struct CachedOptions(
+            bool NewLineForMembersInObjectInit,
+            bool NewLineForMembersInAnonymousTypes,
+            bool NewLineForElse,
+            bool NewLineForCatch,
+            bool NewLineForFinally,
+            bool NewLinesForBracesInTypes,
+            bool NewLinesForBracesInAnonymousTypes,
+            bool NewLinesForBracesInObjectCollectionArrayInitializers,
+            bool NewLinesForBracesInProperties,
+            bool NewLinesForBracesInMethods,
+            bool NewLinesForBracesInAccessors,
+            bool NewLinesForBracesInAnonymousMethods,
+            bool NewLinesForBracesInLambdaExpressionBody,
+            bool NewLinesForBracesInControlBlocks,
+            bool WrappingKeepStatementsOnSingleLine
+            )
         {
-            public readonly bool NewLineForMembersInObjectInit;
-            public readonly bool NewLineForMembersInAnonymousTypes;
-            public readonly bool NewLineForElse;
-            public readonly bool NewLineForCatch;
-            public readonly bool NewLineForFinally;
-            public readonly bool NewLinesForBracesInTypes;
-            public readonly bool NewLinesForBracesInAnonymousTypes;
-            public readonly bool NewLinesForBracesInObjectCollectionArrayInitializers;
-            public readonly bool NewLinesForBracesInProperties;
-            public readonly bool NewLinesForBracesInMethods;
-            public readonly bool NewLinesForBracesInAccessors;
-            public readonly bool NewLinesForBracesInAnonymousMethods;
-            public readonly bool NewLinesForBracesInLambdaExpressionBody;
-            public readonly bool NewLinesForBracesInControlBlocks;
-            public readonly bool WrappingKeepStatementsOnSingleLine;
 
-            public CachedOptions(AnalyzerConfigOptions? options)
+            public CachedOptions(AnalyzerConfigOptions? options) : this(
+                NewLineForMembersInObjectInit: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForMembersInObjectInit),
+                NewLineForMembersInAnonymousTypes: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes),
+                NewLineForElse: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForElse),
+                NewLineForCatch: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForCatch),
+                NewLineForFinally: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForFinally),
+                NewLinesForBracesInTypes: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInTypes),
+                NewLinesForBracesInAnonymousTypes: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes),
+                NewLinesForBracesInObjectCollectionArrayInitializers: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers),
+                NewLinesForBracesInProperties: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInProperties),
+                NewLinesForBracesInMethods: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInMethods),
+                NewLinesForBracesInAccessors: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInAccessors),
+                NewLinesForBracesInAnonymousMethods: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods),
+                NewLinesForBracesInLambdaExpressionBody: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody),
+                NewLinesForBracesInControlBlocks: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInControlBlocks),
+                WrappingKeepStatementsOnSingleLine: GetOptionOrDefault(options, CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine)
+                )
             {
-                NewLineForMembersInObjectInit = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForMembersInObjectInit);
-                NewLineForMembersInAnonymousTypes = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes);
-                NewLineForElse = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForElse);
-                NewLineForCatch = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForCatch);
-                NewLineForFinally = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForFinally);
-                NewLinesForBracesInTypes = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInTypes);
-                NewLinesForBracesInAnonymousTypes = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes);
-                NewLinesForBracesInObjectCollectionArrayInitializers = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers);
-                NewLinesForBracesInProperties = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInProperties);
-                NewLinesForBracesInMethods = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInMethods);
-                NewLinesForBracesInAccessors = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInAccessors);
-                NewLinesForBracesInAnonymousMethods = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods);
-                NewLinesForBracesInLambdaExpressionBody = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody);
-                NewLinesForBracesInControlBlocks = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInControlBlocks);
-                WrappingKeepStatementsOnSingleLine = GetOptionOrDefault(options, CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine);
             }
-
-            public static bool operator ==(CachedOptions left, CachedOptions right)
-                => left.Equals(right);
-
-            public static bool operator !=(CachedOptions left, CachedOptions right)
-                => !(left == right);
 
             private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
             {
@@ -504,49 +500,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return option.DefaultValue;
 
                 return options.GetOption(option);
-            }
-
-            public override bool Equals(object? obj)
-                => obj is CachedOptions options && Equals(options);
-
-            public bool Equals(CachedOptions other)
-            {
-                return NewLineForMembersInObjectInit == other.NewLineForMembersInObjectInit
-                    && NewLineForMembersInAnonymousTypes == other.NewLineForMembersInAnonymousTypes
-                    && NewLineForElse == other.NewLineForElse
-                    && NewLineForCatch == other.NewLineForCatch
-                    && NewLineForFinally == other.NewLineForFinally
-                    && NewLinesForBracesInTypes == other.NewLinesForBracesInTypes
-                    && NewLinesForBracesInAnonymousTypes == other.NewLinesForBracesInAnonymousTypes
-                    && NewLinesForBracesInObjectCollectionArrayInitializers == other.NewLinesForBracesInObjectCollectionArrayInitializers
-                    && NewLinesForBracesInProperties == other.NewLinesForBracesInProperties
-                    && NewLinesForBracesInMethods == other.NewLinesForBracesInMethods
-                    && NewLinesForBracesInAccessors == other.NewLinesForBracesInAccessors
-                    && NewLinesForBracesInAnonymousMethods == other.NewLinesForBracesInAnonymousMethods
-                    && NewLinesForBracesInLambdaExpressionBody == other.NewLinesForBracesInLambdaExpressionBody
-                    && NewLinesForBracesInControlBlocks == other.NewLinesForBracesInControlBlocks
-                    && WrappingKeepStatementsOnSingleLine == other.WrappingKeepStatementsOnSingleLine;
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = 0;
-                hashCode = (hashCode << 1) + (NewLineForMembersInObjectInit ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLineForMembersInAnonymousTypes ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLineForElse ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLineForCatch ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLineForFinally ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLinesForBracesInTypes ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLinesForBracesInAnonymousTypes ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLinesForBracesInObjectCollectionArrayInitializers ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLinesForBracesInProperties ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLinesForBracesInMethods ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLinesForBracesInAccessors ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLinesForBracesInAnonymousMethods ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLinesForBracesInLambdaExpressionBody ? 1 : 0);
-                hashCode = (hashCode << 1) + (NewLinesForBracesInControlBlocks ? 1 : 0);
-                hashCode = (hashCode << 1) + (WrappingKeepStatementsOnSingleLine ? 1 : 0);
-                return hashCode;
             }
         }
     }

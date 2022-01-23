@@ -55,20 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        private readonly record struct CachedOptions(
+            bool IndentBraces
+            )
         {
-            public readonly bool IndentBraces;
-
-            public CachedOptions(AnalyzerConfigOptions? options)
+            public CachedOptions(AnalyzerConfigOptions? options) : this(
+                IndentBraces: GetOptionOrDefault(options, CSharpFormattingOptions2.IndentBraces)
+                )
             {
-                IndentBraces = GetOptionOrDefault(options, CSharpFormattingOptions2.IndentBraces);
             }
-
-            public static bool operator ==(CachedOptions left, CachedOptions right)
-                => left.Equals(right);
-
-            public static bool operator !=(CachedOptions left, CachedOptions right)
-                => !(left == right);
 
             private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
             {
@@ -76,21 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return option.DefaultValue;
 
                 return options.GetOption(option);
-            }
-
-            public override bool Equals(object? obj)
-                => obj is CachedOptions options && Equals(options);
-
-            public bool Equals(CachedOptions other)
-            {
-                return IndentBraces == other.IndentBraces;
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = 0;
-                hashCode = (hashCode << 1) + (IndentBraces ? 1 : 0);
-                return hashCode;
             }
         }
     }

@@ -584,66 +584,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 SyntaxKind.FixedStatement or SyntaxKind.CatchFilterClause);
         }
 
-        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        private readonly record struct CachedOptions(
+            bool SpacesIgnoreAroundVariableDeclaration,
+            bool SpacingAfterMethodDeclarationName,
+            bool SpaceBetweenEmptyMethodDeclarationParentheses,
+            bool SpaceWithinMethodDeclarationParenthesis,
+            bool SpaceAfterMethodCallName,
+            bool SpaceBetweenEmptyMethodCallParentheses,
+            bool SpaceWithinMethodCallParentheses,
+            bool SpaceAfterControlFlowStatementKeyword,
+            bool SpaceWithinExpressionParentheses,
+            bool SpaceWithinCastParentheses,
+            bool SpaceBeforeSemicolonsInForStatement,
+            bool SpaceAfterSemicolonsInForStatement,
+            bool SpaceWithinOtherParentheses,
+            bool SpaceAfterCast,
+            bool SpaceBeforeOpenSquareBracket,
+            bool SpaceBetweenEmptySquareBrackets,
+            bool SpaceWithinSquareBrackets,
+            bool SpaceAfterColonInBaseTypeDeclaration,
+            bool SpaceBeforeColonInBaseTypeDeclaration,
+            bool SpaceAfterComma,
+            bool SpaceBeforeComma,
+            bool SpaceAfterDot,
+            bool SpaceBeforeDot,
+            BinaryOperatorSpacingOptions SpacingAroundBinaryOperator
+            )
         {
-            public readonly bool SpacesIgnoreAroundVariableDeclaration;
-            public readonly bool SpacingAfterMethodDeclarationName;
-            public readonly bool SpaceBetweenEmptyMethodDeclarationParentheses;
-            public readonly bool SpaceWithinMethodDeclarationParenthesis;
-            public readonly bool SpaceAfterMethodCallName;
-            public readonly bool SpaceBetweenEmptyMethodCallParentheses;
-            public readonly bool SpaceWithinMethodCallParentheses;
-            public readonly bool SpaceAfterControlFlowStatementKeyword;
-            public readonly bool SpaceWithinExpressionParentheses;
-            public readonly bool SpaceWithinCastParentheses;
-            public readonly bool SpaceBeforeSemicolonsInForStatement;
-            public readonly bool SpaceAfterSemicolonsInForStatement;
-            public readonly bool SpaceWithinOtherParentheses;
-            public readonly bool SpaceAfterCast;
-            public readonly bool SpaceBeforeOpenSquareBracket;
-            public readonly bool SpaceBetweenEmptySquareBrackets;
-            public readonly bool SpaceWithinSquareBrackets;
-            public readonly bool SpaceAfterColonInBaseTypeDeclaration;
-            public readonly bool SpaceBeforeColonInBaseTypeDeclaration;
-            public readonly bool SpaceAfterComma;
-            public readonly bool SpaceBeforeComma;
-            public readonly bool SpaceAfterDot;
-            public readonly bool SpaceBeforeDot;
-            public readonly BinaryOperatorSpacingOptions SpacingAroundBinaryOperator;
-
-            public CachedOptions(AnalyzerConfigOptions? options)
+            public CachedOptions(AnalyzerConfigOptions? options) : this(
+                SpacesIgnoreAroundVariableDeclaration: GetOptionOrDefault(options, CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration),
+                SpacingAfterMethodDeclarationName: GetOptionOrDefault(options, CSharpFormattingOptions2.SpacingAfterMethodDeclarationName),
+                SpaceBetweenEmptyMethodDeclarationParentheses: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses),
+                SpaceWithinMethodDeclarationParenthesis: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis),
+                SpaceAfterMethodCallName: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterMethodCallName),
+                SpaceBetweenEmptyMethodCallParentheses: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses),
+                SpaceWithinMethodCallParentheses: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinMethodCallParentheses),
+                SpaceAfterControlFlowStatementKeyword: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword),
+                SpaceWithinExpressionParentheses: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinExpressionParentheses),
+                SpaceWithinCastParentheses: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinCastParentheses),
+                SpaceBeforeSemicolonsInForStatement: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement),
+                SpaceAfterSemicolonsInForStatement: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement),
+                SpaceWithinOtherParentheses: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinOtherParentheses),
+                SpaceAfterCast: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterCast),
+                SpaceBeforeOpenSquareBracket: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket),
+                SpaceBetweenEmptySquareBrackets: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets),
+                SpaceWithinSquareBrackets: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinSquareBrackets),
+                SpaceAfterColonInBaseTypeDeclaration: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration),
+                SpaceBeforeColonInBaseTypeDeclaration: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration),
+                SpaceAfterComma: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterComma),
+                SpaceBeforeComma: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeComma),
+                SpaceAfterDot: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterDot),
+                SpaceBeforeDot: GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeDot),
+                SpacingAroundBinaryOperator: GetOptionOrDefault(options, CSharpFormattingOptions2.SpacingAroundBinaryOperator)
+                )
             {
-                SpacesIgnoreAroundVariableDeclaration = GetOptionOrDefault(options, CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration);
-                SpacingAfterMethodDeclarationName = GetOptionOrDefault(options, CSharpFormattingOptions2.SpacingAfterMethodDeclarationName);
-                SpaceBetweenEmptyMethodDeclarationParentheses = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses);
-                SpaceWithinMethodDeclarationParenthesis = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis);
-                SpaceAfterMethodCallName = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterMethodCallName);
-                SpaceBetweenEmptyMethodCallParentheses = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses);
-                SpaceWithinMethodCallParentheses = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinMethodCallParentheses);
-                SpaceAfterControlFlowStatementKeyword = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword);
-                SpaceWithinExpressionParentheses = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinExpressionParentheses);
-                SpaceWithinCastParentheses = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinCastParentheses);
-                SpaceBeforeSemicolonsInForStatement = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement);
-                SpaceAfterSemicolonsInForStatement = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement);
-                SpaceWithinOtherParentheses = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinOtherParentheses);
-                SpaceAfterCast = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterCast);
-                SpaceBeforeOpenSquareBracket = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket);
-                SpaceBetweenEmptySquareBrackets = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets);
-                SpaceWithinSquareBrackets = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceWithinSquareBrackets);
-                SpaceAfterColonInBaseTypeDeclaration = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration);
-                SpaceBeforeColonInBaseTypeDeclaration = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration);
-                SpaceAfterComma = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterComma);
-                SpaceBeforeComma = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeComma);
-                SpaceAfterDot = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceAfterDot);
-                SpaceBeforeDot = GetOptionOrDefault(options, CSharpFormattingOptions2.SpaceBeforeDot);
-                SpacingAroundBinaryOperator = GetOptionOrDefault(options, CSharpFormattingOptions2.SpacingAroundBinaryOperator);
             }
-
-            public static bool operator ==(CachedOptions left, CachedOptions right)
-                => left.Equals(right);
-
-            public static bool operator !=(CachedOptions left, CachedOptions right)
-                => !(left == right);
 
             private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
             {
@@ -651,67 +646,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return option.DefaultValue;
 
                 return options.GetOption(option);
-            }
-
-            public override bool Equals(object? obj)
-                => obj is CachedOptions options && Equals(options);
-
-            public bool Equals(CachedOptions other)
-            {
-                return SpacesIgnoreAroundVariableDeclaration == other.SpacesIgnoreAroundVariableDeclaration
-                    && SpacingAfterMethodDeclarationName == other.SpacingAfterMethodDeclarationName
-                    && SpaceBetweenEmptyMethodDeclarationParentheses == other.SpaceBetweenEmptyMethodDeclarationParentheses
-                    && SpaceWithinMethodDeclarationParenthesis == other.SpaceWithinMethodDeclarationParenthesis
-                    && SpaceAfterMethodCallName == other.SpaceAfterMethodCallName
-                    && SpaceBetweenEmptyMethodCallParentheses == other.SpaceBetweenEmptyMethodCallParentheses
-                    && SpaceWithinMethodCallParentheses == other.SpaceWithinMethodCallParentheses
-                    && SpaceAfterControlFlowStatementKeyword == other.SpaceAfterControlFlowStatementKeyword
-                    && SpaceWithinExpressionParentheses == other.SpaceWithinExpressionParentheses
-                    && SpaceWithinCastParentheses == other.SpaceWithinCastParentheses
-                    && SpaceBeforeSemicolonsInForStatement == other.SpaceBeforeSemicolonsInForStatement
-                    && SpaceAfterSemicolonsInForStatement == other.SpaceAfterSemicolonsInForStatement
-                    && SpaceWithinOtherParentheses == other.SpaceWithinOtherParentheses
-                    && SpaceAfterCast == other.SpaceAfterCast
-                    && SpaceBeforeOpenSquareBracket == other.SpaceBeforeOpenSquareBracket
-                    && SpaceBetweenEmptySquareBrackets == other.SpaceBetweenEmptySquareBrackets
-                    && SpaceWithinSquareBrackets == other.SpaceWithinSquareBrackets
-                    && SpaceAfterColonInBaseTypeDeclaration == other.SpaceAfterColonInBaseTypeDeclaration
-                    && SpaceBeforeColonInBaseTypeDeclaration == other.SpaceBeforeColonInBaseTypeDeclaration
-                    && SpaceAfterComma == other.SpaceAfterComma
-                    && SpaceBeforeComma == other.SpaceBeforeComma
-                    && SpaceAfterDot == other.SpaceAfterDot
-                    && SpaceBeforeDot == other.SpaceBeforeDot
-                    && SpacingAroundBinaryOperator == other.SpacingAroundBinaryOperator;
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = 0;
-                hashCode = (hashCode << 1) + (SpacesIgnoreAroundVariableDeclaration ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpacingAfterMethodDeclarationName ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceBetweenEmptyMethodDeclarationParentheses ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceWithinMethodDeclarationParenthesis ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceAfterMethodCallName ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceBetweenEmptyMethodCallParentheses ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceWithinMethodCallParentheses ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceAfterControlFlowStatementKeyword ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceWithinExpressionParentheses ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceWithinCastParentheses ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceBeforeSemicolonsInForStatement ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceAfterSemicolonsInForStatement ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceWithinOtherParentheses ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceAfterCast ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceBeforeOpenSquareBracket ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceBetweenEmptySquareBrackets ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceWithinSquareBrackets ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceAfterColonInBaseTypeDeclaration ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceBeforeColonInBaseTypeDeclaration ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceAfterComma ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceBeforeComma ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceAfterDot ? 1 : 0);
-                hashCode = (hashCode << 1) + (SpaceBeforeDot ? 1 : 0);
-                hashCode = (hashCode << 2) + (int)SpacingAroundBinaryOperator;
-                return hashCode;
             }
         }
     }

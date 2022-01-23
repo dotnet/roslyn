@@ -554,20 +554,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
-        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        private readonly record struct CachedOptions(
+            bool SeparateImportDirectiveGroups
+            )
         {
-            public readonly bool SeparateImportDirectiveGroups;
-
-            public CachedOptions(AnalyzerConfigOptions? options)
+            public CachedOptions(AnalyzerConfigOptions? options) : this(
+                SeparateImportDirectiveGroups: GetOptionOrDefault(options, GenerationOptions.SeparateImportDirectiveGroups))
             {
-                SeparateImportDirectiveGroups = GetOptionOrDefault(options, GenerationOptions.SeparateImportDirectiveGroups);
             }
-
-            public static bool operator ==(CachedOptions left, CachedOptions right)
-                => left.Equals(right);
-
-            public static bool operator !=(CachedOptions left, CachedOptions right)
-                => !(left == right);
 
             private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, PerLanguageOption2<T> option)
             {
@@ -575,21 +569,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return option.DefaultValue;
 
                 return options.GetOption(option);
-            }
-
-            public override bool Equals(object? obj)
-                => obj is CachedOptions options && Equals(options);
-
-            public bool Equals(CachedOptions other)
-            {
-                return SeparateImportDirectiveGroups == other.SeparateImportDirectiveGroups;
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = 0;
-                hashCode = (hashCode << 1) + (SeparateImportDirectiveGroups ? 1 : 0);
-                return hashCode;
             }
         }
     }

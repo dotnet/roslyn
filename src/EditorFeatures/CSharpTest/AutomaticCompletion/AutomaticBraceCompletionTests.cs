@@ -1431,7 +1431,7 @@ class C
     {
         if (x is string {
 
-            }
+        }
     }
 }";
             var optionSet = new Dictionary<OptionKey2, object>

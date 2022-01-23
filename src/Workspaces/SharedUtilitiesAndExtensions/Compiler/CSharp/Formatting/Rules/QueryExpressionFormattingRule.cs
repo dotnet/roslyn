@@ -173,20 +173,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
-        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        private readonly record struct CachedOptions(
+            bool NewLineForClausesInQuery
+            )
         {
-            public readonly bool NewLineForClausesInQuery;
-
-            public CachedOptions(AnalyzerConfigOptions? options)
+            public CachedOptions(AnalyzerConfigOptions? options) : this(
+                NewLineForClausesInQuery: GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForClausesInQuery)
+                )
             {
-                NewLineForClausesInQuery = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForClausesInQuery);
             }
-
-            public static bool operator ==(CachedOptions left, CachedOptions right)
-                => left.Equals(right);
-
-            public static bool operator !=(CachedOptions left, CachedOptions right)
-                => !(left == right);
 
             private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
             {
@@ -194,21 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return option.DefaultValue;
 
                 return options.GetOption(option);
-            }
-
-            public override bool Equals(object? obj)
-                => obj is CachedOptions options && Equals(options);
-
-            public bool Equals(CachedOptions other)
-            {
-                return NewLineForClausesInQuery == other.NewLineForClausesInQuery;
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = 0;
-                hashCode = (hashCode << 1) + (NewLineForClausesInQuery ? 1 : 0);
-                return hashCode;
             }
         }
     }

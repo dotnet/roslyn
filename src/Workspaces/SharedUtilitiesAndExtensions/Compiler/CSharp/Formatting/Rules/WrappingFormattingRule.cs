@@ -194,22 +194,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 span);
         }
 
-        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        private readonly record struct CachedOptions(
+            bool WrappingPreserveSingleLine,
+            bool WrappingKeepStatementsOnSingleLine
+            )
         {
-            public readonly bool WrappingPreserveSingleLine;
-            public readonly bool WrappingKeepStatementsOnSingleLine;
-
-            public CachedOptions(AnalyzerConfigOptions? options)
+            public CachedOptions(AnalyzerConfigOptions? options) : this(
+                WrappingPreserveSingleLine: GetOptionOrDefault(options, CSharpFormattingOptions2.WrappingPreserveSingleLine),
+                WrappingKeepStatementsOnSingleLine: GetOptionOrDefault(options, CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine)
+                )
             {
-                WrappingPreserveSingleLine = GetOptionOrDefault(options, CSharpFormattingOptions2.WrappingPreserveSingleLine);
-                WrappingKeepStatementsOnSingleLine = GetOptionOrDefault(options, CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine);
             }
-
-            public static bool operator ==(CachedOptions left, CachedOptions right)
-                => left.Equals(right);
-
-            public static bool operator !=(CachedOptions left, CachedOptions right)
-                => !(left == right);
 
             private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
             {
@@ -217,23 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return option.DefaultValue;
 
                 return options.GetOption(option);
-            }
-
-            public override bool Equals(object? obj)
-                => obj is CachedOptions options && Equals(options);
-
-            public bool Equals(CachedOptions other)
-            {
-                return WrappingPreserveSingleLine == other.WrappingPreserveSingleLine
-                    && WrappingKeepStatementsOnSingleLine == other.WrappingKeepStatementsOnSingleLine;
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = 0;
-                hashCode = (hashCode << 1) + (WrappingPreserveSingleLine ? 1 : 0);
-                hashCode = (hashCode << 1) + (WrappingKeepStatementsOnSingleLine ? 1 : 0);
-                return hashCode;
             }
         }
     }
