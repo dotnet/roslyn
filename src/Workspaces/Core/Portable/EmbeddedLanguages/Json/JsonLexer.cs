@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 {
                     case '"':
                     case '\'':
-                        if (currentCh == openChar)
+                        if (currentCh.Value == openChar.Value)
                             return (GetCharsToCurrentPosition(start), JsonKind.StringToken, diagnostic);
 
                         continue;
