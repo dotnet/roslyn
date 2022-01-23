@@ -34,15 +34,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         internal override int ChildCount => 2;
 
         internal override JsonNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return Sequence;
-                case 1: return EndOfFileToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => Sequence,
+                1 => EndOfFileToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -103,14 +100,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         internal override int ChildCount => 1;
 
         internal override JsonNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return TextToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => TextToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -140,16 +134,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         internal override int ChildCount => 3;
 
         internal override JsonNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenBraceToken;
-                case 1: return Sequence;
-                case 2: return CloseBraceToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenBraceToken,
+                1 => Sequence,
+                2 => CloseBraceToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -179,16 +170,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         internal override int ChildCount => 3;
 
         internal override JsonNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenBracketToken;
-                case 1: return Sequence;
-                case 2: return CloseBracketToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenBracketToken,
+                1 => Sequence,
+                2 => CloseBracketToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -209,15 +197,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         internal override int ChildCount => 2;
 
         internal override JsonNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return MinusToken;
-                case 1: return LiteralToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => MinusToken,
+                1 => LiteralToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -236,14 +221,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         internal override int ChildCount => 1;
 
         internal override JsonNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return LiteralToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => LiteralToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -263,14 +245,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         internal override int ChildCount => 1;
 
         internal override JsonNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return CommaToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => CommaToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -296,16 +275,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         internal override int ChildCount => 3;
 
         internal override JsonNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return NameToken;
-                case 1: return ColonToken;
-                case 2: return Value;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => NameToken,
+                1 => ColonToken,
+                2 => Value,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -333,18 +309,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         internal override int ChildCount => 5;
 
         internal override JsonNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return NewKeyword;
-                case 1: return NameToken;
-                case 2: return OpenParenToken;
-                case 3: return Sequence;
-                case 4: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => NewKeyword,
+                1 => NameToken,
+                2 => OpenParenToken,
+                3 => Sequence,
+                4 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
