@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public static JsonToken CreateToken(JsonKind kind,
             ImmutableArray<JsonTrivia> leadingTrivia, VirtualCharSequence virtualChars,
             ImmutableArray<JsonTrivia> trailingTrivia, ImmutableArray<EmbeddedDiagnostic> diagnostics)
-            => new JsonToken(kind, leadingTrivia, virtualChars, trailingTrivia, diagnostics, value: null);
+            => new(kind, leadingTrivia, virtualChars, trailingTrivia, diagnostics, value: null!);
 
         public static JsonToken CreateMissingToken(JsonKind kind)
             => CreateToken(kind, ImmutableArray<JsonTrivia>.Empty, VirtualCharSequence.Empty, ImmutableArray<JsonTrivia>.Empty);
@@ -30,6 +30,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
 
         public static JsonTrivia CreateTrivia(JsonKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
-            => new JsonTrivia(kind, virtualChars, diagnostics);
+            => new(kind, virtualChars, diagnostics);
     }
 }
