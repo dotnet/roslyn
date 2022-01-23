@@ -94,36 +94,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic? diagnostic) ScanNextTokenWorker()
         {
             Debug.Assert(Position < Text.Length);
-            switch (this.CurrentChar.Value)
+            return this.CurrentChar.Value switch
             {
-                case '{': return ScanSingleCharToken(JsonKind.OpenBraceToken);
-                case '}': return ScanSingleCharToken(JsonKind.CloseBraceToken);
-                case '[': return ScanSingleCharToken(JsonKind.OpenBracketToken);
-                case ']': return ScanSingleCharToken(JsonKind.CloseBracketToken);
-                case '(': return ScanSingleCharToken(JsonKind.OpenParenToken);
-                case ')': return ScanSingleCharToken(JsonKind.CloseParenToken);
-                case ',': return ScanSingleCharToken(JsonKind.CommaToken);
-                case ':': return ScanSingleCharToken(JsonKind.ColonToken);
-
-                case '\'':
-                case '"':
-                    return ScanString();
-
+                '{' => ScanSingleCharToken(JsonKind.OpenBraceToken),
+                '}' => ScanSingleCharToken(JsonKind.CloseBraceToken),
+                '[' => ScanSingleCharToken(JsonKind.OpenBracketToken),
+                ']' => ScanSingleCharToken(JsonKind.CloseBracketToken),
+                '(' => ScanSingleCharToken(JsonKind.OpenParenToken),
+                ')' => ScanSingleCharToken(JsonKind.CloseParenToken),
+                ',' => ScanSingleCharToken(JsonKind.CommaToken),
+                ':' => ScanSingleCharToken(JsonKind.ColonToken),
+                '\'' or '"' => ScanString(),
                 // It would be tempting to try to scan out numbers here.  However, numbers are
                 // actually quite tricky to get right (especially looking one character at a time).
                 // So, instead, we take a page from json.net and just consume out a text sequence.
                 // Later on, we'll analyze that text sequence as a whole to see if it looks like a
                 // number and to also report any issues in line with how json.net and ecmascript
                 // handle json numbers.
-
                 //case '-': case '.':
                 //case '0': case '1': case '2': case '3': case '4':
                 //case '5': case '6': case '7': case '8': case '9':
                 //    return ScanNumber();
-
-                default:
-                    return ScanText();
-            }
+                _ => ScanText(),
+            };
         }
 
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanString()
@@ -155,7 +148,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             var chars = GetCharsToCurrentPosition(start);
-            diagnostic = diagnostic ?? new EmbeddedDiagnostic(
+            diagnostic ??= new EmbeddedDiagnostic(
                 WorkspacesResources.Unterminated_string, GetSpan(chars));
             return (chars, JsonKind.StringToken, diagnostic);
         }
