@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     /// </summary>
     internal partial struct JsonParser
     {
-        private static readonly string _closeBracketExpected = string.Format(WorkspacesResources._0_expected, ']');
-        private static readonly string _closeBraceExpected = string.Format(WorkspacesResources._0_expected, '}');
-        private static readonly string _openParenExpected = string.Format(WorkspacesResources._0_expected, '(');
-        private static readonly string _closeParenExpected = string.Format(WorkspacesResources._0_expected, ')');
+        private static readonly string s_closeBracketExpected = string.Format(WorkspacesResources._0_expected, ']');
+        private static readonly string s_closeBraceExpected = string.Format(WorkspacesResources._0_expected, '}');
+        private static readonly string s_openParenExpected = string.Format(WorkspacesResources._0_expected, '(');
+        private static readonly string s_closeParenExpected = string.Format(WorkspacesResources._0_expected, ')');
 
         private JsonLexer _lexer;
         private JsonToken _currentToken;
@@ -277,19 +277,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         private JsonValueNode ParseValue()
-        {
-            switch (_currentToken.Kind)
+            => _currentToken.Kind switch
             {
-                case JsonKind.OpenBraceToken:
-                    return ParseObject();
-                case JsonKind.OpenBracketToken:
-                    return ParseArray();
-                case JsonKind.CommaToken:
-                    return ParseCommaValue();
-                default:
-                    return ParseLiteralOrPropertyOrConstructor();
-            }
-        }
+                JsonKind.OpenBraceToken => ParseObject(),
+                JsonKind.OpenBracketToken => ParseArray(),
+                JsonKind.CommaToken => ParseCommaValue(),
+                _ => ParseLiteralOrPropertyOrConstructor(),
+            };
 
         private static void SplitLiteral(JsonToken literalToken, out JsonToken minusToken, out JsonToken newLiteralToken)
         {
@@ -409,7 +403,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             var newKeyword = token.With(kind: JsonKind.NewKeyword);
             var nameToken = ConsumeToken(JsonKind.TextToken, WorkspacesResources.Name_expected);
-            var openParen = ConsumeToken(JsonKind.OpenParenToken, _openParenExpected);
+            var openParen = ConsumeToken(JsonKind.OpenParenToken, s_openParenExpected);
 
             var savedInConstructor = _inConstructor;
             _inConstructor = true;
@@ -419,7 +413,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 nameToken,
                 openParen,
                 ParseSequence(),
-                ConsumeToken(JsonKind.CloseParenToken, _closeParenExpected));
+                ConsumeToken(JsonKind.CloseParenToken, s_closeParenExpected));
 
             _inConstructor = savedInConstructor;
             return result;
@@ -455,9 +449,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private static bool IsDigit(VirtualChar ch)
             => ch >= '0' && ch <= '9';
 
-        private static JsonLiteralNode ParseLiteral(JsonToken textToken, JsonKind kind)
-            => new JsonLiteralNode(textToken.With(kind: kind));
-
         private static JsonValueNode ParseNumber(JsonToken textToken)
         {
             var numberToken = textToken.With(kind: JsonKind.NumberToken);
@@ -465,7 +456,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         private JsonCommaValueNode ParseCommaValue()
-            => new JsonCommaValueNode(ConsumeCurrentToken());
+            => new(ConsumeCurrentToken());
 
         private JsonArrayNode ParseArray()
         {
@@ -475,7 +466,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var result = new JsonArrayNode(
                 ConsumeCurrentToken(),
                 ParseSequence(),
-                ConsumeToken(JsonKind.CloseBracketToken, _closeBracketExpected));
+                ConsumeToken(JsonKind.CloseBracketToken, s_closeBracketExpected));
 
             _inArray = savedInArray;
             return result;
@@ -489,7 +480,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var result = new JsonObjectNode(
                 ConsumeCurrentToken(),
                 ParseSequence(),
-                ConsumeToken(JsonKind.CloseBraceToken, _closeBraceExpected));
+                ConsumeToken(JsonKind.CloseBraceToken, s_closeBraceExpected));
 
             _inObject = savedInObject;
             return result;
