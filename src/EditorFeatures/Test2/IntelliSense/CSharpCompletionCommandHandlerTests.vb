@@ -9428,10 +9428,10 @@ public class C
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("{ ")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
 
                 state.SendTypeChars("IP")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 1")
