@@ -21,9 +21,10 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
 #if !CODE_STYLE
         public static async Task<AddImportPlacementOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            => FromDocument(document, await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
+        public static AddImportPlacementOptions FromDocument(Document document, Options.OptionSet documentOptions)
+        {
             var service = document.GetRequiredLanguageService<IAddImportsService>();
 
             return new(

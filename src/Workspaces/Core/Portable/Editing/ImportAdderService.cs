@@ -34,11 +34,9 @@ namespace Microsoft.CodeAnalysis.Editing
             Document document,
             IEnumerable<TextSpan> spans,
             Strategy strategy,
-            OptionSet? optionSet,
+            AddImportPlacementOptions options,
             CancellationToken cancellationToken)
         {
-            optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
@@ -59,8 +57,6 @@ namespace Microsoft.CodeAnalysis.Editing
             // We'll dive under the parent because it overlaps with the span.  But we only want to include (and dive
             // into) B and C not A and D.
             var nodes = root.DescendantNodesAndSelf(overlapsWithSpan).Where(overlapsWithSpan);
-
-            var options = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             if (strategy == Strategy.AddImportsFromSymbolAnnotations)
                 return await AddImportDirectivesFromSymbolAnnotationsAsync(document, nodes, addImportsService, generator, options, cancellationToken).ConfigureAwait(false);
