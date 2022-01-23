@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Arg_BogusIComparer">
         <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
-        <target state="new">Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</target>
+        <target state="translated">Não é possível classificar porque o método IComparer.Compare() retorna resultados inconsistentes. Um valor não se compara igual a ele mesmo ou um valor comparado repetidas vezes a outro valor apresenta resultados diferentes. IComparer: '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">
@@ -100,6 +100,11 @@
       <trans-unit id="Argument_InvalidOffLen">
         <source>Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.</source>
         <target state="translated">O deslocamento e o comprimento estavam fora dos limites para a matriz ou a contagem é maior do que o número de elementos do índice até o fim da coleção de origem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Não consigo encontrar o valor antigo</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">

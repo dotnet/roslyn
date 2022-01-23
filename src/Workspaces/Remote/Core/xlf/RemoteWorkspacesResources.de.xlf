@@ -17,6 +17,11 @@
         <target state="translated">CodeLens-Verweise</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Verfügbarkeit der Projektsemantik</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">Tupel in Strukturrefactoring konvertieren</target>
@@ -39,12 +44,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
         <source>Document highlights</source>
-        <target state="needs-review-translation">Dokumenthighlights</target>
+        <target state="translated">Dokumenthighlights</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EditAndContinue">
         <source>Edit and Continue</source>
-        <target state="new">Edit and Continue</target>
+        <target state="translated">Bearbeiten und fortfahren</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
@@ -67,6 +72,11 @@
         <target state="translated">Globale Benachrichtigungsübermittlung</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">Vererbungsrand</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
         <target state="translated">Fehlende Importermittlung</target>
@@ -79,7 +89,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_NavigationBarItem">
         <source>Navigation bar</source>
-        <target state="new">Navigation bar</target>
+        <target state="translated">Navigationsleiste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">Telemetriedaten verarbeiten</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
@@ -97,14 +112,14 @@
         <target state="translated">Semantische Klassifizierung</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">Cache für semantische Klassifizierung</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Objektanbieter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Stack Trace Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
@@ -120,6 +135,16 @@
       <trans-unit id="FeatureName_TodoCommentsDiscovery">
         <source>TODO comments discovery</source>
         <target state="translated">TODO Kommentarermittlung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Nicht verwendete Referenzanalyse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">Wertnachverfolgung</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

@@ -1543,6 +1543,8 @@ namespace N
 }
 ";
 
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -1550,8 +1552,9 @@ namespace N
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -1560,8 +1563,7 @@ namespace N
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1649,6 +1651,43 @@ public class Program
             S* p = &s;
             var i = p->$$;
         }
+    }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionNullForgivingOperatorHandling()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+#nullable enable
+
+public class C {
+    public static explicit operator int(C c) => 0;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        C? c = null;
+        var i = c!.$$
+    }
+}
+", "int", @"
+#nullable enable
+
+public class C {
+    public static explicit operator int(C c) => 0;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        C? c = null;
+        var i = ((int)c!)$$
     }
 }
 ");

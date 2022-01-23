@@ -133,6 +133,7 @@ namespace System {
 ", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
+                // (7,28): error CS0246: The type or namespace name 'RefStruct' could not be found (are you missing a using directive or an assembly reference?)
                 //     void Method(dynamic d, RefStruct r)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RefStruct").WithArguments("RefStruct").WithLocation(7, 28),
                 // (9,18): error CS0826: No best type found for implicitly-typed array
@@ -150,9 +151,9 @@ namespace System {
                 // (13,18): error CS0826: No best type found for implicitly-typed array
                 //         var p4 = stackalloc[] { (1, null) };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { (1, null) }").WithLocation(13, 18),
-                // (14,18): error CS0826: No best type found for implicitly-typed array
+                // (14,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Action')
                 //         var p5 = stackalloc[] { () => { } };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { () => { } }").WithLocation(14, 18),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { () => { } }").WithArguments("System.Action").WithLocation(14, 18),
                 // (15,18): error CS0826: No best type found for implicitly-typed array
                 //         var p6 = stackalloc[] { new {} , new { i = 0 } };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new {} , new { i = 0 } }").WithLocation(15, 18),
@@ -212,9 +213,9 @@ namespace System {
                 // (13,32): error CS0826: No best type found for implicitly-typed array
                 //         var p4 = c ? default : stackalloc[] { (1, null) };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { (1, null) }").WithLocation(13, 32),
-                // (14,32): error CS0826: No best type found for implicitly-typed array
+                // (14,32): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Action')
                 //         var p5 = c ? default : stackalloc[] { () => { } };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { () => { } }").WithLocation(14, 32),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { () => { } }").WithArguments("System.Action").WithLocation(14, 32),
                 // (15,32): error CS0826: No best type found for implicitly-typed array
                 //         var p6 = c ? default : stackalloc[] { new {} , new { i = 0 } };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new {} , new { i = 0 } }").WithLocation(15, 32),
@@ -2314,11 +2315,7 @@ unsafe class Test
         Span<double> obj2 = stackalloc double[2] { 1, 1.2 };
         _ = stackalloc double[2] { 1, 1.2 };
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,13): error CS8353: A result of a stackalloc expression of type 'Span<double>' cannot be used in this context because it may be exposed outside of the containing method
-                //         _ = stackalloc double[2] { 1, 1.2 };
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc double[2] { 1, 1.2 }").WithArguments("System.Span<double>").WithLocation(9, 13)
-                );
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -2424,11 +2421,7 @@ unsafe class Test
         Span<double> obj2 = stackalloc[] { 1, 1.2 };
         _ = stackalloc[] { 1, 1.2 };
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,13): error CS8353: A result of a stackalloc expression of type 'Span<double>' cannot be used in this context because it may be exposed outside of the containing method
-                //         _ = stackalloc[] { 1, 1.2 };
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc[] { 1, 1.2 }").WithArguments("System.Span<double>").WithLocation(9, 13)
-                );
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);

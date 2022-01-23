@@ -372,16 +372,16 @@ End Class</a>
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
-                Dim options = workspaceFixture.GetWorkspace(ExportProvider).Options
+                workspaceFixture.GetWorkspace(ExportProvider)
+                Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
+
+                Dim options = CompletionOptions.From(document1.Project.Solution.Options, document1.Project.Language)
 
                 If useDebuggerOptions Then
-                    options = options.
-                        WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, False).
-                        WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, False).
-                        WithChangedOption(CompletionServiceOptions.DisallowAddingImports, True)
+                    options.FilterOutOfScopeLocals = False
+                    options.ShowXmlDocCommentCompletion = False
                 End If
 
-                Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
                 Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
 
                 If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
@@ -391,7 +391,7 @@ End Class</a>
             End Using
         End Function
 
-        Private Overloads Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As OptionSet) As Task
+        Private Overloads Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As CompletionOptions) As Task
             triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
             Dim service = GetCompletionService(document.Project)

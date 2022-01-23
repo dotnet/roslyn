@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private void EnableOrDisableOkButton()
         {
             var selectedMembers = MemberSelectionViewModel.CheckedMembers;
-            OkButtonEnabled = SelectedDestination != null && selectedMembers.Any();
+            OkButtonEnabled = SelectedDestination != DestinationTreeNodeViewModel && selectedMembers.Any();
         }
     }
 }

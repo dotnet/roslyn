@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationNamedTypeSymbol(
                 containingAssembly, null, attributes, accessibility, modifiers, isRecord, typeKind, name,
                 typeParameters, baseType, interfaces, specialType, nullableAnnotation,
-                members.WhereAsArray(m => !(m is INamedTypeSymbol)),
+                members.WhereAsArray(m => m is not INamedTypeSymbol),
                 members.OfType<INamedTypeSymbol>().Select(n => n.ToCodeGenerationSymbol()).ToImmutableArray(),
                 enumUnderlyingType: null);
         }

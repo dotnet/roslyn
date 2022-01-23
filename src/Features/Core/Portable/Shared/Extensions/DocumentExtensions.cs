@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -24,12 +23,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class DocumentExtensions
     {
-        public static bool ShouldHideAdvancedMembers(this Document document)
-        {
-            // Since we don't actually have a way to configure this per-document, we can fetch from the solution
-            return document.Project.Solution.Options.GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
-        }
-
         public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
             where TNode : SyntaxNode
         {

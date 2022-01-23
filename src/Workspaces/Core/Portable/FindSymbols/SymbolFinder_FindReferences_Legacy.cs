@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -29,6 +27,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken = default)
         {
+            if (symbol is null)
+                throw new System.ArgumentNullException(nameof(symbol));
+            if (solution is null)
+                throw new System.ArgumentNullException(nameof(solution));
+
             return FindReferencesAsync(symbol, solution, FindReferencesSearchOptions.Default, cancellationToken);
         }
 
@@ -55,9 +58,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             CancellationToken cancellationToken = default)
         {
+            if (symbol is null)
+                throw new System.ArgumentNullException(nameof(symbol));
+            if (solution is null)
+                throw new System.ArgumentNullException(nameof(solution));
             return FindReferencesAsync(symbol, solution, progress: null, documents: documents, cancellationToken: cancellationToken);
         }
 
@@ -73,10 +80,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
-            IFindReferencesProgress progress,
-            IImmutableSet<Document> documents,
+            IFindReferencesProgress? progress,
+            IImmutableSet<Document>? documents,
             CancellationToken cancellationToken = default)
         {
+            if (symbol is null)
+                throw new System.ArgumentNullException(nameof(symbol));
+            if (solution is null)
+                throw new System.ArgumentNullException(nameof(solution));
             return await FindReferencesAsync(
                 symbol, solution, progress, documents,
                 FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
@@ -85,8 +96,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
-            IFindReferencesProgress progress,
-            IImmutableSet<Document> documents,
+            IFindReferencesProgress? progress,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {

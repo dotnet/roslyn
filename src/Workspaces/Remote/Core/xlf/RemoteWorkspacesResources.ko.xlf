@@ -17,6 +17,11 @@
         <target state="translated">CodeLens 참조</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">프로젝트 의미 체계 가용성</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">튜플을 구조체 리팩터링으로 변환</target>
@@ -39,12 +44,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
         <source>Document highlights</source>
-        <target state="needs-review-translation">문서 하이라이트</target>
+        <target state="translated">문서 하이라이트</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EditAndContinue">
         <source>Edit and Continue</source>
-        <target state="new">Edit and Continue</target>
+        <target state="translated">편집하며 계속하기</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
@@ -67,6 +72,11 @@
         <target state="translated">전역 알림 배달</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">상속 여백</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
         <target state="translated">가져오기 검색 없음</target>
@@ -79,7 +89,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_NavigationBarItem">
         <source>Navigation bar</source>
-        <target state="new">Navigation bar</target>
+        <target state="translated">탐색 모음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">프로세스 원격 측정</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
@@ -97,14 +112,14 @@
         <target state="translated">의미 체계 분류</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">의미 체계 분류 캐시</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">자산 공급자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">스택 추적 탐색기</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
@@ -120,6 +135,16 @@
       <trans-unit id="FeatureName_TodoCommentsDiscovery">
         <source>TODO comments discovery</source>
         <target state="translated">TODO 주석 검색</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">사용되지 않는 참조 분석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">값 추적</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

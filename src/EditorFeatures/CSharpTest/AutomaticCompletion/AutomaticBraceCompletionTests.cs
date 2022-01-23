@@ -1120,7 +1120,7 @@ class Goo
             var optionSet = new Dictionary<OptionKey2, object>
                             {
                                 { new OptionKey2(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
+                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
             using var session = CreateSession(code, optionSet);
             Assert.NotNull(session);
@@ -1149,7 +1149,7 @@ $$
 
             var optionSet = new Dictionary<OptionKey2, object>
                             {
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
             using var session = CreateSession(code, optionSet);
             Assert.NotNull(session);
@@ -1184,7 +1184,7 @@ $$
 
             var optionSet = new Dictionary<OptionKey2, object>
                             {
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
+                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
             using var session = CreateSession(code, optionSet);
             Assert.NotNull(session);
@@ -1227,7 +1227,7 @@ $$
 
             var optionSet = new Dictionary<OptionKey2, object>
                             {
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
+                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
                             };
             using var session = CreateSession(code, optionSet);
             Assert.NotNull(session);

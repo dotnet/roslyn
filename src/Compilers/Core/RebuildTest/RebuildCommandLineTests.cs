@@ -176,6 +176,45 @@ class Library
     }
 }
 ");
+
+            AddSourceFile("lib4.cs", @"
+using System;
+
+class Library4
+{
+#line 42 ""data.txt""
+    void Method()
+    {
+    }
+}
+");
+
+            AddSourceFile("lib5.cs", @"
+using System;
+
+class Library5
+{
+#line 42 ""data.txt""
+    void Method()
+    {
+    }
+}
+");
+
+            AddSourceFile(Path.Combine("dir1", "lib1.cs"), @"
+using System;
+
+namespace Nested
+{
+    #line 13 ""data.txt""
+    class NestedLibrary
+    {
+        void Method()
+        {
+        }
+    }
+}
+");
         }
 
         public static IEnumerable<object?[]> GetCSharpData()
@@ -191,8 +230,16 @@ class Library
                 PermutateOptimizations);
             Permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
                 PermutateOptimizations, PermutateExternAlias, PermutatePdbFormat);
-            Permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
-                PermutateOptimizations, PermutateExternAlias, PermutatePdbFormat);
+            Permutate(new CommandInfo("lib4.cs /target:library", "test.dll", null),
+                PermutateOptimizations, PermutatePdbFormat, PermutatePathMap);
+
+            // This uses a #line directive with the same file name but in different source directories.
+            // Need to make sure that we map the same file name but different base paths correctly
+            Permutate(new CommandInfo($"lib4.cs {Path.Combine("dir1", "lib1.cs")} /target:library", "test.dll", null),
+                PermutatePdbFormat, PermutatePathMap);
+
+            Permutate(new CommandInfo("lib4.cs lib5.cs /target:library", "test.dll", null),
+                PermutateOptimizations, PermutatePdbFormat, PermutatePathMap);
 
             return list;
 
@@ -213,6 +260,16 @@ class Library
                 yield return commandInfo with
                 {
                     CommandLine = commandInfo.CommandLine + $" /pathmap:{RootDirectory}=/root/test",
+                };
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + $@" /pathmap:{RootDirectory}=j:\other_root",
+                };
+
+                // Path map doesn't care about path legality, it's a simple substitute 
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + $@" /pathmap:""{RootDirectory}=???""",
                 };
             }
 
@@ -287,7 +344,7 @@ class Library
             var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             args.Add("/nostdlib");
             args.Add("/deterministic");
-            foreach (var referenceInfo in TestMetadata.ResourcesNetCoreApp.All)
+            foreach (var referenceInfo in NetCoreApp.AllReferenceInfos)
             {
                 AddReference(referenceInfo.FileName, referenceInfo.ImageBytes);
                 args.Add($"/r:{referenceInfo.FileName}");
@@ -330,6 +387,30 @@ Public Module M
     End Function
 End Module
 ");
+
+            AddSourceFile("lib2.vb", @"
+Imports System
+Public Module Lib2
+#ExternalSource(""data.txt"", 30)
+    Public Function Add(left As Integer, right As Integer) As Integer
+        return left + right
+    End Function
+#End ExternalSource
+End Module
+");
+
+            AddSourceFile(Path.Combine("dir1", "lib1.vb"), @"
+Imports System
+Namespace Nested
+    Public Module Lib1
+#ExternalSource(""data.txt"", 30)
+        Public Function Add(left As Integer, right As Integer) As Integer
+            return left + right
+        End Function
+#End ExternalSource
+    End Module
+End Namespace
+");
         }
 
         public static IEnumerable<object?[]> GetVisualBasicData()
@@ -345,6 +426,15 @@ End Module
             Permutate(
                 new CommandInfo(@"lib1.vb /debug:embedded /d:_MYTYPE=""Empty"" /vbruntime:Microsoft.VisualBasic.dll", "test.dll", null),
                 PermutateOptimizations, PermutateDllKinds);
+            Permutate(
+                new CommandInfo("lib2.vb /target:library /debug:embedded", "test.dll", null),
+                PermutatePathMap, PermutateRuntime);
+
+            // This uses a #ExternalSource directive with the same file name but in different source directories.
+            // Need to make sure that we map the same file name but different base paths correctly
+            Permutate(
+                new CommandInfo(@$"lib2.vb {Path.Combine("dir1", "lib1.vb")} /target:library /debug:embedded", "test.dll", null),
+                PermutatePathMap, PermutateRuntime);
 
             return list;
 
@@ -357,6 +447,15 @@ End Module
                 }
 
                 Add(e);
+            }
+
+            static IEnumerable<CommandInfo> PermutatePathMap(CommandInfo commandInfo)
+            {
+                yield return commandInfo;
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + $" /pathmap:{RootDirectory}=/root/test",
+                };
             }
 
             static IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
@@ -412,7 +511,7 @@ End Module
             var args = new List<string>(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             args.Add("/nostdlib");
             args.Add("/deterministic");
-            foreach (var referenceInfo in TestMetadata.ResourcesNetCoreApp.All)
+            foreach (var referenceInfo in NetCoreApp.AllReferenceInfos)
             {
                 AddReference(referenceInfo.FileName, referenceInfo.ImageBytes);
 

@@ -30,7 +30,7 @@
   - [ ] Test all of the ways that a name would not be valid to name a property in a property pattern
   - [ ] Need to design the data representation for edit-and-continue for temps in patterns
   - [ ] Need to precisely share temps per the edit-and-continue spec
-  - [ ] Need bullets here or github issues for PROTOTYPE(patterns2) comments.
+  - [ ] Need bullets here or github issues for prototype comments.
 
 - [ ] Need to ensure good code quality, e.g. avoid redundant null checks preceding types tests
 - [ ] Need to ensure a good tradeoff between decision tree size explosion and execution of redundant tests.

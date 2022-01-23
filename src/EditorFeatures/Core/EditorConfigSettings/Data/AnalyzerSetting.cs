@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfig;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
@@ -17,7 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public AnalyzerSetting(DiagnosticDescriptor descriptor,
                                ReportDiagnostic effectiveSeverity,
                                AnalyzerSettingsUpdater settingsUpdater,
-                               Language language)
+                               Language language,
+                               SettingLocation location)
         {
             _descriptor = descriptor;
             _settingsUpdater = settingsUpdater;
@@ -35,15 +38,19 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             IsEnabled = enabled;
             Severity = severity;
             Language = language;
+            IsNotConfigurable = descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.NotConfigurable);
+            Location = location;
         }
 
         public string Id => _descriptor.Id;
-        public string Title => _descriptor.Title.ToString(CultureInfo.CurrentCulture);
-        public string Description => _descriptor.Description.ToString(CultureInfo.CurrentCulture);
+        public string Title => _descriptor.Title.ToString(CultureInfo.CurrentUICulture);
+        public string Description => _descriptor.Description.ToString(CultureInfo.CurrentUICulture);
         public string Category => _descriptor.Category;
         public DiagnosticSeverity Severity { get; private set; }
         public bool IsEnabled { get; private set; }
         public Language Language { get; }
+        public bool IsNotConfigurable { get; set; }
+        public SettingLocation Location { get; }
 
         internal void ChangeSeverity(DiagnosticSeverity severity)
         {
@@ -51,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 return;
 
             Severity = severity;
-            _ = _settingsUpdater.QueueUpdateAsync(this, severity);
+            _settingsUpdater.QueueUpdate(this, severity);
         }
     }
 }

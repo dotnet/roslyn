@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitBaseReference((BoundBaseReference)node);
                 case BoundKind.BinaryOperator:
                     var binOp = (BoundBinaryOperator)node;
-                    return VisitBinaryOperator(binOp.OperatorKind, binOp.MethodOpt, binOp.Type, binOp.Left, binOp.Right);
+                    return VisitBinaryOperator(binOp.OperatorKind, binOp.Method, binOp.Type, binOp.Left, binOp.Right);
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     var userDefCondLogOp = (BoundUserDefinedConditionalLogicalOperator)node;
                     return VisitBinaryOperator(userDefCondLogOp.OperatorKind, userDefCondLogOp.LogicalOperator, userDefCondLogOp.Type, userDefCondLogOp.Left, userDefCondLogOp.Right);
@@ -369,7 +369,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Operand.IsLiteralNull() && (object)node.Operand.Type == null)
             {
                 var operand = _bound.Null(_bound.SpecialType(SpecialType.System_Object));
-                node = node.Update(operand, node.TargetType, node.Conversion, node.Type);
+                Debug.Assert(node.OperandPlaceholder is null);
+                Debug.Assert(node.OperandConversion is null);
+                node = node.Update(operand, node.TargetType, node.OperandPlaceholder, node.OperandConversion, node.Type);
             }
 
             return ExprFactory("TypeAs", Visit(node.Operand), _bound.Typeof(node.Type));
@@ -789,10 +791,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = Visit(node.LeftOperand);
             var right = Visit(node.RightOperand);
-            if (node.LeftConversion.IsUserDefined)
+            if (BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder) is { IsUserDefined: true } leftConversion)
             {
-                TypeSymbol lambdaParamType = node.LeftOperand.Type.StrippedType();
-                return ExprFactory("Coalesce", left, right, MakeConversionLambda(node.LeftConversion, lambdaParamType, node.Type));
+                Debug.Assert(node.LeftPlaceholder is not null);
+                TypeSymbol lambdaParamType = node.LeftPlaceholder.Type;
+                return ExprFactory("Coalesce", left, right, MakeConversionLambda(leftConversion, lambdaParamType, node.LeftConversion.Type));
             }
             else
             {

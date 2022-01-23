@@ -8,12 +8,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Tags;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
@@ -21,43 +20,51 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInfoProvider
     {
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-            Document document,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+            QuickInfoContext context, SyntaxToken token)
         {
-            var (model, tokenInformation, supportedPlatforms) = await ComputeQuickInfoDataAsync(document, token, cancellationToken).ConfigureAwait(false);
-
+            var (tokenInformation, supportedPlatforms) = await ComputeQuickInfoDataAsync(context, token).ConfigureAwait(false);
             if (tokenInformation.Symbols.IsDefaultOrEmpty)
-            {
                 return null;
-            }
 
-            return await CreateContentAsync(document.Project.Solution.Workspace,
-                token, model, tokenInformation, supportedPlatforms,
-                cancellationToken).ConfigureAwait(false);
+            var cancellationToken = context.CancellationToken;
+            var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var services = context.Document.Project.Solution.Workspace.Services;
+            return await CreateContentAsync(
+                services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<(SemanticModel model, TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
-            Document document,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
+            CommonQuickInfoContext context, SyntaxToken token)
         {
+            var tokenInformation = BindToken(context.Services, context.SemanticModel, token, context.CancellationToken);
+            if (tokenInformation.Symbols.IsDefaultOrEmpty)
+                return null;
+
+            return await CreateContentAsync(
+                context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.Options, context.CancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
+            QuickInfoContext context,
+            SyntaxToken token)
+        {
+            var cancellationToken = context.CancellationToken;
+            var document = context.Document;
+
             var linkedDocumentIds = document.GetLinkedDocumentIds();
             if (linkedDocumentIds.Any())
-            {
-                return await ComputeFromLinkedDocumentsAsync(document, linkedDocumentIds, token, cancellationToken).ConfigureAwait(false);
-            }
+                return await ComputeFromLinkedDocumentsAsync(context, token, linkedDocumentIds).ConfigureAwait(false);
 
-            var (model, tokenInformation) = await BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
-
-            return (model, tokenInformation, supportedPlatforms: null);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var services = document.Project.Solution.Workspace.Services;
+            var tokenInformation = BindToken(services, semanticModel, token, cancellationToken);
+            return (tokenInformation, supportedPlatforms: null);
         }
 
-        private async Task<(SemanticModel model, TokenInformation, SupportedPlatformData supportedPlatforms)> ComputeFromLinkedDocumentsAsync(
-            Document document,
-            ImmutableArray<DocumentId> linkedDocumentIds,
+        private async Task<(TokenInformation, SupportedPlatformData supportedPlatforms)> ComputeFromLinkedDocumentsAsync(
+            QuickInfoContext context,
             SyntaxToken token,
-            CancellationToken cancellationToken)
+            ImmutableArray<DocumentId> linkedDocumentIds)
         {
             // Linked files/shared projects: imagine the following when GOO is false
             // #if GOO
@@ -69,27 +76,34 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             // Instead, we need to find the head in which we get the best binding,
             // which in this case is the one with no errors.
 
-            var (model, tokenInformation) = await BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
+            var cancellationToken = context.CancellationToken;
+            var document = context.Document;
+            var solution = document.Project.Solution;
+            var services = solution.Workspace.Services;
 
-            var candidateProjects = new List<ProjectId>() { document.Project.Id };
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var mainTokenInformation = BindToken(services, semanticModel, token, cancellationToken);
+
+            var candidateProjects = new List<ProjectId> { document.Project.Id };
             var invalidProjects = new List<ProjectId>();
 
-            var candidateResults = new List<(DocumentId docId, SemanticModel model, TokenInformation tokenInformation)>
+            var candidateResults = new List<(DocumentId docId, TokenInformation tokenInformation)>
             {
-                (document.Id, model, tokenInformation)
+                (document.Id, mainTokenInformation)
             };
 
             foreach (var linkedDocumentId in linkedDocumentIds)
             {
-                var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-                var linkedToken = await FindTokenInLinkedDocumentAsync(token, linkedDocument, cancellationToken).ConfigureAwait(false);
+                var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
+                var linkedModel = await linkedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var linkedToken = FindTokenInLinkedDocument(token, linkedModel, cancellationToken);
 
                 if (linkedToken != default)
                 {
                     // Not in an inactive region, so this file is a candidate.
                     candidateProjects.Add(linkedDocumentId.ProjectId);
-                    var (linkedModel, linkedSymbols) = await BindTokenAsync(linkedDocument, linkedToken, cancellationToken).ConfigureAwait(false);
-                    candidateResults.Add((linkedDocumentId, linkedModel, linkedSymbols));
+                    var linkedSymbols = BindToken(services, linkedModel, linkedToken, cancellationToken);
+                    candidateResults.Add((linkedDocumentId, linkedSymbols));
                 }
             }
 
@@ -99,63 +113,51 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 ?? candidateResults.First();
 
             if (bestBinding.tokenInformation.Symbols.IsDefaultOrEmpty)
-            {
                 return default;
-            }
 
             // We calculate the set of supported projects
             candidateResults.Remove(bestBinding);
-            foreach (var candidate in candidateResults)
+            foreach (var (docId, tokenInformation) in candidateResults)
             {
                 // Does the candidate have anything remotely equivalent?
-                if (!candidate.tokenInformation.Symbols.Intersect(bestBinding.tokenInformation.Symbols, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
-                {
-                    invalidProjects.Add(candidate.docId.ProjectId);
-                }
+                if (!tokenInformation.Symbols.Intersect(bestBinding.tokenInformation.Symbols, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
+                    invalidProjects.Add(docId.ProjectId);
             }
 
-            var supportedPlatforms = new SupportedPlatformData(invalidProjects, candidateProjects, document.Project.Solution.Workspace);
-
-            return (bestBinding.model, bestBinding.tokenInformation, supportedPlatforms);
+            var supportedPlatforms = new SupportedPlatformData(solution, invalidProjects, candidateProjects);
+            return (bestBinding.tokenInformation, supportedPlatforms);
         }
 
         private static bool HasNoErrors(ImmutableArray<ISymbol> symbols)
             => symbols.Length > 0
                 && !ErrorVisitor.ContainsError(symbols.FirstOrDefault());
 
-        private static async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
+        private static SyntaxToken FindTokenInLinkedDocument(
             SyntaxToken token,
-            Document linkedDocument,
+            SemanticModel linkedModel,
             CancellationToken cancellationToken)
         {
-            var root = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
+            var root = linkedModel.SyntaxTree.GetRoot(cancellationToken);
             if (root == null)
-            {
                 return default;
-            }
 
             // Don't search trivia because we want to ignore inactive regions
             var linkedToken = root.FindToken(token.SpanStart);
 
             // The new and old tokens should have the same span?
-            if (token.Span == linkedToken.Span)
-            {
-                return linkedToken;
-            }
-
-            return default;
+            return token.Span == linkedToken.Span ? linkedToken : default;
         }
 
         protected static Task<QuickInfoItem> CreateContentAsync(
-            Workspace workspace,
-            SyntaxToken token,
+            HostWorkspaceServices services,
             SemanticModel semanticModel,
+            SyntaxToken token,
             TokenInformation tokenInformation,
             SupportedPlatformData? supportedPlatforms,
+            SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
+            var syntaxFactsService = services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
 
             var symbols = tokenInformation.Symbols;
 
@@ -169,23 +171,24 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             return QuickInfoUtilities.CreateQuickInfoItemAsync(
-                workspace, semanticModel, token.Span, symbols, supportedPlatforms,
-                tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, cancellationToken);
+                services, semanticModel, token.Span, symbols, supportedPlatforms,
+                tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, cancellationToken);
         }
 
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
         protected abstract bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
+        protected abstract bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, out SyntaxToken found);
 
-        protected virtual NullableFlowState GetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
+        protected virtual NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
 
-        private async Task<(SemanticModel semanticModel, TokenInformation tokenInformation)> BindTokenAsync(
-            Document document, SyntaxToken token, CancellationToken cancellationToken)
+        private TokenInformation BindToken(
+            HostWorkspaceServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var languageServices = services.GetLanguageServices(semanticModel.Language);
+            var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
-            var symbols = GetSymbolsFromToken(token, document.Project.Solution.Workspace, semanticModel, cancellationToken);
+            var symbols = GetSymbolsFromToken(token, services, semanticModel, cancellationToken);
 
             var bindableParent = syntaxFacts.TryGetBindableParent(token);
             var overloads = bindableParent != null
@@ -205,10 +208,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 var nullableFlowState = NullableFlowState.None;
                 if (bindableParent != null)
                 {
-                    nullableFlowState = GetNullabilityAnalysis(document.Project.Solution.Workspace, semanticModel, firstSymbol, bindableParent, cancellationToken);
+                    nullableFlowState = GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken);
                 }
 
-                return (semanticModel, new TokenInformation(symbols, isAwait, nullableFlowState));
+                return new TokenInformation(symbols, isAwait, nullableFlowState);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
@@ -218,14 +221,14 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent!, cancellationToken);
                 if (IsOk(typeInfo.Type))
                 {
-                    return (semanticModel, new TokenInformation(ImmutableArray.Create<ISymbol>(typeInfo.Type)));
+                    return new TokenInformation(ImmutableArray.Create<ISymbol>(typeInfo.Type));
                 }
             }
 
-            return (semanticModel, new TokenInformation(ImmutableArray<ISymbol>.Empty));
+            return new TokenInformation(ImmutableArray<ISymbol>.Empty);
         }
 
-        private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, Workspace workspace, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, HostWorkspaceServices services, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (GetBindableNodeForTokenIndicatingLambda(token, out var lambdaSyntax))
             {
@@ -242,7 +245,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 }
             }
 
-            return semanticModel.GetSemanticInfo(token, workspace, cancellationToken)
+            if (GetBindableNodeForTokenIndicatingMemberAccess(token, out var accessedMember))
+            {
+                // If the cursor is on the dot in an invocation `x.M()`, then we'll consider the cursor was placed on `M`
+                token = accessedMember;
+            }
+
+            return semanticModel.GetSemanticInfo(token, services, cancellationToken)
                 .GetSymbols(includeType: true);
         }
 

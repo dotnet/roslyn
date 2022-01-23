@@ -69,16 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 using var _2 = PooledHashSet<(string? filePath, TextSpan span)>.GetInstance(out var seenLocations);
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
-                    // Because of things like linked files, we may have a source symbol showing up in multiple
-                    // different locations that are effectively at the exact same navigation location for the user.
-                    // i.e. they're the same file/span.  Showing multiple entries for these is just noisy and
-                    // gets worse and worse with shared projects and whatnot.  So, we collapse things down to
-                    // only show a single entry for each unique file/span pair.  Note that we check filepath,
-                    // not 'Document' as linked files will have unique Document instances in each project context
-                    // they are linked into.
-                    if (!seenLocations.Add((declarationLocation.Document.FilePath, declarationLocation.SourceSpan)))
-                        continue;
-
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
                         definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None,
                         additionalProperties: definition.DisplayableProperties, cancellationToken).ConfigureAwait(false);
@@ -201,7 +191,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     if (definition.IsExternal)
                     {
-                        await OnEntryFoundAsync(definition,
+                        await OnEntryFoundAsync(
+                            definition,
                             bucket => SimpleMessageEntry.CreateAsync(bucket, bucket, ServicesVSResources.External_reference_found)!,
                             addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
                             addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition,
@@ -214,7 +205,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         //
                         // We'll place this under a single bucket called "Symbols without references" and we'll allow
                         // the user to navigate on that text entry to that definition if possible.
-                        await OnEntryFoundAsync(SymbolsWithoutReferencesDefinitionItem,
+                        await OnEntryFoundAsync(
+                            SymbolsWithoutReferencesDefinitionItem,
                             bucket => SimpleMessageEntry.CreateAsync(
                                 definitionBucket: bucket,
                                 navigationBucket: RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault: false),
@@ -267,30 +259,25 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private async Task CreateNoResultsFoundEntryIfNecessaryAsync(CancellationToken cancellationToken)
             {
-                bool noDefinitions;
+                string message;
                 lock (Gate)
                 {
-                    noDefinitions = this.Definitions.Count == 0;
+                    // If we got definitions, then no need to show the 'no results found' message.
+                    if (this.Definitions.Count > 0)
+                        return;
+
+                    message = NoDefinitionsFoundMessage;
                 }
 
-                if (noDefinitions)
-                {
-                    // Create a fake definition/reference called "search found no results"
-                    await OnEntryFoundAsync(NoResultsDefinitionItem,
-                        bucket => SimpleMessageEntry.CreateAsync(bucket, null, ServicesVSResources.Search_found_no_results)!,
-                        addToEntriesWhenGroupingByDefinition: true,
-                        addToEntriesWhenNotGroupingByDefinition: true,
-                        expandedByDefault: true,
-                        cancellationToken).ConfigureAwait(false);
-                }
+                // Create a fake definition/reference called "search found no results"
+                await OnEntryFoundAsync(
+                    CreateNoResultsDefinitionItem(message),
+                    bucket => SimpleMessageEntry.CreateAsync(bucket, navigationBucket: null, message)!,
+                    addToEntriesWhenGroupingByDefinition: true,
+                    addToEntriesWhenNotGroupingByDefinition: true,
+                    expandedByDefault: true,
+                    cancellationToken).ConfigureAwait(false);
             }
-
-            private static readonly DefinitionItem NoResultsDefinitionItem =
-                DefinitionItem.CreateNonNavigableItem(
-                    GlyphTags.GetTags(Glyph.StatusInformation),
-                    ImmutableArray.Create(new TaggedText(
-                        TextTags.Text,
-                        ServicesVSResources.Search_found_no_results)));
 
             private static readonly DefinitionItem SymbolsWithoutReferencesDefinitionItem =
                 DefinitionItem.CreateNonNavigableItem(

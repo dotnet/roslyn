@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -48,18 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         private static void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
         {
-            if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
+            if (!caretPosition.HasValue)
             {
                 return;
             }
-
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) ||
-                !caretPosition.HasValue)
-            {
-                return;
-            }
-
-            var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
 
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -67,27 +60,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var formattingRuleService = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+            var solution = document.Project.Solution;
+            if (!solution.Options.GetOption(FormattingBehaviorOptions.FormatOnPaste, document.Project.Language))
+            {
+                return;
+            }
+
+            if (!solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            {
+                return;
+            }
+
+            var formattingRuleService = solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
             if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document))
             {
                 return;
             }
 
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
+            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
             if (formattingService == null || !formattingService.SupportsFormatOnPaste)
             {
                 return;
             }
 
+            var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
             var changes = formattingService.GetFormattingChangesOnPasteAsync(
                 document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.Count == 0)
+            if (changes.IsEmpty)
             {
                 return;
             }
 
-            document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+            solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
         }
     }
 }

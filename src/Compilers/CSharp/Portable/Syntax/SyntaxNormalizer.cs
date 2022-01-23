@@ -5,8 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -522,6 +520,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return false;
         }
 
+        private static bool NeedsSeparatorForListPattern(SyntaxToken token, SyntaxToken next)
+        {
+            var listPattern = token.Parent as ListPatternSyntax ?? next.Parent as ListPatternSyntax;
+            if (listPattern == null)
+            {
+                return false;
+            }
+
+            // is$$[1, 2]
+            if (next.IsKind(SyntaxKind.OpenBracketToken))
+            {
+                return true;
+            }
+
+            // is [1, 2]$$list
+            if (token.IsKind(SyntaxKind.OpenBracketToken))
+            {
+                return listPattern.Designation is not null;
+            }
+
+            return false;
+        }
+
         private static bool NeedsSeparator(SyntaxToken token, SyntaxToken next)
         {
             if (token.Parent == null || next.Parent == null)
@@ -604,7 +625,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (next.IsKind(SyntaxKind.ColonToken))
             {
                 if (next.Parent.IsKind(SyntaxKind.BaseList) ||
-                    next.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
+                    next.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause) ||
+                    next.Parent is ConstructorInitializerSyntax)
                 {
                     return true;
                 }
@@ -807,13 +829,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.NotKeyword:
                     return true;
             }
+
             if (NeedsSeparatorForPropertyPattern(token, next))
             {
                 return true;
             }
+
             if (NeedsSeparatorForPositionalPattern(token, next))
             {
                 return true;
+            }
+
+            if (NeedsSeparatorForListPattern(token, next))
+            {
+                return true;
+            }
+
+            switch (token.Parent.Kind(), next.Parent.Kind())
+            {
+                case (SyntaxKind.LineSpanDirectiveTrivia, SyntaxKind.LineDirectivePosition):
+                case (SyntaxKind.LineDirectivePosition, SyntaxKind.LineSpanDirectiveTrivia):
+                    return true;
             }
 
             return false;
@@ -1169,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     int parentDepth = GetDeclarationDepth(node.Parent);
 
-                    if (node.Parent.IsKind(SyntaxKind.GlobalStatement))
+                    if (node.Parent.Kind() is SyntaxKind.GlobalStatement or SyntaxKind.FileScopedNamespaceDeclaration)
                     {
                         return parentDepth;
                     }

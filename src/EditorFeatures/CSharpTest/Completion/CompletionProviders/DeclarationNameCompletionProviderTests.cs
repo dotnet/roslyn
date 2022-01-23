@@ -1870,11 +1870,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DisabledByOption()
         {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.
-                WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false)));
+            ShowNameSuggestions = false;
 
             var markup = @"
 class Test
@@ -2715,14 +2711,5 @@ public class MyClass
                 EnforcementLevel = ReportDiagnostic.Error
             };
         }
-
-        private static string GetMarkup(string source, LanguageVersion languageVersion)
-            => $@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{languageVersion.ToDisplayString()}"">
-        <Document FilePath=""Test2.cs"">
-{source}
-        </Document>
-    </Project>
-</Workspace>";
     }
 }

@@ -55,8 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var expressionTypeOpt = semanticModel.Compilation.ExpressionOfTType();
+
             var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.Instance.AnalyzeExpression(
-                semanticModel, isExpression, cancellationToken);
+                semanticModel, isExpression, expressionTypeOpt, cancellationToken);
 
             var updatedSemanticModel = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.ReplaceMatches(
                 semanticModel, isExpression, localName, matches, cancellationToken);
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument)
+                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpIsAndCastCheckWithoutNameCodeFixProvider))
             {
             }
 

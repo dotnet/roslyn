@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         }
 
                         if (ChangeSignatureDialogViewModel._thisParameter != null &&
-                            ParameterSymbol == (ChangeSignatureDialogViewModel._thisParameter as ExistingParameterViewModel).ParameterSymbol)
+                            ParameterSymbol == ChangeSignatureDialogViewModel._thisParameter.ParameterSymbol)
                         {
                             return @this ?? string.Empty;
                         }
@@ -233,6 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         case LanguageNames.VisualBasic:
                             return NullText("Nothing", "Nothing");
                     }
+
                     return string.Empty;
 
                     string NullText(string @null, string @default)

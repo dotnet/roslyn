@@ -44,7 +44,15 @@ using s = delegate*<void>;");
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
                 // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
+                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
+
+                // See same-named test in TopLevelStatementsParsingTests, there is a single top-level statement in the tree and it is an empty statement.
+                // (2,26): error CS8937: At least one top-level statement must be non-empty.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(2, 26)
             );
         }
 
@@ -2410,8 +2418,8 @@ unsafe
   // Code size       13 (0xd)
   .maxstack  2
   IL_0000:  ldc.i4.0
-  IL_0001:  ldftn      ""string <Program>$.<<Main>$>g__converter|0_0(int)""
-  IL_0007:  call       ""void <Program>$.<<Main>$>g__Test|0_1<int, string>(int, delegate*<int, string>)""
+  IL_0001:  ldftn      ""string Program.<<Main>$>g__converter|0_0(int)""
+  IL_0007:  call       ""void Program.<<Main>$>g__Test|0_1<int, string>(int, delegate*<int, string>)""
   IL_000c:  ret
 }
 ");
@@ -2435,8 +2443,8 @@ unsafe
   // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  ldsfld     ""string string.Empty""
-  IL_0005:  ldftn      ""string <Program>$.<<Main>$>g__converter|0_0(object)""
-  IL_000b:  call       ""void <Program>$.<<Main>$>g__Test|0_1<string, string>(string, delegate*<string, string>)""
+  IL_0005:  ldftn      ""string Program.<<Main>$>g__converter|0_0(object)""
+  IL_000b:  call       ""void Program.<<Main>$>g__Test|0_1<string, string>(string, delegate*<string, string>)""
   IL_0010:  ret
 }
 ");
@@ -2661,9 +2669,9 @@ unsafe
   IL_0001:  newarr     ""delegate*<ref string, string>""
   IL_0006:  dup
   IL_0007:  ldc.i4.0
-  IL_0008:  ldftn      ""string <Program>$.<<Main>$>g__Test|0_0(ref string)""
+  IL_0008:  ldftn      ""string Program.<<Main>$>g__Test|0_0(ref string)""
   IL_000e:  stelem.i
-  IL_000f:  call       ""void <Program>$.<<Main>$>g__Test1|0_1<string, string>(delegate*<ref string, string>[])""
+  IL_000f:  call       ""void Program.<<Main>$>g__Test1|0_1<string, string>(delegate*<ref string, string>[])""
   IL_0014:  ret
 }
 ");
@@ -2872,12 +2880,12 @@ unsafe class C
                 // (7,12): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
                 //         ptr?.ToString();
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(7, 12),
-                // (8,16): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                // (8,17): error CS8977: 'delegate*<void>' cannot be made nullable.
                 //         ptr = c?.GetPtr();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(8, 16),
-                // (9,11): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".GetPtr()").WithArguments("delegate*<void>").WithLocation(8, 17),
+                // (9,12): error CS8977: 'delegate*<void>' cannot be made nullable.
                 //         (c?.GetPtr())();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(9, 11)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".GetPtr()").WithArguments("delegate*<void>").WithLocation(9, 12)
             );
 
             var tree = comp.SyntaxTrees[0];
@@ -2915,14 +2923,14 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid
 
             VerifyOperationTreeForNode(comp, model, invocations[1], expectedOperationTree: @"
 IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'c?.GetPtr()')
-  Operation: 
-    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'c')
+  Operation:
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'c')
       Children(1):
-          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
-  WhenNotNull: 
+          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+  WhenNotNull:
     IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>, IsInvalid) (Syntax: '.GetPtr()')
-      Instance Receiver: 
-        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsInvalid, IsImplicit) (Syntax: 'c')
+      Instance Receiver:
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
       Arguments(0)
 ");
 
@@ -2936,14 +2944,14 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid
 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '(c?.GetPtr())()')
   Children(1):
       IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'c?.GetPtr()')
-        Operation: 
-          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'c')
+        Operation:
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'c')
             Children(1):
-                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
-        WhenNotNull: 
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+        WhenNotNull:
           IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>, IsInvalid) (Syntax: '.GetPtr()')
-            Instance Receiver: 
-              IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsInvalid, IsImplicit) (Syntax: 'c')
+            Instance Receiver:
+              IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
             Arguments(0)
 ");
 

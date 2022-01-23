@@ -269,20 +269,38 @@ namespace System.Runtime.CompilerServices
 
 namespace System.Threading.Tasks.Sources
 {
+    // From https://github.com/dotnet/runtime/blob/f580068aa93fb3c6d5fbc7e33f6cd7d52fa86b24/src/libraries/Microsoft.Bcl.AsyncInterfaces/src/System/Threading/Tasks/Sources/ManualResetValueTaskSourceCore.cs
     using System.Diagnostics;
     using System.Runtime.ExceptionServices;
     using System.Runtime.InteropServices;
 
+    /// <summary>Provides the core logic for implementing a manual-reset <see cref=""IValueTaskSource""/> or <see cref=""IValueTaskSource{TResult}""/>.</summary>
+    /// <typeparam name=""TResult""></typeparam>
     [StructLayout(LayoutKind.Auto)]
     public struct ManualResetValueTaskSourceCore<TResult>
     {
+        /// <summary>
+        /// The callback to invoke when the operation completes if <see cref=""OnCompleted""/> was called before the operation completed,
+        /// or <see cref=""ManualResetValueTaskSourceCoreShared.s_sentinel""/> if the operation completed before a callback was supplied,
+        /// or null if a callback hasn't yet been provided and the operation hasn't yet completed.
+        /// </summary>
         private Action<object> _continuation;
+        /// <summary>State to pass to <see cref=""_continuation""/>.</summary>
         private object _continuationState;
+        /// <summary><see cref=""ExecutionContext""/> to flow to the callback, or null if no flowing is required.</summary>
         private ExecutionContext _executionContext;
+        /// <summary>
+        /// A ""captured"" <see cref=""SynchronizationContext""/> or <see cref=""TaskScheduler""/> with which to invoke the callback,
+        /// or null if no special context is required.
+        /// </summary>
         private object _capturedContext;
+        /// <summary>Whether the current operation has completed.</summary>
         private bool _completed;
+        /// <summary>The result with which the operation succeeded, or the default value if it hasn't yet completed or failed.</summary>
         private TResult _result;
+        /// <summary>The exception with which the operation failed, or null if it hasn't yet completed or completed successfully.</summary>
         private ExceptionDispatchInfo _error;
+        /// <summary>The current version of this value, used to help prevent misuse.</summary>
         private short _version;
 
         /// <summary>Gets or sets whether to force continuations to run asynchronously.</summary>
@@ -303,42 +321,56 @@ namespace System.Threading.Tasks.Sources
             _continuationState = null;
         }
 
+        /// <summary>Completes with a successful result.</summary>
+        /// <param name=""result"">The result.</param>
         public void SetResult(TResult result)
         {
             _result = result;
             SignalCompletion();
         }
 
+        /// <summary>Complets with an error.</summary>
+        /// <param name=""error""></param>
         public void SetException(Exception error)
         {
             _error = ExceptionDispatchInfo.Capture(error);
             SignalCompletion();
         }
 
+        /// <summary>Gets the operation version.</summary>
         public short Version => _version;
 
+        /// <summary>Gets the status of the operation.</summary>
+        /// <param name=""token"">Opaque value that was provided to the <see cref=""ValueTask""/>'s constructor.</param>
         public ValueTaskSourceStatus GetStatus(short token)
         {
             ValidateToken(token);
             return
-                !_completed ? ValueTaskSourceStatus.Pending :
+                _continuation == null || !_completed ? ValueTaskSourceStatus.Pending :
                 _error == null ? ValueTaskSourceStatus.Succeeded :
                 _error.SourceException is OperationCanceledException ? ValueTaskSourceStatus.Canceled :
                 ValueTaskSourceStatus.Faulted;
         }
 
+        /// <summary>Gets the result of the operation.</summary>
+        /// <param name=""token"">Opaque value that was provided to the <see cref=""ValueTask""/>'s constructor.</param>
         public TResult GetResult(short token)
         {
             ValidateToken(token);
             if (!_completed)
             {
-                ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+                throw new InvalidOperationException();
             }
 
             _error?.Throw();
             return _result;
         }
 
+        /// <summary>Schedules the continuation action for this operation.</summary>
+        /// <param name=""continuation"">The continuation to invoke when the operation has completed.</param>
+        /// <param name=""state"">The state object to pass to <paramref name=""continuation""/> when it's invoked.</param>
+        /// <param name=""token"">Opaque value that was provided to the <see cref=""ValueTask""/>'s constructor.</param>
+        /// <param name=""flags"">The flags describing the behavior of the continuation.</param>
         public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags)
         {
             if (continuation == null)
@@ -389,7 +421,7 @@ namespace System.Threading.Tasks.Sources
                 // Operation already completed, so we need to queue the supplied callback.
                 if (!ReferenceEquals(oldContinuation, ManualResetValueTaskSourceCoreShared.s_sentinel))
                 {
-                    ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+                    throw new InvalidOperationException();
                 }
 
                 switch (_capturedContext)
@@ -413,19 +445,22 @@ namespace System.Threading.Tasks.Sources
             }
         }
 
+        /// <summary>Ensures that the specified token matches the current version.</summary>
+        /// <param name=""token"">The token supplied by <see cref=""ValueTask""/>.</param>
         private void ValidateToken(short token)
         {
             if (token != _version)
             {
-                ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+                throw new InvalidOperationException();
             }
         }
 
+        /// <summary>Signals that the operation has completed.  Invoked after the result or error has been set.</summary>
         private void SignalCompletion()
         {
             if (_completed)
             {
-                ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+                throw new InvalidOperationException();
             }
             _completed = true;
 
@@ -445,8 +480,15 @@ namespace System.Threading.Tasks.Sources
             }
         }
 
+        /// <summary>
+        /// Invokes the continuation with the appropriate captured context / scheduler.
+        /// This assumes that if <see cref=""_executionContext""/> is not null we're already
+        /// running within that <see cref=""ExecutionContext""/>.
+        /// </summary>
         private void InvokeContinuation()
         {
+            Debug.Assert(_continuation != null);
+
             switch (_capturedContext)
             {
                 case null:
@@ -477,13 +519,14 @@ namespace System.Threading.Tasks.Sources
 
     internal static class ManualResetValueTaskSourceCoreShared // separated out of generic to avoid unnecessary duplication
     {
-        internal static void ThrowInvalidOperationException() => throw new InvalidOperationException();
-
         internal static readonly Action<object> s_sentinel = CompletionSentinel;
         private static void CompletionSentinel(object _) // named method to aid debugging
         {
+            // Instrumented with FailFast to investigate CI failure:
+            // https://github.com/dotnet/roslyn/issues/34207
+            System.Environment.FailFast(""The sentinel delegate should never be invoked."");
             Debug.Fail(""The sentinel delegate should never be invoked."");
-            ThrowInvalidOperationException();
+            throw new InvalidOperationException();
         }
     }
 }
@@ -796,7 +839,7 @@ namespace System.Runtime.CompilerServices
             TargetFramework targetFramework = TargetFramework.Standard,
             Verification verify = Verification.Passes)
         {
-            options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
+            options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatements(source.GetSyntaxTrees(parseOptions)));
             var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
             return CompileAndVerify(
                 compilation,
@@ -876,7 +919,7 @@ namespace System.Runtime.CompilerServices
         {
             if ((object)options == null)
             {
-                options = TestOptions.Regular;
+                options = TestOptions.RegularPreview;
             }
 
             var stringText = StringText.From(text, encoding ?? Encoding.UTF8);
@@ -1106,12 +1149,7 @@ namespace System.Runtime.CompilerServices
         {
             var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName);
 
-            if (options == null)
-            {
-                bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
-
-                options = hasTopLevelStatements ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
-            }
+            options ??= CheckForTopLevelStatements(syntaxTrees);
 
             // Using single-threaded build if debugger attached, to simplify debugging.
             if (Debugger.IsAttached)
@@ -1121,7 +1159,7 @@ namespace System.Runtime.CompilerServices
 
             if (experimentalFeature.HasValue)
             {
-                parseOptions = (parseOptions ?? TestOptions.Regular).WithExperimental(experimentalFeature.Value);
+                parseOptions = (parseOptions ?? TestOptions.RegularPreview).WithExperimental(experimentalFeature.Value);
             }
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
@@ -1140,6 +1178,14 @@ namespace System.Runtime.CompilerServices
             }
 
             return compilation;
+        }
+
+        private static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
+        {
+            bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
+
+            var options = hasTopLevelStatements ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
+            return options;
         }
 
         private static void ValidateCompilation(Func<CSharpCompilation> createCompilationLambda)
@@ -1168,7 +1214,7 @@ namespace System.Runtime.CompilerServices
             {
                 if (resolvedReferences.Count() > used.Length)
                 {
-                    AssertSubset(used, resolvedReferences);
+                    assertSubset(used, resolvedReferences);
 
                     if (!compileDiagnostics.Any(d => d.Code == (int)ErrorCode.HDN_UnusedExternAlias || d.Code == (int)ErrorCode.HDN_UnusedUsingDirective))
                     {
@@ -1185,7 +1231,7 @@ namespace System.Runtime.CompilerServices
             }
             else
             {
-                AssertSubset(used, resolvedReferences);
+                assertSubset(used, resolvedReferences);
             }
 
             static bool shouldCompare(Diagnostic d)
@@ -1197,7 +1243,7 @@ namespace System.Runtime.CompilerServices
                        d.Code != (int)ErrorCode.WRN_SameFullNameThisAggNs;
             }
 
-            static void AssertSubset(ImmutableArray<MetadataReference> used, IEnumerable<MetadataReference> resolvedReferences)
+            static void assertSubset(ImmutableArray<MetadataReference> used, IEnumerable<MetadataReference> resolvedReferences)
             {
                 foreach (var reference in used)
                 {
@@ -1272,7 +1318,7 @@ namespace System.Runtime.CompilerServices
             return createCompilationLambda();
         }
 
-        private static ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
+        private static readonly ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
 
         public static CSharpCompilation CreateSubmission(
            string code,
@@ -1842,7 +1888,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
             bool useLatestFrameworkReferences = false)
@@ -1881,6 +1927,7 @@ namespace System.Runtime.CompilerServices
         {
             var tree = compilation.SyntaxTrees[0];
             SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            Debug.Assert(syntaxNode is not null, "Did you forget to place /*<bind>*/ comments in your source?");
             VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph);
         }
 
@@ -1892,7 +1939,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedOperationTree,
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
@@ -1927,7 +1974,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedOperationTree,
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions compilationOptions = null,
@@ -1947,7 +1994,7 @@ namespace System.Runtime.CompilerServices
                 additionalOperationTreeVerifier);
 
         protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedOperationTree,
             TargetFramework targetFramework,
             DiagnosticDescription[] expectedDiagnostics,
@@ -1958,8 +2005,9 @@ namespace System.Runtime.CompilerServices
             where TSyntaxNode : SyntaxNode
         {
             var compilation = CreateCompilation(
-                new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
+                testSrc,
                 references,
+                parseOptions: parseOptions,
                 options: compilationOptions,
                 targetFramework: targetFramework);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
@@ -1984,7 +2032,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedFlowGraph,
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions compilationOptions = null,
@@ -2004,7 +2052,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedFlowGraph,
             DiagnosticDescription[] expectedDiagnostics,
             TargetFramework targetFramework,
@@ -2014,8 +2062,9 @@ namespace System.Runtime.CompilerServices
             where TSyntaxNode : SyntaxNode
         {
             var compilation = CreateCompilation(
-                new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
+                testSrc,
                 references,
+                parseOptions: parseOptions,
                 options: compilationOptions,
                 targetFramework: targetFramework);
             VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedFlowGraph, expectedDiagnostics);
@@ -2041,7 +2090,7 @@ namespace System.Runtime.CompilerServices
 
         #region Span
 
-        protected static CSharpCompilation CreateCompilationWithSpan(SyntaxTree tree, CSharpCompilationOptions options = null)
+        protected static CSharpCompilation CreateCompilationWithSpan(CSharpTestSource tree, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateCompilation(
                 SpanSource,
@@ -2052,13 +2101,11 @@ namespace System.Runtime.CompilerServices
             var comp = CreateCompilation(
                 tree,
                 references: new[] { reference.EmitToImageReference() },
-                options: options);
+                options: options,
+                parseOptions: parseOptions);
 
             return comp;
         }
-
-        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
-            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s, options: parseOptions), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
@@ -2220,8 +2267,6 @@ namespace System
             }
 
             public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
-
-            public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
         }
 
         public readonly ref struct SpanLike<T>
@@ -2330,6 +2375,199 @@ namespace System
         }
         #endregion
 
+        #region Interpolated string handlers
+
+        internal static string GetInterpolatedStringHandlerDefinition(bool includeSpanOverloads, bool useDefaultParameters, bool useBoolReturns, string returnExpression = null, bool constructorBoolArg = false, bool constructorSuccessResult = true)
+        {
+            Debug.Assert(returnExpression == null || useBoolReturns);
+
+            var builder = new StringBuilder();
+            builder.AppendLine(@"
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    public ref partial struct DefaultInterpolatedStringHandler
+    {
+        private readonly StringBuilder _builder;
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount" + (constructorBoolArg ? ", out bool success" : "") + @")
+        {
+            _builder = new StringBuilder();
+            " + (constructorBoolArg ? $"success = {(constructorSuccessResult ? "true" : "false")};" : "") + @"
+        }
+        public string ToStringAndClear() => _builder.ToString();");
+
+            appendSignature("AppendLiteral(string s)");
+            appendBody(includeValue: false, includeAlignment: false, includeFormat: false, isSpan: false);
+
+            if (useDefaultParameters)
+            {
+                appendSignature("AppendFormatted<T>(T value, int alignment = 0, string format = null)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: false);
+                appendSignature("AppendFormatted(object value, int alignment = 0, string format = null)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: false);
+                appendSignature("AppendFormatted(string value, int alignment = 0, string format = null)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: false);
+            }
+            else
+            {
+                appendNonDefaultVariantsWithGenericAndType("T", "<T>");
+                appendNonDefaultVariantsWithGenericAndType("object", generic: null);
+                appendNonDefaultVariantsWithGenericAndType("string", generic: null);
+            }
+
+            if (includeSpanOverloads)
+            {
+                if (useDefaultParameters)
+                {
+                    appendSignature("AppendFormatted(ReadOnlySpan<char> value, int alignment = 0, string format = null)");
+                    appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: true);
+                }
+                else
+                {
+                    appendNonDefaultVariantsWithGenericAndType("ReadOnlySpan<char>", generic: null, isSpan: true);
+                }
+            }
+
+            builder.Append(@"
+    }
+}");
+            return builder.ToString();
+
+            void appendBody(bool includeValue, bool includeAlignment, bool includeFormat, bool isSpan)
+            {
+                if (includeValue)
+                {
+                    builder.Append($@"
+        {{
+            _builder.Append(""value:"");
+            _builder.Append(value{(isSpan ? "" : "?")}.ToString());");
+                }
+                else
+                {
+                    builder.Append(@"
+        {
+            _builder.Append(s);");
+                }
+
+                if (includeAlignment)
+                {
+                    builder.Append(@"
+            _builder.Append("",alignment:"");
+            _builder.Append(alignment);");
+                }
+
+                if (includeFormat)
+                {
+                    builder.Append(@"
+            _builder.Append("":format:"");
+            _builder.Append(format);");
+                }
+
+                builder.Append(@"
+            _builder.AppendLine();");
+
+                if (useBoolReturns)
+                {
+                    builder.Append($@"
+            return {returnExpression ?? "true"};");
+                }
+
+                builder.AppendLine(@"
+        }");
+            }
+
+            void appendSignature(string nameAndParams)
+            {
+                builder.Append(@$"
+        public {(useBoolReturns ? "bool" : "void")} {nameAndParams}");
+            }
+
+            void appendNonDefaultVariantsWithGenericAndType(string type, string generic, bool isSpan = false)
+            {
+                appendSignature($"AppendFormatted{generic}({type} value)");
+                appendBody(includeValue: true, includeAlignment: false, includeFormat: false, isSpan);
+                appendSignature($"AppendFormatted{generic}({type} value, int alignment)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: false, isSpan);
+                appendSignature($"AppendFormatted{generic}({type} value, string format)");
+                appendBody(includeValue: true, includeAlignment: false, includeFormat: true, isSpan);
+                appendSignature($"AppendFormatted{generic}({type} value, int alignment, string format)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan);
+            }
+        }
+
+        internal const string InterpolatedStringHandlerAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
+    public sealed class InterpolatedStringHandlerAttribute : Attribute
+    {
+        public InterpolatedStringHandlerAttribute()
+        {
+        }
+    }
+}
+";
+
+        internal static string GetInterpolatedStringCustomHandlerType(string name, string type, bool useBoolReturns, bool includeOneTimeHelpers = true, bool includeTrailingOutConstructorParameter = false)
+        {
+            var returnType = useBoolReturns ? "bool" : "void";
+            var returnStatement = useBoolReturns ? "return true;" : "return;";
+
+            var cultureInfoHandler = @"
+public class CultureInfoNormalizer
+{
+    public static void Normalize()
+    {
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+    }
+}
+";
+
+            var nameWithGenericsTrimmed = name.IndexOf("<") is not -1 and var index ? name[..index] : name;
+
+            return (includeOneTimeHelpers ? "using System.Globalization;\n" : "") + @"
+using System.Text;
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public " + type + " " + name + @"
+{
+    private readonly StringBuilder _builder;
+    public " + nameWithGenericsTrimmed + @"(int literalLength, int formattedCount" + (includeTrailingOutConstructorParameter ? ", out bool success" : "") + @")
+    {
+        " + (includeTrailingOutConstructorParameter ? "success = true;" : "") + @"
+        _builder = new();
+    }
+    public " + returnType + @" AppendLiteral(string literal)
+    {
+        _builder.AppendLine(""literal:"" + literal);
+        " + returnStatement + @"
+    }
+    public " + returnType + @" AppendFormatted(object o, int alignment = 0, string format = null)
+    {
+        _builder.AppendLine(""value:"" + o?.ToString());
+        _builder.AppendLine(""alignment:"" + alignment.ToString());
+        _builder.AppendLine(""format:"" + format);
+        " + returnStatement + @"
+    }
+    public override string ToString() => _builder.ToString();
+}
+" + (includeOneTimeHelpers ? InterpolatedStringHandlerAttribute + cultureInfoHandler : "");
+        }
+
+        internal const string InterpolatedStringHandlerArgumentAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    public sealed class InterpolatedStringHandlerArgumentAttribute : Attribute
+    {
+        public InterpolatedStringHandlerArgumentAttribute(string argument) => Arguments = new string[] { argument };
+        public InterpolatedStringHandlerArgumentAttribute(params string[] arguments) => Arguments = arguments;
+        public string[] Arguments { get; }
+    }
+}
+";
+
+        #endregion
+
         #region Theory Helpers
 
         public static IEnumerable<object[]> NonNullTypesTrueAndFalseDebugDll
@@ -2352,6 +2590,18 @@ namespace System
                 {
                     new object[] { WithNullableEnable(TestOptions.ReleaseDll) },
                     new object[] { WithNullableDisable(TestOptions.ReleaseDll) }
+                };
+            }
+        }
+
+        public static IEnumerable<object[]> FileScopedOrBracedNamespace
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { ";", "" },
+                    new object[] { "{", "}" }
                 };
             }
         }

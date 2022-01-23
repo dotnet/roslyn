@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var definition = await SymbolFinder.FindSourceDefinitionAsync(original, _document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 TypeToGenerateIn = definition as INamedTypeSymbol;
 
-                return TypeToGenerateIn?.TypeKind == TypeKind.Class || TypeToGenerateIn?.TypeKind == TypeKind.Struct;
+                return TypeToGenerateIn?.TypeKind is (TypeKind?)TypeKind.Class or (TypeKind?)TypeKind.Struct;
             }
 
             private void GetParameters(
@@ -598,9 +598,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     document.Project.Solution,
                     TypeToGenerateIn,
                     members.Concat(constructor),
-                    new CodeGenerationOptions(
-                        Token.GetLocation(),
-                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
+                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -654,9 +652,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         preferThrowExpression: false,
                         generateProperties: withProperties,
                         IsContainedInUnsafeType),
-                    new CodeGenerationOptions(
-                        Token.GetLocation(),
-                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
+                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
         }

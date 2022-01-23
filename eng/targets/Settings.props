@@ -11,7 +11,7 @@
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
-    <LanguageServicesExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
+    <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
 
@@ -43,7 +43,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
     The project name is non-deterministic and is included in the Source Link json file name and xlf directory names.
     It's also not necessary to generate these assets.
@@ -60,7 +60,7 @@
       These may be overridden by projects that need to be skipped.
     -->
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp3.1;net5.0</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">net6.0</TestTargetFrameworks>
 
     <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitDesktopSettingsFile>
     <XUnitCoreSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitCoreSettingsFile>
@@ -83,19 +83,19 @@
     <OmniSharpKey>0024000004800000940000000602000000240000525341310004000001000100917302efc152e6464679d4625bd9989e12d4662a9eaadf284d04992881c0e7b16e756e63ef200a02c4054d4d31e21b9aa0b0b873bcefca8cd42ec583a3db509665c9b22318ceceec581663fc07e2422bb2135539ba8a517c209ac175fff07c5af10cef636e04cae91d28f51fcde5d14c1a9bfed06e096cf977fd0d60002a3ea6</OmniSharpKey>
   </PropertyGroup>
 
-  <!-- 
-       Enable hard links for the build. This is not done by default due to fears about 
+  <!--
+       Enable hard links for the build. This is not done by default due to fears about
        inadvertently corrupting the NuGet cache (hard links in the output directory will
        point into the cache). The build itself will not due this but a developer directly
        modifying this directory could cause it to happen.
 
-       Developers who do not modify the output directory directly can enable this safely 
+       Developers who do not modify the output directory directly can enable this safely
 
        Related discussion in https://github.com/dotnet/roslyn/issues/30005
   -->
   <PropertyGroup Condition="'$(ROSLYNUSEHARDLINKS)' != ''">
     <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
-    <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible> 
+    <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible>
     <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
     <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
   </PropertyGroup>
@@ -111,7 +111,7 @@
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Bootstrapping compilers
   -->
   <Import Project="Bootstrap.props" Condition="'$(BootstrapBuildPath)' != ''" />
@@ -131,14 +131,14 @@
     <EnableNetAnalyzers>false</EnableNetAnalyzers>
   </PropertyGroup>
 
-  <!-- 
+  <!--
      Code indexing targets to help generating LSIF from indexing builds.
   -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
     <PackageReference Include="RichCodeNav.EnvVarDump" Version="$(RichCodeNavEnvVarDumpVersion)" PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- 
+  <!--
     Don't inject PerformanceSensitiveAttribute source by default to avoid duplicate definitions caused by IVT.
     This needs to be set to true in projects at the root of IVT trees, in order for PerformanceSensitiveAnalyzers to work.
   -->

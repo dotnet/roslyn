@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -339,6 +340,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+            string[] files,
+            VisualBasic.VisualBasicParseOptions parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            string assemblyName = null,
+            IEnumerable<MetadataReference> referencedAssemblies = null)
+        {
+            return CreateVisualBasicCompilation(assemblyName, files, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
+        }
+
+        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
             string assemblyName,
             string code,
             VisualBasic.VisualBasicParseOptions parseOptions = null,
@@ -347,7 +358,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<Compilation> referencedCompilations = null,
             Encoding encoding = null,
             string sourceFileName = null)
+            => CreateVisualBasicCompilation(assemblyName, new[] { code }, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations, encoding, new[] { sourceFileName });
+
+        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+            string assemblyName,
+            string[] files,
+            VisualBasic.VisualBasicParseOptions parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            IEnumerable<MetadataReference> referencedAssemblies = null,
+            IEnumerable<Compilation> referencedCompilations = null,
+            Encoding encoding = null,
+            string[] sourceFileNames = null)
         {
+            Debug.Assert(sourceFileNames == null || sourceFileNames.Length == files.Length);
             if (assemblyName == null)
             {
                 assemblyName = GetUniqueName();
@@ -381,9 +404,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AddReferencedCompilations(referencedCompilations, references);
 
-            var tree = VisualBasic.VisualBasicSyntaxTree.ParseText(code, options: parseOptions, encoding: encoding, path: sourceFileName);
+            var trees = new SyntaxTree[files.Length];
+            for (int i = 0; i < files.Length; i++)
+            {
+                trees[i] = VisualBasic.VisualBasicSyntaxTree.ParseText(files[i], options: parseOptions, encoding: encoding, path: sourceFileNames?[i]);
+            }
 
-            return VisualBasic.VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
+
+            return VisualBasic.VisualBasicCompilation.Create(assemblyName, trees, references, compilationOptions);
         }
 
         private void AddReferencedCompilations(IEnumerable<Compilation> referencedCompilations, List<MetadataReference> references)
@@ -521,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void CollectParentOperations(IOperation operation, Dictionary<IOperation, IOperation> map)
         {
             // walk down to collect all parent operation map for this tree
-            foreach (var child in operation.Children.WhereNotNull())
+            foreach (var child in operation.ChildOperations)
             {
                 map.Add(child, operation);
 

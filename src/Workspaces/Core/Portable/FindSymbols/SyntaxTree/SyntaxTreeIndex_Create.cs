@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,15 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
         // otherwise we would not be able to get correct data from syntax.
-        bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
-
-        // Get the name of the receiver type of specified extension method declaration node.
-        // The returned value would be "" or "[]" for complex types.
-        string GetReceiverTypeName(SyntaxNode node);
-
-        bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
-
-        string GetRootNamespace(CompilationOptions compilationOptions);
+        void AddDeclaredSymbolInfos(Document document, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
     }
 
     internal sealed partial class SyntaxTreeIndex
@@ -53,18 +44,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// this string table.  The table will have already served its purpose at that point and 
         /// doesn't need to be kept around further.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable =
-            new();
+        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable = new();
 
         private static async Task<SyntaxTreeIndex> CreateIndexAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
-            var project = document.Project;
-            var stringTable = GetStringTable(project);
+            Contract.ThrowIfFalse(document.SupportsSyntaxTree);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var infoFactory = document.GetLanguageService<IDeclaredSymbolInfoFactoryService>();
-            var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return CreateIndex(document, root, checksum, cancellationToken);
+        }
+
+        private static SyntaxTreeIndex CreateIndex(
+            Document document, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var infoFactory = document.GetRequiredLanguageService<IDeclaredSymbolInfoFactoryService>();
+            var ignoreCase = !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
             GetIdentifierSet(ignoreCase, out var identifiers, out var escapedIdentifiers);
@@ -72,9 +68,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
-            var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
-            var extensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
-            using var _ = PooledDictionary<string, string>.GetInstance(out var usingAliases);
+            using var _1 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
+            using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
+            HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
 
             try
             {
@@ -90,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
                 var containsImplicitObjectCreation = false;
-                var containsGlobalAttributes = false;
+                var containsGlobalSuppressMessageAttribute = false;
                 var containsConversion = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
@@ -98,14 +94,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (syntaxFacts != null)
                 {
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var rootNamespace = infoFactory.GetRootNamespace(project.CompilationOptions);
-
                     foreach (var current in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
                     {
                         if (current.IsNode)
                         {
-                            var node = (SyntaxNode)current;
+                            var node = current.AsNode();
+                            Contract.ThrowIfNull(node);
 
                             containsForEachStatement = containsForEachStatement || syntaxFacts.IsForEachStatement(node);
                             containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
@@ -121,71 +115,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
-                            containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
+                            containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                             containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
 
-                            if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
-                            {
-                                foreach (var (aliasName, name) in aliases)
-                                {
-                                    // In C#, it's valid to declare two alias with identical name,
-                                    // as long as they are in different containers.
-                                    //
-                                    // e.g.
-                                    //      using X = System.String;
-                                    //      namespace N
-                                    //      {
-                                    //          using X = System.Int32;
-                                    //      }
-                                    //
-                                    // If we detect this, we will simply treat extension methods whose
-                                    // target type is this alias as complex method.
-                                    if (usingAliases.ContainsKey(aliasName))
-                                    {
-                                        usingAliases[aliasName] = null;
-                                    }
-                                    else
-                                    {
-                                        usingAliases[aliasName] = name;
-                                    }
-                                }
-                            }
-
-                            // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
-                            // crash because the document's syntax root doesn't contain the span of the node returned
-                            // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
-                            //   1) syntaxFacts.TryGetDeclaredSymbolInfo() is returning a bad span, or
-                            //   2) Document.GetSyntaxRootAsync() (called from DeclaredSymbolInfo.GetSymbolAsync) is
-                            //      returning a bad syntax root that doesn't represent the original parsed document.
-                            // By adding the `root.FullSpan.Contains()` check below, if we get similar crash reports in
-                            // the future then we know the problem lies in (2).  If, however, the problem is really in
-                            // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
-                            // and will prevent the crash from occurring.
-                            if (infoFactory.TryGetDeclaredSymbolInfo(stringTable, node, rootNamespace, out var declaredSymbolInfo))
-                            {
-                                if (root.FullSpan.Contains(declaredSymbolInfo.Span))
-                                {
-                                    var declaredSymbolInfoIndex = declaredSymbolInfos.Count;
-                                    declaredSymbolInfos.Add(declaredSymbolInfo);
-
-                                    AddExtensionMethodInfo(
-                                        infoFactory,
-                                        node,
-                                        usingAliases,
-                                        declaredSymbolInfoIndex,
-                                        declaredSymbolInfo,
-                                        extensionMethodInfoBuilder);
-                                }
-                                else
-                                {
-                                    var message =
-$@"Invalid span in {nameof(declaredSymbolInfo)}.
-{nameof(declaredSymbolInfo.Span)} = {declaredSymbolInfo.Span}
-{nameof(root.FullSpan)} = {root.FullSpan}";
-
-                                    FatalError.ReportAndCatch(new InvalidOperationException(message));
-                                }
-                            }
+                            TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                         }
                         else
                         {
@@ -223,7 +156,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
                             if (syntaxFacts.IsCharacterLiteral(token))
                             {
-                                longLiterals.Add((char)token.Value);
+                                longLiterals.Add((char)token.Value!);
                             }
 
                             if (syntaxFacts.IsNumericLiteral(token))
@@ -247,6 +180,9 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             }
                         }
                     }
+
+                    infoFactory.AddDeclaredSymbolInfos(
+                        document, root, declaredSymbolInfos, extensionMethodInfo, cancellationToken);
                 }
 
                 return new SyntaxTreeIndex(
@@ -271,14 +207,14 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsAwait,
                             containsTupleExpressionOrTupleType,
                             containsImplicitObjectCreation,
-                            containsGlobalAttributes,
+                            containsGlobalSuppressMessageAttribute,
                             containsConversion),
-                    new DeclarationInfo(
-                            declaredSymbolInfos.ToImmutable()),
+                    new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
-                        extensionMethodInfoBuilder.ToImmutableDictionary(
+                        extensionMethodInfo.ToImmutableDictionary(
                             static kvp => kvp.Key,
-                            static kvp => kvp.Value.ToImmutable())));
+                            static kvp => kvp.Value.ToImmutable())),
+                    globalAliasInfo);
             }
             finally
             {
@@ -286,58 +222,64 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 StringLiteralHashSetPool.ClearAndFree(stringLiterals);
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
 
-                foreach (var (_, builder) in extensionMethodInfoBuilder)
-                {
+                foreach (var (_, builder) in extensionMethodInfo)
                     builder.Free();
-                }
-
-                extensionMethodInfoBuilder.Free();
-                declaredSymbolInfos.Free();
             }
         }
 
-        private static void AddExtensionMethodInfo(
-            IDeclaredSymbolInfoFactoryService infoFactory,
-            SyntaxNode node,
-            PooledDictionary<string, string> aliases,
-            int declaredSymbolInfoIndex,
-            DeclaredSymbolInfo declaredSymbolInfo,
-            PooledDictionary<string, ArrayBuilder<int>> extensionMethodsInfoBuilder)
+        private static bool IsGlobalSuppressMessageAttribute(ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
-            if (declaredSymbolInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
+            if (!syntaxFacts.IsGlobalAttribute(node))
+                return false;
+
+            var name = syntaxFacts.GetNameOfAttribute(node);
+            if (syntaxFacts.IsQualifiedName(name))
             {
-                return;
+                syntaxFacts.GetPartsOfQualifiedName(name, out _, out _, out var right);
+                name = right;
             }
 
-            var receiverTypeName = infoFactory.GetReceiverTypeName(node);
+            if (!syntaxFacts.IsIdentifierName(name))
+                return false;
 
-            // Target type is an alias
-            if (aliases.TryGetValue(receiverTypeName, out var originalName))
-            {
-                // it is an alias of multiple with identical name,
-                // simply treat it as a complex method.
-                if (originalName == null)
-                {
-                    receiverTypeName = Extensions.ComplexReceiverTypeName;
-                }
-                else
-                {
-                    // replace the alias with its original name.
-                    receiverTypeName = originalName;
-                }
-            }
+            var identifier = syntaxFacts.GetIdentifierOfIdentifierName(name);
+            var identifierName = identifier.ValueText;
 
-            if (!extensionMethodsInfoBuilder.TryGetValue(receiverTypeName, out var arrayBuilder))
-            {
-                arrayBuilder = ArrayBuilder<int>.GetInstance();
-                extensionMethodsInfoBuilder[receiverTypeName] = arrayBuilder;
-            }
-
-            arrayBuilder.Add(declaredSymbolInfoIndex);
+            return
+                syntaxFacts.StringComparer.Equals(identifierName, "SuppressMessage") ||
+                syntaxFacts.StringComparer.Equals(identifierName, nameof(SuppressMessageAttribute));
         }
 
-        private static StringTable GetStringTable(Project project)
-            => s_projectStringTable.GetValue(project, _ => StringTable.GetInstance());
+        private static void TryAddGlobalAliasInfo(
+            ISyntaxFactsService syntaxFacts,
+            ref HashSet<(string alias, string name, int arity)>? globalAliasInfo,
+            SyntaxNode node)
+        {
+            if (!syntaxFacts.IsUsingAliasDirective(node))
+                return;
+
+            syntaxFacts.GetPartsOfUsingAliasDirective(node, out var globalToken, out var alias, out var usingTarget);
+            if (globalToken.IsMissing)
+                return;
+
+            // if we have `global using X = Y.Z` then walk down the rhs to pull out 'Z'.
+            if (syntaxFacts.IsQualifiedName(usingTarget))
+            {
+                syntaxFacts.GetPartsOfQualifiedName(usingTarget, out _, out _, out var right);
+                usingTarget = right;
+            }
+
+            // We'll have either `= ...X` or `= ...X<A, B, C>` now.  Pull out the name and arity to put in the index.
+            if (syntaxFacts.IsSimpleName(usingTarget))
+            {
+                syntaxFacts.GetNameAndArityOfSimpleName(usingTarget, out var name, out var arity);
+                globalAliasInfo ??= new();
+                globalAliasInfo.Add((alias.ValueText, name, arity));
+            }
+        }
+
+        public static StringTable GetStringTable(Project project)
+            => s_projectStringTable.GetValue(project, static _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)
         {

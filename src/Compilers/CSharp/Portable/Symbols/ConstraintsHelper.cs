@@ -1056,7 +1056,20 @@ hasRelatedInterfaces:
             ErrorCode errorCode;
             if (typeArgument.Type.IsReferenceType)
             {
-                errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedRefType;
+                // When constraint has static abstract members this needs to be further restricted so that generic argument cannot itself be an interface.
+                if (typeArgument.Type.IsInterfaceType() && constraintType.Type.IsInterfaceType() &&
+                    args.Conversions.WithNullability(false).HasIdentityOrImplicitReferenceConversion(typeArgument.Type, constraintType.Type, ref useSiteInfo))
+                {
+#if DEBUG
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    Debug.Assert(SelfOrBaseHasStaticAbstractMember(constraintType, ref discardedUseSiteInfo));
+#endif
+                    errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers;
+                }
+                else
+                {
+                    errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedRefType;
+                }
             }
             else if (typeArgument.IsNullableType())
             {
@@ -1071,8 +1084,22 @@ hasRelatedInterfaces:
                 errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedValType;
             }
 
-            SymbolDistinguisher distinguisher = new SymbolDistinguisher(args.CurrentCompilation, constraintType.Type, typeArgument.Type);
-            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(errorCode, containingSymbol.ConstructedFrom(), distinguisher.First, typeParameter, distinguisher.Second))));
+            object constraintTypeErrorArgument;
+            object typeArgumentErrorArgument;
+
+            if (constraintType.Type.Equals(typeArgument.Type, TypeCompareKind.AllIgnoreOptions))
+            {
+                constraintTypeErrorArgument = constraintType.Type;
+                typeArgumentErrorArgument = typeArgument.Type;
+            }
+            else
+            {
+                SymbolDistinguisher distinguisher = new SymbolDistinguisher(args.CurrentCompilation, constraintType.Type, typeArgument.Type);
+                constraintTypeErrorArgument = distinguisher.First;
+                typeArgumentErrorArgument = distinguisher.Second;
+            }
+
+            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(errorCode, containingSymbol.ConstructedFrom(), constraintTypeErrorArgument, typeParameter, typeArgumentErrorArgument))));
             hasError = true;
 
             static NullableFlowState getTypeArgumentState(in TypeWithAnnotations typeWithAnnotations)
@@ -1212,6 +1239,13 @@ hasRelatedInterfaces:
 
             if (conversions.HasIdentityOrImplicitReferenceConversion(typeArgument.Type, constraintType.Type, ref useSiteInfo))
             {
+                // When constraint has static abstract members this needs to be further restricted so that generic argument cannot itself be an interface.
+                if (typeArgument.Type.IsInterfaceType() && constraintType.Type.IsInterfaceType() &&
+                    SelfOrBaseHasStaticAbstractMember(constraintType, ref useSiteInfo))
+                {
+                    return false;
+                }
+
                 return true;
             }
 
@@ -1244,6 +1278,32 @@ hasRelatedInterfaces:
                         return true;
                     }
                 }
+            }
+
+            return false;
+        }
+
+        private static bool SelfOrBaseHasStaticAbstractMember(TypeWithAnnotations constraintType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(constraintType.Type.IsInterfaceType());
+
+            Func<Symbol, bool> predicate = static m => m.IsStatic && m.IsAbstract;
+            var definition = (NamedTypeSymbol)constraintType.Type.OriginalDefinition;
+
+            if (definition.GetMembersUnordered().Any(predicate))
+            {
+                return true;
+            }
+
+            foreach (var baseInterface in definition.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
+            {
+                var baseDefinition = baseInterface.OriginalDefinition;
+                if (baseDefinition.GetMembersUnordered().Any(predicate))
+                {
+                    return true;
+                }
+
+                baseDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
             return false;
@@ -1287,12 +1347,14 @@ hasRelatedInterfaces:
             switch (typeArgument.TypeKind)
             {
                 case TypeKind.Struct:
+                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: true);
+
                 case TypeKind.Enum:
                 case TypeKind.Dynamic:
                     return true;
 
                 case TypeKind.Class:
-                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument) && !typeArgument.IsAbstract;
+                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: false) && !typeArgument.IsAbstract;
 
                 case TypeKind.TypeParameter:
                     {
@@ -1310,11 +1372,11 @@ hasRelatedInterfaces:
         }
 
         /// <summary>
-        /// Return true if the class type has a public parameterless constructor.
+        /// Return true if the type has a public parameterless constructor.
         /// </summary>
-        private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type)
+        private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type, bool synthesizedIfMissing)
         {
-            Debug.Assert(type.TypeKind == TypeKind.Class);
+            Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
             foreach (var constructor in type.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
@@ -1322,7 +1384,7 @@ hasRelatedInterfaces:
                     return constructor.DeclaredAccessibility == Accessibility.Public;
                 }
             }
-            return false;
+            return synthesizedIfMissing;
         }
 
         /// <summary>

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
@@ -38,9 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
-
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos
-            = new();
+        private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos = new();
 
         /// <summary>
         /// Remote service connection. Created on demand when we startup and then
@@ -61,11 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         public VisualStudioTodoCommentsService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
             : base(threadingContext)
         {
             _workspace = workspace;
             _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
+            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TodoCommentList);
         }
 
         public void Dispose()
@@ -106,7 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 new AsyncBatchingWorkQueue<DocumentAndComments>(
                     TimeSpan.FromSeconds(1),
                     ProcessTodoCommentInfosAsync,
+                    _asyncListener,
                     cancellationToken));
+
+            // Now that we've started, let the VS todo list know to start listening to us
+            _eventListenerTracker.EnsureEventListener(_workspace, this);
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -118,9 +124,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
             _lazyConnection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callbackTarget: this);
-
-            // Now that we've started, let the VS todo list know to start listening to us
-            _eventListenerTracker.EnsureEventListener(_workspace, this);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.
@@ -142,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                     workspaceKinds: WorkspaceKind.Host));
         }
 
-        private Task ProcessTodoCommentInfosAsync(
+        private ValueTask ProcessTodoCommentInfosAsync(
             ImmutableArray<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -181,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 }
             }
 
-            return Task.CompletedTask;
+            return ValueTaskFactory.CompletedTask;
         }
 
         private void AddFilteredInfos(

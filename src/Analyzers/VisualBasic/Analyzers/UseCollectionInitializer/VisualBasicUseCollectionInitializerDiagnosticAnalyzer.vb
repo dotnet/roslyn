@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax)
 
-        Protected Overrides Function AreCollectionInitializersSupported(context As SyntaxNodeAnalysisContext) As Boolean
+        Protected Overrides Function AreCollectionInitializersSupported(compilation As Compilation) As Boolean
             Return True
         End Function
 

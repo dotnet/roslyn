@@ -173,7 +173,8 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "rel/d16.10",
-      "vsMajorVersion": 16
+      "vsMajorVersion": 16,
+      "insertionTitlePrefix": "[d16.10]"
     },
     "release/dev16.11-vs-deps": {
       "nugetKind": [
@@ -184,40 +185,8 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "rel/d16.11",
-      "vsMajorVersion": 16
-    },
-    "main-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 17
-    },
-    "release/dev17.0-preview1-nopia-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "feature/d17initial",
-      "vsMajorVersion": 17
-    },
-    "release/dev17.0-preview1-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "feature/d17initial",
-      "vsMajorVersion": 17
+      "vsMajorVersion": 16,
+      "insertionTitlePrefix": "[d16.11]"
     },
     "release/dev17.0-vs-deps": {
       "nugetKind": [
@@ -227,19 +196,35 @@
       "version": "4.0.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 17
+      "vsBranch": "rel/d17.0",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.0]"
+    },
+    "release/dev17.1-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "version": "4.1.*",
+      "packageFeeds": "default",
+      "channels": [],
+      "vsBranch": "rel/d17.1",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.1p3]"
     },
     "main": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "version": "4.0.*",
-      "packageFeeds": "arcade",
+      "version": "4.1.*",
+      "packageFeeds": "default",
       "channels": [],
       "vsBranch": "main",
-      "vsMajorVersion": 17
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.2p1]"
     },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",

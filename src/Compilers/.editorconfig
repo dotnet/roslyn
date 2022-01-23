@@ -2,6 +2,9 @@
 [*.{cs,vb}]
 # Local functions are camelCase
 dotnet_naming_style.local_function_style.capitalization = camel_case
+dotnet_naming_rule.local_functions_should_be_camel_case.severity = warning
+dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
+dotnet_naming_rule.local_functions_should_be_camel_case.style = local_function_style
 
 # RS0100: Statements must be placed on their own line
 dotnet_diagnostic.RS0100.severity = none
@@ -17,3 +20,7 @@ dotnet_diagnostic.RS0102.severity = none
 csharp_style_var_for_built_in_types = false:none
 csharp_style_var_when_type_is_apparent = true:none
 csharp_style_var_elsewhere = false:none
+
+# XML files
+[*.xml]
+indent_size = 2

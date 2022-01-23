@@ -3,15 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     /// The threading model for this class is simple: all non-static members are affinitized to the
     /// UI thread.
     /// </remarks>
-    internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, INavigationBarController
+    internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, IDisposable
     {
         private readonly INavigationBarPresenter _presenter;
         private readonly ITextBuffer _subjectBuffer;
@@ -36,20 +37,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private readonly IAsynchronousOperationListener _asyncListener;
 
         private bool _disconnected = false;
-        private Workspace? _workspace;
-
-        /// <summary>
-        /// Latest model and selected items produced once <see cref="DetermineSelectedItemInfoAsync"/> completes and
-        /// presents the single item to the view.  These can then be read in when the dropdown is expanded and we want
-        /// to show all items.
-        /// </summary>
-        private (NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _latestModelAndSelectedInfo_OnlyAccessOnUIThread;
 
         /// <summary>
         /// The last full information we have presented. If we end up wanting to present the same thing again, we can
         /// just skip doing that as the UI will already know about this.
         /// </summary>
-        private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
+        private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel? model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
+
+        /// <summary>
+        /// Source of events that should cause us to update the nav bar model with new information.
+        /// </summary>
+        private readonly ITaggerEventSource _eventSource;
+
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+        /// <summary>
+        /// Queue to batch up work to do to compute the current model.  Used so we can batch up a lot of events and only
+        /// compute the model once for every batch.  The <c>bool</c> type parameter isn't used, but is provided as this
+        /// type is generic.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue<bool, NavigationBarModel?> _computeModelQueue;
+
+        /// <summary>
+        /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and
+        /// only compute the selected item once for every batch.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue _selectItemQueue;
 
         public NavigationBarController(
             IThreadingContext threadingContext,
@@ -64,201 +77,91 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _asyncListener = asyncListener;
 
+            _computeModelQueue = new AsyncBatchingWorkQueue<bool, NavigationBarModel?>(
+                TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
+                ComputeModelAndSelectItemAsync,
+                EqualityComparer<bool>.Default,
+                asyncListener,
+                _cancellationTokenSource.Token);
+
+            _selectItemQueue = new AsyncBatchingWorkQueue(
+                TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay),
+                SelectItemAsync,
+                asyncListener,
+                _cancellationTokenSource.Token);
+
             presenter.CaretMoved += OnCaretMoved;
             presenter.ViewFocused += OnViewFocused;
 
-            presenter.DropDownFocused += OnDropDownFocused;
             presenter.ItemSelected += OnItemSelected;
 
-            subjectBuffer.PostChanged += OnSubjectBufferPostChanged;
+            // Use 'compilation available' as that may produce different results from the initial 'frozen partial'
+            // snapshot we use.
+            _eventSource = new CompilationAvailableTaggerEventSource(
+                subjectBuffer,
+                asyncListener,
+                // Any time an edit happens, recompute as the nav bar items may have changed.
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                // Switching what is the active context may change the nav bar contents.
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                // Many workspace changes may need us to change the items (like options changing, or project renaming).
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
+                // Once we hook this buffer up to the workspace, then we can start computing the nav bar items.
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
+            _eventSource.Changed += OnEventSourceChanged;
+            _eventSource.Connect();
 
-            // Initialize the tasks to be an empty model so we never have to deal with a null case.
-            _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model = new(
-                ImmutableArray<NavigationBarItem>.Empty,
-                semanticVersionStamp: default,
-                itemService: null!);
-            _latestModelAndSelectedInfo_OnlyAccessOnUIThread.selectedInfo = new(typeItem: null, memberItem: null);
-
-            _modelTask = Task.FromResult(_latestModelAndSelectedInfo_OnlyAccessOnUIThread.model);
+            // Kick off initial work to populate the navbars
+            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        public void SetWorkspace(Workspace? newWorkspace)
+        public TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+        private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
         {
-            DisconnectFromWorkspace();
-
-            if (newWorkspace != null)
-            {
-                ConnectToWorkspace(newWorkspace);
-            }
+            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        private void ConnectToWorkspace(Workspace workspace)
-        {
-            // If we disconnected before the workspace ever connected, just disregard
-            if (_disconnected)
-            {
-                return;
-            }
-
-            _workspace = workspace;
-            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-            _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
-
-            if (IsForeground())
-            {
-                ConnectToNewWorkspace();
-            }
-            else
-            {
-                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ConnectToWorkspace));
-                Task.Run(async () =>
-                {
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    ConnectToNewWorkspace();
-                }).CompletesAsyncOperation(asyncToken);
-            }
-
-            return;
-
-            void ConnectToNewWorkspace()
-            {
-                // For the first time you open the file, we'll start immediately
-                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-            }
-        }
-
-        private void DisconnectFromWorkspace()
-        {
-            if (_workspace != null)
-            {
-                _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
-                _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
-                _workspace = null;
-            }
-        }
-
-        public void Disconnect()
+        void IDisposable.Dispose()
         {
             AssertIsForeground();
-            DisconnectFromWorkspace();
-
-            _subjectBuffer.PostChanged -= OnSubjectBufferPostChanged;
 
             _presenter.CaretMoved -= OnCaretMoved;
             _presenter.ViewFocused -= OnViewFocused;
 
-            _presenter.DropDownFocused -= OnDropDownFocused;
             _presenter.ItemSelected -= OnItemSelected;
 
             _presenter.Disconnect();
 
+            _eventSource.Changed -= OnEventSourceChanged;
+            _eventSource.Disconnect();
+
             _disconnected = true;
 
             // Cancel off any remaining background work
-            _modelTaskCancellationSource.Cancel();
-            _selectedItemInfoTaskCancellationSource.Cancel();
+            _cancellationTokenSource.Cancel();
         }
 
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
+        private void StartModelUpdateAndSelectedItemUpdateTasks()
         {
-            // We're getting an event for a workspace we already disconnected from
-            if (args.NewSolution.Workspace != _workspace)
-            {
-                return;
-            }
-
-            // If the displayed project is being renamed, retrigger the update
-            if (args.Kind == WorkspaceChangeKind.ProjectChanged && args.ProjectId != null)
-            {
-                var oldProject = args.OldSolution.GetRequiredProject(args.ProjectId);
-                var newProject = args.NewSolution.GetRequiredProject(args.ProjectId);
-
-                if (oldProject.Name != newProject.Name)
-                {
-                    var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-
-                    if (currentContextDocumentId != null && currentContextDocumentId.ProjectId == args.ProjectId)
-                    {
-                        StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-                    }
-                }
-            }
-
-            if (args.Kind == WorkspaceChangeKind.DocumentChanged &&
-                args.OldSolution == args.NewSolution)
-            {
-                var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-                if (currentContextDocumentId != null && currentContextDocumentId == args.DocumentId)
-                {
-                    // The context has changed, so update everything.
-                    StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-                }
-            }
-        }
-
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
-        {
-            AssertIsForeground();
-            if (args.Solution.Workspace != _workspace)
+            // If we disconnected already, just disregard
+            if (_disconnected)
                 return;
 
-            var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-            if (args.NewActiveContextDocumentId == currentContextDocumentId ||
-                args.OldActiveContextDocumentId == currentContextDocumentId)
-            {
-                // if the active context changed, recompute the types/member as they may be changed as well.
-                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-            }
-        }
-
-        private void OnSubjectBufferPostChanged(object? sender, EventArgs e)
-        {
-            AssertIsForeground();
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: TaggerConstants.MediumDelay);
+            // 'true' value is unused.  this just signals to the queue that we have work to do.
+            _computeModelQueue.AddWork(true);
         }
 
         private void OnCaretMoved(object? sender, EventArgs e)
         {
             AssertIsForeground();
-            StartSelectedItemUpdateTask(delay: TaggerConstants.NearImmediateDelay);
+            StartSelectedItemUpdateTask();
         }
 
         private void OnViewFocused(object? sender, EventArgs e)
         {
             AssertIsForeground();
-            StartSelectedItemUpdateTask(delay: TaggerConstants.ShortDelay);
-        }
-
-        private void OnDropDownFocused(object? sender, EventArgs e)
-        {
-            AssertIsForeground();
-
-            var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-                return;
-
-            // Grab and present whatever information we have at this point.
-            GetProjectItems(out var projectItems, out var selectedProjectItem);
-            var (model, selectedInfo) = _latestModelAndSelectedInfo_OnlyAccessOnUIThread;
-
-            if (Equals(model, _lastPresentedInfo.model) &&
-                Equals(selectedInfo, _lastPresentedInfo.selectedInfo) &&
-                Equals(selectedProjectItem, _lastPresentedInfo.selectedProjectItem) &&
-                projectItems.SequenceEqual(_lastPresentedInfo.projectItems))
-            {
-                // Nothing changed, so we can skip presenting these items.
-                return;
-            }
-
-            _presenter.PresentItems(
-                projectItems,
-                selectedProjectItem,
-                model.Types,
-                selectedInfo.TypeItem,
-                selectedInfo.MemberItem);
-
-            _lastPresentedInfo = (projectItems, selectedProjectItem, model, selectedInfo);
+            StartSelectedItemUpdateTask();
         }
 
         private void GetProjectItems(out ImmutableArray<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem? selectedProjectItem)
@@ -285,46 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 : projectItems.First();
         }
 
-        private void PushSelectedItemsToPresenter(NavigationBarSelectedTypeAndMember selectedItems)
-        {
-            AssertIsForeground();
-
-            var oldLeft = selectedItems.TypeItem;
-            var oldRight = selectedItems.MemberItem;
-
-            NavigationBarItem? newLeft = null;
-            NavigationBarItem? newRight = null;
-            using var _1 = ArrayBuilder<NavigationBarItem>.GetInstance(out var listOfLeft);
-            using var _2 = ArrayBuilder<NavigationBarItem>.GetInstance(out var listOfRight);
-
-            if (oldRight != null)
-            {
-                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed)
-                {
-                    TrackingSpans = oldRight.TrackingSpans
-                };
-                listOfRight.Add(newRight);
-            }
-
-            if (oldLeft != null)
-            {
-                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
-                {
-                    TrackingSpans = oldLeft.TrackingSpans
-                };
-                listOfLeft.Add(newLeft);
-            }
-
-            GetProjectItems(out var projectItems, out var selectedProjectItem);
-
-            _presenter.PresentItems(
-                projectItems,
-                selectedProjectItem,
-                listOfLeft.ToImmutable(),
-                newLeft,
-                newRight);
-        }
-
         private void OnItemSelected(object? sender, NavigationBarItemSelectedEventArgs e)
         {
             AssertIsForeground();
@@ -349,26 +212,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             catch (OperationCanceledException)
             {
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
             {
             }
         }
 
-        /// <summary>
-        /// Process the selection of an item synchronously inside a wait context.
-        /// </summary>
-        /// <param name="item">The selected item.</param>
-        /// <param name="cancellationToken">A cancellation token from the wait context.</param>
         private async Task ProcessItemSelectionAsync(NavigationBarItem item, CancellationToken cancellationToken)
         {
             AssertIsForeground();
-            if (item is NavigationBarPresentedItem)
-            {
-                // Presented items are not navigable, but they may be selected due to a race
-                // documented in Bug #1174848. Protect all INavigationBarItemService implementers
-                // from this by ignoring these selections here.
-                return;
-            }
 
             if (item is NavigationBarProjectItem projectItem)
             {
@@ -378,34 +229,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             {
                 // When navigating, just use the partial semantics workspace.  Navigation doesn't need the fully bound
                 // compilations to be created, and it can save us a lot of costly time building skeleton assemblies.
-                var document = _subjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+                var textSnapshot = _subjectBuffer.CurrentSnapshot;
+                var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document != null)
                 {
-                    var navBarService = GetNavBarService(document);
-                    var snapshot = _subjectBuffer.CurrentSnapshot;
-                    item.Spans = item.TrackingSpans.SelectAsArray(ts => ts.GetSpan(snapshot).Span.ToTextSpan());
+                    var navBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
                     var view = _presenter.TryGetCurrentView();
 
-                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task below.
-                    await navBarService.NavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true);
+                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task
+                    // below. Note that we only want to refresh if selecting the item had an effect (either navigating
+                    // or generating).  If nothing happened to don't want to refresh.  This is important as some items
+                    // exist in the type list that are only there to show a set a particular set of items in the member
+                    // list.  So selecting such an item should only update the member list, and we do not want a refresh
+                    // to wipe that out.
+                    if (!await navBarService.TryNavigateToItemAsync(
+                            document, item, view, textSnapshot.Version, cancellationToken).ConfigureAwait(true))
+                    {
+                        return;
+                    }
                 }
             }
 
             // Now that the edit has been done, refresh to make sure everything is up-to-date.
-            // Have to make sure we come back to the main thread for this.
-            AssertIsForeground();
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
+            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        private static INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess GetNavBarService(Document document)
+        public struct TestAccessor
         {
-            // Defer to the legacy service if the language is still using it.  Otherwise use the current ea API.
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document.GetLanguageService<INavigationBarItemService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            return legacyService == null
-                ? document.GetRequiredLanguageService<INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess>()
-                : new NavigationBarItemServiceWrapper(legacyService);
+            private readonly NavigationBarController _navigationBarController;
+
+            public TestAccessor(NavigationBarController navigationBarController)
+            {
+                _navigationBarController = navigationBarController;
+            }
+
+            public Task<NavigationBarModel?> GetModelAsync()
+                => _navigationBarController._computeModelQueue.WaitUntilCurrentBatchCompletesAsync();
         }
     }
 }

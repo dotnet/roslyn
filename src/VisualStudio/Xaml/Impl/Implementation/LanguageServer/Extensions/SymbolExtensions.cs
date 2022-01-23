@@ -54,7 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(codeProject.Solution.Workspace, semanticModel, span: default, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
+            var services = codeProject.Solution.Workspace.Services;
+            var options = SymbolDescriptionOptions.From(document.Project);
+            var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(services, semanticModel, span: default, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
             var builder = new List<TaggedText>();
             foreach (var section in quickInfo.Sections)
             {
@@ -62,8 +64,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 {
                     builder.AddLineBreak();
                 }
+
                 builder.AddRange(section.TaggedParts);
             }
+
             return builder.ToImmutableArray();
         }
     }

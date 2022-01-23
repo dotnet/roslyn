@@ -398,7 +398,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundForEachStatement(
                     _syntax,
                     enumeratorInfoOpt: null, // can't be sure that it's complete
-                    elementConversion: default,
+                    elementPlaceholder: null,
+                    elementConversion: null,
                     boundIterationVariableType,
                     iterationVariables,
                     iterationErrorExpression,
@@ -406,7 +407,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     deconstructStep,
                     awaitInfo,
                     body,
-                    CheckOverflowAtRuntime,
                     this.BreakLabel,
                     this.ContinueLabel,
                     hasErrors);
@@ -428,11 +428,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but it turns out that these are equivalent (when both are available).
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion elementConversion = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, ref useSiteInfo, forCast: true);
+            Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, ref useSiteInfo, forCast: true);
 
-            if (!elementConversion.IsValid)
+            var elementPlaceholder = new BoundValuePlaceholder(_syntax, inferredType.Type).MakeCompilerGenerated();
+            BindingDiagnosticBag createConversionDiagnostics;
+
+            if (!elementConversionClassification.IsValid)
             {
-                ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversion.OriginalUserDefinedConversions;
+                ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversionClassification.OriginalUserDefinedConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
                     diagnostics.Add(ErrorCode.ERR_AmbigUDConv, foreachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType.Type, iterationVariableType);
@@ -443,23 +446,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_NoExplicitConv, foreachKeyword.GetLocation(), distinguisher.First, distinguisher.Second);
                 }
                 hasErrors = true;
+
+                createConversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: false);
             }
             else
             {
-                ReportDiagnosticsIfObsolete(diagnostics, elementConversion, _syntax.ForEachKeyword, hasBaseReceiver: false);
+                createConversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             }
+
+            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, iterationVariableType.Type, createConversionDiagnostics);
+
+            if (createConversionDiagnostics.AccumulatesDiagnostics && !createConversionDiagnostics.DiagnosticBag.IsEmptyWithoutResolution)
+            {
+                diagnostics.AddDependencies(createConversionDiagnostics);
+
+                var location = _syntax.ForEachKeyword.GetLocation();
+                foreach (var d in createConversionDiagnostics.DiagnosticBag.AsEnumerableWithoutResolution())
+                {
+                    diagnostics.Add(d.WithLocation(location));
+                }
+            }
+            else
+            {
+                diagnostics.AddRange(createConversionDiagnostics);
+            }
+
+            createConversionDiagnostics.Free();
 
             // Spec (§8.8.4):
             // If the type X of expression is dynamic then there is an implicit conversion from >>expression<< (not the type of the expression) 
             // to the System.Collections.IEnumerable interface (§6.1.8). 
-            builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteInfo);
-            builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteInfo);
+            Conversion collectionConversionClassification = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteInfo);
+            Conversion currentConversionClassification = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteInfo);
 
             TypeSymbol getEnumeratorType = getEnumeratorMethod.ReturnType;
-            // we never convert struct enumerators to object - it is done only for null-checks.
-            builder.EnumeratorConversion = getEnumeratorType.IsValueType ?
-                Conversion.Identity :
-                this.Conversions.ClassifyConversionFromType(getEnumeratorType, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteInfo);
 
             if (getEnumeratorType.IsRestrictedType() && (IsDirectlyInIterator || IsInAsyncMethod()))
             {
@@ -474,34 +494,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Nullable<Error>, the current conversion will fail because we don't know if an ErrorType is a
             // value type.  This doesn't matter in practice, since we won't actually use the enumerator pattern 
             // when we lower the loop.
-            Debug.Assert(builder.CollectionConversion.IsValid);
-            Debug.Assert(builder.CurrentConversion.IsValid ||
+            Debug.Assert(collectionConversionClassification.IsValid);
+            Debug.Assert(currentConversionClassification.IsValid ||
                 (builder.ElementType.IsPointerOrFunctionPointer() && collectionExpr.Type.IsArray()) ||
                 (builder.ElementType.IsNullableType() && builder.ElementType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single().IsErrorType() && collectionExpr.Type.IsArray()));
-            Debug.Assert(builder.EnumeratorConversion.IsValid ||
-                this.Compilation.GetSpecialType(SpecialType.System_Object).TypeKind == TypeKind.Error ||
-                !useSiteInfo.Diagnostics.IsNullOrEmpty(),
-                "Conversions to object succeed unless there's a problem with the object type or the source type");
 
             // If user-defined conversions could occur here, we would need to check for ObsoleteAttribute.
-            Debug.Assert((object)builder.CollectionConversion.Method == null,
+            Debug.Assert((object)collectionConversionClassification.Method == null,
                 "Conversion from collection expression to collection type should not be user-defined");
-            Debug.Assert((object)builder.CurrentConversion.Method == null,
+            Debug.Assert((object)currentConversionClassification.Method == null,
                 "Conversion from Current property type to element type should not be user-defined");
-            Debug.Assert((object)builder.EnumeratorConversion.Method == null,
-                "Conversion from GetEnumerator return type to System.Object should not be user-defined");
 
             // We're wrapping the collection expression in a (non-synthesized) conversion so that its converted
             // type (i.e. builder.CollectionType) will be available in the binding API.
-            BoundConversion convertedCollectionExpression = new BoundConversion(
-                collectionExpr.Syntax,
-                collectionExpr,
-                builder.CollectionConversion,
-                @checked: CheckOverflowAtRuntime,
-                explicitCastInCode: false,
-                conversionGroupOpt: null,
-                ConstantValue.NotAvailable,
-                builder.CollectionType);
+            Debug.Assert(!collectionConversionClassification.IsUserDefined);
+
+            BoundExpression convertedCollectionExpression = CreateConversion(collectionExpr.Syntax, collectionExpr, collectionConversionClassification, isCast: false, conversionGroupOpt: null, builder.CollectionType, diagnostics);
+
+            if ((convertedCollectionExpression as BoundConversion)?.Operand != (object)collectionExpr)
+            {
+                Debug.Assert(collectionConversionClassification.IsIdentity);
+                Debug.Assert(convertedCollectionExpression == (object)collectionExpr);
+
+                convertedCollectionExpression = new BoundConversion(
+                    collectionExpr.Syntax,
+                    collectionExpr,
+                    collectionConversionClassification,
+                    @checked: CheckOverflowAtRuntime,
+                    explicitCastInCode: false,
+                    conversionGroupOpt: null,
+                    ConstantValue.NotAvailable,
+                    builder.CollectionType);
+            }
+
+            if (currentConversionClassification.IsValid)
+            {
+                builder.CurrentPlaceholder = new BoundValuePlaceholder(_syntax, builder.CurrentPropertyGetter.ReturnType).MakeCompilerGenerated();
+                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, builder.ElementType, diagnostics);
+            }
 
             if (builder.NeedsDisposal && IsAsync)
             {
@@ -510,18 +540,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(
                 hasErrors ||
-                builder.CollectionConversion.IsIdentity ||
-                (builder.CollectionConversion.IsImplicit &&
+                collectionConversionClassification.IsIdentity ||
+                (collectionConversionClassification.IsImplicit &&
                  (IsIEnumerable(builder.CollectionType) ||
                   IsIEnumerableT(builder.CollectionType.OriginalDefinition, IsAsync, Compilation) ||
                   builder.GetEnumeratorInfo.Method.IsExtensionMethod)) ||
                 // For compat behavior, we can enumerate over System.String even if it's not IEnumerable. That will
                 // result in an explicit reference conversion in the bound nodes, but that conversion won't be emitted.
-                (builder.CollectionConversion.Kind == ConversionKind.ExplicitReference && collectionExpr.Type.SpecialType == SpecialType.System_String));
+                (collectionConversionClassification.Kind == ConversionKind.ExplicitReference && collectionExpr.Type.SpecialType == SpecialType.System_String));
 
             return new BoundForEachStatement(
                 _syntax,
                 builder.Build(this.Flags),
+                elementPlaceholder,
                 elementConversion,
                 boundIterationVariableType,
                 iterationVariables,
@@ -530,7 +561,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 deconstructStep,
                 awaitInfo,
                 body,
-                CheckOverflowAtRuntime,
                 this.BreakLabel,
                 this.ContinueLabel,
                 hasErrors);
@@ -1259,6 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(_syntax, useSiteInfo);
 
                 // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.
+                Debug.Assert(!collectionConversion.IsUserDefined);
                 collectionExpr = new BoundConversion(
                     collectionExpr.Syntax,
                     collectionExpr,

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.InterfaceDeclaration, 11 },
             { SyntaxKind.StructDeclaration, 12 },
             { SyntaxKind.ClassDeclaration, 13 },
-            { SyntaxKind.DelegateDeclaration, 14 }
+            { SyntaxKind.RecordDeclaration, 14 },
+            { SyntaxKind.RecordStructDeclaration, 15 },
+            { SyntaxKind.DelegateDeclaration, 16 }
         };
 
         private static readonly Dictionary<SyntaxKind, int> s_operatorPrecedenceMap = new(SyntaxFacts.EqualityComparer)
@@ -67,8 +67,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private CSharpDeclarationComparer(bool includeName)
             => _includeName = includeName;
 
-        public int Compare(SyntaxNode x, SyntaxNode y)
+        public int Compare(SyntaxNode? x, SyntaxNode? y)
         {
+            if (ReferenceEquals(x, y))
+            {
+                return 0;
+            }
+
+            if (x is null)
+            {
+                return -1;
+            }
+
+            if (y is null)
+            {
+                return 1;
+            }
+
             if (x.Kind() != y.Kind())
             {
                 if (!s_kindPrecedenceMap.TryGetValue(x.Kind(), out var xPrecedence) ||
@@ -160,8 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (_includeName)
                 {
                     EqualIdentifierName(
-                        x.Declaration.Variables.FirstOrDefault().Identifier,
-                        y.Declaration.Variables.FirstOrDefault().Identifier,
+                        x.Declaration.Variables.First().Identifier,
+                        y.Declaration.Variables.First().Identifier,
                         out result);
                 }
             }
@@ -322,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Private
         }
 
-        private static int GetAccessibilityPrecedence(SyntaxTokenList modifiers, SyntaxNode parent)
+        private static int GetAccessibilityPrecedence(SyntaxTokenList modifiers, SyntaxNode? parent)
         {
             if (ContainsToken(modifiers, SyntaxKind.PublicKeyword))
             {

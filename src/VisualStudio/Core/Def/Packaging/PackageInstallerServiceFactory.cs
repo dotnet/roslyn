@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -34,11 +35,10 @@ using NuGet.VisualStudio;
 using NuGet.VisualStudio.Contracts;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
+using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Free threaded wrapper around the NuGet.VisualStudio STA package installer interfaces.
     /// We want to be able to make queries about packages from any thread.  For example, the
@@ -51,16 +51,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     [ExportWorkspaceService(typeof(IPackageInstallerService)), Shared]
     internal partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
     {
+        // Proper name, should not be localized.
+        private const string NugetTitle = "NuGet";
+
+        private readonly VSUtilities.IUIThreadOperationExecutor _operationExecutor;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly SVsServiceProvider _serviceProvider;
         private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly IAsynchronousOperationListener _listener;
 
-        private readonly Lazy<IVsPackageInstallerServices>? _packageInstallerServices;
         private readonly Lazy<IVsPackageInstaller2>? _packageInstaller;
         private readonly Lazy<IVsPackageUninstaller>? _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider>? _packageSourceProvider;
-
         private IVsPackage? _nugetPackageManager;
 
         /// <summary>
@@ -92,21 +95,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PackageInstallerService(
             IThreadingContext threadingContext,
+            VSUtilities.IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace,
+            IGlobalOptionService globalOptions,
             SVsServiceProvider serviceProvider,
             [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            [Import(AllowDefault = true)] Lazy<IVsPackageInstallerServices>? packageInstallerServices,
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2>? packageInstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
             : base(threadingContext,
                    workspace,
-                   SymbolSearchOptions.Enabled,
+                   globalOptions,
+                   SymbolSearchGlobalOptions.Enabled,
                    SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                    SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
+            _operationExecutor = operationExecutor;
             _workspace = workspace;
 
             _serviceProvider = serviceProvider;
@@ -116,10 +122,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _asyncServiceProvider = (Shell.IAsyncServiceProvider)asyncServiceProvider;
 
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
-            _packageInstallerServices = packageInstallerServices;
             _packageInstaller = packageInstaller;
             _packageUninstaller = packageUninstaller;
             _packageSourceProvider = packageSourceProvider;
+            _listener = listenerProvider.GetListener(FeatureAttribute.PackageInstaller);
 
             // Setup the work queue to allow us to hear about flurries of changes and then respond to them in batches
             // every second.  Note: we pass in EqualityComparer<...>.Default since we don't care about ordering, and
@@ -129,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 TimeSpan.FromSeconds(1),
                 this.ProcessWorkQueueAsync,
                 equalityComparer: EqualityComparer<(bool solutionChanged, ProjectId? changedProject)>.Default,
-                listenerProvider.GetListener(FeatureAttribute.PackageInstaller),
+                _listener,
                 this.DisposalToken);
         }
 
@@ -167,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 if (_packageSourceProvider != null)
                     return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false).SelectAsArray(r => new PackageSource(r.Key, r.Value));
             }
-            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+            catch (Exception ex) when (ex is InvalidDataException or InvalidOperationException)
             {
                 // These exceptions can happen when the nuget.config file is broken.
             }
@@ -180,7 +186,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return ImmutableArray<PackageSource>.Empty;
         }
 
-        [MemberNotNullWhen(true, nameof(_packageInstallerServices))]
         [MemberNotNullWhen(true, nameof(_packageInstaller))]
         [MemberNotNullWhen(true, nameof(_packageUninstaller))]
         [MemberNotNullWhen(true, nameof(_packageSourceProvider))]
@@ -188,8 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             get
             {
-                return _packageInstallerServices != null
-                    && _packageInstaller != null
+                return _packageInstaller != null
                     && _packageUninstaller != null
                     && _packageSourceProvider != null;
             }
@@ -271,56 +275,72 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public bool TryInstallPackage(
+        public async Task<bool> TryInstallPackageAsync(
             Workspace workspace,
             DocumentId documentId,
             string source,
             string packageName,
-            string versionOpt,
+            string? version,
             bool includePrerelease,
+            IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
-
             // The 'workspace == _workspace' line is probably not necessary. However, we include 
             // it just to make sure that someone isn't trying to install a package into a workspace
             // other than the VisualStudioWorkspace.
             if (workspace == _workspace && _workspace != null && IsEnabled)
             {
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 var projectId = documentId.ProjectId;
                 var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(SDTE));
                 var dteProject = _workspace.TryGetDTEProject(projectId);
-                if (dteProject != null)
+                var projectGuid = _workspace.GetProjectGuid(projectId);
+                if (dteProject != null && projectGuid != Guid.Empty)
                 {
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
-                    return TryInstallAndAddUndoAction(
-                        source, packageName, versionOpt, includePrerelease, dte, dteProject, undoManager);
+                    return await TryInstallAndAddUndoActionAsync(
+                        source, packageName, version, includePrerelease, projectGuid, dte, dteProject, undoManager,
+                        progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             return false;
         }
 
-        private bool TryInstallPackage(
+        private async Task<bool> TryInstallPackageAsync(
             string source,
             string packageName,
-            string versionOpt,
+            string? version,
             bool includePrerelease,
+            Guid projectGuid,
             EnvDTE.DTE dte,
-            EnvDTE.Project dteProject)
+            EnvDTE.Project dteProject,
+            IProgressTracker progressTracker,
+            CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
+
+            var description = string.Format(ServicesVSResources.Installing_0, packageName);
+            progressTracker.Description = description;
+            await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try
             {
-                if (!_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
+                return await this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
                 {
-                    dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
+                    // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
+                    await TaskScheduler.Default;
 
-                    if (versionOpt == null)
+                    var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
+                    if (installedPackagesMap.ContainsKey(packageName))
+                        return false;
+
+                    // Once we start the installation, we can't cancel anymore.
+                    cancellationToken = default;
+                    if (version == null)
                     {
                         _packageInstaller.Value.InstallLatestPackage(
                             source, dteProject, packageName, includePrerelease, ignoreDependencies: false);
@@ -328,20 +348,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     else
                     {
                         _packageInstaller.Value.InstallPackage(
-                            source, dteProject, packageName, versionOpt, ignoreDependencies: false);
+                            source, dteProject, packageName, version, ignoreDependencies: false);
                     }
 
-                    var installedVersion = GetInstalledVersion(packageName, dteProject);
-                    dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0_completed,
-                        GetStatusBarText(packageName, installedVersion));
+                    installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
+                    var installedVersion = installedPackagesMap.TryGetValue(packageName, out var result) ? result : null;
+
+                    await UpdateStatusBarAsync(
+                        dte, string.Format(ServicesVSResources.Installing_0_completed, GetStatusBarText(packageName, installedVersion)),
+                        cancellationToken).ConfigureAwait(false);
 
                     return true;
-                }
-
-                // fall through.
+                }, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                await UpdateStatusBarAsync(dte, ServicesVSResources.Package_install_canceled, cancellationToken).ConfigureAwait(false);
+                return false;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_colon_0, e.Message);
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
@@ -349,39 +376,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     string.Format(ServicesVSResources.Installing_0_failed_Additional_information_colon_1, packageName, e.Message),
                     severity: NotificationSeverity.Error);
 
-                // fall through.
+                return false;
             }
+        }
 
-            return false;
+        private async Task UpdateStatusBarAsync(EnvDTE.DTE dte, string text, CancellationToken cancellationToken)
+        {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            dte.StatusBar.Text = text;
         }
 
         private static string GetStatusBarText(string packageName, string? installedVersion)
             => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
-        private bool TryUninstallPackage(
-            string packageName, EnvDTE.DTE dte, EnvDTE.Project dteProject)
+        private async Task<bool> TryUninstallPackageAsync(
+            string packageName, Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject,
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
+
+            var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
+            progressTracker.Description = description;
+            await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try
             {
-                if (_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
+                return await this.PerformNuGetProjectServiceWorkAsync(async (nugetService, cancellationToken) =>
                 {
-                    dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0, packageName);
-                    var installedVersion = GetInstalledVersion(packageName, dteProject);
+                    // explicitly switch to BG thread to do the installation as nuget installer APIs are free threaded.
+                    await TaskScheduler.Default;
+
+                    var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
+                    if (!installedPackagesMap.TryGetValue(packageName, out var installedVersion))
+                        return false;
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Once we start the installation, we can't cancel anymore.
+                    cancellationToken = default;
                     _packageUninstaller.Value.UninstallPackage(dteProject, packageName, removeDependencies: true);
 
-                    dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0_completed,
-                        GetStatusBarText(packageName, installedVersion));
+                    await UpdateStatusBarAsync(
+                        dte, string.Format(ServicesVSResources.Uninstalling_0_completed, GetStatusBarText(packageName, installedVersion)), cancellationToken).ConfigureAwait(false);
 
                     return true;
-                }
-
-                // fall through.
+                }, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                await UpdateStatusBarAsync(dte, ServicesVSResources.Package_uninstall_canceled, cancellationToken).ConfigureAwait(false);
+                return false;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_colon_0, e.Message);
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
@@ -389,28 +437,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_colon_1, packageName, e.Message),
                     severity: NotificationSeverity.Error);
 
-                // fall through.
+                return false;
             }
-
-            return false;
-        }
-
-        private string? GetInstalledVersion(string packageName, EnvDTE.Project dteProject)
-        {
-            this.AssertIsForeground();
-            Contract.ThrowIfFalse(IsEnabled);
-
-            try
-            {
-                var installedPackages = _packageInstallerServices.Value.GetInstalledPackages(dteProject);
-                var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
-                return metadata?.VersionString;
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-            }
-
-            return null;
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -445,7 +473,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _workQueue.AddWork((solutionChanged, changedProject));
         }
 
-        private Task ProcessWorkQueueAsync(
+        private ValueTask ProcessWorkQueueAsync(
             ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
@@ -454,34 +482,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             // If we've been disconnected, then there's no point proceeding.
             if (_workspace == null || !IsEnabled)
-                return Task.CompletedTask;
+                return ValueTaskFactory.CompletedTask;
 
             return ProcessWorkQueueWorkerAsync(workQueue, cancellationToken);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private async Task ProcessWorkQueueWorkerAsync(
+        private async ValueTask ProcessWorkQueueWorkerAsync(
             ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
 
-            var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
-            var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
-            if (serviceBroker == null)
-                return;
-
-            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-            await TaskScheduler.Default;
-
-            var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            using (nugetService as IDisposable)
+            await PerformNuGetProjectServiceWorkAsync<object>(async (nugetService, cancellationToken) =>
             {
-                // If we didn't get a nuget service, there's nothing we can do in terms of querying the solution for
-                // nuget info.
-                if (nugetService == null)
-                    return;
-
                 // Figure out the entire set of projects to process.
                 using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectsToProcess);
 
@@ -494,6 +507,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     cancellationToken.ThrowIfCancellationRequested();
                     await ProcessProjectChangeAsync(nugetService, solution, projectId, cancellationToken).ConfigureAwait(false);
                 }
+
+                return null;
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<T?> PerformNuGetProjectServiceWorkAsync<T>(
+            Func<INuGetProjectService, CancellationToken, ValueTask<T?>> doWorkAsync, CancellationToken cancellationToken)
+        {
+            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true).
+            // GetServiceAsync/GetProxyAsync and the cast below are all explicitly documented as being BG thread safe.
+            await TaskScheduler.Default;
+
+            var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
+            var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
+            if (serviceBroker == null)
+                return default;
+
+            var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            using (nugetService as IDisposable)
+            {
+                // If we didn't get a nuget service, there's nothing we can do in terms of querying the solution for
+                // nuget info.
+                if (nugetService == null)
+                    return default;
+
+                return await doWorkAsync(nugetService, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -532,8 +572,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // as we know these languages are safe to build up this index for.
             ProjectState? newState = null;
 
-            if (project?.Language == LanguageNames.CSharp ||
-                project?.Language == LanguageNames.VisualBasic)
+            if (project?.Language is LanguageNames.CSharp or
+                LanguageNames.VisualBasic)
             {
                 var projectGuid = _workspace.GetProjectGuid(projectId);
                 if (projectGuid != Guid.Empty)
@@ -557,21 +597,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
+                var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
 
-                using var _ = PooledDictionary<string, string>.GetInstance(out var installedPackages);
-                if (installedPackagesResult?.Status == InstalledPackageResultStatus.Successful)
-                {
-                    foreach (var installedPackage in installedPackagesResult.Packages)
-                        installedPackages[installedPackage.Id] = installedPackage.Version;
-                }
-
-                return new ProjectState(installedPackages.ToImmutableDictionary());
+                return new ProjectState(installedPackagesMap);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }
+        }
+
+        private static async Task<ImmutableDictionary<string, string>> GetInstalledPackagesMapAsync(INuGetProjectService nugetService, Guid projectGuid, CancellationToken cancellationToken)
+        {
+            var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
+
+            using var _ = PooledDictionary<string, string>.GetInstance(out var installedPackages);
+            if (installedPackagesResult?.Status == InstalledPackageResultStatus.Successful)
+            {
+                foreach (var installedPackage in installedPackagesResult.Packages)
+                    installedPackages[installedPackage.Id] = installedPackage.Version;
+            }
+
+            var installedPackagesMap = installedPackages.ToImmutableDictionary();
+            return installedPackagesMap;
         }
 
         public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
@@ -632,7 +680,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             using var _ = ArrayBuilder<Project>.GetInstance(out var result);
 
-            foreach (var (projectId, state) in this._projectToInstalledPackageAndVersion)
+            foreach (var (projectId, state) in _projectToInstalledPackageAndVersion)
             {
                 if (state.TryGetInstalledVersion(packageName, out var installedVersion) &&
                     installedVersion == version)

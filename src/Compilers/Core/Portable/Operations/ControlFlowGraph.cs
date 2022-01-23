@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
@@ -183,7 +184,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Debug.Assert(controlFlowGraph.OriginalOperation == operation);
                 return controlFlowGraph;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
+            catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, cancellationToken))
+#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
             {
                 // Log a Non-fatal-watson and then ignore the crash in the attempt of getting flow graph.
                 Debug.Assert(false, "\n" + e.ToString());

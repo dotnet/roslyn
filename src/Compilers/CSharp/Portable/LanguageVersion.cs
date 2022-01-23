@@ -188,6 +188,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp9 = 900,
 
         /// <summary>
+        /// C# language version 10.0
+        /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Record structs</description></item>
+        /// <item><description>Global using directives</description></item>
+        /// <item><description>Lambda improvements</description></item>
+        /// <item><description>Improved definite assignment</description></item>
+        /// <item><description>Constant interpolated strings</description></item>
+        /// <item><description>Mix declarations and variables in deconstruction</description></item>
+        /// <item><description>Extended property patterns</description></item>
+        /// <item><description>Sealed record ToString</description></item>
+        /// <item><description>Source Generator v2 APIs</description></item>
+        /// <item><description>Method-level AsyncMethodBuilder</description></item>
+        /// </list>
+        /// </remarks>
+        CSharp10 = 1000,
+
+        /// <summary>
         /// The latest major supported version.
         /// </summary>
         LatestMajor = int.MaxValue - 2,
@@ -226,6 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp7_3:
                 case LanguageVersion.CSharp8:
                 case LanguageVersion.CSharp9:
+                case LanguageVersion.CSharp10:
                 case LanguageVersion.Preview:
                     return true;
             }
@@ -261,6 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion8;
                 case LanguageVersion.CSharp9:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion9;
+                case LanguageVersion.CSharp10:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion10;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -281,6 +304,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public static class LanguageVersionFacts
     {
+        /// <summary>
+        /// Usages of TestOptions.RegularNext and LanguageVersionFacts.CSharpNext
+        /// will be replaced with TestOptions.RegularN and LanguageVersion.CSharpN when language version N is introduced.
+        /// </summary>
+        /// <remarks>
+        /// Corresponds to Microsoft.CodeAnalysis.CSharp.Shared.Extensions.LanguageVersionExtensions.CSharpNext.
+        /// </remarks>
+        internal const LanguageVersion CSharpNext = LanguageVersion.Preview;
+
         /// <summary>
         /// Displays the version number in the format expected on the command-line (/langver flag).
         /// For instance, "6", "7.0", "7.1", "latest".
@@ -313,6 +345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "8.0";
                 case LanguageVersion.CSharp9:
                     return "9.0";
+                case LanguageVersion.CSharp10:
+                    return "10.0";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:
@@ -414,6 +448,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.CSharp9;
                     return true;
 
+                case "10":
+                case "10.0":
+                    result = LanguageVersion.CSharp10;
+                    return true;
+
                 default:
                     result = LanguageVersion.Default;
                     return false;
@@ -430,13 +469,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.Latest:
                 case LanguageVersion.Default:
                 case LanguageVersion.LatestMajor:
-                    return LanguageVersion.CSharp9;
+                    return LanguageVersion.CSharp10;
                 default:
                     return version;
             }
         }
 
-        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp9;
+        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp10;
 
         /// <summary>Inference of tuple element names was added in C# 7.1</summary>
         internal static bool DisallowInferredTupleElementNames(this LanguageVersion self)

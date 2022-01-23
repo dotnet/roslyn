@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests_Patterns : SemanticModelTestBase
+    public class IOperationTests_IIsPatternExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
@@ -1018,6 +1018,234 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'tu
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact]
+        public void IsPattern_RecursivePatternWithNestedPropertyPatterns()
+        {
+            string source = @"
+class C
+{
+    C field;
+    C prop { get; }
+    void M()
+    {
+        if (/*<bind>*/this is { prop.field: null }/*</bind>*/) { }
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'this is { p ... eld: null }')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ prop.field: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'prop')
+            Member:
+              IPropertyReferenceOperation: C C.prop { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'prop')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'prop')
+            Pattern:
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'prop') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'prop.field')
+                      Member:
+                        IFieldReferenceOperation: C C.field (OperationKind.FieldReference, Type: C) (Syntax: 'prop.field')
+                          Instance Receiver:
+                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'prop.field')
+                      Pattern:
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: C, NarrowedType: C)
+                          Value:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsImplicit) (Syntax: 'null')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,7): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
+                //     C field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(4, 7)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_RecursivePatternWithNestedPropertyPatterns_ControlFlow()
+        {
+            string source = @"
+class C
+{
+    C field;
+    C prop { get; }
+    void M()
+    /*<bind>*/
+    {
+        if (this is { prop.field: null }) { }
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B2]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'this is { p ... eld: null }')
+          Value:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+          Pattern:
+            IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ prop.field: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+              DeconstructionSubpatterns (0)
+              PropertySubpatterns (1):
+                  IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'prop')
+                    Member:
+                      IPropertyReferenceOperation: C C.prop { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'prop')
+                        Instance Receiver:
+                          IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'prop')
+                    Pattern:
+                      IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'prop') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                        DeconstructionSubpatterns (0)
+                        PropertySubpatterns (1):
+                            IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'prop.field')
+                              Member:
+                                IFieldReferenceOperation: C C.field (OperationKind.FieldReference, Type: C) (Syntax: 'prop.field')
+                                  Instance Receiver:
+                                    IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'prop.field')
+                              Pattern:
+                                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: C, NarrowedType: C)
+                                  Value:
+                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsImplicit) (Syntax: 'null')
+                                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                        (ImplicitReference)
+                                      Operand:
+                                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1*2]
+    Statements (0)
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,7): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
+                //     C field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(4, 7)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_RecursivePatternWithNestedPropertyPatterns_MissingMember()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        if (/*<bind>*/this is { prop.field: null } y/*</bind>*/) { }
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { p ... d: null } y')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ prop.field: null } y') (InputType: C, NarrowedType: C, DeclaredSymbol: C y, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'prop')
+            Member:
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'prop')
+                Children(0)
+            Pattern:
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'prop') (InputType: ?, NarrowedType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'prop.field')
+                      Member:
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'prop.field')
+                          Children(0)
+                      Pattern:
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                          Value:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                    // file.cs(6,33): error CS0117: 'C' does not contain a definition for 'prop'
+                    //         if (/*<bind>*/this is { prop.field: null } y/*</bind>*/) { }
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "prop").WithArguments("C", "prop").WithLocation(6, 33)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_RecursivePatternWithNestedPropertyPatterns_EventMember()
+        {
+            string source = @"
+class C
+{
+    C prop { get; }
+    public event System.Action action;
+    void M()
+    {
+        if (/*<bind>*/this is { prop.action: null } y/*</bind>*/) { }
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { p ... n: null } y')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ prop.action: null } y') (InputType: C, NarrowedType: C, DeclaredSymbol: C y, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'prop')
+            Member:
+              IPropertyReferenceOperation: C C.prop { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'prop')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'prop')
+            Pattern:
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'prop') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'prop.action')
+                      Member:
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'prop.action')
+                          Children(0)
+                      Pattern:
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                          Value:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                    // file.cs(5,32): warning CS0067: The event 'C.action' is never used
+                    //     public event System.Action action;
+                    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "action").WithArguments("C.action").WithLocation(5, 32),
+                    // file.cs(8,38): error CS0154: The property or indexer 'action' cannot be used in this context because it lacks the get accessor
+                    //         if (/*<bind>*/this is { prop.action: null } y/*</bind>*/) { }
+                    Diagnostic(ErrorCode.ERR_PropertyLacksGet, "action").WithArguments("action").WithLocation(8, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
         public void IsPattern_BadRecursivePattern_01()
         {
             string source = @"
@@ -1109,23 +1337,23 @@ class C
 
             var expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is C1 { P ... 1]: var x }')
-  Value: 
+  Value:
     IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
-  Pattern: 
+  Pattern:
     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'C1 { Prop[1]: var x }') (InputType: System.Object, NarrowedType: C1, DeclaredSymbol: null, MatchedType: C1, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
       PropertySubpatterns (2):
           IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'Prop[1]')
-            Member: 
+            Member:
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
                 Children(0)
-            Pattern: 
+            Pattern:
               ITypePatternOperation (OperationKind.TypePattern, Type: null, IsInvalid) (Syntax: 'Prop[1]') (InputType: ?, NarrowedType: Prop[], MatchedType: Prop[])
           IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'var x')
-            Member: 
+            Member:
               IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var x')
                 Children(0)
-            Pattern: 
+            Pattern:
               IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
 ";
 
@@ -1214,18 +1442,18 @@ class D
 
             var expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is D { A: var a }')
-  Value: 
+    Value: 
     IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
-  Pattern: 
+    Pattern: 
     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'D { A: var a }') (InputType: System.Object, NarrowedType: D, DeclaredSymbol: null, MatchedType: D, DeconstructSymbol: null)
-      DeconstructionSubpatterns (0)
-      PropertySubpatterns (1):
-          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'A: var a')
+        DeconstructionSubpatterns (0)
+        PropertySubpatterns (1):
+            IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'A: var a')
             Member: 
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'A')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'A')
                 Children(0)
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var a') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? a, MatchesNull: True)
+                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var a') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? a, MatchesNull: True)
 ";
 
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
@@ -1305,18 +1533,18 @@ class D
 
             var expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is D { C: var c }')
-  Value: 
-    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
-  Pattern: 
-    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'D { C: var c }') (InputType: System.Object, NarrowedType: D, DeclaredSymbol: null, MatchedType: D, DeconstructSymbol: null)
-      DeconstructionSubpatterns (0)
-      PropertySubpatterns (1):
-          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'C: var c')
-            Member: 
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'C')
+      Value: 
+        IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+      Pattern: 
+        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'D { C: var c }') (InputType: System.Object, NarrowedType: D, DeclaredSymbol: null, MatchedType: D, DeconstructSymbol: null)
+          DeconstructionSubpatterns (0)
+          PropertySubpatterns (1):
+              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'C: var c')
+                Member: 
+                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'C')
                 Children(0)
-            Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var c') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? c, MatchesNull: True)
+                Pattern: 
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var c') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? c, MatchesNull: True)
 ";
 
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
@@ -1855,6 +2083,453 @@ class X
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithPatternCombinators);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Array_01()
+        {
+            string source = @"
+class X
+{
+    void M(int[] o)
+    {
+        _ = /*<bind>*/o is [42, ..]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [42, ..]')
+  Value:
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'o')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[42, ..]') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: null, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+      Patterns (2):
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '..') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
+            Pattern:
+              null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilationWithIndex(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Array_02()
+        {
+            string source = @"
+class X
+{
+    void M(int[] o)
+    {
+        _ = /*<bind>*/o is [42, .. var slice] list/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [42, . ... slice] list')
+  Value:
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'o')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[42, .. var slice] list') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[] list, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+      Patterns (2):
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
+            Pattern:
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[]? slice, MatchesNull: True)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Array_Nullability()
+        {
+            string source = @"
+#nullable enable
+class X
+{
+    void M(string s)
+    {
+        s = null;
+        var a = new[] { s };
+        _ = /*<bind>*/a is [var item]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is [var item]')
+  Value:
+    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.String?[]) (Syntax: 'a')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[var item]') (InputType: System.String[], NarrowedType: System.String[], DeclaredSymbol: null, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+      Patterns (1):
+          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var item') (InputType: System.String, NarrowedType: System.String, DeclaredSymbol: System.String? item, MatchesNull: True)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13)
+            };
+
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(57884, "https://github.com/dotnet/roslyn/issues/57884")]
+        public void TestIsPatternExpression_ListPatterns_Collection_Nullability()
+        {
+            string source = @"
+#nullable enable
+class X<T>
+{
+    static X<U> Create<U>(U u) => throw null!;
+    void M(string s)
+    {
+        s = null;
+        var a = Create(s);
+        _ = /*<bind>*/a is [var item]/*</bind>*/;
+    }
+    public int Length => throw null!;
+    public char this[int i] => throw null!;
+}
+";
+            // The LengthSymbol and IndexerSymbol should reflect updated nullability:
+            // LengthSymbol: System.Int32 X<System.String?>.Length { get; }, IndexerSymbol: System.Char X<System.String?>.this[System.Int32 i] { get; })
+            // Tracked by https://github.com/dotnet/roslyn/issues/57884
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is [var item]')
+  Value:
+    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: X<System.String?>) (Syntax: 'a')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[var item]') (InputType: X<System.String>, NarrowedType: X<System.String>, DeclaredSymbol: null, LengthSymbol: System.Int32 X<System.String>.Length { get; }, IndexerSymbol: System.Char X<System.String>.this[System.Int32 i] { get; })
+      Patterns (1):
+          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var item') (InputType: System.Char, NarrowedType: System.Char, DeclaredSymbol: System.Char item, MatchesNull: True)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 13)
+            };
+
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Span_01()
+        {
+            string source = @"
+class X
+{
+    void M(System.Span<int> o)
+    {
+        _ = /*<bind>*/o is [.., 42]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [.., 42]')
+  Value:
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Span<System.Int32>) (Syntax: 'o')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[.., 42]') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, DeclaredSymbol: null, LengthSymbol: System.Int32 System.Span<System.Int32>.Length { get; }, IndexerSymbol: ref System.Int32 System.Span<System.Int32>.this[System.Int32 i] { get; })
+      Patterns (2):
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '..') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, SliceSymbol: null
+            Pattern:
+              null
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Span_02()
+        {
+            string source = @"
+class X
+{
+    void M(System.Span<int> o)
+    {
+        _ = /*<bind>*/o is [.. var slice, 42] list/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [.. va ... e, 42] list')
+  Value:
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Span<System.Int32>) (Syntax: 'o')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[.. var slice, 42] list') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, DeclaredSymbol: System.Span<System.Int32> list, LengthSymbol: System.Int32 System.Span<System.Int32>.Length { get; }, IndexerSymbol: ref System.Int32 System.Span<System.Int32>.this[System.Int32 i] { get; })
+      Patterns (2):
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, SliceSymbol: System.Span<System.Int32> System.Span<System.Int32>.Slice(System.Int32 offset, System.Int32 length)
+            Pattern:
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Span<System.Int32>, NarrowedType: System.Span<System.Int32>, DeclaredSymbol: System.Span<System.Int32> slice, MatchesNull: True)
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_MissingMember_Length()
+        {
+            string source = @"
+class X
+{
+    public int this[int i] => throw null;
+    
+    void M()
+    {
+        _ = /*<bind>*/this is []/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is []')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: X) (Syntax: 'this')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[]') (InputType: X, NarrowedType: X, DeclaredSymbol: null, LengthSymbol: null, IndexerSymbol: System.Int32 X.this[System.Int32 i] { get; })
+      Patterns (0)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (8,31): error CS0518: Predefined type 'System.Index' is not defined or imported
+                //         _ = /*<bind>*/this is []/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(8, 31)
+            };
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_MissingMember_Indexer()
+        {
+            string source = @"
+class X
+{
+    public int Count { get; }
+    
+    void M()
+    {
+        _ = /*<bind>*/this is []/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is []')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: X) (Syntax: 'this')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[]') (InputType: X, NarrowedType: X, DeclaredSymbol: null, LengthSymbol: System.Int32 X.Count { get; }, IndexerSymbol: null)
+      Patterns (0)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (8,31): error CS0021: Cannot apply indexing with [] to an expression of type 'X'
+                //         _ = /*<bind>*/this is []/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("X").WithLocation(8, 31)
+            };
+
+            var comp = CreateCompilationWithIndex(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_MissingMember_Slice()
+        {
+            string source = @"
+class X
+{
+    public int this[int i] => throw null;
+    public int Count => throw null;
+
+    void M()
+    {
+        _ = /*<bind>*/this is [.. 0]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is [.. 0]')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: X) (Syntax: 'this')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[.. 0]') (InputType: X, NarrowedType: X, DeclaredSymbol: null, LengthSymbol: System.Int32 X.Count { get; }, IndexerSymbol: System.Int32 X.this[System.Int32 i] { get; })
+      Patterns (1):
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null, IsInvalid) (Syntax: '.. 0') (InputType: X, NarrowedType: X, SliceSymbol: System.Int32 X.this[System.Int32 i] { get; }
+            Pattern:
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '0') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+";
+            var expectedDiagnostics = new[]
+            {
+                // (9,32): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = /*<bind>*/this is [.. 0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, ".. 0").WithArguments("1", "System.Range", "int").WithLocation(9, 32)
+            };
+
+            var comp = CreateCompilationWithIndexAndRange(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_ErrorCases_01()
+        {
+            string source = @"
+class X
+{
+    void M(int[] a)
+    {
+        _ = /*<bind>*/a is ../*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'a is ..')
+  Value:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+  Pattern:
+    ISlicePatternOperation (OperationKind.SlicePattern, Type: null, IsInvalid) (Syntax: '..') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
+      Pattern:
+        null
+";
+            var expectedDiagnostics = new[]
+            {
+                // (6,28): error CS9202: Slice patterns may only be used once and directly inside a list pattern.
+                //         _ = /*<bind>*/a is ../*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(6, 28)
+            };
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_ErrorCases_02()
+        {
+            string source = @"
+class X
+{
+    void M(int[] a)
+    {
+        _ = /*<bind>*/a is .. 42/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'a is .. 42')
+  Value:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+  Pattern:
+    ISlicePatternOperation (OperationKind.SlicePattern, Type: null, IsInvalid) (Syntax: '.. 42') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
+      Pattern:
+        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '42') (InputType: System.Int32[], NarrowedType: System.Int32[])
+          Value:
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], IsInvalid, IsImplicit) (Syntax: '42')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+";
+            var expectedDiagnostics = new[]
+            {
+                // (6,28): error CS9202: Slice patterns may only be used once and directly inside a list pattern.
+                //         _ = /*<bind>*/a is .. 42/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, ".. 42").WithLocation(6, 28),
+                // (6,31): error CS0029: Cannot implicitly convert type 'int' to 'int[]'
+                //         _ = /*<bind>*/a is .. 42/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "42").WithArguments("int", "int[]").WithLocation(6, 31)
+            };
+
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_ControlFlow_01()
+        {
+            string source = @"
+class C
+{
+    void M(int[] o)
+    /*<bind>*/
+    {
+        if (o is [1, .. var slice, 2]) { }
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Int32[]? slice]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B2]
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is [1, .. ... r slice, 2]')
+              Value:
+                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'o')
+              Pattern:
+                IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[1, .. var slice, 2]') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: null, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+                  Patterns (3):
+                      IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                        Value:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
+                        Pattern:
+                          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[]? slice, MatchesNull: True)
+                      IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2') (InputType: System.Int32, NarrowedType: System.Int32)
+                        Value:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            Leaving: {R1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1*2]
+    Statements (0)
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray },
+                expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
         }
     }
 }
