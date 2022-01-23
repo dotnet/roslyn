@@ -1320,6 +1320,81 @@ internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task RS1024_CustomComparer_ToDictionary()
+        {
+            var code = @"
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M(IEnumerable<ITypeSymbol> symbols)
+    {
+        _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolNameComparer.Instance);
+        _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolEqualityComparer.Default);
+    }
+}
+
+internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
+{
+    private SymbolNameComparer() { }
+
+    internal static IEqualityComparer<ISymbol> Instance { get; } = new SymbolNameComparer();
+
+    public override bool Equals(ISymbol x, ISymbol y) => true;
+
+    public override int GetHashCode(ISymbol obj) => 0;
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RS1024_CustomComparer_ToDictionary2()
+        {
+            var code = @"
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M(IEnumerable<ITypeSymbol> symbols)
+    {
+        _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolNameComparer.Instance);
+    }
+}
+
+internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
+{
+    private SymbolNameComparer() { }
+
+    internal static SymbolNameComparer Instance { get; } = new SymbolNameComparer();
+
+    public override bool Equals(ISymbol x, ISymbol y) => true;
+
+    public override int GetHashCode(ISymbol obj) => 0;
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+        }
+
         private static ReferenceAssemblies CreateNetCoreReferenceAssemblies()
             => ReferenceAssemblies.NetCore.NetCoreApp31.AddPackages(ImmutableArray.Create(
                 new PackageIdentity("Microsoft.CodeAnalysis", "4.0.1"),

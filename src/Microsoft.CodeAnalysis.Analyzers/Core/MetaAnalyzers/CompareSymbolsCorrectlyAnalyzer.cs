@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 var equalityComparerMethods = GetEqualityComparerMethodsToCheck(compilation);
                 var systemHashCode = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemHashCode);
+                var iEqualityComparer = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEqualityComparer1);
 
                 context.RegisterOperationAction(
-                    context => HandleInvocationOperation(in context, symbolType, symbolEqualityComparerType, equalityComparerMethods, systemHashCode),
+                    context => HandleInvocationOperation(in context, symbolType, symbolEqualityComparerType, equalityComparerMethods, systemHashCode, iEqualityComparer),
                     OperationKind.Invocation);
 
 
-                var iEqualityComparer = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEqualityComparer1);
                 if (symbolEqualityComparerType is not null && iEqualityComparer is not null)
                 {
                     var collectionTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
@@ -148,7 +148,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             INamedTypeSymbol symbolType,
             INamedTypeSymbol? symbolEqualityComparerType,
             ImmutableDictionary<string, ImmutableHashSet<INamedTypeSymbol>> equalityComparerMethods,
-            INamedTypeSymbol? systemHashCodeType)
+            INamedTypeSymbol? systemHashCodeType,
+            INamedTypeSymbol? iEqualityComparer)
         {
             var invocationOperation = (IInvocationOperation)context.Operation;
             var method = invocationOperation.TargetMethod;
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         symbolEqualityComparerType is not null &&
                         possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
                         IsBehavingOnSymbolType(method, symbolType) &&
-                        !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
+                        !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, iEqualityComparer)))
                     {
                         context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
                     }
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
         }
 
-        private static bool IsSymbolType(IOperation? operation, INamedTypeSymbol symbolType)
+        private static bool IsSymbolType(IOperation? operation, INamedTypeSymbol? symbolType)
         {
             if (operation?.Type is object && IsSymbolType(operation.Type.OriginalDefinition, symbolType))
             {
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return false;
         }
 
-        private static bool IsSymbolType(ITypeSymbol typeSymbol, INamedTypeSymbol symbolType)
+        private static bool IsSymbolType(ITypeSymbol typeSymbol, INamedTypeSymbol? symbolType)
             => typeSymbol != null
                 && (SymbolEqualityComparer.Default.Equals(typeSymbol, symbolType)
                     || typeSymbol.AllInterfaces.Contains(symbolType));
