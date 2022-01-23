@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     context => HandleInvocationOperation(in context, symbolType, symbolEqualityComparerType, equalityComparerMethods, systemHashCode, iEqualityComparer),
                     OperationKind.Invocation);
 
-
                 if (symbolEqualityComparerType is not null && iEqualityComparer is not null)
                 {
                     var collectionTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
