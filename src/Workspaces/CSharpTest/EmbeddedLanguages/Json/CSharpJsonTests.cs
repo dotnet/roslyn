@@ -209,12 +209,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
         private XElement NodeToElement(JsonNode node)
         {
+            if (node is JsonArrayNode arrayNode)
+                return ArrayNodeToElement(arrayNode);
+
+            if (node is JsonCompilationUnit compilationUnit)
+                return CompilationUnitToElement(compilationUnit);
+
+            if (node is JsonObjectNode objectNode)
+                return ObjectNodeToElement(objectNode);
+
+            if (node is JsonConstructorNode constructorNode)
+                return ConstructorNodeToElement(constructorNode);
+
             var element = new XElement(node.Kind.ToString());
             foreach (var child in node)
-            {
                 element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
-            }
 
+            return element;
+        }
+
+        private XElement ConstructorNodeToElement(JsonConstructorNode node)
+        {
+            var element = new XElement(node.Kind.ToString());
+            element.Add(TokenToElement(node.NewKeyword));
+            element.Add(TokenToElement(node.NameToken));
+            element.Add(TokenToElement(node.OpenParenToken));
+            element.Add(CreateSequenceNode(node.Sequence));
+            element.Add(TokenToElement(node.CloseParenToken));
+            return element;
+        }
+
+        private XElement ObjectNodeToElement(JsonObjectNode node)
+        {
+            var element = new XElement(node.Kind.ToString());
+            element.Add(TokenToElement(node.OpenBraceToken));
+            element.Add(CreateSequenceNode(node.Sequence));
+            element.Add(TokenToElement(node.CloseBraceToken));
+            return element;
+        }
+
+        private XElement CompilationUnitToElement(JsonCompilationUnit node)
+        {
+            var element = new XElement(node.Kind.ToString());
+            element.Add(CreateSequenceNode(node.Sequence));
+            element.Add(TokenToElement(node.EndOfFileToken));
+            return element;
+        }
+
+        private XElement ArrayNodeToElement(JsonArrayNode node)
+        {
+            var element = new XElement(node.Kind.ToString());
+            element.Add(TokenToElement(node.OpenBracketToken));
+            element.Add(CreateSequenceNode(node.Sequence));
+            element.Add(TokenToElement(node.CloseBracketToken));
+            return element;
+        }
+
+        private XElement CreateSequenceNode(ImmutableArray<JsonValueNode> sequence)
+        {
+            var element = new XElement("Sequence");
+            foreach (var child in sequence)
+                element.Add(NodeToElement(child));
             return element;
         }
 
@@ -350,6 +405,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             {
                 Assert.False(true, "Unexpected test name.");
             }
+        }
+
+        private string RemoveSequenceNode(string expected)
+        {
+            var element = XElement.Parse(expected);
+            var result = RemoveSequenceNode(element);
+            return result.ToString()!;
+        }
+
+        private object RemoveSequenceNode(XNode node)
+        {
+            if (node is not XElement element)
+                return node;
+
+            var children = element.Nodes().Select(RemoveSequenceNode);
+
+            if (element.Name == "Sequence")
+                return children;
+            return new XElement(element.Name, children);
         }
 
         [Fact]
