@@ -1,13 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -18,26 +24,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ExportIncrementalAnalyzerProvider(WellKnownSolutionCrawlerAnalyzers.Diagnostic, workspaceKinds: null)]
     internal partial class DefaultDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
-        private readonly IDiagnosticAnalyzerService _analyzerService;
+        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultDiagnosticAnalyzerService(
-            IDiagnosticAnalyzerService analyzerService,
             IDiagnosticUpdateSourceRegistrationService registrationService)
         {
-            _analyzerService = analyzerService;
+            _analyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             registrationService.Register(this);
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
-            {
-                return null;
-            }
-
-            return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
-        }
+            => new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
@@ -45,26 +44,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // this only support push model, pull model will be provided by DiagnosticService by caching everything this one pushed
         public bool SupportGetDiagnostics => false;
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             // pull model not supported
-            return ImmutableArray<DiagnosticData>.Empty;
+            return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
         }
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
-        {
-            this.DiagnosticsUpdated?.Invoke(this, state);
-        }
+            => DiagnosticsUpdated?.Invoke(this, state);
 
-        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
+        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer2
         {
             private readonly DefaultDiagnosticAnalyzerService _service;
             private readonly Workspace _workspace;
+            private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
 
             public DefaultDiagnosticIncrementalAnalyzer(DefaultDiagnosticAnalyzerService service, Workspace workspace)
             {
                 _service = service;
                 _workspace = workspace;
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache);
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -79,18 +78,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+                => AnalyzeSyntaxOrNonSourceDocumentAsync(document, cancellationToken);
+
+            public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+                => AnalyzeSyntaxOrNonSourceDocumentAsync(textDocument, cancellationToken);
+
+            private async Task AnalyzeSyntaxOrNonSourceDocumentAsync(TextDocument textDocument, CancellationToken cancellationToken)
             {
-                Debug.Assert(document.Project.Solution.Workspace == _workspace);
+                Debug.Assert(textDocument.Project.Solution.Workspace == _workspace);
 
                 // right now, there is no way to observe diagnostics for closed file.
-                if (!_workspace.IsDocumentOpen(document.Id) ||
+                if (!_workspace.IsDocumentOpen(textDocument.Id) ||
                     !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Syntax))
                 {
                     return;
                 }
 
-                await AnalyzeForKind(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
+                await AnalyzeForKindAsync(textDocument, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -102,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                await AnalyzeForKind(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
+                await AnalyzeForKindAsync(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
 
                 bool IsSemanticAnalysisOn()
                 {
@@ -121,29 +126,65 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private async Task AnalyzeForKind(Document document, AnalysisKind kind, CancellationToken cancellationToken)
+            private async Task AnalyzeForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
             {
-                var diagnosticData = await _service._analyzerService.GetDiagnosticsAsync(document, GetAnalyzers(), kind, cancellationToken).ConfigureAwait(false);
+                var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
                 _service.RaiseDiagnosticsUpdated(
                     DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
-                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData.ToImmutableArrayOrEmpty()));
-
-                IEnumerable<DiagnosticAnalyzer> GetAnalyzers()
-                {
-                    // C# or VB document that supports compiler
-                    var compilerAnalyzer = _service._analyzerService.GetCompilerDiagnosticAnalyzer(document.Project.Language);
-                    if (compilerAnalyzer != null)
-                    {
-                        return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
-                    }
-
-                    // document that doesn't support compiler diagnostics such as fsharp or typescript
-                    return _service._analyzerService.GetDiagnosticAnalyzers(document.Project);
-                }
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            /// <summary>
+            /// Get diagnostics for the given document.
+            /// 
+            /// This is a simple API to get all diagnostics for the given document.
+            /// 
+            /// The intended audience for this API is for ones that pefer simplicity over performance such as document that belong to misc project.
+            /// this doesn't cache nor use cache for anything. it will re-caculate new diagnostics every time for the given document.
+            /// it will not persist any data on disk nor use OOP to calculate the data.
+            /// 
+            /// This should never be used when performance is a big concern. for such context, use much complex API from IDiagnosticAnalyzerService
+            /// that provide all kinds of knobs/cache/persistency/OOP to get better perf over simplicity.
+            /// </summary>
+            private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+               TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
+            {
+                var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
+                if (loadDiagnostic != null)
+                    return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
+
+                var project = document.Project;
+                var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
+                if (analyzers.IsEmpty)
+                    return ImmutableArray<DiagnosticData>.Empty;
+
+                var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
+                    project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
+
+                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
+                foreach (var analyzer in analyzers)
+                    builder.AddRange(await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false));
+
+                return builder.ToImmutable();
+            }
+
+            private static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)
+            {
+                // C# or VB document that supports compiler
+                var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
+                if (compilerAnalyzer != null)
+                {
+                    return ImmutableArray.Create(compilerAnalyzer);
+                }
+
+                // document that doesn't support compiler diagnostics such as FSharp or TypeScript
+                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v).ToImmutableArrayOrEmpty();
+            }
+
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 // a file is removed from a solution
                 //
@@ -154,19 +195,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // both of them at the end generates semantic errors
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Syntax, documentId);
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Semantic, documentId);
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 // no closed file diagnostic and file is not opened, remove any existing diagnostics
-                RemoveDocument(document.Id);
-                return Task.CompletedTask;
+                return RemoveDocumentAsync(document.Id, cancellationToken);
+            }
+
+            public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            {
+                // no closed file diagnostic and file is not opened, remove any existing diagnostics
+                return RemoveDocumentAsync(textDocument.Id, cancellationToken);
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return DocumentResetAsync(document, cancellationToken);
-            }
+                => DocumentResetAsync(document, cancellationToken);
+
+            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => NonSourceDocumentResetAsync(textDocument, cancellationToken);
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
@@ -175,39 +223,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
+
+            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => Task.CompletedTask;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
-            public void RemoveProject(ProjectId projectId)
-            {
-            }
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+                => Task.CompletedTask;
 
             private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate
             {
                 private readonly string _workspaceKind;
 
                 public DefaultUpdateArgsId(string workspaceKind, AnalysisKind kind, DocumentId documentId) : base((int)kind, documentId)
-                {
-                    _workspaceKind = workspaceKind;
-                }
+                    => _workspaceKind = workspaceKind;
 
                 public override string BuildTool => PredefinedBuildTools.Live;
 
                 public override bool Equals(object obj)
                 {
-                    var other = obj as DefaultUpdateArgsId;
-                    if (other == null)
+                    if (obj is not DefaultUpdateArgsId other)
                     {
                         return false;
                     }
@@ -216,9 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 public override int GetHashCode()
-                {
-                    return Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
-                }
+                    => Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
             }
         }
     }

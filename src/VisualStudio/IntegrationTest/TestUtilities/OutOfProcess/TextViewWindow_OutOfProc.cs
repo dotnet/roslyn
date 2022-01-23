@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -55,10 +57,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _textViewWindowInProc.GetCurrentClassifications();
 
         public string GetQuickInfo()
-        {
-            WaitForQuickInfo();
-            return _textViewWindowInProc.GetQuickInfo();
-        }
+            => _textViewWindowInProc.GetQuickInfo();
 
         public void VerifyTags(string tagTypeName, int expectedCount)
             => _textViewWindowInProc.VerifyTags(tagTypeName, expectedCount);
@@ -74,6 +73,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void DismissLightBulbSession()
             => _textViewWindowInProc.DismissLightBulbSession();
+
+        public void DismissCompletionSessions()
+        {
+            WaitForCompletionSet();
+            _textViewWindowInProc.DismissCompletionSessions();
+        }
 
         public string[] GetLightBulbActions()
             => _textViewWindowInProc.GetLightBulbActions();
@@ -108,9 +113,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         }
 
         public void InvokeQuickInfo()
-        {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.QuickInfo);
-        }
+            => _textViewWindowInProc.InvokeQuickInfo();
     }
 }

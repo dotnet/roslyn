@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -114,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
 
- _
+                       _
         ' test
         Console.WriteLine("")";
 
@@ -394,9 +398,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Console.WriteLine() _
- _
+                            _
         ' test
- _
+        _
         Console.WriteLine()";
 
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
@@ -467,7 +471,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Dim i = _
- _
+                _
                 1 +
                 2";
 
@@ -807,7 +811,7 @@ End Module|]";
 
             var expected = @"Module Program
     Sub Main(
- _
+             _
         args _
         As String)
     End Sub
@@ -1454,7 +1458,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        private string CreateMethod(string body)
+        private static string CreateMethod(string body)
         {
             return @"Imports System
 Class C
@@ -1463,13 +1467,13 @@ Class C
 End Class";
         }
 
-        private async Task VerifyAsync(string codeWithMarker, string expectedResult, LanguageVersion langVersion = LanguageVersion.VisualBasic14)
+        private static async Task VerifyAsync(string codeWithMarker, string expectedResult, LanguageVersion langVersion = LanguageVersion.VisualBasic14)
         {
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic, langVersion);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.RemoveUnnecessaryLineContinuation || p.Name == PredefinedCodeCleanupProviderNames.Format);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.RemoveUnnecessaryLineContinuation or PredefinedCodeCleanupProviderNames.Format);
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 

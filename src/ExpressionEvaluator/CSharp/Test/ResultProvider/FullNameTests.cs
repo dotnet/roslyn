@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -108,6 +112,14 @@ class C
 
             root = FormatResult("/**/a// Comment", value);
             Assert.Equal("a.F", GetChildren(root).Single().FullName);
+
+            // See https://dev.azure.com/devdiv/DevDiv/_workitems/edit/847849
+            root = FormatResult(@"""a//b/*"" // c", value);
+            Assert.Equal(@"(""a//b/*"").F", GetChildren(root).Single().FullName);
+
+            // incorrect - see https://github.com/dotnet/roslyn/issues/37536 
+            root = FormatResult(@"""a"" //""b", value);
+            Assert.Equal(@"(""a"" //""b).F", GetChildren(root).Single().FullName);
         }
 
         [Fact]
@@ -291,7 +303,7 @@ public class @if : @struct
 
             var root = FormatResult("o", value, new DkmClrType((TypeImpl)declaredType));
             Verify(GetChildren(root),
-                EvalResult("m", "{if}", "struct {if}", "((@namespace)o).m", DkmEvaluationResultFlags.None));
+                EvalResult("m", "{if}", "struct {if}", "((@namespace)o).m", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -341,7 +353,7 @@ public class @struct
 
             var root = FormatResult("o", value);
             Verify(GetChildren(root),
-                EvalResult("@true", "0", "int", "o.@true"));
+                EvalResult("@true", "0", "int", "o.@true", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -428,7 +440,7 @@ namespace @namespace
             var root = FormatResult("o", value);
             Verify(GetChildren(root),
                 EvalResult("x (<>Mangled)", "0", "int", null),
-                EvalResult("x", "0", "int", "o.x"));
+                EvalResult("x", "0", "int", "o.x", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -473,7 +485,6 @@ namespace @namespace
                 EvalResult("Static members", null, "", null, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
             Verify(GetChildren(children.Single()),
                 EvalResult("x", "0", "int", null));
-
 
             var derivedValue = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate());
 
@@ -544,7 +555,7 @@ namespace @namespace
 
             var root = FormatResult("instance", value);
             Verify(GetChildren(root),
-                EvalResult("P", "1", "int", "instance.P", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("P", "1", "int", "instance.P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
                 EvalResult("abstract.I<>Mangled.P", "1", "int", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private));
         }
 
@@ -592,7 +603,7 @@ namespace @namespace
             var root = FormatResult("o", value);
             var children = GetChildren(root);
             Verify(children,
-                EvalResult("array", "{<>Mangled[1]}", "System.Collections.Generic.IEnumerable<<>Mangled> {<>Mangled[]}", "o.array", DkmEvaluationResultFlags.Expandable));
+                EvalResult("array", "{<>Mangled[1]}", "System.Collections.Generic.IEnumerable<<>Mangled> {<>Mangled[]}", "o.array", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             Verify(GetChildren(children.Single()),
                 EvalResult("[0]", "null", "<>Mangled", null));
         }

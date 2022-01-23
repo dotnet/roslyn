@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -114,10 +116,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <remarks>
+        /// This override is done for performance reasons. Lacking the override this would redirect to 
+        /// <see cref="RetargetingModuleSymbol.DeclaringCompilation"/> which returns null. The override 
+        /// short circuits the overhead in <see cref="Symbol.DeclaringCompilation"/> and the extra virtual
+        /// dispatch and just returns null.
+        /// </remarks>
+        internal sealed override CSharpCompilation? DeclaringCompilation
         {
             get { return null; }
         }
+
+        internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
     }
 
     internal sealed class RetargetingMethodParameterSymbol : RetargetingParameterSymbol
@@ -138,6 +153,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { return _retargetingMethod.RetargetingModule; }
         }
+
+        internal override bool IsCallerLineNumber
+        {
+            get { return _underlyingParameter.IsCallerLineNumber; }
+        }
+
+        internal override bool IsCallerFilePath
+        {
+            get { return _underlyingParameter.IsCallerFilePath; }
+        }
+
+        internal override bool IsCallerMemberName
+        {
+            get { return _underlyingParameter.IsCallerMemberName; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
+        }
     }
 
     internal sealed class RetargetingPropertyParameterSymbol : RetargetingParameterSymbol
@@ -157,6 +192,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         protected override RetargetingModuleSymbol RetargetingModule
         {
             get { return _retargetingProperty.RetargetingModule; }
+        }
+
+        internal override bool IsCallerLineNumber
+        {
+            get { return _underlyingParameter.IsCallerLineNumber; }
+        }
+
+        internal override bool IsCallerFilePath
+        {
+            get { return _underlyingParameter.IsCallerFilePath; }
+        }
+
+        internal override bool IsCallerMemberName
+        {
+            get { return _underlyingParameter.IsCallerMemberName; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -39,18 +43,18 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var localSymbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+            var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
             Assert.Equal("o", localSymbol.Name);
             Assert.Equal(SpecialType.System_Object, localSymbol.Type.SpecialType);
 
             var lockStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
             var lockExprInfo = model.GetSymbolInfo(lockStatement.Expression);
-            Assert.NotNull(lockExprInfo);
+            Assert.NotEqual(default, lockExprInfo);
             Assert.Equal(localSymbol, lockExprInfo.Symbol);
 
             var memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             var memberAccessInfo = model.GetSymbolInfo(memberAccessExpression.Expression);
-            Assert.NotNull(memberAccessInfo);
+            Assert.NotEqual(default, memberAccessInfo);
             Assert.Equal(localSymbol, memberAccessInfo.Symbol);
         }
 
@@ -400,9 +404,6 @@ class Test
                 // (9,26): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         lock ((C + yield return +D).ToString())
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(9, 26),
-                // (9,33): error CS0029: Cannot implicitly convert type 'int' to 'System.Collections.Generic.IEnumerable<int>'
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "+D").WithArguments("int", "System.Collections.Generic.IEnumerable<int>").WithLocation(9, 33),
                 // (9,37): warning CS0162: Unreachable code detected
                 //         lock ((C + yield return +D).ToString())
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "ToString").WithLocation(9, 37)
@@ -547,7 +548,7 @@ public class Test
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().Single();
             var parameterSymbol = model.GetDeclaredSymbol(localDecl);
-            VerifySemanticInfoForLockStatements(compilation, parameterSymbol);
+            VerifySemanticInfoForLockStatements(compilation, parameterSymbol.GetSymbol());
         }
 
         [Fact]
@@ -600,8 +601,8 @@ partial class Test
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type, isSymbolNull: true);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+            VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol(), isSymbolNull: true);
         }
 
         [Fact()]
@@ -624,8 +625,8 @@ class Test
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+            VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol());
         }
 
         [Fact()]
@@ -689,7 +690,7 @@ class Test
 
         #region help method
 
-        private static void VerifySemanticInfoForLockStatements(CSharpCompilation compilation, ISymbol symbol, int index = 1, bool isSymbolNull = false)
+        private static void VerifySemanticInfoForLockStatements(CSharpCompilation compilation, Symbol symbol, int index = 1, bool isSymbolNull = false)
         {
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -709,8 +710,8 @@ class Test
             Assert.NotNull(typeInfo.Type);
             Assert.NotNull(typeInfo.ConvertedType);
 
-            Assert.Equal(symbol, (TypeSymbol)typeInfo.Type);
-            Assert.Equal(symbol, (TypeSymbol)typeInfo.ConvertedType);
+            Assert.Equal(symbol, typeInfo.Type.GetSymbol());
+            Assert.Equal(symbol, typeInfo.ConvertedType.GetSymbol());
         }
 
         #endregion

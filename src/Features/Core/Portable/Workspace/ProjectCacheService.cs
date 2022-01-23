@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Host;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -20,26 +23,33 @@ namespace Microsoft.CodeAnalysis.Host
     {
         internal const int ImplicitCacheSize = 3;
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
-        private readonly Workspace _workspace;
-        private readonly Dictionary<ProjectId, Cache> _activeCaches = new Dictionary<ProjectId, Cache>();
+        private readonly Workspace? _workspace;
+        private readonly ISyntaxTreeConfigurationService? _configurationService;
+        private readonly Dictionary<ProjectId, Cache> _activeCaches = new();
 
-        private readonly SimpleMRUCache _implicitCache;
-        private readonly ImplicitCacheMonitor _implicitCacheMonitor;
+        private readonly SimpleMRUCache? _implicitCache;
+        private readonly ImplicitCacheMonitor? _implicitCacheMonitor;
 
-        public ProjectCacheService(Workspace workspace)
+        public ProjectCacheService(Workspace? workspace)
         {
             _workspace = workspace;
+            _configurationService = workspace?.Services.GetService<ISyntaxTreeConfigurationService>();
         }
 
-        public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
+        public ProjectCacheService(Workspace? workspace, TimeSpan implicitCacheTimeout)
+            : this(workspace)
         {
-            _workspace = workspace;
-
             _implicitCache = new SimpleMRUCache();
             _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
         }
+
+        /// <summary>
+        /// Recoverable trees only save significant memory for larger trees.
+        /// </summary>
+        public int MinimumLengthForRecoverableTree
+            => (_configurationService?.DisableRecoverableTrees != true) ? 4 * 1024 : int.MaxValue;
 
         public bool IsImplicitCacheEmpty
         {
@@ -83,23 +93,31 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        public T CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T instance) where T : class
+        [return: NotNullIfNotNull("instance")]
+        public T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T? instance) where T : class
         {
-            lock (_gate)
+            if (IsEnabled)
             {
-                if (_activeCaches.TryGetValue(key, out var cache))
+                lock (_gate)
                 {
-                    cache.CreateStrongReference(owner, instance);
+                    if (_activeCaches.TryGetValue(key, out var cache))
+                    {
+                        cache.CreateStrongReference(owner, instance);
+                    }
+                    else if (_implicitCache != null && !PartOfP2PReferences(key))
+                    {
+                        RoslynDebug.Assert(_implicitCacheMonitor != null);
+                        _implicitCache.Touch(instance);
+                        _implicitCacheMonitor.Touch();
+                    }
                 }
-                else if ((_implicitCache != null) && !PartOfP2PReferences(key))
-                {
-                    _implicitCache.Touch(instance);
-                    _implicitCacheMonitor.Touch();
-                }
-
-                return instance;
             }
+
+            return instance;
         }
+
+        private bool IsEnabled
+            => _configurationService?.DisableProjectCacheService != true;
 
         private bool PartOfP2PReferences(ProjectId key)
         {
@@ -124,18 +142,22 @@ namespace Microsoft.CodeAnalysis.Host
             return false;
         }
 
-        public T CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T instance) where T : class
+        [return: NotNullIfNotNull("instance")]
+        public T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T? instance) where T : class
         {
-            lock (_gate)
+            if (IsEnabled)
             {
-                if (owner.CachedObject == null && _activeCaches.TryGetValue(key, out var cache))
+                lock (_gate)
                 {
-                    owner.CachedObject = instance;
-                    cache.CreateOwnerEntry(owner);
+                    if (owner.CachedObject == null && _activeCaches.TryGetValue(key, out var cache))
+                    {
+                        owner.CachedObject = instance;
+                        cache.CreateOwnerEntry(owner);
+                    }
                 }
-
-                return instance;
             }
+
+            return instance;
         }
 
         private void DisableCaching(ProjectId key, Cache cache)
@@ -151,13 +173,13 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private class Cache : IDisposable
+        private sealed class Cache : IDisposable
         {
             internal int Count;
             private readonly ProjectCacheService _cacheService;
             private readonly ProjectId _key;
-            private ConditionalWeakTable<object, object> _cache = new ConditionalWeakTable<object, object>();
-            private readonly List<WeakReference<ICachedObjectOwner>> _ownerObjects = new List<WeakReference<ICachedObjectOwner>>();
+            private ConditionalWeakTable<object, object?>? _cache = new();
+            private readonly List<WeakReference<ICachedObjectOwner>> _ownerObjects = new();
 
             public Cache(ProjectCacheService cacheService, ProjectId key)
             {
@@ -166,22 +188,23 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public void Dispose()
-            {
-                _cacheService.DisableCaching(_key, this);
-            }
+                => _cacheService.DisableCaching(_key, this);
 
-            internal void CreateStrongReference(object key, object instance)
+            internal void CreateStrongReference(object key, object? instance)
             {
-                if (!_cache.TryGetValue(key, out var o))
+                if (_cache == null)
+                {
+                    throw new ObjectDisposedException(nameof(Cache));
+                }
+
+                if (!_cache.TryGetValue(key, out _))
                 {
                     _cache.Add(key, instance);
                 }
             }
 
             internal void CreateOwnerEntry(ICachedObjectOwner owner)
-            {
-                _ownerObjects.Add(new WeakReference<ICachedObjectOwner>(owner));
-            }
+                => _ownerObjects.Add(new WeakReference<ICachedObjectOwner>(owner));
 
             internal void FreeOwnerEntries()
             {

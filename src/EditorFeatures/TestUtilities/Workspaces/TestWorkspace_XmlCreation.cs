@@ -1,13 +1,62 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public partial class TestWorkspace
     {
+        internal static XElement CreateWorkspaceElement(
+            string language,
+            CompilationOptions compilationOptions = null,
+            ParseOptions parseOptions = null,
+            string[] files = null,
+            string[] sourceGeneratedFiles = null,
+            string[] metadataReferences = null,
+            string extension = null,
+            bool commonReferences = true)
+        {
+            var documentElements = new List<XElement>();
+
+            var index = 0;
+            extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
+            if (files != null)
+            {
+                foreach (var file in files)
+                {
+                    documentElements.Add(CreateDocumentElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
+                }
+            }
+
+            if (sourceGeneratedFiles != null)
+            {
+                foreach (var file in sourceGeneratedFiles)
+                {
+                    documentElements.Add(CreateDocumentFromSourceGeneratorElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
+                }
+            }
+
+            if (metadataReferences != null)
+            {
+                foreach (var reference in metadataReferences)
+                {
+                    documentElements.Add(CreateMetadataReference(reference));
+                }
+            }
+
+            var projectElement = CreateProjectElement(compilationOptions?.ModuleName ?? "Test", language, commonReferences, parseOptions, compilationOptions, documentElements);
+            return CreateWorkspaceElement(projectElement);
+        }
+
         protected static XElement CreateWorkspaceElement(
             params XElement[] projectElements)
         {
@@ -35,15 +84,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static XAttribute CreateLanguageVersionAttribute(ParseOptions parseOptions)
         {
-            var csharpOptions = parseOptions as Microsoft.CodeAnalysis.CSharp.CSharpParseOptions;
-            var vbOptions = parseOptions as Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions;
+            var csharpOptions = parseOptions as CSharpParseOptions;
+            var vbOptions = parseOptions as VisualBasicParseOptions;
             if (csharpOptions != null)
             {
-                return new XAttribute(LanguageVersionAttributeName, csharpOptions.LanguageVersion);
+                return new XAttribute(LanguageVersionAttributeName, CodeAnalysis.CSharp.LanguageVersionFacts.ToDisplayString(csharpOptions.LanguageVersion));
             }
             else if (vbOptions != null)
             {
-                return new XAttribute(LanguageVersionAttributeName, vbOptions.LanguageVersion);
+                return new XAttribute(LanguageVersionAttributeName, CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(vbOptions.LanguageVersion));
             }
             else
             {
@@ -76,6 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static XElement CreateCompilationOptionsElement(CompilationOptions options)
         {
+            Contract.ThrowIfFalse(options.SpecificDiagnosticOptions.IsEmpty);
+
             var element = new XElement(CompilationOptionsElementName);
 
             if (options is CodeAnalysis.CSharp.CSharpCompilationOptions csOptions)
@@ -92,6 +143,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
+            if (options.GeneralDiagnosticOption != ReportDiagnostic.Default)
+            {
+                element.SetAttributeValue(ReportDiagnosticAttributeName, options.GeneralDiagnosticOption);
+            }
+
             if (options.CheckOverflow)
             {
                 element.SetAttributeValue(CheckOverflowAttributeName, true);
@@ -99,27 +155,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (options.OutputKind != OutputKind.DynamicallyLinkedLibrary)
             {
-                element = element ?? new XElement(CompilationOptionsElementName);
                 element.SetAttributeValue(OutputKindName, options.OutputKind);
+            }
+
+            if (options.NullableContextOptions != NullableContextOptions.Disable)
+            {
+                element.SetAttributeValue(NullableAttributeName, options.NullableContextOptions);
             }
 
             return element;
         }
 
         private static XElement CreateMetadataReference(string path)
-        {
-            return new XElement(MetadataReferenceElementName, path);
-        }
-
-        private static XElement CreateProjectReference(string projectName)
-        {
-            return new XElement(ProjectReferenceElementName, projectName);
-        }
+            => new XElement(MetadataReferenceElementName, path);
 
         protected static XElement CreateDocumentElement(string code, string filePath, ParseOptions parseOptions = null)
         {
             return new XElement(DocumentElementName,
                 new XAttribute(FilePathAttributeName, filePath),
+                CreateParseOptionsElement(parseOptions),
+                code.Replace("\r\n", "\n"));
+        }
+
+        protected static XElement CreateDocumentFromSourceGeneratorElement(string code, string hintName, ParseOptions parseOptions = null)
+        {
+            return new XElement(DocumentFromSourceGeneratorElementName,
+                new XAttribute(FilePathAttributeName, hintName),
                 CreateParseOptionsElement(parseOptions),
                 code.Replace("\r\n", "\n"));
         }

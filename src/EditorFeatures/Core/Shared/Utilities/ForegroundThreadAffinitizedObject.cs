@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -34,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public bool IsForeground()
-        {
-            return _threadingContext.JoinableTaskContext.IsOnMainThread;
-        }
+            => _threadingContext.JoinableTaskContext.IsOnMainThread;
 
         public void AssertIsForeground()
         {
@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public void AssertIsBackground()
-        {
-            Contract.ThrowIfTrue(IsForeground());
-        }
+            => Contract.ThrowIfTrue(IsForeground());
 
         /// <summary>
         /// A helpful marker method that can be used by deriving classes to indicate that a 
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// This is useful so that every method in deriving class can have some sort of marker
         /// on each method stating the threading constraints (FG-only/BG-only/Any-thread).
         /// </summary>
-        public void ThisCanBeCalledOnAnyThread()
+        public static void ThisCanBeCalledOnAnyThread()
         {
             // Does nothing.
         }
@@ -87,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                     async () =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        cancellationToken.ThrowIfCancellationRequested();
 
                         action();
                     },
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// <summary>
         /// Returns true if any keyboard or mouse button input is pending on the message queue.
         /// </summary>
-        protected bool IsInputPending()
+        protected static bool IsInputPending()
         {
             // The code below invokes into user32.dll, which is not available in non-Windows.
             if (PlatformInformation.IsUnix)
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
             // The return value of GetQueueStatus is HIWORD:LOWORD.
             // A non-zero value in HIWORD indicates some input message in the queue.
-            uint result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
+            var result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
 
             const uint InputMask = NativeMethods.QS_INPUT | (NativeMethods.QS_INPUT << 16);
             return (result & InputMask) != 0;

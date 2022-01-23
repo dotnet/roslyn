@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -109,13 +114,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             internal readonly string ExtensionTypeName;
             internal readonly string MetadataTypeName;
-            private readonly int _hash;
 
             public ExportKey(string extensionTypeName, string metadataTypeName)
             {
                 this.ExtensionTypeName = extensionTypeName;
                 this.MetadataTypeName = metadataTypeName;
-                _hash = Hash.Combine(metadataTypeName.GetHashCode(), extensionTypeName.GetHashCode());
+                Hash.Combine(metadataTypeName.GetHashCode(), extensionTypeName.GetHashCode());
             }
 
             public bool Equals(ExportKey other)
@@ -125,9 +129,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             public override bool Equals(object obj)
-            {
-                return (obj is ExportKey) && this.Equals((ExportKey)obj);
-            }
+                => obj is ExportKey exportKey && this.Equals(exportKey);
 
             public override int GetHashCode()
             {
@@ -137,7 +139,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         internal readonly struct TestAccessor
         {
+#pragma warning disable IDE0052 // Remove unread private members - hold onto the services
             private readonly MefV1HostServices _mefV1HostServices;
+#pragma warning restore IDE0052 // Remove unread private members
 
             public TestAccessor(MefV1HostServices mefV1HostServices)
             {

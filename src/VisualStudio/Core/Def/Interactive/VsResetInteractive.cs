@@ -1,4 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+extern alias InteractiveHost;
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +23,8 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -54,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
             out string projectDirectory,
-            out bool? is64bit)
+            out InteractiveHostPlatform? platform)
         {
             var hierarchyPointer = default(IntPtr);
             var selectionContainerPointer = default(IntPtr);
@@ -63,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             sourceSearchPaths = ImmutableArray<string>.Empty;
             projectNamespaces = ImmutableArray<string>.Empty;
             projectDirectory = null;
-            is64bit = null;
+            platform = null;
 
             try
             {
@@ -72,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
                 if (hierarchyPointer != IntPtr.Zero)
                 {
-                    GetProjectProperties(hierarchyPointer, out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory, out is64bit);
+                    GetProjectProperties(hierarchyPointer, out references, out referenceSearchPaths, out sourceSearchPaths, out projectNamespaces, out projectDirectory, out platform);
                     return true;
                 }
             }
@@ -92,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
             out string projectDirectory,
-            out bool? is64bit)
+            out InteractiveHostPlatform? platform)
         {
             var hierarchy = (IVsHierarchy)Marshal.GetObjectForIUnknown(hierarchyPointer);
             Marshal.ThrowExceptionForHR(
@@ -110,6 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var projectDir = (string)dteProject.Properties.Item("FullPath").Value;
             var outputFileName = (string)dteProject.Properties.Item("OutputFileName").Value;
             var defaultNamespace = (string)dteProject.Properties.Item("DefaultNamespace").Value;
+            var targetFrameworkMoniker = (string)dteProject.Properties.Item("TargetFrameworkMoniker").Value;
             var relativeOutputPath = (string)dteProject.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value;
 
             Debug.Assert(!string.IsNullOrEmpty(projectDir));
@@ -148,55 +157,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             sourceSearchPaths = sourceSearchPathsBuilder.ToImmutableArray();
             projectNamespaces = namespacesToImportBuilder.ToImmutableArray();
 
-            is64bit = (projectOpt != null) ? Is64Bit(projectOpt.CompilationOptions.Platform) : null;
+            platform = (projectOpt != null) ? GetInteractiveHostPlatform(targetFrameworkMoniker, projectOpt.CompilationOptions.Platform) : null;
         }
 
         internal Project GetProjectFromHierarchy(IVsHierarchy hierarchy)
-            => _workspace.CurrentSolution.Projects.FirstOrDefault(proj => ProjectIdMatchesHierarchy(_workspace, proj.Id, hierarchy));
+            => _workspace.CurrentSolution.Projects.FirstOrDefault(proj => _workspace.GetHierarchy(proj.Id) == hierarchy);
 
-        private static bool ProjectIdMatchesHierarchy(VisualStudioWorkspace workspace, ProjectId projectId, IVsHierarchy hierarchy)
+        private static InteractiveHostPlatform? GetInteractiveHostPlatform(string targetFrameworkMoniker, Platform platform)
         {
-            var hierarchyForProject = workspace.GetHierarchy(projectId);
-
-            if (hierarchyForProject == null)
+            if (targetFrameworkMoniker.StartsWith(".NETCoreApp", StringComparison.OrdinalIgnoreCase) ||
+                targetFrameworkMoniker.StartsWith(".NETStandard", StringComparison.OrdinalIgnoreCase))
             {
-                return false;
+                return InteractiveHostPlatform.Core;
             }
 
-            if (hierarchyForProject == hierarchy)
-            {
-                return true;
-            }
-
-            // For CPS, the hierarchy for the Roslyn project isn't the same as the one
-            // we get from Solution Explorer (it's a wrapper implementation), so we'll
-            // have to compare properties.
-
-            hierarchyForProject.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var rawValue);
-
-            var projectName = rawValue as string;
-            if (projectName != null)
-            {
-                hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out rawValue);
-                return projectName == (rawValue as string);
-            }
-
-            return false;
-        }
-
-        private static bool? Is64Bit(Platform platform)
-        {
             switch (platform)
             {
                 case Platform.Arm:
                 case Platform.AnyCpu32BitPreferred:
                 case Platform.X86:
-                    return false;
+                    return InteractiveHostPlatform.Desktop32;
 
                 case Platform.Itanium:
                 case Platform.X64:
                 case Platform.Arm64:
-                    return true;
+                    return InteractiveHostPlatform.Desktop64;
 
                 default:
                     return null;
@@ -210,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return reference.Path;
             }
 
-            string name = reference.Name;
+            var name = reference.Name;
             if (name == "mscorlib")
             {
                 // mscorlib is always loaded
@@ -294,11 +279,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
         }
 
-        protected override Task<bool> BuildProject()
+        protected override Task<bool> BuildProjectAsync()
         {
             var taskSource = new TaskCompletionSource<bool>();
 
-            var updateSolutionEvents = new VsUpdateSolutionEvents(_buildManager, taskSource);
+            _ = new VsUpdateSolutionEvents(_buildManager, taskSource);
 
             // Build the project.  When project build is done, set the task source as being done.
             // (Either succeeded, cancelled, or failed).
@@ -308,14 +293,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         protected override void CancelBuildProject()
-        {
-            _dte.ExecuteCommand("Build.Cancel");
-        }
+            => _dte.ExecuteCommand("Build.Cancel");
 
-        protected override IWaitIndicator GetWaitIndicator()
-        {
-            return _componentModel.GetService<IWaitIndicator>();
-        }
+        protected override IUIThreadOperationExecutor GetUIThreadOperationExecutor()
+            => _componentModel.GetService<IUIThreadOperationExecutor>();
 
         /// <summary>
         /// Return namespaces that can be resolved in the latest interactive compilation.

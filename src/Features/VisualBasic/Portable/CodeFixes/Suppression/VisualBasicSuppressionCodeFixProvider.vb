@@ -1,50 +1,68 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Globalization
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
-    <ExportSuppressionFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.VisualBasic), [Shared]>
+    <ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.Suppression, LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSuppressionCodeFixProvider
         Inherits AbstractSuppressionCodeFixProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CreatePragmaRestoreDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
-            Dim errorCodes = GetErrorCodes(diagnostic)
+        Protected Overrides Function CreatePragmaRestoreDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean, cancellationToken As CancellationToken) As SyntaxTriviaList
+            Dim includeTitle As Boolean
+            Dim errorCodes = GetErrorCodes(diagnostic, includeTitle)
             Dim pragmaDirective = SyntaxFactory.EnableWarningDirectiveTrivia(errorCodes)
-            Return CreatePragmaDirectiveTrivia(pragmaDirective, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine)
+            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken)
         End Function
 
-        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
-            Dim errorCodes = GetErrorCodes(diagnostic)
+        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean, cancellationToken As CancellationToken) As SyntaxTriviaList
+            Dim includeTitle As Boolean
+            Dim errorCodes = GetErrorCodes(diagnostic, includeTitle)
             Dim pragmaDirective = SyntaxFactory.DisableWarningDirectiveTrivia(errorCodes)
-            Return CreatePragmaDirectiveTrivia(pragmaDirective, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine)
+            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken)
         End Function
 
-        Private Shared Function GetErrorCodes(diagnostic As Diagnostic) As SeparatedSyntaxList(Of IdentifierNameSyntax)
-            Dim text = diagnostic.Id
+        Private Shared Function GetErrorCodes(diagnostic As Diagnostic, ByRef includeTitle As Boolean) As SeparatedSyntaxList(Of IdentifierNameSyntax)
+            Dim text = GetOrMapDiagnosticId(diagnostic, includeTitle)
             If SyntaxFacts.GetKeywordKind(text) <> SyntaxKind.None Then
                 text = "[" & text & "]"
             End If
+
             Return New SeparatedSyntaxList(Of IdentifierNameSyntax)().Add(SyntaxFactory.IdentifierName(text))
         End Function
 
-        Private Function CreatePragmaDirectiveTrivia(enableOrDisablePragmaDirective As StructuredTriviaSyntax, diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
-            enableOrDisablePragmaDirective = CType(formatNode(enableOrDisablePragmaDirective), StructuredTriviaSyntax)
+        Private Shared Function CreatePragmaDirectiveTrivia(
+                enableOrDisablePragmaDirective As StructuredTriviaSyntax,
+                includeTitle As Boolean,
+                diagnostic As Diagnostic,
+                formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode),
+                needsLeadingEndOfLine As Boolean,
+                needsTrailingEndOfLine As Boolean,
+                cancellationToken As CancellationToken) As SyntaxTriviaList
+
+            enableOrDisablePragmaDirective = CType(formatNode(enableOrDisablePragmaDirective, cancellationToken), StructuredTriviaSyntax)
             Dim pragmaDirectiveTrivia = SyntaxFactory.Trivia(enableOrDisablePragmaDirective)
             Dim endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
             Dim triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia)
 
-            Dim title = diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture)
+            Dim title = If(includeTitle, diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture), Nothing)
             If Not String.IsNullOrWhiteSpace(title) Then
                 Dim titleComment = SyntaxFactory.CommentTrivia(String.Format(" ' {0}", title)).WithAdditionalAnnotations(Formatter.Annotation)
                 triviaList = triviaList.Add(titleComment)
@@ -61,39 +79,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return triviaList
         End Function
 
-        Protected Overrides Function GetAdjustedTokenForPragmaDisable(token As SyntaxToken, root As SyntaxNode, lines As TextLineCollection, indexOfLine As Integer) As SyntaxToken
-            Dim containingStatement = token.GetAncestor(Of StatementSyntax)
-            If containingStatement IsNot Nothing AndAlso
-                containingStatement.GetFirstToken() <> token Then
-                indexOfLine = lines.IndexOf(containingStatement.GetFirstToken().SpanStart)
-                Dim line = lines(indexOfLine)
-                token = root.FindToken(line.Start)
-            End If
-
-            Return token
+        Protected Overrides Function GetContainingStatement(token As SyntaxToken) As SyntaxNode
+            Return token.GetAncestor(Of StatementSyntax)()
         End Function
 
-        Protected Overrides Function GetAdjustedTokenForPragmaRestore(token As SyntaxToken, root As SyntaxNode, lines As TextLineCollection, indexOfLine As Integer) As SyntaxToken
-            Dim containingStatement = token.GetAncestor(Of StatementSyntax)
-            While True
-                If TokenHasTrailingLineContinuationChar(token) Then
-                    indexOfLine = indexOfLine + 1
-                ElseIf containingStatement IsNot Nothing AndAlso
-                        containingStatement.GetLastToken() <> token Then
-                    indexOfLine = lines.IndexOf(containingStatement.GetLastToken().SpanStart)
-                    containingStatement = Nothing
-                Else
-                    Exit While
-                End If
-
-                Dim line = lines(indexOfLine)
-                token = root.FindToken(line.End)
-            End While
-
-            Return token
-        End Function
-
-        Private Shared Function TokenHasTrailingLineContinuationChar(token As SyntaxToken) As Boolean
+        Protected Overrides Function TokenHasTrailingLineContinuationChar(token As SyntaxToken) As Boolean
             Return token.TrailingTrivia.Any(Function(t) t.Kind = SyntaxKind.LineContinuationTrivia)
         End Function
 
@@ -123,10 +113,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return token.Kind = SyntaxKind.EndOfFileToken
         End Function
 
-        Protected Overrides Function AddGlobalSuppressMessageAttribute(newRoot As SyntaxNode, targetSymbol As ISymbol, diagnostic As Diagnostic, workspace As Workspace, cancellationToken As CancellationToken) As SyntaxNode
+        Protected Overrides Function AddGlobalSuppressMessageAttribute(
+                newRoot As SyntaxNode,
+                targetSymbol As ISymbol,
+                suppressMessageAttribute As INamedTypeSymbol,
+                diagnostic As Diagnostic,
+                services As HostWorkspaceServices,
+                options As SyntaxFormattingOptions,
+                addImportsService As IAddImportsService,
+                cancellationToken As CancellationToken) As SyntaxNode
             Dim compilationRoot = DirectCast(newRoot, CompilationUnitSyntax)
             Dim isFirst = Not compilationRoot.Attributes.Any()
-            Dim attributeList = CreateAttributeList(targetSymbol, diagnostic, isAssemblyAttribute:=True)
+
+            Dim attributeName = DirectCast(suppressMessageAttribute.GenerateTypeSyntax(), NameSyntax).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
+            Dim attributeList = CreateAttributeList(targetSymbol, attributeName, diagnostic, isAssemblyAttribute:=True)
 
             Dim attributeStatement = SyntaxFactory.AttributesStatement(New SyntaxList(Of AttributeListSyntax)().Add(attributeList))
             If Not isFirst Then
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 End If
             End If
 
-            attributeStatement = CType(Formatter.Format(attributeStatement, workspace, cancellationToken:=cancellationToken), AttributesStatementSyntax)
+            attributeStatement = CType(Formatter.Format(attributeStatement, services, options, cancellationToken), AttributesStatementSyntax)
 
             Dim leadingTrivia = If(isFirst AndAlso Not compilationRoot.HasLeadingTrivia,
                 SyntaxFactory.TriviaList(SyntaxFactory.CommentTrivia(GlobalSuppressionsFileHeaderComment)),
@@ -148,24 +148,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return compilationRoot.AddAttributes(attributeStatement).WithLeadingTrivia(leadingTrivia)
         End Function
 
-        Protected Overrides Function AddLocalSuppressMessageAttribute(targetNode As SyntaxNode, targetSymbol As ISymbol, diagnostic As Diagnostic) As SyntaxNode
+        Protected Overrides Function AddLocalSuppressMessageAttribute(
+                targetNode As SyntaxNode,
+                targetSymbol As ISymbol,
+                suppressMessageAttribute As INamedTypeSymbol,
+                diagnostic As Diagnostic) As SyntaxNode
             Dim memberNode = DirectCast(targetNode, StatementSyntax)
-            Dim attributeList = CreateAttributeList(targetSymbol, diagnostic, isAssemblyAttribute:=False)
+
+            Dim attributeName = DirectCast(suppressMessageAttribute.GenerateTypeSyntax(), NameSyntax)
+            Dim attributeList = CreateAttributeList(targetSymbol, attributeName, diagnostic, isAssemblyAttribute:=False)
             Dim leadingTrivia = memberNode.GetLeadingTrivia()
             memberNode = memberNode.WithoutLeadingTrivia()
             Return memberNode.AddAttributeLists(attributeList).WithLeadingTrivia(leadingTrivia)
         End Function
 
-        Private Function CreateAttributeList(targetSymbol As ISymbol, diagnostic As Diagnostic, isAssemblyAttribute As Boolean) As AttributeListSyntax
+        Private Shared Function CreateAttributeList(
+                targetSymbol As ISymbol,
+                attributeName As NameSyntax,
+                diagnostic As Diagnostic,
+                isAssemblyAttribute As Boolean) As AttributeListSyntax
             Dim attributeTarget = If(isAssemblyAttribute, SyntaxFactory.AttributeTarget(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)), Nothing)
-            Dim attributeName = SyntaxFactory.ParseName(SuppressMessageAttributeName)
             Dim attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic, isAssemblyAttribute)
 
             Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(attributeTarget, attributeName, attributeArguments)
             Return SyntaxFactory.AttributeList().AddAttributes(attribute)
         End Function
 
-        Private Function CreateAttributeArguments(targetSymbol As ISymbol, diagnostic As Diagnostic, isAssemblyAttribute As Boolean) As ArgumentListSyntax
+        Private Shared Function CreateAttributeArguments(targetSymbol As ISymbol, diagnostic As Diagnostic, isAssemblyAttribute As Boolean) As ArgumentListSyntax
             ' SuppressMessage("Rule Category", "Rule Id", Justification := "Justification", Scope := "Scope", Target := "Target")
             Dim category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category))
             Dim categoryArgument = SyntaxFactory.SimpleArgument(category)
@@ -252,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                     Return SyntaxFactory.Trivia(newPragmaWarning)
 
                 Case Else
-                    Contract.Fail()
+                    Throw ExceptionUtilities.UnexpectedValue(trivia.Kind())
             End Select
         End Function
     End Class

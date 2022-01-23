@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2075,7 +2079,7 @@ namespace System
         }
 
         [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
-        public void BadTupleElementTypeInDeconstruction02()
+        public void MixedDeclarationAndAssignmentInTupleDeconstruct()
         {
             var source =
 @"
@@ -2097,14 +2101,39 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
+        public void MixedDeclarationAndAssignmentInTupleDeconstructCSharp9()
+        {
+            var source =
+@"
+class C
+{
+    int x2, x3;
+    void M()
+    {
+        (int x1, x2) = (1, 2);
+        (x3, int x4) = (1, 2);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (7,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, x2)").WithLocation(7, 9),
-                // (8,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x1, x2) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(7, 9),
+                // (8,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (x3, int x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(x3, int x4)").WithLocation(8, 9)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(x3, int x4) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(8, 9));
         }
 
         [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
@@ -2355,7 +2384,7 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,10): error CS1519: Invalid token 'object' in class, struct, or interface member declaration
+                // (4,10): error CS1519: Invalid token 'object' in class, record, struct, or interface member declaration
                 //     void object M(string e)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "object").WithArguments("object").WithLocation(4, 10),
                 // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -2378,55 +2407,58 @@ class C
             var tree = UsingTree(@"void M() { var (x, _) = e; }");
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.SimpleAssignmentExpression);
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.DeclarationExpression);
+                                N(SyntaxKind.SimpleAssignmentExpression);
                                 {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        N(SyntaxKind.ParenthesizedVariableDesignation);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.SingleVariableDesignation);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "x");
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.DiscardDesignation);
+                                            {
+                                                N(SyntaxKind.UnderscoreToken);
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "var");
-                                    }
-                                    N(SyntaxKind.ParenthesizedVariableDesignation);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "x");
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.DiscardDesignation);
-                                        {
-                                            N(SyntaxKind.UnderscoreToken);
-                                        }
-                                        N(SyntaxKind.CloseParenToken);
+                                        N(SyntaxKind.IdentifierToken, "e");
                                     }
                                 }
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "e");
-                                }
+                                N(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2440,68 +2472,71 @@ class C
             var tree = UsingTree(@"void M() { (var x, var _) = e; }");
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.SimpleAssignmentExpression);
-                            {
-                                N(SyntaxKind.TupleExpression);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.DeclarationExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "var");
-                                            }
-                                            N(SyntaxKind.SingleVariableDesignation);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "x");
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.DeclarationExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "var");
-                                            }
-                                            N(SyntaxKind.DiscardDesignation);
-                                            {
-                                                N(SyntaxKind.UnderscoreToken);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "e");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.TupleExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "var");
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "x");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "var");
+                                                }
+                                                N(SyntaxKind.DiscardDesignation);
+                                                {
+                                                    N(SyntaxKind.UnderscoreToken);
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "e");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2515,53 +2550,56 @@ class C
             var tree = UsingTree(@"void M() { M(out var _); }");
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.InvocationExpression);
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.InvocationExpression);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "M");
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OutKeyword);
-                                        N(SyntaxKind.DeclarationExpression);
+                                        N(SyntaxKind.IdentifierToken, "M");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
                                         {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.OutKeyword);
+                                            N(SyntaxKind.DeclarationExpression);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "var");
-                                            }
-                                            N(SyntaxKind.DiscardDesignation);
-                                            {
-                                                N(SyntaxKind.UnderscoreToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "var");
+                                                }
+                                                N(SyntaxKind.DiscardDesignation);
+                                                {
+                                                    N(SyntaxKind.UnderscoreToken);
+                                                }
                                             }
                                         }
+                                        N(SyntaxKind.CloseParenToken);
                                     }
-                                    N(SyntaxKind.CloseParenToken);
                                 }
+                                N(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2575,53 +2613,56 @@ class C
             var tree = UsingTree(@"void M() { M(out int _); }");
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ExpressionStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.InvocationExpression);
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.InvocationExpression);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "M");
-                                }
-                                N(SyntaxKind.ArgumentList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OutKeyword);
-                                        N(SyntaxKind.DeclarationExpression);
+                                        N(SyntaxKind.IdentifierToken, "M");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
                                         {
-                                            N(SyntaxKind.PredefinedType);
+                                            N(SyntaxKind.OutKeyword);
+                                            N(SyntaxKind.DeclarationExpression);
                                             {
-                                                N(SyntaxKind.IntKeyword);
-                                            }
-                                            N(SyntaxKind.DiscardDesignation);
-                                            {
-                                                N(SyntaxKind.UnderscoreToken);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.DiscardDesignation);
+                                                {
+                                                    N(SyntaxKind.UnderscoreToken);
+                                                }
                                             }
                                         }
+                                        N(SyntaxKind.CloseParenToken);
                                     }
-                                    N(SyntaxKind.CloseParenToken);
                                 }
+                                N(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2635,52 +2676,55 @@ class C
             var tree = UsingTree(@"void M() { if (e is int _) {} }");
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.IfStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.IfKeyword);
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.IsPatternExpression);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "e");
-                                }
-                                N(SyntaxKind.IsKeyword);
-                                N(SyntaxKind.DeclarationPattern);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.DiscardDesignation);
-                                    {
-                                        N(SyntaxKind.UnderscoreToken);
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
+                            N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.IfStatement);
+                            {
+                                N(SyntaxKind.IfKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IsPatternExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "e");
+                                    }
+                                    N(SyntaxKind.IsKeyword);
+                                    N(SyntaxKind.DeclarationPattern);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.DiscardDesignation);
+                                        {
+                                            N(SyntaxKind.UnderscoreToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2694,49 +2738,52 @@ class C
             var tree = UsingTree(@"void M() { if (e is var _) {} }");
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.IfStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.IfKeyword);
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
                             N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.IsPatternExpression);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.IfStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IfKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IsPatternExpression);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "e");
-                                }
-                                N(SyntaxKind.IsKeyword);
-                                N(SyntaxKind.VarPattern);
-                                {
-                                    N(SyntaxKind.VarKeyword, "var");
-                                    N(SyntaxKind.DiscardDesignation);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.UnderscoreToken);
+                                        N(SyntaxKind.IdentifierToken, "e");
+                                    }
+                                    N(SyntaxKind.IsKeyword);
+                                    N(SyntaxKind.VarPattern);
+                                    {
+                                        N(SyntaxKind.VarKeyword, "var");
+                                        N(SyntaxKind.DiscardDesignation);
+                                        {
+                                            N(SyntaxKind.UnderscoreToken);
+                                        }
                                     }
                                 }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
                             }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2750,58 +2797,61 @@ class C
             var tree = UsingTree(@"void M() { switch (e) { case int _: break; } }");
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
                             N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "e");
-                            }
                             N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
+                            N(SyntaxKind.SwitchStatement);
                             {
-                                N(SyntaxKind.CasePatternSwitchLabel);
+                                N(SyntaxKind.SwitchKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
+                                    N(SyntaxKind.IdentifierToken, "e");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchSection);
+                                {
+                                    N(SyntaxKind.CasePatternSwitchLabel);
                                     {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.CaseKeyword);
+                                        N(SyntaxKind.DeclarationPattern);
                                         {
-                                            N(SyntaxKind.IntKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.DiscardDesignation);
+                                            {
+                                                N(SyntaxKind.UnderscoreToken);
+                                            }
                                         }
-                                        N(SyntaxKind.DiscardDesignation);
-                                        {
-                                            N(SyntaxKind.UnderscoreToken);
-                                        }
+                                        N(SyntaxKind.ColonToken);
                                     }
-                                    N(SyntaxKind.ColonToken);
+                                    N(SyntaxKind.BreakStatement);
+                                    {
+                                        N(SyntaxKind.BreakKeyword);
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
                                 }
-                                N(SyntaxKind.BreakStatement);
-                                {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
-                                }
+                                N(SyntaxKind.CloseBraceToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2815,55 +2865,58 @@ class C
             var tree = UsingTree(@"void M() { switch (e) { case var _: break; } }");
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
                             N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "e");
-                            }
                             N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
+                            N(SyntaxKind.SwitchStatement);
                             {
-                                N(SyntaxKind.CasePatternSwitchLabel);
+                                N(SyntaxKind.SwitchKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.VarPattern);
+                                    N(SyntaxKind.IdentifierToken, "e");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchSection);
+                                {
+                                    N(SyntaxKind.CasePatternSwitchLabel);
                                     {
-                                        N(SyntaxKind.VarKeyword, "var");
-                                        N(SyntaxKind.DiscardDesignation);
+                                        N(SyntaxKind.CaseKeyword);
+                                        N(SyntaxKind.VarPattern);
                                         {
-                                            N(SyntaxKind.UnderscoreToken);
+                                            N(SyntaxKind.VarKeyword, "var");
+                                            N(SyntaxKind.DiscardDesignation);
+                                            {
+                                                N(SyntaxKind.UnderscoreToken);
+                                            }
                                         }
+                                        N(SyntaxKind.ColonToken);
                                     }
-                                    N(SyntaxKind.ColonToken);
+                                    N(SyntaxKind.BreakStatement);
+                                    {
+                                        N(SyntaxKind.BreakKeyword);
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
                                 }
-                                N(SyntaxKind.BreakStatement);
-                                {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
-                                }
+                                N(SyntaxKind.CloseBraceToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);

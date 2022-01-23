@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 using System;
@@ -11,104 +13,77 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.Security.AccessControl;
-
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal sealed class NamedPipeClientConnectionHost : IClientConnectionHost
+    internal sealed class NamedPipeClientConnection : IClientConnection
     {
-        private readonly ICompilerServerHost _compilerServerHost;
-        private readonly string _pipeName;
-        private int _loggingIdentifier;
+        private CancellationTokenSource DisconnectCancellationTokenSource { get; } = new CancellationTokenSource();
+        private TaskCompletionSource<object> DisconnectTaskCompletionSource { get; } = new TaskCompletionSource<object>();
 
-        internal NamedPipeClientConnectionHost(ICompilerServerHost compilerServerHost, string pipeName)
+        public NamedPipeServerStream Stream { get; }
+        public ICompilerServerLogger Logger { get; }
+        public bool IsDisposed { get; private set; }
+
+        public Task DisconnectTask => DisconnectTaskCompletionSource.Task;
+
+        internal NamedPipeClientConnection(NamedPipeServerStream stream, ICompilerServerLogger logger)
         {
-            _compilerServerHost = compilerServerHost;
-            _pipeName = pipeName;
+            Stream = stream;
+            Logger = logger;
         }
 
-        public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
+        public void Dispose()
         {
-            var pipeStream = await CreateListenTaskCore(cancellationToken).ConfigureAwait(false);
-            return new NamedPipeClientConnection(_compilerServerHost, _loggingIdentifier++.ToString(), pipeStream);
-        }
-
-        /// <summary>
-        /// Creates a Task that waits for a client connection to occur and returns the connected 
-        /// <see cref="NamedPipeServerStream"/> object.  Throws on any connection error.
-        /// </summary>
-        /// <param name="cancellationToken">Used to cancel the connection sequence.</param>
-        private async Task<NamedPipeServerStream> CreateListenTaskCore(CancellationToken cancellationToken)
-        {
-            // Create the pipe and begin waiting for a connection. This 
-            // doesn't block, but could fail in certain circumstances, such
-            // as Windows refusing to create the pipe for some reason 
-            // (out of handles?), or the pipe was disconnected before we 
-            // starting listening.
-            CompilerServerLogger.Log("Constructing pipe '{0}'.", _pipeName);
-            var pipeStream = NamedPipeUtil.CreateServer(_pipeName);
-            CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", _pipeName);
-
-            CompilerServerLogger.Log("Waiting for new connection");
-            await pipeStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
-            CompilerServerLogger.Log("Pipe connection detected.");
-
-            if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
+            if (!IsDisposed)
             {
-                CompilerServerLogger.Log("Memory available - accepting connection");
-                return pipeStream;
+                try
+                {
+                    DisconnectTaskCompletionSource.TrySetResult(new object());
+                    DisconnectCancellationTokenSource.Cancel();
+                    Stream.Close();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogException(ex, $"Error closing client connection");
+                }
+
+                IsDisposed = true;
             }
-
-            pipeStream.Close();
-            throw new Exception("Insufficient resources to process new connection.");
-        }
-    }
-
-    internal sealed class NamedPipeClientConnection : ClientConnection
-    {
-        private readonly NamedPipeServerStream _pipeStream;
-
-        internal NamedPipeClientConnection(ICompilerServerHost compilerServerHost, string loggingIdentifier, NamedPipeServerStream pipeStream)
-            : base(compilerServerHost, loggingIdentifier, pipeStream)
-        {
-            _pipeStream = pipeStream;
         }
 
-        /// <summary>
-        /// The IsConnected property on named pipes does not detect when the client has disconnected
-        /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
-        /// which serves to check the pipe for disconnection. 
-        ///
-        /// This will return true if the pipe was disconnected.
-        /// </summary>
-        protected override Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
+        public async Task<BuildRequest> ReadBuildRequestAsync(CancellationToken cancellationToken)
         {
-            return BuildServerConnection.CreateMonitorDisconnectTask(_pipeStream, LoggingIdentifier, cancellationToken);
-        }
+            var request = await BuildRequest.ReadAsync(Stream, cancellationToken).ConfigureAwait(false);
 
-        protected override void ValidateBuildRequest(BuildRequest request)
-        {
             // Now that we've read data from the stream we can validate the identity.
-            if (!NamedPipeUtil.CheckClientElevationMatches(_pipeStream))
+            if (!NamedPipeUtil.CheckClientElevationMatches(Stream))
             {
                 throw new Exception("Client identity does not match server identity.");
             }
+
+            // The result is deliberately discarded here. The idea is to kick off the monitor code and 
+            // when it completes it will trigger the task. Don't want to block on that here.
+            _ = MonitorDisconnect();
+
+            return request;
+
+            async Task MonitorDisconnect()
+            {
+                try
+                {
+                    await BuildServerConnection.MonitorDisconnectAsync(Stream, request.RequestId, Logger, DisconnectCancellationTokenSource.Token).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogException(ex, $"Error monitoring disconnect {request.RequestId}");
+                }
+                finally
+                {
+                    DisconnectTaskCompletionSource.TrySetResult(this);
+                }
+            }
         }
 
-        public override void Close()
-        {
-            CompilerServerLogger.Log($"Pipe {LoggingIdentifier}: Closing.");
-            try
-            {
-                _pipeStream.Close();
-            }
-            catch (Exception e)
-            {
-                // The client connection failing to close isn't fatal to the server process.  It is simply a client
-                // for which we can no longer communicate and that's okay because the Close method indicates we are
-                // done with the client already.
-                var msg = string.Format($"Pipe {LoggingIdentifier}: Error closing pipe.");
-                CompilerServerLogger.LogException(e, msg);
-            }
-        }
+        public Task WriteBuildResponseAsync(BuildResponse response, CancellationToken cancellationToken) => response.WriteAsync(Stream, cancellationToken);
     }
 }

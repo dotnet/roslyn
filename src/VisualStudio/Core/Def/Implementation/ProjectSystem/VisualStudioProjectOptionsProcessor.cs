@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -16,67 +18,99 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly VisualStudioProject _project;
         private readonly HostWorkspaceServices _workspaceServices;
         private readonly ICommandLineParserService _commandLineParserService;
+        private readonly ITemporaryStorageService _temporaryStorageService;
 
         /// <summary>
         /// Gate to guard all mutable fields in this class.
         /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
         /// </summary>
-        private readonly object _gate = new object();
-        private string _commandLine = "";
-        private CommandLineArguments _commandLineArgumentsForCommandLine;
-        private string _explicitRuleSetFilePath;
-        private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> _ruleSetFile = null;
-        private readonly IOptionService _optionService;
+        private readonly object _gate = new();
 
-        public VisualStudioProjectOptionsProcessor(VisualStudioProject project, HostWorkspaceServices workspaceServices)
+        /// <summary>
+        /// A hashed checksum of the last command line we were set to.  We use this
+        /// as a low cost (in terms of memory) way to determine if the command line
+        /// actually changes and we need to make any downstream updates.
+        /// </summary>
+        private Checksum? _commandLineChecksum;
+
+        /// <summary>
+        /// To save space in the managed heap, we dump the entire command-line string to our
+        /// temp-storage-service. This is helpful as compiler command-lines can grow extremely large
+        /// (especially in cases with many references).
+        /// </summary>
+        /// <remarks>Note: this will be null in the case that the command line is an empty array.</remarks>
+        private ITemporaryStreamStorage? _commandLineStorage;
+
+        private CommandLineArguments _commandLineArgumentsForCommandLine;
+        private string? _explicitRuleSetFilePath;
+        private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>>? _ruleSetFile = null;
+
+        public VisualStudioProjectOptionsProcessor(
+            VisualStudioProject project,
+            HostWorkspaceServices workspaceServices)
         {
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _workspaceServices = workspaceServices;
             _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
+            _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageService>();
 
-            // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in the constructor so nothing can race.
-            ReparseCommandLine_NoLock();
+            // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
+            // the constructor so nothing can race.
 
-            _optionService = workspaceServices.GetRequiredService<IOptionService>();
-
-            // For C#, we need to listen to the options for NRT analysis 
-            // that can change in VS through tools > options
-            if (_project.Language == LanguageNames.CSharp)
-            {
-                _optionService.OptionChanged += OptionService_OptionChanged;
-            }
+            // Silence NRT warning.  This will be initialized by the call below to ReparseCommandLineIfChanged_NoLock.
+            _commandLineArgumentsForCommandLine = null!;
+            ReparseCommandLineIfChanged_NoLock(arguments: ImmutableArray<string>.Empty);
         }
 
-        public string CommandLine
+        /// <returns><see langword="true"/> if the command line was updated.</returns>
+        private bool ReparseCommandLineIfChanged_NoLock(ImmutableArray<string> arguments)
         {
-            get
+            var checksum = Checksum.Create(arguments);
+            if (_commandLineChecksum == checksum)
+                return false;
+
+            _commandLineChecksum = checksum;
+
+            // Dispose the existing stored command-line and then persist the new one so we can
+            // recover it later.  Only bother persisting things if we have a non-empty string.
+
+            _commandLineStorage?.Dispose();
+            _commandLineStorage = null;
+            if (!arguments.IsEmpty)
             {
-                return _commandLine;
+                _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
+                _commandLineStorage.WriteAllLines(arguments);
             }
 
-            set
+            ReparseCommandLine_NoLock(arguments);
+            return true;
+        }
+
+        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
+        public void SetCommandLine(string commandLine)
+        {
+            if (commandLine == null)
+                throw new ArgumentNullException(nameof(commandLine));
+
+            var arguments = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false);
+
+            SetCommandLine(arguments.ToImmutableArray());
+        }
+
+        public void SetCommandLine(ImmutableArray<string> arguments)
+        {
+            lock (_gate)
             {
-                if (value == null)
+                // If we actually got a new command line, then update the project options, otherwise
+                // we don't need to do anything.
+                if (ReparseCommandLineIfChanged_NoLock(arguments))
                 {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                lock (_gate)
-                {
-                    if (_commandLine == value)
-                    {
-                        return;
-                    }
-
-                    _commandLine = value;
-
-                    ReparseCommandLine_NoLock();
                     UpdateProjectOptions_NoLock();
                 }
             }
         }
 
-        public string ExplicitRuleSetFilePath
+        public string? ExplicitRuleSetFilePath
         {
             get => _explicitRuleSetFilePath;
 
@@ -99,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Returns the active path to the rule set file that is being used by this project, or null if there isn't a rule set file.
         /// </summary>
-        public string EffectiveRuleSetFilePath
+        public string? EffectiveRuleSetFilePath
         {
             get
             {
@@ -109,15 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     return _ruleSetFile?.Target.Value.FilePath;
                 }
-            }
-        }
-
-        private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
-        {
-            if (e.Option.Name == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Name
-                && e.Option.Feature == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature)
-            {
-                UpdateProjectForNewHostValues();
             }
         }
 
@@ -131,9 +156,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void ReparseCommandLine_NoLock()
+        private void ReparseCommandLine_NoLock(ImmutableArray<string> arguments)
         {
-            var arguments = CommandLineParser.SplitCommandLineIntoArguments(_commandLine, removeHashComments: false);
             _commandLineArgumentsForCommandLine = _commandLineParserService.Parse(arguments, Path.GetDirectoryName(_project.FilePath), isInteractive: false, sdkDirectory: null);
         }
 
@@ -154,21 +178,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            // TODO: #r support, should it include bin path?
-            var referenceSearchPaths = ImmutableArray<string>.Empty;
-
-            // TODO: #load support
-            var sourceSearchPaths = ImmutableArray<string>.Empty;
-
-            var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    _workspaceServices.GetRequiredService<IMetadataService>(),
-                    new RelativePathResolver(referenceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory));
-
             var compilationOptions = _commandLineArgumentsForCommandLine.CompilationOptions
                 .WithConcurrentBuild(concurrent: false)
-                .WithMetadataReferenceResolver(referenceResolver)
                 .WithXmlReferenceResolver(new XmlFileResolver(_commandLineArgumentsForCommandLine.BaseDirectory))
-                .WithSourceReferenceResolver(new SourceFileResolver(sourceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory))
                 .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                 .WithStrongNameProvider(new DesktopStrongNameProvider(_commandLineArgumentsForCommandLine.KeyFileSearchPaths.WhereNotNull().ToImmutableArray()));
 
@@ -177,11 +189,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var parseOptions = _commandLineArgumentsForCommandLine.ParseOptions
                 .WithDocumentationMode(documentationMode);
 
-            parseOptions = ComputeOptionsServiceParseOptions(parseOptions);
-
             // We've computed what the base values should be; we now give an opportunity for any host-specific settings to be computed
             // before we apply them
-            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, this._ruleSetFile?.Target.Value);
+            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, _ruleSetFile?.Target.Value);
             parseOptions = ComputeParseOptionsWithHostValues(parseOptions);
 
             // For managed projects, AssemblyName has to be non-null, but the command line we get might be a partial command line
@@ -189,31 +199,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
             _project.CompilationOptions = compilationOptions;
 
-            string fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
-                                                    ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
-                                                    : _commandLineArgumentsForCommandLine.OutputFileName;
+            var fullOutputFilePath = (_commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null)
+                ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
+                : _commandLineArgumentsForCommandLine.OutputFileName;
 
-            _project.IntermediateOutputFilePath = fullIntermediateOutputPath ?? _project.IntermediateOutputFilePath;
+            _project.CompilationOutputAssemblyFilePath = fullOutputFilePath ?? _project.CompilationOutputAssemblyFilePath;
             _project.ParseOptions = parseOptions;
-        }
-
-        private ParseOptions ComputeOptionsServiceParseOptions(ParseOptions parseOptions)
-        {
-            if (_project.Language == LanguageNames.CSharp)
-            {
-                var useNullableReferenceAnalysisOption = _optionService.GetOption(FeatureOnOffOptions.UseNullableReferenceTypeAnalysis);
-
-                if (useNullableReferenceAnalysisOption == -1)
-                {
-                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "false") });
-                }
-                else if (useNullableReferenceAnalysisOption == 1)
-                {
-                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "true") });
-                }
-            }
-
-            return parseOptions;
         }
 
         private void RuleSetFile_UpdatedOnDisk(object sender, EventArgs e)
@@ -233,8 +224,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
                 // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
                 // includes in the IDE so we can be watching for changes again.
+                var commandLine = _commandLineStorage == null ? ImmutableArray<string>.Empty : _commandLineStorage.ReadLines();
+
                 DisposeOfRuleSetFile_NoLock();
-                ReparseCommandLine_NoLock();
+                ReparseCommandLine_NoLock(commandLine);
                 UpdateProjectOptions_NoLock();
             }
         }
@@ -243,19 +236,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Overridden by derived classes to provide a hook to modify a <see cref="CompilationOptions"/> with any host-provided values that didn't come from
         /// the command line string.
         /// </summary>
-        protected virtual CompilationOptions ComputeCompilationOptionsWithHostValues(CompilationOptions compilationOptions, IRuleSetFile ruleSetFileOpt)
-        {
-            return compilationOptions;
-        }
+        protected virtual CompilationOptions ComputeCompilationOptionsWithHostValues(CompilationOptions compilationOptions, IRuleSetFile? ruleSetFile)
+            => compilationOptions;
 
         /// <summary>
         /// Override by derived classes to provide a hook to modify a <see cref="ParseOptions"/> with any host-provided values that didn't come from 
         /// the command line string.
         /// </summary>
         protected virtual ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
-        {
-            return parseOptions;
-        }
+            => parseOptions;
 
         /// <summary>
         /// Called by a derived class to notify that we need to update the settings in the project system for something that will be provided
@@ -274,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 DisposeOfRuleSetFile_NoLock();
-                _optionService.OptionChanged -= OptionService_OptionChanged;
+                _commandLineStorage?.Dispose();
             }
         }
     }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,8 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass.
-    // Any fix to one should be applied to the other.
     internal abstract class AbstractRegionDataFlowPass : DefiniteAssignmentPass
     {
         internal AbstractRegionDataFlowPass(
@@ -45,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MakeSlots(node.Symbol.Parameters);
             return base.VisitLocalFunctionStatement(node);
+        }
+
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        {
+            return node;
         }
 
         private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)

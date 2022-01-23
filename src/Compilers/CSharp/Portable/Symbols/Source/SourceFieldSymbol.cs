@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -41,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected void CheckAccessibility(DiagnosticBag diagnostics)
+        protected void CheckAccessibility(BindingDiagnosticBag diagnostics)
         {
             var info = ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false);
             if (info != null)
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected void ReportModifiersDiagnostics(DiagnosticBag diagnostics)
+        protected void ReportModifiersDiagnostics(BindingDiagnosticBag diagnostics)
         {
             if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected())
             {
@@ -109,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -117,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
             {
                 // error CS1716: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.
-                arguments.Diagnostics.Add(ErrorCode.ERR_DoNotUseFixedBufferAttr, arguments.AttributeSyntaxOpt.Name.Location);
+                ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_DoNotUseFixedBufferAttr, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else
             {
@@ -125,12 +130,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
+            var compilation = DeclaringCompilation;
             var location = ErrorLocation;
-            if (this.TypeWithAnnotations.NeedsNullableAttribute())
+
+            if (Type.ContainsNativeInteger())
             {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            if (compilation.ShouldEmitNullableAttributes(this) &&
+                TypeWithAnnotations.NeedsNullableAttribute())
+            {
+                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 
@@ -150,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxReference _syntaxReference;
 
         private string _lazyDocComment;
+        private string _lazyExpandedDocComment;
         private ConstantValue _lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
         private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
 
@@ -221,7 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
+            ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
         internal sealed override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
@@ -280,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> dependencies;
             var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
 
             // Only persist if there are no dependencies and the calculation
@@ -317,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             if (startsCycle)
             {
                 diagnostics.Add(ErrorCode.ERR_CircConstValue, _location, this);
@@ -341,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void SetLazyConstantValue(
             ConstantValue value,
             bool earlyDecodingWellKnownAttributes,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool startsCycle)
         {
             Debug.Assert(value != Microsoft.CodeAnalysis.ConstantValue.Unset);
@@ -368,6 +383,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics);
+        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, BindingDiagnosticBag diagnostics);
     }
 }

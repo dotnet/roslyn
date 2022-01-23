@@ -12,6 +12,7 @@
 [CmdletBinding(PositionalBinding=$false)]
 param(
   [string]$configuration = "Debug",
+  [switch]$enableDumps = $false,
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -33,31 +34,50 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    New-Item -Path $key -ErrorAction SilentlyContinue
+    New-ItemProperty -Path $key -Name 'DumpType' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpCount' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpFolder' -PropertyType 'String' -Value $LogDir -Force
+  }
+
+  # Verify no PROTOTYPE marker left in main
+  if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
+    Write-Host "Checking no PROTOTYPE markers in source"
+    $prototypes = Get-ChildItem -Path src, eng, scripts -Exclude *.dll,*.exe,*.pdb,*.xlf,test-build-correctness.ps1 -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
+    if ($prototypes) {
+      Write-Host "Found PROTOTYPE markers in source:"
+      Write-Host $prototypes
+      throw "PROTOTYPE markers disallowed in compiler source"
+    }
+  }
+
+  # Verify no TODO2 marker left
+  $prototypes = Get-ChildItem -Path src, eng, scripts -Exclude *.dll,*.exe,*.pdb,*.xlf,test-build-correctness.ps1 -Recurse | Select-String -Pattern 'TODO2' -CaseSensitive -SimpleMatch
+  if ($prototypes) {
+    Write-Host "Found TODO2 markers in source:"
+    Write-Host $prototypes
+    throw "TODO2 markers disallowed in compiler source"
+  }
+
   Write-Host "Building Roslyn"
-  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$false -properties "/p:RoslynEnforceCodeStyle=true"}
+  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
+
+  Subst-TempDir
 
   # Verify the state of our various build artifacts
   Write-Host "Running BuildBoss"
   $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
-  Exec-Console $buildBossPath "-r `"$RepoRoot`" -c $configuration" -p Roslyn.sln
+  Exec-Console $buildBossPath "-r `"$RepoRoot/`" -c $configuration" -p Roslyn.sln
   Write-Host ""
 
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
   Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
+  Exec-Console dotnet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
-  
-  # Verify the state of creating run settings for OptProf
-  Write-Host "Checking OptProf run settings generation"
 
-  # create a fake BootstrapperInfo.json file
-  $bootstrapperInfoPath = Join-Path $TempDir "BootstrapperInfo.json"
-  $bootstrapperInfoContent = "[{""BuildDrop"": ""https://vsdrop.corp.microsoft.com/file/v1/Products/42.42.42.42/42.42.42.42""}]"
-  $bootstrapperInfoContent | Set-Content $bootstrapperInfoPath
-
-  # generate run settings
-  Exec-Block { & (Join-Path $PSScriptRoot "common\sdk-task.ps1") -configuration:$configuration -task VisualStudio.BuildIbcTrainingSettings /p:VisualStudioDropName="Products/DummyDrop" /p:BootstrapperInfoPath=$bootstrapperInfoPath }
-  
   exit 0
 }
 catch [exception] {
@@ -66,5 +86,13 @@ catch [exception] {
   exit 1
 }
 finally {
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    Remove-ItemProperty -Path $key -Name 'DumpType'
+    Remove-ItemProperty -Path $key -Name 'DumpCount'
+    Remove-ItemProperty -Path $key -Name 'DumpFolder'
+  }
+
+  Unsubst-TempDir
   Pop-Location
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -27,34 +30,29 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public static readonly IReferenceFinder DelegateInvokeMethod = new DelegateInvokeMethodReferenceFinder();
 
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.DelegateInvoke;
-        }
+            => symbol.MethodKind == MethodKind.DelegateInvoke;
 
-        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IMethodSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var result = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
-            var symbol = symbolAndProjectId.Symbol;
             var beginInvoke = symbol.ContainingType.GetMembers(WellKnownMemberNames.DelegateBeginInvokeName).FirstOrDefault();
             if (beginInvoke != null)
-            {
-                result.Add(symbolAndProjectId.WithSymbol(beginInvoke));
-            }
+                result.Add(beginInvoke);
 
             // All method group references
             foreach (var project in solution.Projects)
             {
                 foreach (var document in project.Documents)
                 {
-                    var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
-                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvoke(
-                        symbolAndProjectId, document, cancellationToken).ConfigureAwait(false));
+                    var changeSignatureService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
+                    var cascaded = await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
+                        symbol, document, cancellationToken).ConfigureAwait(false);
+                    result.AddRange(cascaded);
                 }
             }
 
@@ -63,16 +61,18 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(project.Documents.ToImmutableArray());
         }
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -80,33 +80,49 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             // FAR on the Delegate type and use those results to find Invoke calls
 
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodes = root.DescendantNodes();
 
-            var convertedAnonymousFunctions = nodes.Where(n => syntaxFactsService.IsAnonymousFunction(n))
-                .Where(n =>
-                    {
-                        ISymbol convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var convertedAnonymousFunctions);
+            foreach (var node in nodes)
+            {
+                if (!syntaxFactsService.IsAnonymousFunctionExpression(node))
+                    continue;
 
-                        if (convertedType != null)
-                        {
-                            convertedType =
-                                SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken)
-                                    ?? convertedType;
-                        }
+                var convertedType = (ISymbol?)semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
+                if (convertedType != null)
+                {
+                    convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(false)
+                        ?? convertedType;
+                }
 
-                        return convertedType == methodSymbol.ContainingType;
-                    });
+                if (convertedType == methodSymbol.ContainingType)
+                    convertedAnonymousFunctions.Add(node);
+            }
 
             var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
-                .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
+                .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol?.OriginalDefinition == methodSymbol);
 
             return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
-                n => new FinderLocation(n, new ReferenceLocation(document, null, n.GetLocation(), isImplicit: false,
-                    symbolUsageInfo: GetSymbolUsageInfo(n, semanticModel, syntaxFactsService, semanticFactsService, cancellationToken), candidateReason: CandidateReason.None)));
+                  node => new FinderLocation(
+                      node,
+                      new ReferenceLocation(
+                          document,
+                          alias: null,
+                          node.GetLocation(),
+                          isImplicit: false,
+                          symbolUsageInfo: GetSymbolUsageInfo(
+                              node,
+                              semanticModel,
+                              syntaxFactsService,
+                              semanticFactsService,
+                              cancellationToken),
+                          additionalProperties: GetAdditionalFindUsagesProperties(
+                              node, semanticModel, syntaxFactsService),
+                          candidateReason: CandidateReason.None)));
         }
     }
 }

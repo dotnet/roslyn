@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InvertIf
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
             Await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected))
         End Function
 
-        Function CreateTreeText(initial As String) As String
+        Public Shared Function CreateTreeText(initial As String) As String
             Return "
 Module Module1
     Sub Main()
@@ -50,7 +51,6 @@ End Module
 "
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultiLineIdentifier() As Task
             Await TestFixOneAsync(
@@ -69,7 +69,6 @@ End Module
         End If
 ")
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestElseIf() As Task
@@ -119,18 +118,24 @@ End Module")
 End Module")
         End Function
 
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestMissingOnNonEmptySpan() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
+        Public Async Function TestSelection() As Task
+            Await TestFixOneAsync(
+"
         [|If a Then
             aMethod()
         Else
             bMethod()
         End If|]
-    End Sub
-End Module")
+",
+"
+        If Not a Then
+            bMethod()
+        Else
+            aMethod()
+        End If
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
@@ -294,8 +299,6 @@ End Module")
 End Module")
         End Function
 
-
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultipleStatementsMultiLineIfBlock() As Task
             Await TestInRegularAndScriptAsync(
@@ -322,8 +325,6 @@ End Module",
     End Sub
 End Module")
         End Function
-
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTriviaAfterMultiLineIfBlock() As Task
@@ -571,7 +572,6 @@ End Module",
 End Module")
         End Function
 
-
         <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestOnlyOnElseIf() As Task
@@ -653,6 +653,85 @@ Imports System
 </File>
 
             Await TestAsync(markup, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function InvertIfWithoutStatements() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(x as String)
+        [||]If x = ""a"" Then
+        Else
+            DoSomething()
+        End If
+    end sub
+
+    sub DoSomething()
+    end sub
+end class",
+"class C
+    sub M(x as String)
+        If x <> ""a"" Then
+            DoSomething()
+        End If
+    end sub
+
+    sub DoSomething()
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function InvertIfWithOnlyComment() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(x as String)
+        [||]If x = ""a"" Then
+            ' A comment in a blank if statement
+        Else
+            DoSomething()
+        End If
+    end sub
+
+    sub DoSomething()
+    end sub
+end class",
+"class C
+    sub M(x as String)
+        If x <> ""a"" Then
+            DoSomething()
+        Else
+            ' A comment in a blank if statement
+        End If
+    end sub
+
+    sub DoSomething()
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function InvertIfWithoutElse() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(x as String)
+        [||]If x = ""a"" Then
+          ' Comment
+          x += 1
+        End If
+    end sub
+
+end class",
+"class C
+    sub M(x as String)
+        If x <> ""a"" Then
+            Return
+        End If
+        ' Comment
+        x += 1
+    end sub
+
+end class")
         End Function
     End Class
 End Namespace

@@ -1,13 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
-    <Export(GetType(VSCommanding.ICommandHandler))>
+    <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.ExtractMethod)>
     <Order(After:=PredefinedCommandHandlerNames.DocumentationComments)>
@@ -15,10 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
         Inherits AbstractExtractMethodCommandHandler
 
         <ImportingConstructor()>
-        Public Sub New(undoManager As ITextBufferUndoManagerProvider,
-                       editorOperationsFactoryService As IEditorOperationsFactoryService,
-                       renameService As IInlineRenameService)
-            MyBase.New(undoManager, editorOperationsFactoryService, renameService)
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New(threadingContext As IThreadingContext,
+                       undoManager As ITextBufferUndoManagerProvider,
+                       renameService As IInlineRenameService,
+                       globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, undoManager, renameService, globalOptions)
         End Sub
     End Class
 End Namespace

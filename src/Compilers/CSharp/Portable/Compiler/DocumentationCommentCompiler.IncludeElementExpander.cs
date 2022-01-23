@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Symbol _memberSymbol;
             private readonly ImmutableArray<CSharpSyntaxNode> _sourceIncludeElementNodes;
             private readonly CSharpCompilation _compilation;
-            private readonly DiagnosticBag _diagnostics;
+            private readonly BindingDiagnosticBag _diagnostics;
             private readonly CancellationToken _cancellationToken;
 
             private int _nextSourceIncludeElementIndex;
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<ParameterSymbol> documentedParameters,
                 HashSet<TypeParameterSymbol> documentedTypeParameters,
                 DocumentationCommentIncludeCache includedFileCache,
-                DiagnosticBag diagnostics,
+                BindingDiagnosticBag diagnostics,
                 CancellationToken cancellationToken)
             {
                 _memberSymbol = memberSymbol;
@@ -67,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref HashSet<TypeParameterSymbol> documentedTypeParameters,
                 ref DocumentationCommentIncludeCache includedFileCache,
                 TextWriter writer,
-                DiagnosticBag diagnostics,
+                BindingDiagnosticBag diagnostics,
                 CancellationToken cancellationToken)
             {
                 // If there are no include elements, then there's nothing to expand.
@@ -511,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Binder binder = BinderFactory.MakeCrefBinder(crefSyntax, memberDeclSyntax, _compilation.GetBinderFactory(memberDeclSyntax.SyntaxTree));
 
-                DiagnosticBag crefDiagnostics = DiagnosticBag.GetInstance();
+                var crefDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
                 attribute.Value = GetDocumentationCommentId(crefSyntax, binder, crefDiagnostics); // NOTE: mutation (element must be a copy)
                 RecordBindingDiagnostics(crefDiagnostics, sourceLocation); // Respects DocumentationMode.
                 crefDiagnostics.Free();
@@ -531,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(memberDeclSyntax != null,
                     "Why are we processing a documentation comment that is not attached to a member declaration?");
 
-                DiagnosticBag nameDiagnostics = DiagnosticBag.GetInstance();
+                var nameDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
                 Binder binder = MakeNameBinder(isParameter, isTypeParameterRef, _memberSymbol, _compilation);
                 DocumentationCommentCompiler.BindName(attrSyntax, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameters, nameDiagnostics);
                 RecordBindingDiagnostics(nameDiagnostics, sourceLocation); // Respects DocumentationMode.
@@ -644,16 +648,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <remarks>
             /// Respects the DocumentationMode at the source location.
             /// </remarks>
-            private void RecordBindingDiagnostics(DiagnosticBag bindingDiagnostics, Location sourceLocation)
+            private void RecordBindingDiagnostics(BindingDiagnosticBag bindingDiagnostics, Location sourceLocation)
             {
-                if (!bindingDiagnostics.IsEmptyWithoutResolution && ((SyntaxTree)sourceLocation.SourceTree).ReportDocumentationCommentDiagnostics())
+                if (((SyntaxTree)sourceLocation.SourceTree).ReportDocumentationCommentDiagnostics())
                 {
-                    foreach (Diagnostic diagnostic in bindingDiagnostics.AsEnumerable())
+                    if (bindingDiagnostics.DiagnosticBag?.IsEmptyWithoutResolution == false)
                     {
-                        // CONSIDER: Dev11 actually uses the originating location plus the offset into the cref/name
-                        _diagnostics.Add(diagnostic.WithLocation(sourceLocation));
+                        foreach (Diagnostic diagnostic in bindingDiagnostics.DiagnosticBag.AsEnumerable())
+                        {
+                            // CONSIDER: Dev11 actually uses the originating location plus the offset into the cref/name
+                            _diagnostics.Add(diagnostic.WithLocation(sourceLocation));
+                        }
                     }
                 }
+
+                _diagnostics.AddDependencies(bindingDiagnostics);
             }
         }
     }

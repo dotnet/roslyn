@@ -1,61 +1,43 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Tags
-Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
-    <ExportLanguageServiceFactory(GetType(CompletionService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicCompletionServiceFactory
-        Implements ILanguageServiceFactory
-
-        <ImportingConstructor>
-        Public Sub New()
-        End Sub
-
-        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicCompletionService(languageServices.WorkspaceServices.Workspace)
-        End Function
-    End Class
-
     Partial Friend Class VisualBasicCompletionService
         Inherits CommonCompletionService
 
-        Private ReadOnly _completionProviders As ImmutableArray(Of CompletionProvider) = ImmutableArray.Create(Of CompletionProvider)(
-            New KeywordCompletionProvider(),
-            New SymbolCompletionProvider(),
-            New ObjectInitializerCompletionProvider(),
-            New ObjectCreationCompletionProvider(),
-            New EnumCompletionProvider(),
-            New NamedParameterCompletionProvider(),
-            New VisualBasicSuggestionModeCompletionProvider(),
-            New ImplementsClauseCompletionProvider(),
-            New HandlesClauseCompletionProvider(),
-            New PartialTypeCompletionProvider(),
-            New CrefCompletionProvider(),
-            New CompletionListTagCompletionProvider(),
-            New OverrideCompletionProvider(),
-            New XmlDocCommentCompletionProvider(),
-            New InternalsVisibleToCompletionProvider(),
-            New EmbeddedLanguageCompletionProvider(VisualBasicEmbeddedLanguageFeaturesProvider.Instance),
-            New TypeImportCompletionProvider())
+        <ExportLanguageServiceFactory(GetType(CompletionService), LanguageNames.VisualBasic), [Shared]>
+        Friend Class Factory
+            Implements ILanguageServiceFactory
 
-        Private ReadOnly _workspace As Workspace
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
 
-        Public Sub New(workspace As Workspace,
-                       Optional exclusiveProviders As ImmutableArray(Of CompletionProvider)? = Nothing)
-            MyBase.New(workspace, exclusiveProviders)
-            _workspace = workspace
+            Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+                Return New VisualBasicCompletionService(languageServices.WorkspaceServices.Workspace)
+            End Function
+        End Class
+
+        Private _latestRules As CompletionRules = CompletionRules.Create(
+            dismissIfEmpty:=True,
+            dismissIfLastCharacterDeleted:=True,
+            defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
+            defaultEnterKeyRule:=EnterKeyRule.Always)
+
+        Private Sub New(workspace As Workspace)
+            MyBase.New(workspace)
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -64,19 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Get
         End Property
 
-        Private _latestRules As CompletionRules = CompletionRules.Create(
-            dismissIfEmpty:=True,
-            dismissIfLastCharacterDeleted:=True,
-            defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
-            defaultEnterKeyRule:=EnterKeyRule.Always)
-
-        Public Overrides Function GetRules() As CompletionRules
-            Dim options = _workspace.Options
-
+        Friend Overrides Function GetRules(options As CompletionOptions) As CompletionRules
             ' Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# And VB
             ' In VB the default means Always to maintain previous behavior
-            Dim enterRule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic)
-            Dim snippetsRule = options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic)
+            Dim enterRule = options.EnterKeyBehavior
+            Dim snippetsRule = options.SnippetsBehavior
 
             If enterRule = EnterKeyRule.Default Then
                 enterRule = EnterKeyRule.Always
@@ -92,11 +66,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Interlocked.Exchange(_latestRules, newRules)
 
             Return newRules
-        End Function
-
-
-        Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
-            Return _completionProviders
         End Function
 
         Protected Overrides Function GetBetterItem(item As CompletionItem, existingItem As CompletionItem) As CompletionItem
@@ -152,11 +121,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return CompletionUtilities.GetCompletionItemSpan(text, caretPosition)
         End Function
 
-        Friend Overrides Function SupportsTriggerOnDeletion(options As OptionSet) As Boolean
+        Friend Overrides Function SupportsTriggerOnDeletion(options As CompletionOptions) As Boolean
             ' If the option is null (i.e. default) or 'true', then we want to trigger completion.
             ' Only if the option is false do we not want to trigger.
-            Dim opt = options.GetOption(CompletionOptions.TriggerOnDeletion, Me.Language)
-            Return If(opt = False, False, True)
+            Return If(options.TriggerOnDeletion = False, False, True)
         End Function
     End Class
 End Namespace

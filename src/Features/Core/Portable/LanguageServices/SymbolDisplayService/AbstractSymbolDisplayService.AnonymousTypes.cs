@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -9,59 +12,32 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         protected abstract partial class AbstractSymbolDescriptionBuilder
         {
-            private void FixAllAnonymousTypes(ISymbol firstSymbol)
+            private void FixAllStructuralTypes(ISymbol firstSymbol)
             {
-                // First, inline all the delegate anonymous types.  This is how VB prefers to display
-                // things.
-                InlineAllDelegateAnonymousTypes();
+                // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
+                // Structural Types: section to display their info.
 
-                // Now, replace all normal anonymous types with 'a, 'b, etc. and create a
-                // AnonymousTypes: section to display their info.
-                FixNormalAnonymousTypes(firstSymbol);
-            }
-
-            private void InlineAllDelegateAnonymousTypes()
-            {
-restart:
-                foreach (var kvp in _groupMap)
-                {
-                    var parts = kvp.Value;
-                    var updatedParts = _anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parts, _semanticModel, _position, _displayService);
-                    if (parts != updatedParts)
-                    {
-                        _groupMap[kvp.Key] = updatedParts;
-                        goto restart;
-                    }
-                }
-            }
-
-            private void FixNormalAnonymousTypes(ISymbol firstSymbol)
-            {
-                var directNormalAnonymousTypeReferences =
+                var directStructuralTypes =
                     from parts in _groupMap.Values
                     from part in parts
-                    where part.Symbol.IsNormalAnonymousType()
-                    select (INamedTypeSymbol)part.Symbol;
+                    where part.Symbol.IsAnonymousType() || part.Symbol.IsTupleType()
+                    select (INamedTypeSymbol)part.Symbol!;
 
-                var info = _anonymousTypeDisplayService.GetNormalAnonymousTypeDisplayInfo(
-                    firstSymbol, directNormalAnonymousTypeReferences, _semanticModel, _position, _displayService);
+                // If the first symbol is an anonymous delegate, just show it's full sig in-line in the main
+                // description.  Otherwise, replace it with 'a, 'b etc. and show its sig in the 'Types:' section.
 
-                if (info.AnonymousTypesParts.Count > 0)
+                if (firstSymbol.IsAnonymousDelegateType())
+                    directStructuralTypes = directStructuralTypes.Except(new[] { (INamedTypeSymbol)firstSymbol });
+
+                var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
+                    firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
+
+                if (info.TypesParts.Count > 0)
                 {
-                    AddToGroup(SymbolDescriptionGroups.AnonymousTypes,
-                        info.AnonymousTypesParts);
+                    AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
 
-restart:
-                    foreach (var kvp in _groupMap)
-                    {
-                        var parts = _groupMap[kvp.Key];
-                        var updatedParts = info.ReplaceAnonymousTypes(parts);
-                        if (parts != updatedParts)
-                        {
-                            _groupMap[kvp.Key] = updatedParts;
-                            goto restart;
-                        }
-                    }
+                    foreach (var (group, parts) in _groupMap.ToArray())
+                        _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
                 }
             }
         }

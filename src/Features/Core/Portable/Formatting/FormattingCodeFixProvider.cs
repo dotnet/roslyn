@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,12 +22,15 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal class FormattingCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public FormattingCodeFixProvider()
         {
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.FormattingDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -38,9 +46,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var options = await context.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(context.Document, cancellationToken).ConfigureAwait(false);
             var tree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var formattedTree = await FormattingCodeFixHelper.FixOneAsync(tree, context.Document.Project.Solution.Workspace, options, diagnostic, cancellationToken).ConfigureAwait(false);
+            var formattedTree = await FormattingCodeFixHelper.FixOneAsync(tree, context.Document.Project.Solution.Workspace.Services, options, diagnostic, cancellationToken).ConfigureAwait(false);
             return context.Document.WithSyntaxRoot(await formattedTree.GetRootAsync(cancellationToken).ConfigureAwait(false));
         }
 

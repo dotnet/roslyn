@@ -1,10 +1,16 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
@@ -14,7 +20,6 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' <summary>
@@ -23,11 +28,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' <remarks>This particular command filter acts as a "wrapper" around any other command, as it
     ''' wishes to invoke the commit after whatever processed the enter is done doing what it's
     ''' doing.</remarks>
-    <Export(GetType(VSCommanding.ICommandHandler))>
+    <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.Commit)>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
-    <Order(Before:=PredefinedCommandHandlerNames.Completion)>
     <Order(Before:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class CommitCommandHandler
         Implements IChainedCommandHandler(Of ReturnKeyCommandArgs)
@@ -40,6 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
         Private ReadOnly _smartIndentationService As ISmartIndentationService
         Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
+        Private ReadOnly _globalOptions As IGlobalOptionService
 
         Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
             Get
@@ -48,16 +53,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Property
 
         <ImportingConstructor()>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(
             bufferManagerFactory As CommitBufferManagerFactory,
             editorOperationsFactoryService As IEditorOperationsFactoryService,
             smartIndentationService As ISmartIndentationService,
-            textUndoHistoryRegistry As ITextUndoHistoryRegistry)
+            textUndoHistoryRegistry As ITextUndoHistoryRegistry,
+            globalOptions As IGlobalOptionService)
 
             _bufferManagerFactory = bufferManagerFactory
             _editorOperationsFactoryService = editorOperationsFactoryService
             _smartIndentationService = smartIndentationService
             _textUndoHistoryRegistry = textUndoHistoryRegistry
+            _globalOptions = globalOptions
         End Sub
 
         Public Sub ExecuteCommand(args As FormatDocumentCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of FormatDocumentCommandArgs).ExecuteCommand
@@ -77,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Using
         End Sub
 
-        Public Function GetCommandState(args As FormatDocumentCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of FormatDocumentCommandArgs).GetCommandState
+        Public Function GetCommandState(args As FormatDocumentCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of FormatDocumentCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
@@ -109,12 +117,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             'We don't call nextHandler, since we have handled this command.
         End Sub
 
-        Public Function GetCommandState(args As FormatSelectionCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of FormatSelectionCommandArgs).GetCommandState
+        Public Function GetCommandState(args As FormatSelectionCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of FormatSelectionCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
         Public Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
-            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.PrettyListing) Then
+            If Not _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic) Then
                 nextHandler()
                 Return
             End If
@@ -186,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim oldCaretPositionInCurrentSnapshot = oldCaretPositionInOldSnapshot.Value.CreateTrackingPoint(PointTrackingMode.Negative).GetPoint(subjectBuffer.CurrentSnapshot)
             Dim bufferManager = _bufferManagerFactory.CreateForBuffer(subjectBuffer)
 
-            If bufferManager.IsMovementBetweenStatements(oldCaretPositionInCurrentSnapshot, newCaretPosition.Value, cancellationToken) Then
+            If CommitBufferManager.IsMovementBetweenStatements(oldCaretPositionInCurrentSnapshot, newCaretPosition.Value, cancellationToken) Then
                 Dim document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
                 If document Is Nothing Then
                     Return False
@@ -208,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return False
         End Function
 
-        Public Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+        Public Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
             ' We don't make any decision if the enter key is allowed; we just forward onto the next handler
             Return nextHandler()
         End Function
@@ -226,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Do the paste in the same transaction as the commit/format
                 nextHandler()
 
-                If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) Then
+                If Not _globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, LanguageNames.VisualBasic) Then
                     transaction.Complete()
                     Return
                 End If
@@ -253,12 +261,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Using
         End Sub
 
-        Public Function GetCommandState(args As PasteCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of PasteCommandArgs).GetCommandState
+        Public Function GetCommandState(args As PasteCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of PasteCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
         Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of SaveCommandArgs).ExecuteCommand
-            If args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.FormatOnSave) Then
+            If _globalOptions.GetOption(InternalFeatureOnOffOptions.FormatOnSave) Then
                 Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
                     Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Format_on_Save)
                         _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=context.OperationContext.UserCancellationToken)
@@ -274,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             nextHandler()
         End Sub
 
-        Public Function GetCommandState(args As SaveCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of SaveCommandArgs).GetCommandState
+        Public Function GetCommandState(args As SaveCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of SaveCommandArgs).GetCommandState
             Return nextHandler()
         End Function
     End Class

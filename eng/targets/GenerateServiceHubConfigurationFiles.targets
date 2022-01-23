@@ -1,16 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
-  <!--
-    The inclusion of this file will cause *.servicehub.service.json files to be created. and these json files contain configuration for the servicehub on how it
-    should configure our services in servicehub process
-  -->
-  <ItemGroup>
-    <ServiceHubService Include="roslynCodeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.CodeAnalysisService" />
-    <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
-    <ServiceHubService Include="roslynSnapshot" ClassName="Microsoft.CodeAnalysis.Remote.SnapshotService" />
-    <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />
-  </ItemGroup>
+  <PropertyGroup>
+    <RoslynPackageGuid>6cf2e545-6109-4730-8883-cf43d7aec3e1</RoslynPackageGuid>
+  </PropertyGroup>
 
   <PropertyGroup>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GenerateServiceHubConfigurationFiles</GetVsixSourceItemsDependsOn>
@@ -18,13 +11,15 @@
 
   <Target Name="CalculateServiceHubConfigurationFiles">
     <ItemGroup>
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostIdSuffix="" Runtime="desktop"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64S" HostIdSuffix="S" Runtime="desktop"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64" HostIdSuffix="" Runtime="core"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64S" HostIdSuffix="S" Runtime="core"/>
 
-      <_JsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.Runtime)" Condition="'%(_ServicesWithBitness.Runtime)' == 'desktop'" >
         <Content>
           <![CDATA[{
-  "host": "desktopClr%(_ServicesWithBitness.HostSuffix)",
+  "host": "desktopClr",
   "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
   "hostGroupAllowed": true,
   "serviceOverride": true, 
@@ -37,21 +32,38 @@
 }
 ]]>
         </Content>
-      </_JsonFile>
+      </ServiceHubServiceJsonFile>
+
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.Runtime)" Condition="'%(_ServicesWithBitness.Runtime)' == 'core'" >
+        <Content>
+          <![CDATA[{
+  "host": "coreClr",
+  "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
+  "hostGroupAllowed": true,
+  "serviceOverride": true, 
+  "entryPoint": {
+    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+    "fullClassName": "%(_ServicesWithBitness.ClassName)"
+  }
+}
+]]>
+        </Content>
+      </ServiceHubServiceJsonFile>
     </ItemGroup>
   </Target>
 
   <Target Name="GenerateServiceHubConfigurationFiles"
           DependsOnTargets="CalculateServiceHubConfigurationFiles"
           BeforeTargets="CreateVsixContainer"
-          Inputs="$(MSBuildProjectFullPath)"
-          Outputs="@(_JsonFile)">
+          Inputs="$(MSBuildAllProjects)"
+          Outputs="@(ServiceHubServiceJsonFile)">
 
-    <WriteLinesToFile File="%(_JsonFile.Identity)" Lines="%(_JsonFile.Content)" Overwrite="true"/>
+    <WriteLinesToFile File="%(ServiceHubServiceJsonFile.Identity)" Lines="%(ServiceHubServiceJsonFile.Content)" Overwrite="true"/>
 
     <ItemGroup>
-      <FileWrites Include="@(_JsonFile->'%(Identity)')"/>
-      <VSIXSourceItem Include="@(_JsonFile->'%(Identity)')" />
+      <FileWrites Include="@(ServiceHubServiceJsonFile->'%(Identity)')"/>
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" Condition="'%(ServiceHubServiceJsonFile.Runtime)' == 'core'" VSIXSubPath="$(ServiceHubCoreSubPath)" />
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" Condition="'%(ServiceHubServiceJsonFile.Runtime)' == 'desktop'"/>
     </ItemGroup>
   </Target>
 </Project>

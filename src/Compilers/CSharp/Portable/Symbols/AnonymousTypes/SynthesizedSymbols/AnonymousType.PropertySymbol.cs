@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents an anonymous type template's property symbol.
         /// </summary>
-        private sealed class AnonymousTypePropertySymbol : PropertySymbol
+        internal sealed class AnonymousTypePropertySymbol : PropertySymbol
         {
             private readonly NamedTypeSymbol _containingType;
             private readonly TypeWithAnnotations _typeWithAnnotations;
@@ -193,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _backingField; }
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if (obj == null)
                 {
@@ -213,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //  consider properties the same is the owning types are the same and 
                 //  the names are equal
                 return ((object)other != null) && other.Name == this.Name
-                    && other.ContainingType.Equals(this.ContainingType);
+                    && other.ContainingType.Equals(this.ContainingType, compareKind);
             }
 
             public override int GetHashCode()

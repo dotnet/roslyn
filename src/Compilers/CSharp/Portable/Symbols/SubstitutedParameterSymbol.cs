@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return type;
                 }
 
-                TypeWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.TypeWithAnnotations);
+                TypeWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteType(this._underlyingParameter.TypeWithAnnotations);
 
                 if (substituted.CustomModifiers.IsEmpty &&
                     this._underlyingParameter.TypeWithAnnotations.CustomModifiers.IsEmpty &&
@@ -63,6 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -73,7 +78,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool Equals(object obj)
+        internal override bool IsCallerLineNumber
+        {
+            get { return _underlyingParameter.IsCallerLineNumber; }
+        }
+
+        internal override bool IsCallerFilePath
+        {
+            get { return _underlyingParameter.IsCallerFilePath; }
+        }
+
+        internal override bool IsCallerMemberName
+        {
+            get { return _underlyingParameter.IsCallerMemberName; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
+        }
+
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {
@@ -86,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ReferenceEquals.
 
             var other = obj as SubstitutedParameterSymbol;
-            return (object)other != null &&
+            return other is not null &&
                 this.Ordinal == other.Ordinal &&
-                this.ContainingSymbol.Equals(other.ContainingSymbol);
+                this.ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
         }
 
         public sealed override int GetHashCode()

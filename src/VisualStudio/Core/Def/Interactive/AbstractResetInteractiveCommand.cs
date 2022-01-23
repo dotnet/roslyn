@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -32,9 +36,7 @@ namespace Roslyn.VisualStudio.Services.Interactive
         }
 
         private object GetService(Type type)
-        {
-            return _serviceProvider.GetService(type);
-        }
+            => _serviceProvider.GetService(type);
 
         public void ExecuteResetInteractive()
         {
@@ -56,7 +58,7 @@ namespace Roslyn.VisualStudio.Services.Interactive
                 resetInteractive.ExecutionCompleted -= focusWindow;
             }
 
-            resetInteractive.Execute(vsInteractiveWindow.InteractiveWindow, LanguageName + " Interactive");
+            resetInteractive.ExecuteAsync(vsInteractiveWindow.InteractiveWindow, LanguageName + " Interactive");
             resetInteractive.ExecutionCompleted += focusWindow;
         }
     }

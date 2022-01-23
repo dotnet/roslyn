@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="CannotSetLanguageSpecificOption">
         <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>
-        <target state="new">Cannot set {0} specific option {1} because the options were already configured for a different language.</target>
+        <target state="translated">Impossible de définir l'option spécifique {0} {1}, car les options ont déjà été configurées pour un autre langage.</target>
         <note />
       </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">

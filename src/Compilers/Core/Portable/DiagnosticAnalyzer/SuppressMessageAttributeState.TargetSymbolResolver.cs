@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -47,17 +51,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (id != null && prefix != null && id.StartsWith(prefix, StringComparison.Ordinal))
                 {
-                    return id.Substring(prefix.Length);
+                    return id[prefix.Length..];
                 }
 
                 return id;
             }
 
-            public void Resolve(IList<ISymbol> results)
+            /// <summary>
+            /// Attempts to resolve the "Target" argument of the global SuppressMessageAttribute to symbols in compilation.
+            /// </summary>
+            /// <param name="resolvedWithDocCommentIdFormat">Indicates if resolved "Target" argument is in Roslyn's <see cref="DocumentationCommentId"/> format.</param>
+            /// <returns>Resolved symbols for the the "Target" argument of the global SuppressMessageAttribute.</returns>
+            public ImmutableArray<ISymbol> Resolve(out bool resolvedWithDocCommentIdFormat)
             {
+                resolvedWithDocCommentIdFormat = false;
                 if (string.IsNullOrEmpty(_name))
                 {
-                    return;
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // Try to parse the name as declaration ID generated from symbol's documentation comment Id.
@@ -65,13 +75,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(nameWithoutPrefix, _compilation);
                 if (docIdResults.Length > 0)
                 {
-                    foreach (var result in docIdResults)
-                    {
-                        results.Add(result);
-                    }
-
-                    return;
+                    resolvedWithDocCommentIdFormat = true;
+                    return docIdResults;
                 }
+
+                var results = ArrayBuilder<ISymbol>.GetInstance();
 
                 // Parse 'e:' prefix used by FxCop to differentiate between event and non-event symbols of the same name.
                 bool isEvent = false;
@@ -102,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var candidateMembers = containingSymbol.GetMembers(segment);
                     if (candidateMembers.Length == 0)
                     {
-                        return;
+                        break;
                     }
 
                     if (segmentIsNamedTypeName.HasValue)
@@ -133,10 +141,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (parameters == null)
                         {
                             // Failed to resolve parameter list
-                            return;
+                            break;
                         }
                     }
-                    else if (nextChar == '.' || nextChar == '+')
+                    else if (nextChar is '.' or '+')
                     {
                         ++_index;
 
@@ -157,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             // If we cannot resolve the name on the left of the delimiter, we have no 
                             // hope of finding the symbol.
-                            return;
+                            break;
                         }
 
                         if (containingSymbol.Kind == SymbolKind.NamedType)
@@ -184,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             results.Add(method);
                         }
 
-                        return;
+                        break;
                     }
 
                     ISymbol singleResult;
@@ -211,8 +219,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             else
                             {
                                 singleResult = candidateMembers.FirstOrDefault(s =>
-                                    s.Kind != SymbolKind.Namespace &&
-                                    s.Kind != SymbolKind.NamedType);
+                                    s.Kind is not SymbolKind.Namespace and
+                                    not SymbolKind.NamedType);
                             }
                             break;
 
@@ -225,8 +233,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         results.Add(singleResult);
                     }
 
-                    return;
+                    break;
                 }
+
+                return results.ToImmutableAndFree();
             }
 
             private string ParseNextNameSegment()
@@ -262,12 +272,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (delimiterOffset >= 0)
                 {
-                    segment = _name.Substring(_index, delimiterOffset - _index);
+                    segment = _name[_index..delimiterOffset];
                     _index = delimiterOffset;
                 }
                 else
                 {
-                    segment = _name.Substring(_index);
+                    segment = _name[_index..];
                     _index = _name.Length;
                 }
 
@@ -295,11 +305,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private ParameterInfo[] ParseParameterList()
             {
                 // Consume the opening parenthesis or bracket
-                Debug.Assert(PeekNextChar() == '(' || PeekNextChar() == '[');
+                Debug.Assert(PeekNextChar() is '(' or '[');
                 ++_index;
 
                 var nextChar = PeekNextChar();
-                if (nextChar == ')' || nextChar == ']')
+                if (nextChar is ')' or ']')
                 {
                     // Empty parameter list
                     ++_index;
@@ -332,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 nextChar = PeekNextChar();
-                if (nextChar == ')' || nextChar == ']')
+                if (nextChar is ')' or ']')
                 {
                     // Consume the closing parenthesis or bracket
                     ++_index;
@@ -602,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     var nextChar = PeekNextChar();
-                    if (nextChar == '.' || nextChar == '+')
+                    if (nextChar is '.' or '+')
                     {
                         ++_index;
 
@@ -819,8 +829,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return (INamespaceOrTypeSymbol)candidateMembers
                     .FirstOrDefault(s =>
-                        s.Kind == SymbolKind.Namespace ||
-                        s.Kind == SymbolKind.NamedType);
+                        s.Kind is SymbolKind.Namespace or
+                        SymbolKind.NamedType);
             }
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)

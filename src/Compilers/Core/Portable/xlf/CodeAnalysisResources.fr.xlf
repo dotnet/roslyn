@@ -4,12 +4,27 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">Impossible de spécifier un nom de langage pour cette option.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">Un nom de langage doit être spécifié pour cette option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly contenant le type '{0}' référence le .NET Framework, ce qui n'est pas pris en charge.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">Les changements doivent se situer dans les limites de SourceText</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">Aucun changement de la version d'une référence d'assembly n'est autorisé durant le débogage : '{0}' a changé la version en '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
@@ -17,6 +32,31 @@
 '{1}'.</source>
         <target state="translated">L'analyseur '{0}' a levé l'exception suivante :
 '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="translated">Supprimez les diagnostics suivants pour désactiver cet analyseur : {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
+        <target state="translated">Le hintName « {0} » contient un caractère non valide « {1} » à la position {2}.</target>
+        <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
+        <target state="translated">Le hintName « {0} »du fichier source ajouté doit être unique dans un générateur.</target>
+        <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">Le fichier supplémentaire n'appartient pas au 'CompilationWithAnalyzers' sous-jacent.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="translated">L'ID de diagnostic supprimé '{0}' ne correspond pas à l'ID supprimable '{1}' pour le descripteur de suppression spécifié.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -32,6 +72,16 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">Le paramètre '{0}' doit être un symbole de cette compilation ou un assembly référencé.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">Le module a des attributs non valides.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="translated">Impossible de supprimer le diagnostic non signalé ayant l'ID '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -69,9 +119,49 @@
         <target state="translated">Impossible d'utiliser le module de copie pour créer des métadonnées d'assembly.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="translated">Un seul {0} peut être inscrit par générateur.</target>
+        <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
+        <target state="translated">Le SourceText avec « {0} » doit avoir un encodage explicite défini.</target>
+        <note>'SourceText' is not localizable. {0}: the provided hintname</note>
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">L'analyseur '{0}' contient un descripteur null dans 'SupportedDiagnostics'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="translated">L'analyseur '{0}' contient un descripteur ayant une valeur null dans 'SupportedSuppressions'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="translated">Le diagnostic '{0} : {1}' a été supprimé par programmation par un DiagnosticSuppressor ayant l'ID de suppression '{2}' et la justification '{3}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="translated">Suppression programmatique d'un diagnostic d'analyseur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">SuppressionDescriptor doit avoir un ID qui n'est ni une valeur null, ni une chaîne vide, ni une chaîne contenant uniquement des espaces blancs.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="translated">Si des annotations de type Nullable pour des éléments de tuples sont spécifiées, le nombre d'annotations doit correspondre à la cardinalité du tuple.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">Impossible de déterminer la cause spécifique de l'échec.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -202,6 +292,11 @@
       <trans-unit id="GetMetadataMustReturnInstance">
         <source>{0}.GetMetadata() must return an instance of {1}.</source>
         <target state="translated">{0}.GetMetadata() doit retourner une instance de {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="translated">La suppression signalée ayant l'ID '{0}' n'est pas prise en charge par le suppresseur.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -479,14 +574,34 @@
         <target state="translated">Nom de culture non valide : '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">Le nom de section de configuration '{0}' de l'analyseur global est non valide, car il ne s'agit pas d'un chemin absolu. La section va être ignorée. La section a été déclarée dans le fichier '{1}'</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">Le nom de section de configuration de l'analyseur global est non valide, car il ne s'agit pas d'un chemin absolu. La section va être ignorée.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
-        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <target state="translated">Le diagnostic '{0}' a reçu un niveau de gravité non valide '{1}' dans le fichier config de l'analyseur sur '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
         <source>Invalid severity in analyzer config file.</source>
-        <target state="new">Invalid severity in analyzer config file.</target>
+        <target state="translated">Niveau de gravité non valide dans le fichier config de l'analyseur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="translated">Plusieurs fichiers config d'analyseur global définissent la même clé '{0}' dans la section '{1}'. Elle a été annulée. La clé a été définie par les fichiers suivants : '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="translated">Plusieurs fichiers config d'analyseur global définissent la même clé. Elle a été annulée.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
@@ -522,11 +637,16 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">Échec de l'analyseur</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">L'analyseur '{0}' a levé une exception de type {1} avec le message '{2}'.</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">L'analyseur '{0}' a levé une exception de type '{1}' avec le message '{2}'.
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
@@ -589,11 +709,6 @@
       <trans-unit id="ArgumentElementCannotBeNull">
         <source>Argument cannot have a null element.</source>
         <target state="translated">L'argument ne peut pas avoir un élément null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">L'analyseur a tenté d'inscrire une action 'async', ce qui n'est pas pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">

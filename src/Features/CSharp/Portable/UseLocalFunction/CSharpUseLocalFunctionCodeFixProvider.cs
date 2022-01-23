@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,23 +21,27 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseLocalFunction), Shared]
     internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private static readonly TypeSyntax s_objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUseLocalFunctionCodeFixProvider()
         {
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseLocalFunctionDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed;
@@ -81,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var currentRoot = root.TrackNodes(nodesToTrack);
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var languageVersion = ((CSharpParseOptions)semanticModel.SyntaxTree.Options).LanguageVersion;
+            var languageVersion = semanticModel.SyntaxTree.Options.LanguageVersion();
             var makeStaticIfPossible = languageVersion >= LanguageVersion.CSharp8 &&
                 options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
 
@@ -97,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var currentAnonymousFunction = currentRoot.GetCurrentNode(anonymousFunction);
 
                 currentRoot = ReplaceAnonymousWithLocalFunction(
-                    document.Project.Solution.Workspace, currentRoot,
+                    document.Project.Solution.Workspace.Services, currentRoot,
                     currentLocalDeclaration, currentAnonymousFunction,
                     delegateType.DelegateInvokeMethod, parameterList, makeStatic);
 
@@ -141,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static SyntaxNode ReplaceAnonymousWithLocalFunction(
-            Workspace workspace, SyntaxNode currentRoot,
+            HostWorkspaceServices services, SyntaxNode currentRoot,
             LocalDeclarationStatementSyntax localDeclaration, AnonymousFunctionExpressionSyntax anonymousFunction,
             IMethodSymbol delegateMethod, ParameterListSyntax parameterList, bool makeStatic)
         {
@@ -149,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 .WithTriviaFrom(localDeclaration)
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
-            var editor = new SyntaxEditor(currentRoot, workspace);
+            var editor = new SyntaxEditor(currentRoot, services);
             editor.ReplaceNode(localDeclaration, newLocalFunctionStatement);
 
             var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
@@ -206,12 +215,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var returnType = delegateMethod.GenerateReturnTypeSyntax();
 
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
-            var typeParameterList = default(TypeParameterListSyntax);
+            var typeParameterList = (TypeParameterListSyntax)null;
 
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 
-            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block)
-                ? (BlockSyntax)anonymousFunction.Body
+            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block, out BlockSyntax block)
+                ? block
                 : null;
 
             var expressionBody = anonymousFunction.Body is ExpressionSyntax expression
@@ -231,14 +240,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod)
         {
             var parameterList = TryGetOrCreateParameterList(anonymousFunction);
-            int i = 0;
+            var i = 0;
 
             return parameterList != null
                 ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
                 : SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(delegateMethod.Parameters.Select(parameter =>
                     PromoteParameter(SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))));
 
-            ParameterSyntax PromoteParameter(ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
+            static ParameterSyntax PromoteParameter(ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
             {
                 // delegateParameter may be null, consider this case: Action x = (a, b) => { };
                 // we will still fall back to object
@@ -306,10 +315,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         private static EqualsValueClauseSyntax GetDefaultValue(IParameterSymbol parameter)
             => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_local_function, createChangedDocument, FeaturesResources.Use_local_function)
+                : base(CSharpAnalyzersResources.Use_local_function, createChangedDocument, CSharpAnalyzersResources.Use_local_function)
             {
             }
         }

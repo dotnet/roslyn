@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             => syntaxKinds.LogicalOrExpression;
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
-            => new MyCodeAction(createChangedDocument, ifKeywordText);
+            => new MyCodeAction(string.Format(FeaturesResources.Split_into_consecutive_0_statements, ifKeywordText), createChangedDocument);
 
         protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
             Document document,
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return editor.GetChangedRoot();
         }
 
-        private async Task<bool> CanBeSeparateStatementsAsync(
+        private static async Task<bool> CanBeSeparateStatementsAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -149,8 +153,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
-                : base(string.Format(FeaturesResources.Split_into_consecutive_0_statements, ifKeywordText), createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

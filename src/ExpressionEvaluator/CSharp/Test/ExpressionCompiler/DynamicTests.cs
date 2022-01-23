@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -48,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x01);
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
@@ -130,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments().Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
@@ -171,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x01);
@@ -211,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
@@ -256,7 +260,7 @@ class Generic<T>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments().Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
@@ -651,7 +655,7 @@ class Generic<T>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x01);
@@ -690,7 +694,7 @@ class Generic<T>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
@@ -729,7 +733,7 @@ class Generic<T>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments().Single().TypeKind);
                 VerifyCustomTypeInfo(locals[0], "d", 0x02);
@@ -777,7 +781,7 @@ public class Outer<T, U>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: true);
                 VerifyCustomTypeInfo(locals[0], "d", 0x04, 0x03);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
@@ -827,7 +831,7 @@ public class Outer<T, U>
   IL_0019:  ldc.i4.3
   IL_001a:  newarr     ""byte""
   IL_001f:  dup
-  IL_0020:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.A4E591DA7617172655FE45FC3878ECC8CC0D44B3""
+  IL_0020:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.D7FC9689723FC6A41ADF105022720FF986ABA464083E7F71C6B921F8164E8878""
   IL_0025:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_002a:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_002f:  ldstr      ""dd""
@@ -872,7 +876,7 @@ public class Outer<T, U>
                         DkmClrAliasKind.Variable,
                         "d2",
                         "d2",
-                        typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName,
+                        typeof(Dictionary<Dictionary<object, Dictionary<object[], object[]>>, object>).AssemblyQualifiedName,
                         MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
@@ -887,7 +891,7 @@ public class Outer<T, U>
                     typeName: out typeName,
                     testData: testData);
                 diagnostics.Free();
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
 
                 VerifyCustomTypeInfo(locals[0], "d1", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d1", expectedILOpt:
@@ -943,14 +947,14 @@ public class Outer<T, U>
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
-                var method = testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
+                var method = (MethodSymbol)testData.GetExplicitlyDeclaredMethods().Single().Value.Method;
                 CheckAttribute(assembly, method, AttributeDescription.DynamicAttribute, expected: false);
                 VerifyCustomTypeInfo(locals[0], "d", null);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -981,12 +985,12 @@ class C
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(TypeKind.Dynamic, methodData.Method.ReturnType.TypeKind);
+                Assert.Equal(TypeKind.Dynamic, ((MethodSymbol)methodData.Method).ReturnType.TypeKind);
                 methodData.VerifyIL(@"
 {
   // Code size       77 (0x4d)
   .maxstack  9
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0037
   IL_0007:  ldc.i4.0
@@ -1017,7 +1021,7 @@ class C
         }
 
         [WorkItem(1160855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
         public void AwaitDynamic()
         {
             var source = @"

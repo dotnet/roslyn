@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -11,7 +13,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-
+using Xunit;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -28,7 +30,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
+        public AddParameterDialog_OutOfProc AddParameterDialog { get; }
+
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
+
+        public CodeDefinitionWindow_OutOfProc CodeDefinitionWindow { get; }
 
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
 
@@ -85,19 +91,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
+        public bool IsUsingLspEditor { get; }
+
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath, bool isUsingLspEditor)
         {
             HostProcess = hostProcess;
             Dte = dte;
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
+            IsUsingLspEditor = isUsingLspEditor;
 
             if (System.Diagnostics.Debugger.IsAttached)
             {
                 // If a Visual Studio debugger is attached to the test process, attach it to the instance running
                 // integration tests as well.
                 var debuggerHostDte = GetDebuggerHostDte();
-                int targetProcessId = Process.GetCurrentProcess().Id;
+                var targetProcessId = Process.GetCurrentProcess().Id;
                 var localProcess = debuggerHostDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>().FirstOrDefault(p => p.ProcessID == hostProcess.Id);
                 if (localProcess != null)
                 {
@@ -123,7 +132,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
+            AddParameterDialog = new AddParameterDialog_OutOfProc(this);
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
+            CodeDefinitionWindow = new CodeDefinitionWindow_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
@@ -211,7 +222,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-            Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
+            Workspace.WaitForAllAsyncOperationsOrFail(Helper.HangMitigatingTimeout);
 
             // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
@@ -225,6 +236,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Prevent the start page from showing after each solution closes
             StartPage.SetEnabled(false);
+            Workspace.ResetOptions();
         }
 
         public void Close(bool exitHostProcess = true)
@@ -254,7 +266,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private static DTE GetDebuggerHostDte()
+        private static DTE? GetDebuggerHostDte()
         {
             var currentProcessId = Process.GetCurrentProcess().Id;
             foreach (var process in Process.GetProcessesByName("devenv"))
@@ -297,10 +309,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private void StartRemoteIntegrationService(DTE dte)
+        private static void StartRemoteIntegrationService(DTE dte)
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
-
             if (dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable)
             {
                 dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start);
@@ -324,8 +335,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private void DisableTestTelemetryChannel()
             => _inProc.DisableTestTelemetryChannel();
 
-        private void WaitForTelemetryEvents(string[] names)
-            => _inProc.WaitForTelemetryEvents(names);
+        /// <summary>
+        /// Waits for specific telemetry events to occur.
+        /// </summary>
+        /// <param name="names">The telemetry events to wait for.</param>
+        /// <returns><see langword="true"/> if the telemetry events occurred; otherwise, <see langword="false"/> if
+        /// telemetry is disabled.</returns>
+        private bool TryWaitForTelemetryEvents(string[] names)
+            => _inProc.TryWaitForTelemetryEvents(names);
 
         public class TelemetryVerifier : IDisposable
         {
@@ -345,7 +362,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             /// <param name="expectedEventNames"></param>
             public void VerifyFired(params string[] expectedEventNames)
             {
-                _instance.WaitForTelemetryEvents(expectedEventNames);
+                var telemetryEnabled = _instance.TryWaitForTelemetryEvents(expectedEventNames);
+                if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_TEST_CI"), "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Telemetry verification is optional for developer machines, but required for CI.
+                    Assert.True(telemetryEnabled);
+                }
             }
         }
     }

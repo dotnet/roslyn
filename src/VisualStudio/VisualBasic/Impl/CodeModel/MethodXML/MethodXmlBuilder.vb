@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -498,7 +500,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Return True
         End Function
 
-        Private Function GetSpecialCastKind(castExpression As CastExpressionSyntax) As SpecialCastKind?
+        Private Shared Function GetSpecialCastKind(castExpression As CastExpressionSyntax) As SpecialCastKind?
             Select Case castExpression.Kind()
                 Case SyntaxKind.DirectCastExpression
                     Return SpecialCastKind.DirectCast
@@ -576,7 +578,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
 
                 If arrayBounds IsNot Nothing Then
 
-                    If Not TryGenerateArrayBounds(arrayBounds, type) Then
+                    If Not TryGenerateArrayBounds(arrayBounds) Then
                         Return False
                     End If
 
@@ -597,7 +599,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                                         Return False
                                     End If
                                 Case SyntaxKind.CollectionInitializer
-                                    If Not TryGenerateArrayInitializer(DirectCast(initializer, CollectionInitializerSyntax), type) Then
+                                    If Not TryGenerateArrayInitializer(DirectCast(initializer, CollectionInitializerSyntax)) Then
                                         Return False
                                     End If
                                 Case Else
@@ -614,7 +616,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             End Using
         End Function
 
-        Private Function TryGenerateArrayBounds(argumentList As ArgumentListSyntax, type As ITypeSymbol) As Boolean
+        Private Function TryGenerateArrayBounds(argumentList As ArgumentListSyntax) As Boolean
             For Each argument In argumentList.Arguments
                 Using BoundTag()
                     If Not TryGenerateSimpleArrayBound(argument) AndAlso
@@ -627,7 +629,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Return True
         End Function
 
-        Private Function TryGenerateArrayInitializer(collectionInitializer As CollectionInitializerSyntax, type As ITypeSymbol) As Boolean
+        Private Function TryGenerateArrayInitializer(collectionInitializer As CollectionInitializerSyntax) As Boolean
             Using BoundTag()
                 Using ExpressionTag()
                     Using LiteralTag()

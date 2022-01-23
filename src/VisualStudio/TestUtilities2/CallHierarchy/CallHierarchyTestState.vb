@@ -1,18 +1,16 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Notification
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
-Imports Microsoft.CodeAnalysis.SymbolMapping
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.CallHierarchy
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -20,11 +18,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
     Public Class CallHierarchyTestState
-        Private Shared ReadOnly DefaultCatalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic _
-                .WithPart(GetType(CallHierarchyProvider)) _
-                .WithPart(GetType(DefaultSymbolMappingService)) _
-                .WithPart(GetType(EditorNotificationServiceFactory))
-        Private Shared ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(DefaultCatalog)
+        Implements IDisposable
 
         Private ReadOnly _commandHandler As CallHierarchyCommandHandler
         Private ReadOnly _presenter As MockCallHierarchyPresenter
@@ -84,13 +78,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             End Sub
         End Class
 
-        Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim exportProvider = CreateExportProvider(additionalTypes)
-            Dim Workspace = TestWorkspace.Create(markup, exportProvider:=exportProvider)
-
-            Return New CallHierarchyTestState(Workspace)
-        End Function
-
         Private Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace
             Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
@@ -103,22 +90,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             Dim notificationService = DirectCast(workspace.Services.GetService(Of INotificationService)(), INotificationServiceCallback)
             notificationService.NotificationCallback = Sub(message, title, severity) NotificationMessage = message
 
+            Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             _presenter = New MockCallHierarchyPresenter()
-            _commandHandler = New CallHierarchyCommandHandler({_presenter}, provider)
+            _commandHandler = New CallHierarchyCommandHandler(threadingContext, {_presenter}, provider)
         End Sub
 
-        Private Shared Function CreateExportProvider(additionalTypes As IEnumerable(Of Type)) As ExportProvider
-            If Not additionalTypes.Any Then
-                Return ExportProviderFactory.CreateExportProvider()
-            End If
-
-            Dim catalog = DefaultCatalog.WithParts(additionalTypes)
-            Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog).CreateExportProvider()
+        Public Shared Function Create(markup As XElement, ParamArray additionalTypes As Type()) As CallHierarchyTestState
+            Dim workspace = TestWorkspace.Create(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
+            Return New CallHierarchyTestState(workspace)
         End Function
 
         Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState
-            Dim exportProvider = CreateExportProvider(additionalTypes)
-            Dim workspace = TestWorkspace.CreateCSharp(markup, exportProvider:=exportProvider)
+            Dim workspace = TestWorkspace.CreateCSharp(markup, composition:=VisualStudioTestCompositions.LanguageServices.AddParts(additionalTypes))
             Return New CallHierarchyTestState(workspace)
         End Function
 
@@ -145,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             SearchRoot(root, displayName, callback, scope, documents)
         End Sub
 
-        Private Sub SearchRoot(root As CallHierarchyItem, displayName As String, callback As MockSearchCallback, scope As CallHierarchySearchScope, documents As IImmutableSet(Of Document))
+        Private Shared Sub SearchRoot(root As CallHierarchyItem, displayName As String, callback As MockSearchCallback, scope As CallHierarchySearchScope, documents As IImmutableSet(Of Document))
             ' Assert we have the category before we try to find it to give better diagnosing
             Assert.Contains(displayName, root.SupportedSearchCategories.Select(Function(c) c.DisplayName))
 
@@ -218,6 +201,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
                     item.NavigateTo()
                 End If
             End If
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Workspace.Dispose()
         End Sub
     End Class
 End Namespace

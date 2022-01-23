@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -2279,10 +2281,9 @@ End Module
         Assert.Equal(SyntaxKind.WhitespaceTrivia, leading(2).Kind)
 
         Dim trailing = SyntaxFactory.ParseTrailingTrivia(prefix + forEachText, offset:=prefix.Length)
-        Assert.Equal(3, trailing.Count)
+        Assert.Equal(2, trailing.Count)
         Assert.Equal(SyntaxKind.CommentTrivia, trailing(0).Kind)
         Assert.Equal(SyntaxKind.EndOfLineTrivia, trailing(1).Kind)
-        Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing(2).Kind)
 
         Dim t = SyntaxFactory.ParseToken(prefix + forEachText, offset:=prefix.Length, startStatement:=True)
         Assert.Equal(SyntaxKind.ForKeyword, t.Kind)

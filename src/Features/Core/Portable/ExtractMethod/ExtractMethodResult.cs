@@ -1,6 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -20,7 +31,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// <summary>
         /// The transformed document that was produced as a result of the extract method operation.
         /// </summary>
-        public Document Document { get; }
+        public Document? DocumentWithoutFinalFormatting { get; }
+
+        /// <summary>
+        /// Formatting rules to apply to <see cref="DocumentWithoutFinalFormatting"/> to obtain the final formatted
+        /// document.
+        /// </summary>
+        public ImmutableArray<AbstractFormattingRule> FormattingRules { get; }
 
         /// <summary>
         /// The reasons why the extract method operation did not succeed.
@@ -30,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// <summary>
         /// the generated method node that contains the extracted code.
         /// </summary>
-        public SyntaxNode MethodDeclarationNode { get; }
+        public SyntaxNode? MethodDeclarationNode { get; }
 
         /// <summary>
         /// The name token for the invocation node that replaces the extracted code.
@@ -40,25 +57,51 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         internal ExtractMethodResult(
             OperationStatusFlag status,
             IEnumerable<string> reasons,
-            Document document,
+            Document? documentWithoutFinalFormatting,
+            ImmutableArray<AbstractFormattingRule> formattingRules,
             SyntaxToken invocationNameToken,
-            SyntaxNode methodDeclarationNode)
+            SyntaxNode? methodDeclarationNode)
         {
-            this.Status = status;
+            Status = status;
 
-            this.Succeeded = status.Succeeded() && !status.HasSuggestion();
-            this.SucceededWithSuggestion = status.Succeeded() && status.HasSuggestion();
+            Succeeded = status.Succeeded() && !status.HasSuggestion();
+            SucceededWithSuggestion = status.Succeeded() && status.HasSuggestion();
 
-            this.Reasons = (reasons ?? SpecializedCollections.EmptyEnumerable<string>()).ToReadOnlyCollection();
+            Reasons = (reasons ?? SpecializedCollections.EmptyEnumerable<string>()).ToReadOnlyCollection();
 
-            this.Document = document;
-            this.InvocationNameToken = invocationNameToken;
-            this.MethodDeclarationNode = methodDeclarationNode;
+            DocumentWithoutFinalFormatting = documentWithoutFinalFormatting;
+            FormattingRules = formattingRules;
+            InvocationNameToken = invocationNameToken;
+            MethodDeclarationNode = methodDeclarationNode;
         }
 
         /// <summary>
         /// internal status of result. more fine grained reason why it is failed. 
         /// </summary>
         internal OperationStatusFlag Status { get; }
+
+        public async Task<(Document document, SyntaxToken invocationNameToken)> GetFormattedDocumentAsync(CancellationToken cancellationToken)
+        {
+            if (DocumentWithoutFinalFormatting is null)
+                throw new InvalidOperationException();
+
+            var annotation = new SyntaxAnnotation();
+
+            var root = await DocumentWithoutFinalFormatting.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            root = root.ReplaceToken(InvocationNameToken, InvocationNameToken.WithAdditionalAnnotations(annotation));
+
+            var annotatedDocument = DocumentWithoutFinalFormatting.WithSyntaxRoot(root);
+            var simplifiedDocument = await Simplifier.ReduceAsync(annotatedDocument, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
+            var simplifiedRoot = await simplifiedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(DocumentWithoutFinalFormatting, cancellationToken).ConfigureAwait(false);
+            var services = DocumentWithoutFinalFormatting.Project.Solution.Workspace.Services;
+
+            var formattedDocument = simplifiedDocument.WithSyntaxRoot(
+                Formatter.Format(simplifiedRoot, Formatter.Annotation, services, options, FormattingRules, cancellationToken));
+
+            var formattedRoot = await formattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return (formattedDocument, formattedRoot.GetAnnotatedTokens(annotation).Single());
+        }
     }
 }

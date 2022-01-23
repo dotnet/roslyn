@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,8 +15,8 @@ namespace Microsoft.Cci
 {
     internal sealed class ManagedResource
     {
-        private readonly Func<Stream> _streamProvider;
-        private readonly IFileReference _fileReference;
+        private readonly Func<Stream>? _streamProvider;
+        private readonly IFileReference? _fileReference;
         private readonly uint _offset;
         private readonly string _name;
         private readonly bool _isPublic;
@@ -23,9 +25,9 @@ namespace Microsoft.Cci
         /// <paramref name="streamProvider"/> streamProvider callers will dispose result after use.
         /// <paramref name="streamProvider"/> and <paramref name="fileReference"/> are mutually exclusive.
         /// </summary>
-        internal ManagedResource(string name, bool isPublic, Func<Stream> streamProvider, IFileReference fileReference, uint offset)
+        internal ManagedResource(string name, bool isPublic, Func<Stream>? streamProvider, IFileReference? fileReference, uint offset)
         {
-            Debug.Assert(streamProvider == null ^ fileReference == null);
+            RoslynDebug.Assert(streamProvider == null ^ fileReference == null);
 
             _streamProvider = streamProvider;
             _name = name;
@@ -40,7 +42,9 @@ namespace Microsoft.Cci
             {
                 try
                 {
+#nullable disable // Can '_streamProvider' be null? https://github.com/dotnet/roslyn/issues/39166
                     using (Stream stream = _streamProvider())
+#nullable enable
                     {
                         if (stream == null)
                         {
@@ -66,7 +70,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public IFileReference ExternalFile
+        public IFileReference? ExternalFile
         {
             get
             {

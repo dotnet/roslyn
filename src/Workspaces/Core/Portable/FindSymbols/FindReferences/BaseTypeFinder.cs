@@ -1,77 +1,77 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 {
     internal static partial class BaseTypeFinder
     {
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindBaseTypesAndInterfacesAsync(
-            INamedTypeSymbol type, Project project, CancellationToken cancellationToken)
+        public static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
+            => FindBaseTypes(type).AddRange(type.AllInterfaces);
+
+        public static async ValueTask<ImmutableArray<ISymbol>> FindOverriddenAndImplementedMembersAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var typesAndInterfaces = FindBaseTypesAndInterfaces(type);
-            return await ConvertToSymbolAndProjectIdsAsync(typesAndInterfaces.CastArray<ISymbol>(), project, cancellationToken).ConfigureAwait(false);
-        }
+            var results = ArrayBuilder<ISymbol>.GetInstance();
 
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindOverriddenAndImplementedMembersAsync(
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
-        {
-            var solution = project.Solution;
-            var baseClassesAndInterfaces = FindBaseTypesAndInterfaces(symbol.ContainingType);
-            var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            // This is called for all: class, struct or interface member.
+            results.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
 
-            // These are implicit interface implementations not matching by name such as void I.M();
-            results.AddRange(
-                await ConvertToSymbolAndProjectIdsAsync(
-                    symbol.ExplicitInterfaceImplementations(),
-                    project,
-                    cancellationToken).ConfigureAwait(false));
-
-            foreach (var type in baseClassesAndInterfaces)
+            // The type scenario. Iterate over all base classes to find overridden and hidden (new/Shadows) methods.
+            foreach (var type in FindBaseTypes(symbol.ContainingType))
             {
                 foreach (var member in type.GetMembers(symbol.Name))
                 {
-                    var sourceMember = await SymbolFinder.FindSourceDefinitionAsync(
-                        SymbolAndProjectId.Create(member, project.Id),
-                        solution,
-                        cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    if (sourceMember.Symbol != null)
+                    // Add to results overridden members only. Do not add hidden members.
+                    if (await SymbolFinder.IsOverrideAsync(solution, symbol, member, cancellationToken).ConfigureAwait(false))
                     {
-                        // These are explicit interface implementations matching by name.
-                        if (type?.TypeKind == TypeKind.Interface)
-                        {
-                            if (symbol.ContainingType?.TypeKind == TypeKind.Class || symbol.ContainingType?.TypeKind == TypeKind.Struct)
-                            {
-                                var implementation = symbol.ContainingType.FindImplementations(sourceMember.Symbol, solution.Workspace);
+                        results.Add(member);
 
-                                if (implementation != null &&
-                                    SymbolEquivalenceComparer.Instance.Equals(implementation.OriginalDefinition, symbol.OriginalDefinition))
-                                {
-                                    results.Add(sourceMember);
-                                }
-                            }
-                        }
-                        else if (SymbolFinder.IsOverride(solution, symbol, sourceMember.Symbol, cancellationToken))
-                        {
-                            results.Add(sourceMember);
-                        }
+                        // We should add implementations only for overridden members but not for hidden ones.
+                        // In the following example:
+                        //
+                        // interface I { void M(); }
+                        // class A : I { public void M(); }
+                        // class B : A { public new void M(); }
+                        //
+                        // we should not find anything for B.M() because it does not implement the interface:
+                        //
+                        // I i = new B(); i.M(); 
+                        //
+                        // will call the method from A.
+                        // However, if we change the code to 
+                        //
+                        // class B : A, I { public new void M(); }
+                        //
+                        // then
+                        //
+                        // I i = new B(); i.M(); 
+                        //
+                        // will call the method from B. We should find the base for B.M in this case.
+                        // And if we change 'new' to 'override' in the original code and add 'virtual' where needed, 
+                        // we should find I.M as a base for B.M(). And the next line helps with this scenario.
+                        results.AddRange(member.ExplicitOrImplicitInterfaceImplementations());
                     }
                 }
             }
 
-            return results.ToImmutableAndFree();
+            // Remove duplicates from interface implementations before adding their projects.
+            return results.ToImmutableAndFree().Distinct();
         }
 
-        private static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
+        private static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type)
         {
             var typesBuilder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
-            typesBuilder.AddRange(type.AllInterfaces);
 
             var currentType = type.BaseType;
             while (currentType != null)
@@ -81,23 +81,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
             }
 
             return typesBuilder.ToImmutableAndFree();
-        }
-
-        private static async Task<ImmutableArray<SymbolAndProjectId>> ConvertToSymbolAndProjectIdsAsync(
-            ImmutableArray<ISymbol> implementations, Project project, CancellationToken cancellationToken)
-        {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-            foreach (var implementation in implementations)
-            {
-                var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
-                    SymbolAndProjectId.Create(implementation, project.Id), project.Solution, cancellationToken).ConfigureAwait(false);
-                if (sourceDefinition.Symbol != null)
-                {
-                    result.Add(sourceDefinition);
-                }
-            }
-
-            return result.ToImmutableAndFree();
         }
     }
 }

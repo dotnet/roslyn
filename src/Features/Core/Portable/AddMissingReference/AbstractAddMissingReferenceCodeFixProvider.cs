@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -21,15 +24,15 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
         /// Values for these parameters can be provided (during testing) for mocking purposes.
         /// </summary> 
         protected AbstractAddMissingReferenceCodeFixProvider(
-            IPackageInstallerService packageInstallerService = null,
-            ISymbolSearchService symbolSearchService = null)
+            IPackageInstallerService? packageInstallerService = null,
+            ISymbolSearchService? symbolSearchService = null)
             : base(packageInstallerService, symbolSearchService)
         {
         }
 
         protected override bool IncludePrerelease => false;
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // Fix All is not support for this code fix
             // https://github.com/dotnet/roslyn/issues/34459
@@ -62,10 +65,10 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             return result.ToImmutableAndFree();
         }
 
-        private async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
+        private static async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var compilation = await context.Document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await context.Document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var uniqueIdentities = new HashSet<AssemblyIdentity>();
             foreach (var diagnostic in context.Diagnostics)
@@ -75,6 +78,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
 
                 var properties = diagnostic.Properties;
                 if (properties.TryGetValue(DiagnosticPropertyConstants.UnreferencedAssemblyIdentity, out var displayName) &&
+                    displayName != null &&
                     AssemblyIdentity.TryParseDisplayName(displayName, out var serializedIdentity))
                 {
                     uniqueIdentities.Add(serializedIdentity);

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using SymbolExtensions = Microsoft.CodeAnalysis.Test.Utilities.SymbolExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -896,18 +901,18 @@ class B<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             var crefs = GetCrefSyntaxes(compilation);
 
-            var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var typeA = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
             var ctorA = typeA.InstanceConstructors.Single();
 
-            var typeB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+            var typeB = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("B");
             var ctorB = typeB.InstanceConstructors.Single();
 
-            var expected = new Symbol[]
+            var expected = new ISymbol[]
             {
                 typeA,
                 ctorA,
@@ -992,18 +997,18 @@ class Other
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             var crefs = GetCrefSyntaxes(compilation);
 
-            var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var typeA = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
             var ctorA = typeA.InstanceConstructors.Single();
 
-            var typeB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+            var typeB = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("B");
             var ctorB = typeB.InstanceConstructors.Single();
 
-            var expected = new Symbol[]
+            var expected = new ISymbol[]
             {
                 typeA,
                 ctorA,
@@ -1091,18 +1096,18 @@ class B<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             var crefs = GetCrefSyntaxes(compilation);
 
-            var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var typeA = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
             var ctorA = typeA.InstanceConstructors.Single();
 
-            var typeB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+            var typeB = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("B");
             var ctorB = typeB.InstanceConstructors.Single();
 
-            var expected = new Symbol[]
+            var expected = new ISymbol[]
             {
                 typeA,
                 ctorA,
@@ -1808,8 +1813,8 @@ class C
             Assert.Equal(SymbolKind.Method, actualSymbol.Kind);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var info = model.GetSymbolInfo(crefSyntax);
-            Assert.Equal(info.CandidateReason, CandidateReason.None);
-            Assert.Equal(info.Symbol, actualSymbol);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+            Assert.Equal(info.Symbol, actualSymbol.ISymbol);
         }
 
         [Fact]
@@ -2052,7 +2057,7 @@ class B
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void Ambiguous3()
         {
             var lib1Source = @"
@@ -2913,7 +2918,7 @@ class C
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
             var actualSymbol = model.GetSymbolInfo(crefSyntax).Symbol;
 
-            Assert.Equal(expectedSymbol, actualSymbol);
+            Assert.Equal(expectedSymbol.ISymbol, actualSymbol);
         }
 
         [Fact]
@@ -2932,8 +2937,8 @@ class C
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntax = (QualifiedCrefSyntax)GetCrefSyntaxes(compilation).Single();
 
-            var expectedTypeSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var expectedMethodSymbol = expectedTypeSymbol.GetMember<MethodSymbol>("M");
+            var expectedTypeSymbol = ((Compilation)compilation).GlobalNamespace.GetMember<INamedTypeSymbol>("C");
+            var expectedMethodSymbol = expectedTypeSymbol.GetMember<IMethodSymbol>("M");
 
             var actualTypeSymbol = model.GetSymbolInfo(crefSyntax.Container).Symbol;
             Assert.Equal(expectedTypeSymbol, actualTypeSymbol);
@@ -2967,19 +2972,19 @@ class A<T>
             var nameMemberSyntax = (NameMemberCrefSyntax)crefSyntax.Member;
             var containingTypeSyntax = (QualifiedNameSyntax)crefSyntax.Container;
 
-            var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var typeB = typeA.GetMember<NamedTypeSymbol>("B");
-            var method = typeB.GetMember<MethodSymbol>("M");
+            var typeA = ((Compilation)compilation).GlobalNamespace.GetMember<INamedTypeSymbol>("A");
+            var typeB = typeA.GetMember<INamedTypeSymbol>("B");
+            var method = typeB.GetMember<IMethodSymbol>("M");
 
-            var typeInt = compilation.GetSpecialType(SpecialType.System_Int32);
+            var typeInt = ((Compilation)compilation).GetSpecialType(SpecialType.System_Int32);
 
             // A{J}
-            CrefTypeParameterSymbol actualJ;
+            ITypeParameterSymbol actualJ;
             {
                 var left = (GenericNameSyntax)containingTypeSyntax.Left;
-                var actualTypeA = (Symbol)model.GetSymbolInfo(left).Symbol;
+                var actualTypeA = (INamedTypeSymbol)model.GetSymbolInfo(left).Symbol;
                 Assert.False(actualTypeA.IsDefinition);
-                actualJ = (CrefTypeParameterSymbol)actualTypeA.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
+                actualJ = (ITypeParameterSymbol)actualTypeA.TypeArguments.Single();
                 Assert.Equal(typeA, actualTypeA.OriginalDefinition);
 
                 var actualTypeArgument = model.GetSymbolInfo(left.TypeArgumentList.Arguments.Single()).Symbol;
@@ -2987,11 +2992,11 @@ class A<T>
             }
 
             // B{K}
-            CrefTypeParameterSymbol actualK;
+            ITypeParameterSymbol actualK;
             {
-                var actualTypeB = (Symbol)model.GetSymbolInfo(containingTypeSyntax).Symbol;
+                var actualTypeB = (INamedTypeSymbol)model.GetSymbolInfo(containingTypeSyntax).Symbol;
                 Assert.False(actualTypeB.IsDefinition);
-                actualK = (CrefTypeParameterSymbol)actualTypeB.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
+                actualK = (ITypeParameterSymbol)actualTypeB.TypeArguments.Single();
                 Assert.Equal(typeB, actualTypeB.OriginalDefinition);
 
                 var right = (GenericNameSyntax)containingTypeSyntax.Right;
@@ -3002,11 +3007,11 @@ class A<T>
             }
 
             // M{L}
-            CrefTypeParameterSymbol actualL;
+            ITypeParameterSymbol actualL;
             {
-                var actualMethod = (Symbol)model.GetSymbolInfo(crefSyntax).Symbol;
+                var actualMethod = (IMethodSymbol)model.GetSymbolInfo(crefSyntax).Symbol;
                 Assert.False(actualMethod.IsDefinition);
-                actualL = (CrefTypeParameterSymbol)actualMethod.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
+                actualL = (ITypeParameterSymbol)actualMethod.TypeArguments.Single();
                 Assert.Equal(method, actualMethod.OriginalDefinition);
 
                 Assert.Equal(actualMethod, model.GetSymbolInfo(crefSyntax.Member).Symbol);
@@ -3019,7 +3024,7 @@ class A<T>
                 Assert.Equal(actualK, actualParameterTypes[2]);
                 Assert.Equal(actualL, actualParameterTypes[3]);
                 Assert.Equal(typeA.Construct(actualL), actualParameterTypes[4]);
-                Assert.Equal(typeA.Construct(typeInt).GetMember<NamedTypeSymbol>("B").Construct(actualK), actualParameterTypes[5]);
+                Assert.Equal(typeA.Construct(typeInt).GetMember<INamedTypeSymbol>("B").Construct(actualK), actualParameterTypes[5]);
             }
         }
 
@@ -3039,11 +3044,11 @@ class C
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntax = (IndexerMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
 
-            var expectedIndexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+            var expectedIndexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single().ISymbol;
             var actualIndexer = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedIndexer, actualIndexer);
 
-            var expectedParameterType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var expectedParameterType = compilation.GetSpecialType(SpecialType.System_Int32).ISymbol;
             var actualParameterType = model.GetSymbolInfo(crefSyntax.Parameters.Parameters.Single().Type).Symbol;
             Assert.Equal(expectedParameterType, actualParameterType);
         }
@@ -3066,11 +3071,11 @@ class C
 
             var typeC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var expectedOperator = typeC.GetMember<MethodSymbol>(WellKnownMemberNames.UnaryPlusOperatorName);
+            var expectedOperator = typeC.GetMember<MethodSymbol>(WellKnownMemberNames.UnaryPlusOperatorName).ISymbol;
             var actualOperator = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedOperator, actualOperator);
 
-            var expectedParameterType = typeC;
+            var expectedParameterType = typeC.ISymbol;
             var actualParameterType = model.GetSymbolInfo(crefSyntax.Parameters.Parameters.Single().Type).Symbol;
             Assert.Equal(expectedParameterType, actualParameterType);
         }
@@ -3093,15 +3098,15 @@ class C
 
             var typeC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var expectedOperator = typeC.GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
+            var expectedOperator = typeC.GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName).ISymbol;
             var actualOperator = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedOperator, actualOperator);
 
-            var expectedParameterType = typeC;
+            var expectedParameterType = typeC.ISymbol;
             var actualParameterType = model.GetSymbolInfo(crefSyntax.Parameters.Parameters.Single().Type).Symbol;
             Assert.Equal(expectedParameterType, actualParameterType);
 
-            var expectedReturnType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var expectedReturnType = compilation.GetSpecialType(SpecialType.System_Int32).ISymbol;
             var actualReturnType = model.GetSymbolInfo(crefSyntax.Type).Symbol;
             Assert.Equal(expectedReturnType, actualReturnType);
         }
@@ -3195,7 +3200,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.Equal(MethodKind.Ordinary, ((MethodSymbol)info.CandidateSymbols[0]).MethodKind);
+            Assert.Equal(MethodKind.Ordinary, ((IMethodSymbol)info.CandidateSymbols[0]).MethodKind);
         }
 
         [Fact]
@@ -3219,7 +3224,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.True(((PropertySymbol)info.CandidateSymbols[0]).IsIndexer);
+            Assert.True(((IPropertySymbol)info.CandidateSymbols[0]).IsIndexer);
         }
 
         [Fact]
@@ -3243,7 +3248,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.Equal(MethodKind.Conversion, ((MethodSymbol)info.CandidateSymbols[0]).MethodKind);
+            Assert.Equal(MethodKind.Conversion, ((IMethodSymbol)info.CandidateSymbols[0]).MethodKind);
         }
 
         [Fact]
@@ -3267,7 +3272,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.Equal(MethodKind.UserDefinedOperator, ((MethodSymbol)info.CandidateSymbols[0]).MethodKind);
+            Assert.Equal(MethodKind.UserDefinedOperator, ((IMethodSymbol)info.CandidateSymbols[0]).MethodKind);
         }
 
         [Fact]
@@ -3291,7 +3296,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.Equal(MethodKind.Constructor, ((MethodSymbol)info.CandidateSymbols[0]).MethodKind);
+            Assert.Equal(MethodKind.Constructor, ((IMethodSymbol)info.CandidateSymbols[0]).MethodKind);
         }
 
         [Fact]
@@ -3345,7 +3350,7 @@ class Outer
 
             int position = source.IndexOf("{U}", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolUtilities.ToTestDisplayString),
+            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolExtensions.ToTestDisplayString),
                 // Implicit type parameter
                 "U",
 
@@ -3353,20 +3358,20 @@ class Outer
                 "T",
                 "void C<T>.M()",
                 "C<T>",
-                "Outer",
 
                 // Boring
                 "System",
-                "Microsoft",
 
                 // Inaccessible and boring
                 "FXAssembly",
                 "ThisAssembly",
                 "AssemblyRef",
-                "SRETW");
+                "SRETW",
+                "Outer",
+                "Microsoft");
 
             // Consider inaccessible symbols, as in Dev11
-            Assert.Equal(typeInner, model.LookupSymbols(position, typeOuter, typeInner.Name).Single());
+            Assert.Equal(typeInner.GetPublicSymbol(), model.LookupSymbols(position, typeOuter.GetPublicSymbol(), typeInner.Name).Single());
         }
 
         [Fact]
@@ -3621,49 +3626,51 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (4,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
-                //     /// <param name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q"),
-                // (5,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
-                //     /// <param name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value"),
-                // (6,16): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.M(int)' (but other parameters do)
-                //     void M(int x) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.M(int)"),
-                // (8,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
-                //     /// <param name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x"),
-                // (11,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
-                //     /// <param name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q"),
-                // (12,18): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
-                //     int this[int x, int y] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int, int]"),
-                // (12,25): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
-                //     int this[int x, int y] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]"),
-                // (14,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
-                //     /// <param name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q"),
-                // (15,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
-                //     /// <param name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value"),
-                // (21,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
-                //     /// <param name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x"),
-                // (22,24): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
-                //     partial void M(int y);
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int)"),
-                // (27,22): warning CS1572: XML comment has a param tag for 'y', but there is no parameter by that name
-                //     /// <param name="y"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "y").WithArguments("y"),
-                // (28,24): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
+                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have signature differences.
                 //     partial void M(int x) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "P.M(int)"),
-
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int y)", "void P.M(int x)").WithLocation(28, 18),
                 // (16,25): warning CS0067: The event 'C.E' is never used
                 //     event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(16, 25),
+                // (4,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
+                //     /// <param name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q").WithLocation(4, 22),
+                // (5,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
+                //     /// <param name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value").WithLocation(5, 22),
+                // (6,16): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.M(int)' (but other parameters do)
+                //     void M(int x) { }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.M(int)").WithLocation(6, 16),
+                // (8,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
+                //     /// <param name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x").WithLocation(8, 22),
+                // (11,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
+                //     /// <param name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q").WithLocation(11, 22),
+                // (12,18): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
+                //     int this[int x, int y] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int, int]").WithLocation(12, 18),
+                // (12,25): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
+                //     int this[int x, int y] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]").WithLocation(12, 25),
+                // (14,22): warning CS1572: XML comment has a param tag for 'q', but there is no parameter by that name
+                //     /// <param name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "q").WithArguments("q").WithLocation(14, 22),
+                // (15,22): warning CS1572: XML comment has a param tag for 'value', but there is no parameter by that name
+                //     /// <param name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "value").WithArguments("value").WithLocation(15, 22),
+                // (27,22): warning CS1572: XML comment has a param tag for 'y', but there is no parameter by that name
+                //     /// <param name="y"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "y").WithArguments("y").WithLocation(27, 22),
+                // (28,24): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
+                //     partial void M(int x) { }
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "P.M(int)").WithLocation(28, 24),
+                // (21,22): warning CS1572: XML comment has a param tag for 'x', but there is no parameter by that name
+                //     /// <param name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "x").WithArguments("x").WithLocation(21, 22),
+                // (22,24): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'P.M(int)' (but other parameters do)
+                //     partial void M(int y);
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int)").WithLocation(22, 24));
         }
 
         [Fact]
@@ -3695,21 +3702,24 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (23,18): warning CS8826: Partial method declarations 'void P.M(int q, int r)' and 'void P.M(int x, int y)' have signature differences.
+                //     partial void M(int x, int y) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int q, int r)", "void P.M(int x, int y)").WithLocation(23, 18),
                 // (5,23): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.M(int, int)' (but other parameters do)
                 //     void M(int x, int y) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.M(int, int)"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.M(int, int)").WithLocation(5, 23),
                 // (8,25): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.this[int, int]' (but other parameters do)
                 //     int this[int x, int y] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.this[int, int]").WithLocation(8, 25),
                 // (11,18): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.this[int]' (but other parameters do)
                 //     int this[int x] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int]"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.this[int]").WithLocation(11, 18),
                 // (23,31): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'P.M(int, int)' (but other parameters do)
                 //     partial void M(int x, int y) { }
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int, int)"),
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "P.M(int, int)").WithLocation(23, 31),
                 // (17,31): warning CS1573: Parameter 'r' has no matching param tag in the XML comment for 'P.M(int, int)' (but other parameters do)
                 //     partial void M(int q, int r);
-                Diagnostic(ErrorCode.WRN_MissingParamTag, "r").WithArguments("r", "P.M(int, int)"));
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "r").WithArguments("r", "P.M(int, int)").WithLocation(17, 31));
         }
 
         [Fact]
@@ -3799,34 +3809,36 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (4,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'q', but there is no parameter by that name
-                //     /// <paramref name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.M(int)"),
-                // (5,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'value', but there is no parameter by that name
-                //     /// <paramref name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.M(int)"),
-                // (8,25): warning CS1734: XML comment on 'C.P' has a paramref tag for 'x', but there is no parameter by that name
-                //     /// <paramref name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "C.P"),
-                // (11,25): warning CS1734: XML comment on 'C.this[int, int]' has a paramref tag for 'q', but there is no parameter by that name
-                //     /// <paramref name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.this[int, int]"),
-                // (14,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'q', but there is no parameter by that name
-                //     /// <paramref name="q"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.E"),
-                // (15,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'value', but there is no parameter by that name
-                //     /// <paramref name="value"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.E"),
-                // (27,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'y', but there is no parameter by that name
-                //     /// <paramref name="y"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "y").WithArguments("y", "P.M(int)"),
-                // (21,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'x', but there is no parameter by that name
-                //     /// <paramref name="x"/>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "P.M(int)"),
-
+                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have signature differences.
+                //     partial void M(int x) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int y)", "void P.M(int x)").WithLocation(28, 18),
                 // (16,25): warning CS0067: The event 'C.E' is never used
                 //     event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(16, 25),
+                // (4,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'q', but there is no parameter by that name
+                //     /// <paramref name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.M(int)").WithLocation(4, 25),
+                // (5,25): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'value', but there is no parameter by that name
+                //     /// <paramref name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.M(int)").WithLocation(5, 25),
+                // (8,25): warning CS1734: XML comment on 'C.P' has a paramref tag for 'x', but there is no parameter by that name
+                //     /// <paramref name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "C.P").WithLocation(8, 25),
+                // (11,25): warning CS1734: XML comment on 'C.this[int, int]' has a paramref tag for 'q', but there is no parameter by that name
+                //     /// <paramref name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.this[int, int]").WithLocation(11, 25),
+                // (14,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'q', but there is no parameter by that name
+                //     /// <paramref name="q"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "q").WithArguments("q", "C.E").WithLocation(14, 25),
+                // (15,25): warning CS1734: XML comment on 'C.E' has a paramref tag for 'value', but there is no parameter by that name
+                //     /// <paramref name="value"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "C.E").WithLocation(15, 25),
+                // (27,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'y', but there is no parameter by that name
+                //     /// <paramref name="y"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "y").WithArguments("y", "P.M(int)").WithLocation(27, 25),
+                // (21,25): warning CS1734: XML comment on 'P.M(int)' has a paramref tag for 'x', but there is no parameter by that name
+                //     /// <paramref name="x"/>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "x").WithArguments("x", "P.M(int)").WithLocation(21, 25));
         }
 
         [Fact]
@@ -4020,6 +4032,9 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have signature differences.
+                //     partial void M1<V>() { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,22): warning CS1711: XML comment has a typeparam tag for 'T', but there is no type parameter by that name
                 // /// <typeparam name="T"/> -- warning
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, "T").WithArguments("T"),
@@ -4153,6 +4168,9 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have signature differences.
+                //     partial void M1<V>() { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,25): warning CS1735: XML comment on 'C' has a typeparamref tag for 'T', but there is no type parameter by that name
                 // /// <typeparamref name="T"/> -- warning
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, "T").WithArguments("T", "C"),
@@ -4734,13 +4752,13 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var overridingMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            var overridingMethod = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M");
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -4796,13 +4814,13 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var overridingMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            var overridingMethod = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M");
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -4823,13 +4841,13 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var overridingMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            var overridingMethod = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M");
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -4884,13 +4902,13 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var overridingMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            var overridingMethod = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M");
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -4920,7 +4938,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularWithDocumentationComments);
             compilation.VerifyDiagnostics(
                 // (15,16): warning CS1574: XML comment has cref attribute 'Derived.M2' that could not be resolved
                 // /// <see cref="Derived.M2" />
@@ -4933,8 +4951,8 @@ class Derived : Base
             var crefs = GetCrefSyntaxes(compilation).ToArray();
 
             var global = compilation.GlobalNamespace;
-            var derivedM1 = global.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M1");
-            var baseM2 = global.GetMember<NamedTypeSymbol>("Base").GetMember<MethodSymbol>("M2");
+            var derivedM1 = global.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M1");
+            var baseM2 = global.GetMember<INamedTypeSymbol>("Base").GetMember<IMethodSymbol>("M2");
 
             Assert.Equal(derivedM1, model.GetSymbolInfo(crefs[0]).Symbol);
             Assert.Null(model.GetSymbolInfo(crefs[1]).Symbol);
@@ -4955,7 +4973,7 @@ class G<T> { }
 class Other { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, new[] { SystemCoreRef });
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source, new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (6,22): warning CS1574: XML comment has cref attribute 'G()' that could not be resolved
                 // /// Error <see cref="G()"/>.
@@ -4964,7 +4982,7 @@ class Other { }
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();
 
-            var constructor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("G").InstanceConstructors.Single();
+            var constructor = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("G").InstanceConstructors.Single();
 
             Assert.Equal(constructor, model.GetSymbolInfo(crefs[0]).Symbol.OriginalDefinition);
             Assert.Equal(constructor, model.GetSymbolInfo(crefs[1]).Symbol.OriginalDefinition);
@@ -5027,7 +5045,7 @@ class Outer<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, new[] { SystemCoreRef });
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source, new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1574: XML comment has cref attribute 'Outer{T}.Outer' that could not be resolved
                 // /// <see cref="Outer{T}.Outer"/>
@@ -5036,11 +5054,11 @@ class Outer<T>
                 //     /// <see cref="Outer{T}.Outer"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer{T}.Outer").WithArguments("Outer"));
 
-            var outerCtor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer").InstanceConstructors.Single();
+            var outerCtor = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Outer").InstanceConstructors.Single();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation);
-            var expectedSymbols = new Symbol[] { null, null, outerCtor, outerCtor };
+            var expectedSymbols = new ISymbol[] { null, null, outerCtor, outerCtor };
             var actualSymbols = GetCrefOriginalDefinitions(model, crefs);
             AssertEx.Equal(expectedSymbols, actualSymbols);
         }
@@ -5075,7 +5093,7 @@ class SomeOtherClass
 }
 ";
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             compilation.VerifyDiagnostics(
                 // (15,34): warning CS1574: XML comment has cref attribute 'GenericClass' that could not be resolved
                 // /// You may also like <see cref="GenericClass"/>. <see cref="GenericClass{T}"/> provides you some interesting methods.
@@ -5093,9 +5111,9 @@ class SomeOtherClass
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();
 
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("GenericClass");
-            var nonGenericMethod = type.GetMember<MethodSymbol>("NormalSub");
-            var genericMethod = type.GetMember<MethodSymbol>("GenericSub");
+            var type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("GenericClass");
+            var nonGenericMethod = type.GetMember<IMethodSymbol>("NormalSub");
+            var genericMethod = type.GetMember<IMethodSymbol>("GenericSub");
 
             Assert.Null(model.GetSymbolInfo(crefs[0]).Symbol);
             Assert.Null(model.GetSymbolInfo(crefs[3]).Symbol);
@@ -5181,10 +5199,10 @@ class C<T>
 ";
 
             SyntaxTree tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
 
             //NOTE: deterministic, since GetMembers respects syntax order.
             var m1a = type.GetMembers("M1").First();
@@ -5346,7 +5364,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (2,20): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'cref' attribute'
                 // /// <see cref="int" cref="long"/>
@@ -5392,13 +5410,13 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
         }
 
         [WorkItem(531162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531162")]
@@ -5418,13 +5436,13 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("Goo");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("Goo");
             Assert.Equal(expectedSymbol, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -5440,13 +5458,13 @@ class Outer<T> where T: System.IFormattable
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer").GetMember<NamedTypeSymbol>("Inner");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Outer").GetMember<INamedTypeSymbol>("Inner");
             Assert.Equal(expectedSymbol, model.GetSymbolInfo(cref).Symbol.OriginalDefinition);
         }
 
@@ -5468,7 +5486,7 @@ class C<T>
 
             Func<Symbol> lookupSymbol = () =>
             {
-                var factory = new BinderFactory(compilation, tree);
+                var factory = new BinderFactory(compilation, tree, ignoreAccessibility: false);
                 var binder = factory.GetBinder(cref);
                 var lookupResult = LookupResult.GetInstance();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -5512,14 +5530,14 @@ class C<T>
             var cref = GetCrefSyntaxes(compilation).Single();
             var model = compilation.GetSemanticModel(tree);
 
-            NamedTypeSymbol referencedType = (NamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            var referencedType = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
             Assert.NotNull(referencedType);
 
-            var crefTypeParam = referencedType.TypeArguments().Single();
-            Assert.IsType<CrefTypeParameterSymbol>(crefTypeParam);
+            var crefTypeParam = referencedType.TypeArguments.Single();
+            Assert.IsType<CrefTypeParameterSymbol>(crefTypeParam.GetSymbol());
 
             var sourceTypeParam = referencedType.TypeParameters.Single();
-            Assert.IsType<SourceTypeParameterSymbol>(sourceTypeParam);
+            Assert.IsType<SourceTypeParameterSymbol>(sourceTypeParam.GetSymbol());
 
             Assert.NotEqual(crefTypeParam, sourceTypeParam);
             Assert.NotEqual(sourceTypeParam, crefTypeParam);
@@ -5539,7 +5557,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (6,9): warning CS1587: XML comment is not placed on a valid language element
                 //         /// <see cref="C"/>
@@ -5549,7 +5567,7 @@ class C
             var cref = GetCrefSyntaxes(compilation).Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
             var actualSymbol = model.GetSymbolInfo(cref).Symbol;
             Assert.Equal(expectedSymbol, actualSymbol);
         }
@@ -5569,7 +5587,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (6,9): warning CS1587: XML comment is not placed on a valid language element
                 //         /// <see cref="C"/>
@@ -5579,7 +5597,7 @@ class C
             var cref = GetCrefSyntaxes(compilation).Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
             var actualSymbol = model.GetSymbolInfo(cref).Symbol;
             Assert.Equal(expectedSymbol, actualSymbol);
         }
@@ -5670,7 +5688,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetSymbolInfo(cref).Symbol;
             Assert.NotNull(symbol);
-            Assert.Equal(MethodKind.UserDefinedOperator, ((MethodSymbol)symbol).MethodKind);
+            Assert.Equal(MethodKind.UserDefinedOperator, ((IMethodSymbol)symbol).MethodKind);
             Assert.Equal(WellKnownMemberNames.AdditionOperatorName, symbol.Name);
             Assert.Equal(SpecialType.System_Decimal, symbol.ContainingType.SpecialType);
         }
@@ -5707,7 +5725,7 @@ class C
 
             var parameterTypeContainingType = parameterType.DescendantNodes().OfType<SimpleNameSyntax>().First();
             var containingTypeInfo = model.GetSymbolInfo(parameterTypeContainingType);
-            Assert.IsType<CrefTypeParameterSymbol>(containingTypeInfo.Symbol);
+            Assert.IsType<CrefTypeParameterSymbol>(containingTypeInfo.Symbol.GetSymbol());
         }
 
         [WorkItem(551354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551354")]
@@ -5757,7 +5775,7 @@ class C
                 }
                 else
                 {
-                    Assert.IsType<CrefTypeParameterSymbol>(typeSymbol);
+                    Assert.IsType<CrefTypeParameterSymbol>(typeSymbol.GetSymbol());
                 }
             }
         }
@@ -5795,11 +5813,11 @@ using System;
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var delegateConstructor = compilation.GlobalNamespace.
-                GetMember<NamespaceSymbol>("System").GetMembers("Action").OfType<NamedTypeSymbol>().
+                GetMember<INamespaceSymbol>("System").GetMembers("Action").OfType<INamedTypeSymbol>().
                 Single(t => t.Arity == 1).
                 InstanceConstructors.Single();
 
@@ -5847,10 +5865,10 @@ class GetEnumerator
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("GetEnumerator");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("GetEnumerator");
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -5870,11 +5888,11 @@ class GetEnumerator
 enum E { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var expectedSymbol = compilation.GetSpecialType(SpecialType.System_String).
-                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.GetParameterType(0).IsArray());
+                InstanceConstructors.Single(ctor => ctor.Parameters.Length == 1 && ctor.GetParameterType(0).Kind == SymbolKind.ArrayType);
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -5920,10 +5938,10 @@ enum E { }
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single();
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -5972,10 +5990,10 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
-            var expectedSymbolOriginalDefinition = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+            var expectedSymbolOriginalDefinition = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single();
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -6003,9 +6021,9 @@ class C<U> { }
 
             var model = compilation.GetSemanticModel(typeParameterSyntax.SyntaxTree);
             var typeParameterSymbol = model.GetSymbolInfo(typeParameterSyntax).Symbol;
-            Assert.IsType<CrefTypeParameterSymbol>(typeParameterSymbol);
+            Assert.IsType<CrefTypeParameterSymbol>(((CSharp.Symbols.PublicModel.Symbol)typeParameterSymbol).UnderlyingSymbol);
 
-            var members = model.LookupSymbols(typeParameterSyntax.SpanStart, (TypeSymbol)typeParameterSymbol);
+            var members = model.LookupSymbols(typeParameterSyntax.SpanStart, (ITypeSymbol)typeParameterSymbol);
             Assert.Equal(0, members.Length);
         }
 
@@ -6029,7 +6047,7 @@ enum E { }
             var methodSymbol = model.GetSymbolInfo(methodNameSyntax).Symbol;
             Assert.Equal(SymbolKind.Method, methodSymbol.Kind);
 
-            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((MethodSymbol)methodSymbol).ReturnType);
+            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((IMethodSymbol)methodSymbol).ReturnType);
             Assert.Equal(0, members.Length);
         }
 
@@ -6053,7 +6071,7 @@ class X
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -6062,11 +6080,11 @@ class X
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var returnTypeSyntax = ((ConversionOperatorMemberCrefSyntax)(((QualifiedCrefSyntax)crefSyntax).Member)).Type;
-            var expectedReturnTypeSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("X").GetMember<NamedTypeSymbol>("Y");
+            var expectedReturnTypeSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("X").GetMember<INamedTypeSymbol>("Y");
             var actualReturnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol;
             Assert.Equal(expectedReturnTypeSymbol, actualReturnTypeSymbol);
 
-            var expectedCrefSymbol = expectedReturnTypeSymbol.GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
+            var expectedCrefSymbol = expectedReturnTypeSymbol.GetMember<IMethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
             var actualCrefSymbol = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedCrefSymbol, actualCrefSymbol);
         }
@@ -6088,23 +6106,23 @@ class A<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var classB = classA.GetMember<NamedTypeSymbol>("B");
+            var classA = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
+            var classB = classA.GetMember<INamedTypeSymbol>("B");
 
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var parameterTypeSyntax = ((NameMemberCrefSyntax)crefSyntax).Parameters.Parameters[0].Type;
-            var expectedParameterTypeSymbol = classA.Construct(classB).GetMember<NamedTypeSymbol>("B");
+            var expectedParameterTypeSymbol = classA.Construct(classB).GetMember<INamedTypeSymbol>("B");
             var actualParameterTypeSymbol = model.GetSymbolInfo(parameterTypeSyntax).Symbol;
             Assert.Equal(expectedParameterTypeSymbol, actualParameterTypeSymbol);
 
-            var expectedCrefSymbol = classB.GetMember<MethodSymbol>("Goo");
+            var expectedCrefSymbol = classB.GetMember<IMethodSymbol>("Goo");
             var actualCrefSymbol = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedCrefSymbol, actualCrefSymbol);
         }
@@ -6125,7 +6143,7 @@ class Outer<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (6,31): warning CS8018: Within cref attributes, nested types of generic types should be qualified.
                 //     /// <see cref='Outer{Q}.M(Inner)'/>
@@ -6137,8 +6155,8 @@ class Outer<T>
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var outer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
-            var inner = outer.GetMember<NamedTypeSymbol>("Inner");
+            var outer = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Outer");
+            var inner = outer.GetMember<INamedTypeSymbol>("Inner");
 
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
@@ -6159,7 +6177,7 @@ using A = System.Int32;
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -6189,7 +6207,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -6258,7 +6276,7 @@ class P
         [WorkItem(760850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760850")]
         public void TestGetSpeculativeSymbolInfoInsideCrefParameterOrReturnType()
         {
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(@"
 class Base
 {
     class Inherited { }
@@ -6277,7 +6295,7 @@ class Outer
     }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var cref = (ConversionOperatorMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
             var crefReturnType = cref.Type;
             var crefParameterType = cref.Parameters.Parameters.Single().Type;
@@ -6287,8 +6305,8 @@ class Outer
             var crefParameterTypePosition = crefParameterType.SpanStart;
             var nonCrefPosition = tree.GetRoot().DescendantTrivia().Single(t => t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)).SpanStart;
 
-            var accessor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer").GetMember<NamedTypeSymbol>("Inner").GetMember<PropertySymbol>("P").GetMethod;
-            var inheritedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base").GetMember<NamedTypeSymbol>("Inherited");
+            var accessor = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Outer").GetMember<INamedTypeSymbol>("Inner").GetMember<IPropertySymbol>("P").GetMethod;
+            var inheritedType = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Base").GetMember<INamedTypeSymbol>("Inherited");
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -6368,7 +6386,7 @@ class C
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var comp = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
 
             // Not expected to bind, since we don't consider inherited members.
             comp.VerifyDiagnostics(
@@ -6388,7 +6406,7 @@ class C
             Assert.Equal(0, info.CandidateSymbols.Length);
 
             // No lookup results.
-            var derivedInterface = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("IDerived");
+            var derivedInterface = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("IDerived");
             Assert.Equal(0, model.LookupSymbols(syntax.SpanStart, derivedInterface).Length);
         }
 
@@ -6406,7 +6424,7 @@ class C
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var comp = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
 
             // Not expected to bind, since we don't consider inherited members.
             comp.VerifyDiagnostics(
@@ -6426,7 +6444,7 @@ class C
             Assert.Equal(0, info.CandidateSymbols.Length);
 
             // No lookup results.
-            var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("I");
+            var symbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("I");
             Assert.Equal(0, model.LookupSymbols(syntax.SpanStart, symbol).Length);
         }
 
@@ -6445,15 +6463,15 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();
             Assert.Equal(2, crefs.Length);
 
-            var outer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var inner = outer.GetMember<NamedTypeSymbol>("Inner");
+            var outer = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
+            var inner = outer.GetMember<INamedTypeSymbol>("Inner");
 
             Assert.Equal(outer, model.GetSymbolInfo(crefs[0]).Symbol.OriginalDefinition);
             Assert.Equal(inner, model.GetSymbolInfo(crefs[1]).Symbol.OriginalDefinition);
@@ -6471,7 +6489,7 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (3,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'C{}'
                 // /// <see cref="C{}" />
@@ -6490,9 +6508,9 @@ class C<T>
             var actualSymbol0 = model.GetSymbolInfo(crefs[0]).Symbol;
             Assert.Null(actualSymbol0);
 
-            var actualSymbol1 = (Symbol)model.GetSymbolInfo(crefs[1]).Symbol;
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), actualSymbol1.OriginalDefinition);
-            Assert.Equal(TypeKind.Error, actualSymbol1.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single().TypeKind);
+            var actualSymbol1 = model.GetSymbolInfo(crefs[1]).Symbol;
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), actualSymbol1.OriginalDefinition);
+            Assert.Equal(TypeKind.Error, ((INamedTypeSymbol)actualSymbol1).TypeArguments.Single().TypeKind);
         }
 
         [Fact]
@@ -6504,7 +6522,7 @@ class C<T>
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'C[]'
                 // /// <see cref="C[]" />
@@ -6514,7 +6532,7 @@ class C { }
             var cref = GetCrefSyntaxes(compilation).Single();
 
             // Once the square brackets are skipped, binding works just fine.
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
         }
 
         [Fact]
@@ -6526,7 +6544,7 @@ class C { }
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'C?'
                 // /// <see cref="C?" />
@@ -6536,7 +6554,7 @@ class C { }
             var cref = GetCrefSyntaxes(compilation).Single();
 
             // Once the question mark is skipped, binding works just fine.
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
         }
 
         [Fact]
@@ -6549,7 +6567,7 @@ class C { }
 class Cat { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'Cat:-)'
                 // /// <see cref="Cat:-)" />
@@ -6559,10 +6577,12 @@ class Cat { }
             var cref = GetCrefSyntaxes(compilation).Single();
 
             // Once the smiley is skipped, binding works just fine.
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Cat"), model.GetSymbolInfo(cref).Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Cat"), model.GetSymbolInfo(cref).Symbol);
         }
 
         #endregion Dev10 bugs from KevinH
+
+        private static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
 
         private static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
         {
@@ -6595,9 +6615,9 @@ class Cat { }
             return references;
         }
 
-        private static Symbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
+        private static ISymbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
         {
-            return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : (Symbol)symbol.OriginalDefinition).ToArray();
+            return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : symbol.OriginalDefinition).ToArray();
         }
 
         [Fact]
@@ -6626,7 +6646,7 @@ class Test
 
             var name = ((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single();
             Assert.Equal("U", name.ToString());
-            var typeParameter = (TypeParameterSymbol)model.GetSymbolInfo(name).Symbol;
+            var typeParameter = (ITypeParameterSymbol)model.GetSymbolInfo(name).Symbol;
             Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"));
         }
 
@@ -6657,7 +6677,7 @@ class Test
             var parameter = cref.Parameters.Parameters.Single();
             Assert.Equal(SyntaxKind.InKeyword, parameter.RefKindKeyword.Kind());
 
-            var parameterSymbol = ((MethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
+            var parameterSymbol = ((IMethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
             Assert.Equal(RefKind.In, parameterSymbol.RefKind);
         }
 
@@ -6707,6 +6727,122 @@ class C
             var cref = xml.Descendants("see").Single().Attribute("cref").Value;
 
             Assert.Equal("F:System.ValueTuple`2.Item1", cref);
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecord(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""RelativePathBase""/>.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record CacheContext(string RelativePathBase)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25),
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecordStruct(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""RelativePathBase""/>.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record struct CacheContext(string RelativePathBase)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp10), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25),
+                // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecord_WithoutPrimaryCtor(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record CacheContext" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecordStruct_WithoutPrimaryCtor(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record struct CacheContext" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp10), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        public void Record_TypeAndPropertyWithSameNameInScope(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// </summary>
+record CacheContext(string String)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
+
+            var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var crefSyntaxes = GetCrefSyntaxes(comp);
+            var symbol = model.GetSymbolInfo(crefSyntaxes.Single()).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol.Kind);
         }
     }
 }

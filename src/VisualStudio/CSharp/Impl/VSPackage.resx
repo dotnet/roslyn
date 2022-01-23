@@ -142,7 +142,9 @@
     <comment>"C#" node help text in profile Import/Export.</comment>
   </data>
   <data name="306" xml:space="preserve">
-    <value>Show diagnostics for closed files;
+    <value>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -187,7 +189,10 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</value>
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</value>
     <comment>C# Advanced options page keywords</comment>
   </data>
   <data name="307" xml:space="preserve">
@@ -272,8 +277,10 @@ Insert space before and after binary operators;</value>
     <value>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -282,7 +289,8 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</value>
+Show name suggestions;
+Show items from unimported namespaces (experimental);</value>
     <comment>C# IntelliSense options page keywords</comment>
   </data>
   <data name="107" xml:space="preserve">
@@ -307,10 +315,10 @@ Show name suggestions;</value>
     <value>Spacing</value>
   </data>
   <data name="2358" xml:space="preserve">
-    <value>CSharp Editor</value>
+    <value>C# Editor</value>
   </data>
   <data name="2359" xml:space="preserve">
-    <value>CSharp Editor with Encoding</value>
+    <value>C# Editor with Encoding</value>
   </data>
   <data name="113" xml:space="preserve">
     <value>Microsoft Visual C#</value>

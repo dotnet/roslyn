@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -44,9 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.VariableDeclarator:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.SwitchExpressionArm:
+                case SyntaxKind.GotoCaseStatement:
                     break;
                 case SyntaxKind.ArgumentList:
-                    Debug.Assert(node.Parent is ConstructorInitializerSyntax);
+                    Debug.Assert(node.Parent is ConstructorInitializerSyntax || node.Parent is PrimaryConstructorBaseTypeSyntax);
+                    break;
+                case SyntaxKind.RecordDeclaration:
+                    Debug.Assert(((RecordDeclarationSyntax)node).ParameterList is object);
                     break;
                 default:
                     Debug.Assert(node is ExpressionSyntax);
@@ -95,6 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitNodeToBind(node.Initializer);
+        }
+
+        public override void VisitGotoStatement(GotoStatementSyntax node)
+        {
+            if (node.Kind() == SyntaxKind.GotoCaseStatement)
+                Visit(node.Expression);
         }
 
         private void VisitNodeToBind(CSharpSyntaxNode node)
@@ -237,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
-                    TFieldOrLocalSymbol variable = MakePatternVariable(null, (SingleVariableDesignationSyntax)node, _nodeToBind);
+                    TFieldOrLocalSymbol variable = MakePatternVariable(type: null, (SingleVariableDesignationSyntax)node, _nodeToBind);
                     if ((object)variable != null)
                     {
                         _variablesBuilder.Add(variable);
@@ -259,7 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitRecursivePattern(RecursivePatternSyntax node)
         {
-            TFieldOrLocalSymbol variable = MakePatternVariable(node, _nodeToBind);
+            Debug.Assert(node.Designation is null or SingleVariableDesignationSyntax or DiscardDesignationSyntax);
+            TFieldOrLocalSymbol variable = MakePatternVariable(node.Type, node.Designation as SingleVariableDesignationSyntax, _nodeToBind);
             if ((object)variable != null)
             {
                 _variablesBuilder.Add(variable);
@@ -268,8 +283,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitRecursivePattern(node);
         }
 
+        public override void VisitListPattern(ListPatternSyntax node)
+        {
+            Debug.Assert(node.Designation is null or SingleVariableDesignationSyntax or DiscardDesignationSyntax);
+            TFieldOrLocalSymbol variable = MakePatternVariable(type: null, node.Designation as SingleVariableDesignationSyntax, _nodeToBind);
+            if ((object)variable != null)
+            {
+                _variablesBuilder.Add(variable);
+            }
+
+            base.VisitListPattern(node);
+        }
+
         protected abstract TFieldOrLocalSymbol MakePatternVariable(TypeSyntax type, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind);
-        protected abstract TFieldOrLocalSymbol MakePatternVariable(RecursivePatternSyntax node, SyntaxNode nodeToBind);
 
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) { }
@@ -378,6 +404,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Initializer != null)
             {
                 VisitNodeToBind(node.Initializer);
+            }
+        }
+
+        public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
+        {
+            Debug.Assert(node.ParameterList is object);
+            Debug.Assert(node.IsKind(SyntaxKind.RecordDeclaration));
+
+            if (node.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            {
+                VisitNodeToBind(baseWithArguments);
             }
         }
 
@@ -511,20 +548,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalSymbol MakePatternVariable(TypeSyntax type, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind)
         {
-            return MakePatternVariable(type, designation, nodeToBind);
-        }
-
-        protected override LocalSymbol MakePatternVariable(RecursivePatternSyntax node, SyntaxNode nodeToBind)
-        {
-            return MakePatternVariable(node.Type, node.Designation, nodeToBind);
-        }
-
-        private LocalSymbol MakePatternVariable(TypeSyntax type, VariableDesignationSyntax variableDesignation, SyntaxNode nodeToBind)
-        {
-            var designation = variableDesignation as SingleVariableDesignationSyntax;
             if (designation == null)
             {
-                Debug.Assert(variableDesignation == null || variableDesignation.Kind() == SyntaxKind.DiscardDesignation);
                 return null;
             }
 
@@ -640,11 +665,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _containingType, _modifiers, type,
                 designation.Identifier.ValueText, designation, designation.GetLocation(),
                 _containingFieldOpt, nodeToBind);
-        }
-
-        protected override Symbol MakePatternVariable(RecursivePatternSyntax node, SyntaxNode nodeToBind)
-        {
-            return MakePatternVariable(node.Type, node.Designation as SingleVariableDesignationSyntax, nodeToBind);
         }
 
         protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, BaseArgumentListSyntax argumentListSyntaxOpt, SyntaxNode nodeToBind)

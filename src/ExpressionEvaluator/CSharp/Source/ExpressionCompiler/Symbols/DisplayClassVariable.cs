@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -96,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static FieldSymbol SubstituteField(FieldSymbol field, TypeMap typeMap)
         {
             Debug.Assert(!field.IsStatic);
-            Debug.Assert(!field.IsReadOnly || GeneratedNames.GetKind(field.Name) == GeneratedNameKind.AnonymousTypeField);
+            Debug.Assert(!field.IsReadOnly || GeneratedNameParser.GetKind(field.Name) == GeneratedNameKind.AnonymousTypeField);
             // CONSIDER: Instead of digging fields out of the unsubstituted type and then performing substitution
             // on each one individually, we could dig fields out of the substituted type.
             return new EEDisplayClassFieldSymbol(typeMap.SubstituteNamedType(field.ContainingType), field.Name, typeMap.SubstituteType(field.TypeWithAnnotations));
@@ -153,6 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             public override bool IsVolatile
             {
                 get { return false; }
+            }
+
+            public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+            {
+                get { return FlowAnalysisAnnotations.None; }
             }
 
             public override ImmutableArray<Location> Locations

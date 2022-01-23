@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -539,7 +543,7 @@ partial class Test
 }
 ";
 
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular10).VerifyIL("Test.Main", @"
 {
   // Code size       36 (0x24)
   .maxstack  2
@@ -1737,7 +1741,7 @@ public class Test
 
         private static CSharpCompilation CreateCompilationWithCorlib20(string text)
         {
-            return CreateEmptyCompilation(new string[] { text }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+            return CreateEmptyCompilation(new string[] { text }, new[] { TestMetadata.Net20.mscorlib });
         }
 
         #endregion Pre-4.0 codegen

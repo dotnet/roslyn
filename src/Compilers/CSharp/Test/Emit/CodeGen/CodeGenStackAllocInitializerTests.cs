@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -615,7 +619,7 @@ static unsafe class C
   IL_0002:  conv.u
   IL_0003:  localloc
   IL_0005:  dup
-  IL_0006:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=9 <PrivateImplementationDetails>.50BE2890A92A315C4BE0FA98C600C8939A260312""
+  IL_0006:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=9 <PrivateImplementationDetails>.5248358BD96335E3BA4BB5D100E25AD64FAF4ADA8E613568E449FF981304C025""
   IL_000b:  ldc.i4.s   9
   IL_000d:  cpblk
   IL_000f:  dup
@@ -706,7 +710,7 @@ static unsafe class C
   IL_0001:  conv.u
   IL_0002:  localloc
   IL_0004:  dup
-  IL_0005:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.7037807198C22A7D2B0807371D763779A84FDFCF""
+  IL_0005:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
   IL_000a:  ldc.i4.3
   IL_000b:  cpblk
   IL_000d:  call       ""void C.Print(byte*)""
@@ -813,7 +817,7 @@ namespace System
   IL_0001:  conv.u
   IL_0002:  localloc
   IL_0004:  dup
-  IL_0005:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.7037807198C22A7D2B0807371D763779A84FDFCF""
+  IL_0005:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
   IL_000a:  ldc.i4.3
   IL_000b:  cpblk
   IL_000d:  ldc.i4.3

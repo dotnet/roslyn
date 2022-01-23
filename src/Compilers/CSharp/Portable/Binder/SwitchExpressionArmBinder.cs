@@ -1,15 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -30,14 +26,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._switchExpressionBinder = switchExpressionBinder;
         }
 
-        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
+        internal BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
-            Binder armBinder = this.GetBinder(node);
-            bool hasErrors = _switchExpressionBinder.SwitchGoverningType.IsErrorType();
+            (TypeSymbol inputType, uint valEscape) = _switchExpressionBinder.GetInputTypeAndValEscape();
+            return BindSwitchExpressionArm(node, inputType, valEscape, diagnostics);
+        }
+
+        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, uint switchGoverningValEscape, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(node == _arm);
+            Binder armBinder = this.GetRequiredBinder(node);
+            bool hasErrors = switchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
-            BoundPattern pattern = armBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, _switchExpressionBinder.SwitchGoverningValEscape, hasErrors, diagnostics);
-            BoundExpression whenClause = node.WhenClause != null
+            BoundPattern pattern = armBinder.BindPattern(node.Pattern, switchGoverningType, switchGoverningValEscape, permitDesignations: true, hasErrors, diagnostics);
+            BoundExpression? whenClause = node.WhenClause != null
                 ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
             BoundExpression armResult = armBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);

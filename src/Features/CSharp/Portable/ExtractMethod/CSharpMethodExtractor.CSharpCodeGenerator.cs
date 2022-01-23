@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,17 +13,21 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
@@ -27,65 +35,74 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, ExpressionSyntax, SyntaxNode>
         {
-            private SyntaxToken _methodName;
+            private readonly SyntaxToken _methodName;
+
+            private const string NewMethodPascalCaseStr = "NewMethod";
+            private const string NewMethodCamelCaseStr = "newMethod";
 
             public static Task<GeneratedCode> GenerateAsync(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
+                OptionSet options,
+                bool localFunction,
                 CancellationToken cancellationToken)
             {
-                var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult);
+                var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 return codeGenerator.GenerateAsync(cancellationToken);
             }
 
             private static CSharpCodeGenerator Create(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
-                AnalyzerResult analyzerResult)
+                AnalyzerResult analyzerResult,
+                OptionSet options,
+                bool localFunction)
             {
                 if (ExpressionCodeGenerator.IsExtractMethodOnExpression(selectionResult))
                 {
-                    return new ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult);
+                    return new ExpressionCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 }
 
                 if (SingleStatementCodeGenerator.IsExtractMethodOnSingleStatement(selectionResult))
                 {
-                    return new SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult);
+                    return new SingleStatementCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 }
 
                 if (MultipleStatementsCodeGenerator.IsExtractMethodOnMultipleStatements(selectionResult))
                 {
-                    return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult);
+                    return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 }
 
-                return Contract.FailWithReturn<CSharpCodeGenerator>("Unknown selection");
+                throw ExceptionUtilities.UnexpectedValue(selectionResult);
             }
 
             protected CSharpCodeGenerator(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
-                AnalyzerResult analyzerResult) :
-                base(insertionPoint, selectionResult, analyzerResult)
+                AnalyzerResult analyzerResult,
+                OptionSet options,
+                bool localFunction)
+                : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
             {
-                Contract.ThrowIfFalse(this.SemanticDocument == selectionResult.SemanticDocument);
+                Contract.ThrowIfFalse(SemanticDocument == selectionResult.SemanticDocument);
 
                 var nameToken = CreateMethodName();
-                _methodName = nameToken.WithAdditionalAnnotations(this.MethodNameAnnotation);
+                _methodName = nameToken.WithAdditionalAnnotations(MethodNameAnnotation);
             }
 
             private CSharpSelectionResult CSharpSelectionResult
             {
-                get { return (CSharpSelectionResult)this.SelectionResult; }
+                get { return (CSharpSelectionResult)SelectionResult; }
             }
 
             protected override SyntaxNode GetPreviousMember(SemanticDocument document)
             {
-                var node = this.InsertionPoint.With(document).GetContext();
+                var node = InsertionPoint.With(document).GetContext();
                 return (node.Parent is GlobalStatementSyntax) ? node.Parent : node;
             }
 
-            protected override OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken)
+            protected override OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken)
             {
                 var result = CreateMethodBody(cancellationToken);
 
@@ -93,28 +110,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     attributes: ImmutableArray<AttributeData>.Empty,
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
-                    returnType: this.AnalyzerResult.ReturnType,
+                    returnType: AnalyzerResult.ReturnType,
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
-                    typeParameters: CreateMethodTypeParameters(cancellationToken),
+                    typeParameters: CreateMethodTypeParameters(),
                     parameters: CreateMethodParameters(),
-                    statements: result.Data);
+                    statements: result.Data,
+                    methodKind: localFunction ? MethodKind.LocalFunction : MethodKind.Ordinary);
 
                 return result.With(
-                    this.MethodDefinitionAnnotation.AddAnnotationToSymbol(
+                    MethodDefinitionAnnotation.AddAnnotationToSymbol(
                         Formatter.Annotation.AddAnnotationToSymbol(methodSymbol)));
             }
 
             protected override async Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken)
             {
-                var container = this.GetOutermostCallSiteContainerToProcess(cancellationToken);
+                var container = GetOutermostCallSiteContainerToProcess(cancellationToken);
                 var variableMapToRemove = CreateVariableDeclarationToRemoveMap(
-                    this.AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken);
+                    AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken);
                 var firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite();
                 var lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite();
 
-                Contract.ThrowIfFalse(firstStatementToRemove.Parent == lastStatementToRemove.Parent);
+                Contract.ThrowIfFalse(firstStatementToRemove.Parent == lastStatementToRemove.Parent
+                    || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstStatementToRemove, lastStatementToRemove));
 
                 var statementsToInsert = await CreateStatementsOrInitializerToInsertAtCallSiteAsync(cancellationToken).ConfigureAwait(false);
 
@@ -129,9 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return container.CopyAnnotationsTo(callSiteGenerator.Generate()).WithAdditionalAnnotations(Formatter.Annotation);
             }
 
-            private async Task<IEnumerable<SyntaxNode>> CreateStatementsOrInitializerToInsertAtCallSiteAsync(CancellationToken cancellationToken)
+            private async Task<ImmutableArray<SyntaxNode>> CreateStatementsOrInitializerToInsertAtCallSiteAsync(CancellationToken cancellationToken)
             {
-                var selectedNode = this.GetFirstStatementOrInitializerSelectedAtCallSite();
+                var selectedNode = GetFirstStatementOrInitializerSelectedAtCallSite();
 
                 // field initializer, constructor initializer, expression bodied member case
                 if (selectedNode is ConstructorInitializerSyntax ||
@@ -139,45 +158,47 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     IsExpressionBodiedMember(selectedNode) ||
                     IsExpressionBodiedAccessor(selectedNode))
                 {
-                    var statement = await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(this.CallSiteAnnotation, cancellationToken).ConfigureAwait(false);
-                    return SpecializedCollections.SingletonEnumerable(statement);
+                    var statement = await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false);
+                    return ImmutableArray.Create(statement);
                 }
 
                 // regular case
-                var semanticModel = this.SemanticDocument.SemanticModel;
-                var context = this.InsertionPoint.GetContext();
+                var semanticModel = SemanticDocument.SemanticModel;
+                var context = InsertionPoint.GetContext();
                 var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
-                var statements = SpecializedCollections.EmptyEnumerable<StatementSyntax>();
 
-                statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(statements, cancellationToken);
+                var statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken);
                 statements = postProcessor.MergeDeclarationStatements(statements);
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
-                statements = AddReturnIfUnreachable(statements, cancellationToken);
+                statements = AddReturnIfUnreachable(statements);
 
-                return statements;
+                return statements.CastArray<SyntaxNode>();
             }
 
-            private bool IsExpressionBodiedMember(SyntaxNode node)
+            protected override bool ShouldLocalFunctionCaptureParameter(SyntaxNode node)
+            => node.SyntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp8;
+
+            private static bool IsExpressionBodiedMember(SyntaxNode node)
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
 
-            private bool IsExpressionBodiedAccessor(SyntaxNode node)
+            private static bool IsExpressionBodiedAccessor(SyntaxNode node)
                 => node is AccessorDeclarationSyntax accessor && accessor.ExpressionBody != null;
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {
-                return this.AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0
-                    ? (SimpleNameSyntax)SyntaxFactory.IdentifierName(_methodName)
+                return AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0
+                    ? SyntaxFactory.IdentifierName(_methodName)
                     : SyntaxFactory.GenericName(_methodName, SyntaxFactory.TypeArgumentList(CreateMethodCallTypeVariables()));
             }
 
             private SeparatedSyntaxList<TypeSyntax> CreateMethodCallTypeVariables()
             {
-                Contract.ThrowIfTrue(this.AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0);
+                Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0);
 
                 // propagate any type variable used in extracted code
                 var typeVariables = new List<TypeSyntax>();
-                foreach (var methodTypeParameter in this.AnalyzerResult.MethodTypeParametersInDeclaration)
+                foreach (var methodTypeParameter in AnalyzerResult.MethodTypeParametersInDeclaration)
                 {
                     typeVariables.Add(SyntaxFactory.ParseTypeName(methodTypeParameter.Name));
                 }
@@ -193,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return null;
                 }
 
-                var idToken = outmostVariable.GetIdentifierTokenAtDeclaration(this.SemanticDocument);
+                var idToken = outmostVariable.GetIdentifierTokenAtDeclaration(SemanticDocument);
                 var declStatement = idToken.GetAncestor<LocalDeclarationStatementSyntax>();
                 Contract.ThrowIfNull(declStatement);
                 Contract.ThrowIfFalse(declStatement.Parent.IsStatementContainerNode());
@@ -203,13 +224,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private DeclarationModifiers CreateMethodModifiers()
             {
-                var isUnsafe = this.CSharpSelectionResult.ShouldPutUnsafeModifier();
-                var isAsync = this.CSharpSelectionResult.ShouldPutAsyncModifier();
+                var isUnsafe = CSharpSelectionResult.ShouldPutUnsafeModifier();
+                var isAsync = CSharpSelectionResult.ShouldPutAsyncModifier();
+                var isStatic = !AnalyzerResult.UseInstanceMember;
+                var isReadOnly = AnalyzerResult.ShouldBeReadOnly;
+
+                // Static local functions are only supported in C# 8.0 and later
+                var languageVersion = SemanticDocument.SyntaxTree.Options.LanguageVersion();
+
+                if (LocalFunction && (!Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value || languageVersion < LanguageVersion.CSharp8))
+                {
+                    isStatic = false;
+                }
 
                 return new DeclarationModifiers(
                     isUnsafe: isUnsafe,
                     isAsync: isAsync,
-                    isStatic: !this.AnalyzerResult.UseInstanceMember);
+                    isStatic: isStatic,
+                    isReadOnly: isReadOnly);
             }
 
             private static SyntaxKind GetParameterRefSyntaxKind(ParameterBehavior parameterBehavior)
@@ -236,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private IEnumerable<StatementSyntax> WrapInCheckStatementIfNeeded(IEnumerable<StatementSyntax> statements)
             {
-                var kind = this.CSharpSelectionResult.UnderCheckedStatementContext();
+                var kind = CSharpSelectionResult.UnderCheckedStatementContext();
                 if (kind == SyntaxKind.None)
                 {
                     return statements;
@@ -255,20 +287,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SpecializedCollections.SingletonEnumerable<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements)));
             }
 
-            private IEnumerable<StatementSyntax> CleanupCode(IEnumerable<StatementSyntax> statements)
+            private static ImmutableArray<StatementSyntax> CleanupCode(ImmutableArray<StatementSyntax> statements)
             {
-                var semanticModel = this.SemanticDocument.SemanticModel;
-                var context = this.InsertionPoint.GetContext();
-                var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
-
-                statements = postProcessor.RemoveRedundantBlock(statements);
-                statements = postProcessor.RemoveDeclarationAssignmentPattern(statements);
-                statements = postProcessor.RemoveInitializedDeclarationAndReturnPattern(statements);
+                statements = PostProcessor.RemoveRedundantBlock(statements);
+                statements = PostProcessor.RemoveDeclarationAssignmentPattern(statements);
+                statements = PostProcessor.RemoveInitializedDeclarationAndReturnPattern(statements);
 
                 return statements;
             }
 
-            private OperationStatus CheckActiveStatements(IEnumerable<StatementSyntax> statements)
+            private static OperationStatus CheckActiveStatements(IEnumerable<StatementSyntax> statements)
             {
                 var count = statements.Count();
                 if (count == 0)
@@ -286,10 +314,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var statement in statements)
                 {
-                    var declStatement = statement as LocalDeclarationStatementSyntax;
-                    if (declStatement == null)
+                    if (statement is not LocalDeclarationStatementSyntax declStatement)
                     {
-                        // found one
                         return OperationStatus.Succeeded;
                     }
 
@@ -306,21 +332,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return OperationStatus.NoActiveStatement;
             }
 
-            private IEnumerable<StatementSyntax> MoveDeclarationOutFromMethodDefinition(
-                IEnumerable<StatementSyntax> statements, CancellationToken cancellationToken)
+            private ImmutableArray<StatementSyntax> MoveDeclarationOutFromMethodDefinition(
+                ImmutableArray<StatementSyntax> statements, CancellationToken cancellationToken)
             {
-                var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
-                    this.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken);
+                using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
 
-                statements = statements.Select(s => FixDeclarationExpressionsAndDeclarationPatterns(s, variableToRemoveMap));
+                var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
+                    AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken);
+
+                statements = statements.SelectAsArray(s => FixDeclarationExpressionsAndDeclarationPatterns(s, variableToRemoveMap));
 
                 foreach (var statement in statements)
                 {
-                    var declarationStatement = statement as LocalDeclarationStatementSyntax;
-                    if (declarationStatement == null)
+                    if (statement is not LocalDeclarationStatementSyntax declarationStatement || declarationStatement.Declaration.Variables.FullSpan.IsEmpty)
                     {
                         // if given statement is not decl statement.
-                        yield return statement;
+                        result.Add(statement);
                         continue;
                     }
 
@@ -339,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         {
                             if (variableDeclaration.Initializer != null)
                             {
-                                SyntaxToken identifier = ApplyTriviaFromDeclarationToAssignmentIdentifier(declarationStatement, firstVariableToAttachTrivia, variableDeclaration);
+                                var identifier = ApplyTriviaFromDeclarationToAssignmentIdentifier(declarationStatement, firstVariableToAttachTrivia, variableDeclaration);
 
                                 // move comments with the variable here
                                 expressionStatements.Add(CreateAssignmentExpressionStatement(identifier, variableDeclaration.Initializer.Value));
@@ -377,28 +404,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         // trivia to the statement
 
                         // TODO : think about a way to trivia attached to next token
-                        yield return SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxFactory.TriviaList(triviaList), SyntaxKind.SemicolonToken, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker)));
+                        result.Add(SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxFactory.TriviaList(triviaList), SyntaxKind.SemicolonToken, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))));
                         triviaList.Clear();
                     }
 
                     // return survived var decls
                     if (list.Count > 0)
                     {
-                        yield return SyntaxFactory.LocalDeclarationStatement(
+                        result.Add(SyntaxFactory.LocalDeclarationStatement(
                             declarationStatement.Modifiers,
                             SyntaxFactory.VariableDeclaration(
                                 declarationStatement.Declaration.Type,
                                 SyntaxFactory.SeparatedList(list)),
-                            declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList));
+                            declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList)));
                         triviaList.Clear();
                     }
 
                     // return any expression statement if there was any
-                    foreach (var expressionStatement in expressionStatements)
-                    {
-                        yield return expressionStatement;
-                    }
+                    result.AddRange(expressionStatements);
                 }
+
+                return result.ToImmutable();
             }
 
             /// <summary>
@@ -409,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             /// which needs to be removed, we will annotate it as a conflict, since we don't have
             /// a better refactoring.
             /// </summary>
-            private StatementSyntax FixDeclarationExpressionsAndDeclarationPatterns(StatementSyntax statement,
+            private static StatementSyntax FixDeclarationExpressionsAndDeclarationPatterns(StatementSyntax statement,
                 HashSet<SyntaxAnnotation> variablesToRemove)
             {
                 var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
@@ -456,8 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 // We don't have a good refactoring for this, so we just annotate the conflict
                                 // For instance, when a local declared by a pattern declaration (`3 is int i`) is
                                 // used outside the block we're trying to extract.
-                                var designation = pattern.Designation as SingleVariableDesignationSyntax;
-                                if (designation == null)
+                                if (pattern.Designation is not SingleVariableDesignationSyntax designation)
                                 {
                                     break;
                                 }
@@ -496,37 +521,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return identifier;
             }
 
-            private static SyntaxToken GetIdentifierTokenAndTrivia(SyntaxToken identifier, TypeSyntax typeSyntax)
-            {
-                if (typeSyntax != null)
-                {
-                    var identifierLeadingTrivia = new SyntaxTriviaList();
-                    var identifierTrailingTrivia = new SyntaxTriviaList();
-                    if (typeSyntax.HasLeadingTrivia)
-                    {
-                        identifierLeadingTrivia = identifierLeadingTrivia.AddRange(typeSyntax.GetLeadingTrivia());
-                    }
-
-                    if (typeSyntax.HasTrailingTrivia)
-                    {
-                        identifierLeadingTrivia = identifierLeadingTrivia.AddRange(typeSyntax.GetTrailingTrivia());
-                    }
-
-                    identifierLeadingTrivia = identifierLeadingTrivia.AddRange(identifier.LeadingTrivia);
-                    identifierTrailingTrivia = identifierTrailingTrivia.AddRange(identifier.TrailingTrivia);
-                    identifier = identifier.WithLeadingTrivia(identifierLeadingTrivia)
-                                           .WithTrailingTrivia(identifierTrailingTrivia);
-                }
-
-                return identifier;
-            }
-
-            private IEnumerable<StatementSyntax> SplitOrMoveDeclarationIntoMethodDefinition(
-                IEnumerable<StatementSyntax> statements,
+            private ImmutableArray<StatementSyntax> SplitOrMoveDeclarationIntoMethodDefinition(
+                ImmutableArray<StatementSyntax> statements,
                 CancellationToken cancellationToken)
             {
-                var semanticModel = this.SemanticDocument.SemanticModel;
-                var context = this.InsertionPoint.GetContext();
+                var semanticModel = SemanticDocument.SemanticModel;
+                var context = InsertionPoint.GetContext();
                 var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
 
                 var declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken);
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return declStatements.Concat(statements);
             }
 
-            private ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
+            private static ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
             {
                 return SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override bool LastStatementOrHasReturnStatementInReturnableConstruct()
             {
-                var lastStatement = this.GetLastStatementOrInitializerSelectedAtCallSite();
+                var lastStatement = GetLastStatementOrInitializerSelectedAtCallSite();
                 var container = lastStatement.GetAncestorsOrThis<SyntaxNode>().FirstOrDefault(n => n.IsReturnableConstruct());
                 if (container == null)
                 {
@@ -572,9 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override SyntaxToken CreateIdentifier(string name)
-            {
-                return SyntaxFactory.Identifier(name);
-            }
+                => SyntaxFactory.Identifier(name);
 
             protected override StatementSyntax CreateReturnStatement(string identifierName = null)
             {
@@ -586,39 +584,58 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected override ExpressionSyntax CreateCallSignature()
             {
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
-
                 var arguments = new List<ArgumentSyntax>();
-                foreach (var argument in this.AnalyzerResult.MethodParameters)
-                {
-                    var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
-                    var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
+                var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
 
-                    arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
+                foreach (var argument in AnalyzerResult.MethodParameters)
+                {
+                    if (!isLocalFunction || !argument.CanBeCapturedByLocalFunction)
+                    {
+                        var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
+                        var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
+                        arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
+                    }
                 }
 
                 var invocation = SyntaxFactory.InvocationExpression(methodName,
                                     SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
 
-                var shouldPutAsyncModifier = this.CSharpSelectionResult.ShouldPutAsyncModifier();
+                var shouldPutAsyncModifier = CSharpSelectionResult.ShouldPutAsyncModifier();
                 if (!shouldPutAsyncModifier)
                 {
                     return invocation;
+                }
+
+                if (CSharpSelectionResult.ShouldCallConfigureAwaitFalse())
+                {
+                    if (AnalyzerResult.ReturnType.GetMembers().Any(x => x is IMethodSymbol
+                        {
+                            Name: nameof(Task.ConfigureAwait),
+                            Parameters: { Length: 1 } parameters
+                        } && parameters[0].Type.SpecialType == SpecialType.System_Boolean))
+                    {
+                        invocation = SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                invocation,
+                                SyntaxFactory.IdentifierName(nameof(Task.ConfigureAwait))),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))));
+                    }
                 }
 
                 return SyntaxFactory.AwaitExpression(invocation);
             }
 
             protected override StatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, ExpressionSyntax rvalue)
-            {
-                return SyntaxFactory.ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
-            }
+                => SyntaxFactory.ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
 
             protected override StatementSyntax CreateDeclarationStatement(
                 VariableInfo variable,
                 ExpressionSyntax initialValue,
                 CancellationToken cancellationToken)
             {
-                var type = variable.GetVariableType(this.SemanticDocument);
+                var type = variable.GetVariableType(SemanticDocument);
                 var typeNode = type.GenerateTypeSyntax();
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
@@ -636,9 +653,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // here, we explicitly insert newline at the end of "{" of auto generated method decl so that anchor knows how to find out
                     // indentation of inserted statements (from users code) with user code style preserved
                     var root = newDocument.Root;
-                    var methodDefinition = root.GetAnnotatedNodes<MethodDeclarationSyntax>(this.MethodDefinitionAnnotation).First();
+                    var methodDefinition = root.GetAnnotatedNodes<SyntaxNode>(MethodDefinitionAnnotation).First();
 
-                    var newMethodDefinition = TweakNewLinesInMethod(methodDefinition);
+#pragma warning disable IDE0007 // Use implicit type (False positive: https://github.com/dotnet/roslyn/issues/44507)
+                    SyntaxNode newMethodDefinition = methodDefinition switch
+#pragma warning restore IDE0007 // Use implicit type
+                    {
+                        MethodDeclarationSyntax method => TweakNewLinesInMethod(method),
+                        LocalFunctionStatementSyntax localFunction => TweakNewLinesInMethod(localFunction),
+                        _ => throw new NotSupportedException("SyntaxNode expected to be MethodDeclarationSyntax or LocalFunctionStatementSyntax."),
+                    };
 
                     newDocument = await newDocument.WithSyntaxRootAsync(
                         root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
@@ -647,25 +671,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return await base.CreateGeneratedCodeAsync(status, newDocument, cancellationToken).ConfigureAwait(false);
             }
 
-            private static MethodDeclarationSyntax TweakNewLinesInMethod(MethodDeclarationSyntax methodDefinition)
+            private static MethodDeclarationSyntax TweakNewLinesInMethod(MethodDeclarationSyntax method)
+                => TweakNewLinesInMethod(method, method.Body, method.ExpressionBody);
+
+            private static LocalFunctionStatementSyntax TweakNewLinesInMethod(LocalFunctionStatementSyntax method)
+                => TweakNewLinesInMethod(method, method.Body, method.ExpressionBody);
+
+            private static TDeclarationNode TweakNewLinesInMethod<TDeclarationNode>(TDeclarationNode method, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody) where TDeclarationNode : SyntaxNode
             {
-                if (methodDefinition.Body != null)
+                if (body != null)
                 {
-                    return methodDefinition.ReplaceToken(
-                            methodDefinition.Body.OpenBraceToken,
-                            methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(
+                    return method.ReplaceToken(
+                            body.OpenBraceToken,
+                            body.OpenBraceToken.WithAppendedTrailingTrivia(
                                 SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
                 }
-                else if (methodDefinition.ExpressionBody != null)
+                else if (expressionBody != null)
                 {
-                    return methodDefinition.ReplaceToken(
-                            methodDefinition.ExpressionBody.ArrowToken,
-                            methodDefinition.ExpressionBody.ArrowToken.WithPrependedLeadingTrivia(
+                    return method.ReplaceToken(
+                            expressionBody.ArrowToken,
+                            expressionBody.ArrowToken.WithPrependedLeadingTrivia(
                                 SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
                 }
                 else
                 {
-                    return methodDefinition;
+                    return method;
                 }
             }
 
@@ -673,13 +703,144 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var callSignature = CreateCallSignature();
 
-                if (this.AnalyzerResult.HasReturnType)
+                if (AnalyzerResult.HasReturnType)
                 {
-                    Contract.ThrowIfTrue(this.AnalyzerResult.HasVariableToUseAsReturnValue);
+                    Contract.ThrowIfTrue(AnalyzerResult.HasVariableToUseAsReturnValue);
                     return SyntaxFactory.ReturnStatement(callSignature);
                 }
 
                 return SyntaxFactory.ExpressionStatement(callSignature);
+            }
+
+            protected override async Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
+                SemanticDocument originalDocument,
+                OperationStatus<IMethodSymbol> methodSymbolResult,
+                CancellationToken cancellationToken)
+            {
+                // Only need to update for nullable reference types in return
+                if (methodSymbolResult.Data.ReturnType.NullableAnnotation != NullableAnnotation.Annotated)
+                {
+                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                }
+
+                var syntaxNode = originalDocument.Root.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
+                var nodeIsMethodOrLocalFunction = syntaxNode is MethodDeclarationSyntax or LocalFunctionStatementSyntax;
+                if (!nodeIsMethodOrLocalFunction)
+                {
+                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                }
+
+                var nullableReturnOperations = await CheckReturnOperations(syntaxNode, methodSymbolResult, originalDocument, cancellationToken).ConfigureAwait(false);
+                if (nullableReturnOperations is object)
+                {
+                    return nullableReturnOperations;
+                }
+
+                var returnType = syntaxNode is MethodDeclarationSyntax method ? method.ReturnType : ((LocalFunctionStatementSyntax)syntaxNode).ReturnType;
+                var newDocument = await GenerateNewDocument(methodSymbolResult, returnType, originalDocument, cancellationToken).ConfigureAwait(false);
+
+                return await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+
+                static bool ReturnOperationBelongsToMethod(SyntaxNode returnOperationSyntax, SyntaxNode methodSyntax)
+                {
+                    var enclosingMethod = returnOperationSyntax.FirstAncestorOrSelf<SyntaxNode>(n => n switch
+                    {
+                        BaseMethodDeclarationSyntax _ => true,
+                        AnonymousFunctionExpressionSyntax _ => true,
+                        LocalFunctionStatementSyntax _ => true,
+                        _ => false
+                    });
+
+                    return enclosingMethod == methodSyntax;
+                }
+
+                async Task<SemanticDocument> CheckReturnOperations(
+                    SyntaxNode node,
+                    OperationStatus<IMethodSymbol> methodSymbolResult,
+                    SemanticDocument originalDocument,
+                    CancellationToken cancellationToken)
+                {
+                    var semanticModel = originalDocument.SemanticModel;
+
+                    var methodOperation = semanticModel.GetOperation(node, cancellationToken);
+                    var returnOperations = methodOperation.DescendantsAndSelf().OfType<IReturnOperation>();
+
+                    foreach (var returnOperation in returnOperations)
+                    {
+                        // If the return statement is located in a nested local function or lambda it
+                        // shouldn't contribute to the nullability of the extracted method's return type
+                        if (!ReturnOperationBelongsToMethod(returnOperation.Syntax, methodOperation.Syntax))
+                        {
+                            continue;
+                        }
+
+                        var syntax = returnOperation.ReturnedValue?.Syntax ?? returnOperation.Syntax;
+                        var returnTypeInfo = semanticModel.GetTypeInfo(syntax, cancellationToken);
+                        if (returnTypeInfo.Nullability.FlowState == NullableFlowState.MaybeNull)
+                        {
+                            // Flow state shows that return is correctly nullable
+                            return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+
+                    return null;
+                }
+
+                static async Task<Document> GenerateNewDocument(
+                    OperationStatus<IMethodSymbol> methodSymbolResult,
+                    TypeSyntax returnType,
+                    SemanticDocument originalDocument,
+                    CancellationToken cancellationToken)
+                {
+                    // Return type can be updated to not be null
+                    var newType = methodSymbolResult.Data.ReturnType.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+
+                    var oldRoot = await originalDocument.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var newRoot = oldRoot.ReplaceNode(returnType, newType.GenerateTypeSyntax());
+
+                    return originalDocument.Document.WithSyntaxRoot(newRoot);
+                }
+            }
+
+            protected SyntaxToken GenerateMethodNameForStatementGenerators()
+            {
+                var semanticModel = SemanticDocument.SemanticModel;
+                var nameGenerator = new UniqueNameGenerator(semanticModel);
+                var scope = CSharpSelectionResult.GetContainingScope();
+
+                // If extracting a local function, we want to ensure all local variables are considered when generating a unique name.
+                if (LocalFunction)
+                {
+                    scope = CSharpSelectionResult.GetFirstTokenInSelection().Parent;
+                }
+
+                return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, GenerateMethodNameFromUserPreference()));
+            }
+
+            protected string GenerateMethodNameFromUserPreference()
+            {
+                var methodName = NewMethodPascalCaseStr;
+                if (!LocalFunction)
+                {
+                    return methodName;
+                }
+
+                // For local functions, pascal case and camel case should be the most common and therefore we only consider those cases.
+                var namingPreferences = Options.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp);
+                var localFunctionPreferences = namingPreferences.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers(), null));
+
+                var namingRules = namingPreferences.Rules.NamingRules;
+                var localFunctionKind = new SymbolKindOrTypeKind(MethodKind.LocalFunction);
+                if (LocalFunction)
+                {
+                    if (namingRules.Any(rule => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(localFunctionKind, CreateMethodModifiers(), null)))
+                    {
+                        methodName = NewMethodCamelCaseStr;
+                    }
+                }
+
+                // We default to pascal case.
+                return methodName;
             }
         }
     }

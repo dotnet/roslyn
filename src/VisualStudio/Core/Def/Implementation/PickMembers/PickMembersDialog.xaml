@@ -45,12 +45,17 @@
     </Window.InputBindings>
     <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <TextBox x:Uid="SearchTextBox"
+                 x:Name="SearchTextBox"
+                 Grid.Row="0" 
+                 TextChanged="SearchTextBox_TextChanged"/>
         <GroupBox x:Uid="MemberSelectionGroupBox"
                   Margin="0, 9, 0, 0"
-                  Grid.Row="0"
+                  Grid.Row="1"
                   Header="{Binding ElementName=dialog, Path=PickMembersTitle}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -74,17 +79,17 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <CheckBox x:Uid="SelectableMemberCheckBox"
-                                          AutomationProperties.Name="{Binding MemberAutomationText}"
+                                          AutomationProperties.Name="{Binding SymbolAutomationText}"
                                           IsChecked="{Binding IsChecked, Mode=TwoWay}" 
                                           Width="Auto"
                                           Focusable="False"
-                                          AutomationProperties.AutomationId="{Binding MemberName}">
+                                          AutomationProperties.AutomationId="{Binding SymbolName}">
                                 </CheckBox>
                                 <Image x:Uid="SelectableMemberGlyph" 
                                        Margin="8,0,0,0"
                                                Source="{Binding Glyph}"/>
                                 <TextBlock x:Uid="SelectableMemberName" 
-                                                   Text="{Binding MemberName}"/>
+                                                   Text="{Binding SymbolName}"/>
                             </StackPanel>
                         </DataTemplate>
                     </u:AutomationDelegatingListView.ItemTemplate>
@@ -153,7 +158,7 @@
                 </ItemsControl>
             </Grid>
         </GroupBox>
-        <StackPanel Grid.Row="1" 
+        <StackPanel Grid.Row="2" 
                     HorizontalAlignment="Right" 
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal">

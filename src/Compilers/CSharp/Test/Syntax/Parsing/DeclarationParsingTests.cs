@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -34,39 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ea = file.Externs[0];
 
-            Assert.NotNull(ea.ExternKeyword);
+            Assert.NotEqual(default, ea.ExternKeyword);
             Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.Kind());
-            Assert.NotNull(ea.AliasKeyword);
+            Assert.NotEqual(default, ea.AliasKeyword);
             Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.Kind());
             Assert.False(ea.AliasKeyword.IsMissing);
-            Assert.NotNull(ea.Identifier);
+            Assert.NotEqual(default, ea.Identifier);
             Assert.Equal("a", ea.Identifier.ToString());
-            Assert.NotNull(ea.SemicolonToken);
-        }
-
-        [Fact]
-        public void TestExternWithoutAlias()
-        {
-            var text = "extern a;";
-            var file = this.ParseFile(text);
-
-            Assert.NotNull(file);
-            Assert.Equal(1, file.Externs.Count);
-            Assert.Equal(text, file.ToString());
-            var errors = file.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
-
-            var ea = file.Externs[0];
-
-            Assert.NotNull(ea.ExternKeyword);
-            Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.Kind());
-            Assert.NotNull(ea.AliasKeyword);
-            Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.Kind());
-            Assert.True(ea.AliasKeyword.IsMissing);
-            Assert.NotNull(ea.Identifier);
-            Assert.Equal("a", ea.Identifier.ToString());
-            Assert.NotNull(ea.SemicolonToken);
+            Assert.NotEqual(default, ea.SemicolonToken);
         }
 
         [Fact]
@@ -82,13 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ud = file.Usings[0];
 
-            Assert.NotNull(ud.UsingKeyword);
+            Assert.NotEqual(default, ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
             Assert.Null(ud.Alias);
             Assert.True(ud.StaticKeyword == default(SyntaxToken));
             Assert.NotNull(ud.Name);
             Assert.Equal("a", ud.Name.ToString());
-            Assert.NotNull(ud.SemicolonToken);
+            Assert.NotEqual(default, ud.SemicolonToken);
         }
 
         [Fact]
@@ -104,13 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ud = file.Usings[0];
 
-            Assert.NotNull(ud.UsingKeyword);
+            Assert.NotEqual(default, ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
             Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.Kind());
             Assert.Null(ud.Alias);
             Assert.NotNull(ud.Name);
             Assert.Equal("a", ud.Name.ToString());
-            Assert.NotNull(ud.SemicolonToken);
+            Assert.NotEqual(default, ud.SemicolonToken);
         }
 
         [Fact]
@@ -171,13 +150,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ud = file.Usings[0];
 
-            Assert.NotNull(ud.UsingKeyword);
+            Assert.NotEqual(default, ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
             Assert.True(ud.StaticKeyword == default(SyntaxToken));
             Assert.Null(ud.Alias);
             Assert.NotNull(ud.Name);
             Assert.Equal("a.b", ud.Name.ToString());
-            Assert.NotNull(ud.SemicolonToken);
+            Assert.NotEqual(default, ud.SemicolonToken);
         }
 
         [Fact]
@@ -193,13 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ud = file.Usings[0];
 
-            Assert.NotNull(ud.UsingKeyword);
+            Assert.NotEqual(default, ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
             Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.Kind());
             Assert.Null(ud.Alias);
             Assert.NotNull(ud.Name);
             Assert.Equal("a.b", ud.Name.ToString());
-            Assert.NotNull(ud.SemicolonToken);
+            Assert.NotEqual(default, ud.SemicolonToken);
         }
 
         [Fact]
@@ -215,13 +194,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ud = file.Usings[0];
 
-            Assert.NotNull(ud.UsingKeyword);
+            Assert.NotEqual(default, ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
             Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.Kind());
             Assert.Null(ud.Alias);
             Assert.NotNull(ud.Name);
             Assert.Equal("a<int?>", ud.Name.ToString());
-            Assert.NotNull(ud.SemicolonToken);
+            Assert.NotEqual(default, ud.SemicolonToken);
         }
 
         [Fact]
@@ -237,15 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ud = file.Usings[0];
 
-            Assert.NotNull(ud.UsingKeyword);
+            Assert.NotEqual(default, ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
             Assert.NotNull(ud.Alias);
             Assert.NotNull(ud.Alias.Name);
             Assert.Equal("a", ud.Alias.Name.ToString());
-            Assert.NotNull(ud.Alias.EqualsToken);
+            Assert.NotEqual(default, ud.Alias.EqualsToken);
             Assert.NotNull(ud.Name);
             Assert.Equal("b", ud.Name.ToString());
-            Assert.NotNull(ud.SemicolonToken);
+            Assert.NotEqual(default, ud.SemicolonToken);
         }
 
         [Fact]
@@ -261,15 +240,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ud = file.Usings[0];
 
-            Assert.NotNull(ud.UsingKeyword);
+            Assert.NotEqual(default, ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
             Assert.NotNull(ud.Alias);
             Assert.NotNull(ud.Alias.Name);
             Assert.Equal("a", ud.Alias.Name.ToString());
-            Assert.NotNull(ud.Alias.EqualsToken);
+            Assert.NotEqual(default, ud.Alias.EqualsToken);
             Assert.NotNull(ud.Name);
             Assert.Equal("b<c>", ud.Name.ToString());
-            Assert.NotNull(ud.SemicolonToken);
+            Assert.NotEqual(default, ud.SemicolonToken);
         }
 
         [Fact]
@@ -286,16 +265,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("assembly", ad.Target.Identifier.ToString());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.Null(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -312,19 +291,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("@assembly", ad.Target.Identifier.ToString());
             Assert.Equal("assembly", ad.Target.Identifier.ValueText);
             Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.Kind());
             Assert.Equal(AttributeLocation.Assembly, ad.Target.Identifier.ToAttributeLocation());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.Null(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -341,19 +320,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal(@"as\u0073embly", ad.Target.Identifier.ToString());
             Assert.Equal("assembly", ad.Target.Identifier.ValueText);
             Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.Kind());
             Assert.Equal(AttributeLocation.Assembly, ad.Target.Identifier.ToAttributeLocation());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.Null(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -370,17 +349,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("module", ad.Target.Identifier.ToString());
             Assert.Equal(SyntaxKind.ModuleKeyword, ad.Target.Identifier.Kind());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.Null(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -397,18 +376,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("@module", ad.Target.Identifier.ToString());
             Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.Kind());
             Assert.Equal(AttributeLocation.Module, ad.Target.Identifier.ToAttributeLocation());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.Null(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -425,20 +404,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("assembly", ad.Target.Identifier.ToString());
             Assert.Equal(SyntaxKind.AssemblyKeyword, ad.Target.Identifier.Kind());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.NotNull(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.Attributes[0].ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, ad.Attributes[0].ArgumentList.OpenParenToken);
             Assert.Equal(0, ad.Attributes[0].ArgumentList.Arguments.Count);
-            Assert.NotNull(ad.Attributes[0].ArgumentList.CloseParenToken);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.Attributes[0].ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -455,21 +434,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("assembly", ad.Target.Identifier.ToString());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.NotNull(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.Attributes[0].ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, ad.Attributes[0].ArgumentList.OpenParenToken);
             Assert.Equal(2, ad.Attributes[0].ArgumentList.Arguments.Count);
             Assert.Equal("b", ad.Attributes[0].ArgumentList.Arguments[0].ToString());
             Assert.Equal("c", ad.Attributes[0].ArgumentList.Arguments[1].ToString());
-            Assert.NotNull(ad.Attributes[0].ArgumentList.CloseParenToken);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.Attributes[0].ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -486,26 +465,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("assembly", ad.Target.Identifier.ToString());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.NotNull(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.Attributes[0].ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, ad.Attributes[0].ArgumentList.OpenParenToken);
             Assert.Equal(1, ad.Attributes[0].ArgumentList.Arguments.Count);
             Assert.Equal("b = c", ad.Attributes[0].ArgumentList.Arguments[0].ToString());
             Assert.NotNull(ad.Attributes[0].ArgumentList.Arguments[0].NameEquals);
             Assert.NotNull(ad.Attributes[0].ArgumentList.Arguments[0].NameEquals.Name);
             Assert.Equal("b", ad.Attributes[0].ArgumentList.Arguments[0].NameEquals.Name.ToString());
-            Assert.NotNull(ad.Attributes[0].ArgumentList.Arguments[0].NameEquals.EqualsToken);
+            Assert.NotEqual(default, ad.Attributes[0].ArgumentList.Arguments[0].NameEquals.EqualsToken);
             Assert.NotNull(ad.Attributes[0].ArgumentList.Arguments[0].Expression);
             Assert.Equal("c", ad.Attributes[0].ArgumentList.Arguments[0].Expression.ToString());
-            Assert.NotNull(ad.Attributes[0].ArgumentList.CloseParenToken);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.Attributes[0].ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -522,11 +501,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("assembly", ad.Target.Identifier.ToString());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(2, ad.Attributes.Count);
 
             Assert.NotNull(ad.Attributes[0].Name);
@@ -537,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("b", ad.Attributes[1].Name.ToString());
             Assert.Null(ad.Attributes[1].ArgumentList);
 
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -553,28 +532,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("assembly", ad.Target.Identifier.ToString());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.Null(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
 
             ad = (AttributeListSyntax)file.AttributeLists[1];
-            Assert.NotNull(ad.OpenBracketToken);
+            Assert.NotEqual(default, ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
-            Assert.NotNull(ad.Target.Identifier);
+            Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal("assembly", ad.Target.Identifier.ToString());
-            Assert.NotNull(ad.Target.ColonToken);
+            Assert.NotEqual(default, ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
             Assert.Equal("b", ad.Attributes[0].Name.ToString());
             Assert.Null(ad.Attributes[0].ArgumentList);
-            Assert.NotNull(ad.CloseBracketToken);
+            Assert.NotEqual(default, ad.CloseBracketToken);
         }
 
         [Fact]
@@ -590,13 +569,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ns.NamespaceKeyword);
+            Assert.NotEqual(default, ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
             Assert.Equal("a", ns.Name.ToString());
-            Assert.NotNull(ns.OpenBraceToken);
+            Assert.NotEqual(default, ns.OpenBraceToken);
             Assert.Equal(0, ns.Usings.Count);
             Assert.Equal(0, ns.Members.Count);
-            Assert.NotNull(ns.CloseBraceToken);
+            Assert.NotEqual(default, ns.CloseBraceToken);
+        }
+
+        [Fact]
+        public void TestFileScopedNamespace()
+        {
+            var text = "namespace a;";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (FileScopedNamespaceDeclarationSyntax)file.Members[0];
+            Assert.NotEqual(default, ns.NamespaceKeyword);
+            Assert.NotNull(ns.Name);
+            Assert.Equal("a", ns.Name.ToString());
+            Assert.NotEqual(default, ns.SemicolonToken);
+            Assert.Equal(0, ns.Usings.Count);
+            Assert.Equal(0, ns.Members.Count);
         }
 
         [Fact]
@@ -612,13 +612,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ns.NamespaceKeyword);
+            Assert.NotEqual(default, ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
             Assert.Equal("a.b.c", ns.Name.ToString());
-            Assert.NotNull(ns.OpenBraceToken);
+            Assert.NotEqual(default, ns.OpenBraceToken);
             Assert.Equal(0, ns.Usings.Count);
             Assert.Equal(0, ns.Members.Count);
-            Assert.NotNull(ns.CloseBraceToken);
+            Assert.NotEqual(default, ns.CloseBraceToken);
         }
 
         [Fact]
@@ -634,14 +634,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ns.NamespaceKeyword);
+            Assert.NotEqual(default, ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
             Assert.Equal("a", ns.Name.ToString());
-            Assert.NotNull(ns.OpenBraceToken);
+            Assert.NotEqual(default, ns.OpenBraceToken);
             Assert.Equal(1, ns.Usings.Count);
             Assert.Equal("using b.c;", ns.Usings[0].ToString());
             Assert.Equal(0, ns.Members.Count);
-            Assert.NotNull(ns.CloseBraceToken);
+            Assert.NotEqual(default, ns.CloseBraceToken);
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceWithUsing()
+        {
+            var text = "namespace a; using b.c;";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (FileScopedNamespaceDeclarationSyntax)file.Members[0];
+            Assert.NotEqual(default, ns.NamespaceKeyword);
+            Assert.NotNull(ns.Name);
+            Assert.Equal("a", ns.Name.ToString());
+            Assert.NotEqual(default, ns.SemicolonToken);
+            Assert.Equal(1, ns.Usings.Count);
+            Assert.Equal("using b.c;", ns.Usings[0].ToString());
+            Assert.Equal(0, ns.Members.Count);
         }
 
         [Fact]
@@ -657,14 +679,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ns.NamespaceKeyword);
+            Assert.NotEqual(default, ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
             Assert.Equal("a", ns.Name.ToString());
-            Assert.NotNull(ns.OpenBraceToken);
+            Assert.NotEqual(default, ns.OpenBraceToken);
             Assert.Equal(1, ns.Externs.Count);
             Assert.Equal("extern alias b;", ns.Externs[0].ToString());
             Assert.Equal(0, ns.Members.Count);
-            Assert.NotNull(ns.CloseBraceToken);
+            Assert.NotEqual(default, ns.CloseBraceToken);
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceWithExternAlias()
+        {
+            var text = "namespace a; extern alias b;";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (FileScopedNamespaceDeclarationSyntax)file.Members[0];
+            Assert.NotEqual(default, ns.NamespaceKeyword);
+            Assert.NotNull(ns.Name);
+            Assert.Equal("a", ns.Name.ToString());
+            Assert.NotEqual(default, ns.SemicolonToken);
+            Assert.Equal(1, ns.Externs.Count);
+            Assert.Equal("extern alias b;", ns.Externs[0].ToString());
+            Assert.Equal(0, ns.Members.Count);
         }
 
         [Fact]
@@ -680,15 +724,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ns.NamespaceKeyword);
+            Assert.NotEqual(default, ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
             Assert.Equal("a", ns.Name.ToString());
-            Assert.NotNull(ns.OpenBraceToken);
+            Assert.NotEqual(default, ns.OpenBraceToken);
             Assert.Equal(1, ns.Usings.Count);
             Assert.Equal("using b;", ns.Usings[0].ToString());
             Assert.Equal(0, ns.Externs.Count);
             Assert.Equal(0, ns.Members.Count);
-            Assert.NotNull(ns.CloseBraceToken);
+            Assert.NotEqual(default, ns.CloseBraceToken);
         }
 
         [Fact]
@@ -704,22 +748,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ns.NamespaceKeyword);
+            Assert.NotEqual(default, ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
             Assert.Equal("a", ns.Name.ToString());
-            Assert.NotNull(ns.OpenBraceToken);
+            Assert.NotEqual(default, ns.OpenBraceToken);
             Assert.Equal(0, ns.Usings.Count);
             Assert.Equal(1, ns.Members.Count);
             Assert.Equal(SyntaxKind.NamespaceDeclaration, ns.Members[0].Kind());
             var ns2 = (NamespaceDeclarationSyntax)ns.Members[0];
-            Assert.NotNull(ns2.NamespaceKeyword);
+            Assert.NotEqual(default, ns2.NamespaceKeyword);
             Assert.NotNull(ns2.Name);
             Assert.Equal("b", ns2.Name.ToString());
-            Assert.NotNull(ns2.OpenBraceToken);
+            Assert.NotEqual(default, ns2.OpenBraceToken);
             Assert.Equal(0, ns2.Usings.Count);
             Assert.Equal(0, ns2.Members.Count);
 
-            Assert.NotNull(ns.CloseBraceToken);
+            Assert.NotEqual(default, ns.CloseBraceToken);
         }
 
         [Fact]
@@ -737,15 +781,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -764,15 +808,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.PublicKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -791,15 +835,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -818,15 +862,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.StaticKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -845,15 +889,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.SealedKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -872,15 +916,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.AbstractKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -899,15 +943,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.PartialKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -926,15 +970,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, cs.AttributeLists.Count);
             Assert.Equal("[attr]", cs.AttributeLists[0].ToString());
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -954,15 +998,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("[attr1]", cs.AttributeLists[0].ToString());
             Assert.Equal("[attr2]", cs.AttributeLists[1].ToString());
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -981,15 +1025,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, cs.AttributeLists.Count);
             Assert.Equal("[attr1, attr2]", cs.AttributeLists[0].ToString());
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1007,20 +1051,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
 
             Assert.NotNull(cs.BaseList);
-            Assert.NotNull(cs.BaseList.ColonToken);
+            Assert.NotEqual(default, cs.BaseList.ColonToken);
             Assert.Equal(1, cs.BaseList.Types.Count);
             Assert.Equal("b", cs.BaseList.Types[0].Type.ToString());
 
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1038,21 +1082,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
 
             Assert.NotNull(cs.BaseList);
-            Assert.NotNull(cs.BaseList.ColonToken);
+            Assert.NotEqual(default, cs.BaseList.ColonToken);
             Assert.Equal(2, cs.BaseList.Types.Count);
             Assert.Equal("b", cs.BaseList.Types[0].Type.ToString());
             Assert.Equal("c", cs.BaseList.Types[1].Type.ToString());
 
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1070,19 +1114,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
             Assert.Null(cs.BaseList);
 
             Assert.Equal(1, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
             Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
@@ -1090,9 +1134,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(bound.Type);
             Assert.Equal("c", bound.Type.ToString());
 
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1112,18 +1156,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
 
             Assert.Null(cs.BaseList);
 
             Assert.Equal(1, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
             Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
@@ -1131,11 +1175,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(bound.Type);
             Assert.Equal("c", bound.Type.ToString());
 
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             CreateCompilation(text).GetDeclarationDiagnostics().Verify(
+                // (1,7): warning CS8981: The type name 'a' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class a where b : c { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "a").WithArguments("a").WithLocation(1, 7),
                 // (1,9): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a where b : c { }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 9));
@@ -1147,6 +1194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "class a { void M() where b : c { } }";
 
             CreateCompilation(text).GetDeclarationDiagnostics().Verify(
+                // (1,7): warning CS8981: The type name 'a' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class a { void M() where b : c { } }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "a").WithArguments("a").WithLocation(1, 7),
                 // (1,20): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a { void M() where b : c { } }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 20));
@@ -1167,33 +1217,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
             Assert.Null(cs.BaseList);
 
             Assert.Equal(1, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
             Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var bound = (ConstructorConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
-            Assert.NotNull(bound.NewKeyword);
+            Assert.NotEqual(default, bound.NewKeyword);
             Assert.False(bound.NewKeyword.IsMissing);
-            Assert.NotNull(bound.OpenParenToken);
+            Assert.NotEqual(default, bound.OpenParenToken);
             Assert.False(bound.OpenParenToken.IsMissing);
-            Assert.NotNull(bound.CloseParenToken);
+            Assert.NotEqual(default, bound.CloseParenToken);
             Assert.False(bound.CloseParenToken.IsMissing);
 
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1211,30 +1261,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
             Assert.Null(cs.BaseList);
 
             Assert.Equal(1, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
             Assert.Equal(SyntaxKind.ClassConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var bound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
-            Assert.NotNull(bound.ClassOrStructKeyword);
+            Assert.NotEqual(default, bound.ClassOrStructKeyword);
             Assert.False(bound.ClassOrStructKeyword.IsMissing);
             Assert.Equal(SyntaxKind.ClassKeyword, bound.ClassOrStructKeyword.Kind());
 
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1252,30 +1302,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
             Assert.Null(cs.BaseList);
 
             Assert.Equal(1, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
             Assert.Equal(SyntaxKind.StructConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var bound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
-            Assert.NotNull(bound.ClassOrStructKeyword);
+            Assert.NotEqual(default, bound.ClassOrStructKeyword);
             Assert.False(bound.ClassOrStructKeyword.IsMissing);
             Assert.Equal(SyntaxKind.StructKeyword, bound.ClassOrStructKeyword.Kind());
 
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1293,25 +1343,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
             Assert.Null(cs.BaseList);
 
             Assert.Equal(1, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(3, cs.ConstraintClauses[0].Constraints.Count);
 
             Assert.Equal(SyntaxKind.ClassConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var classBound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
-            Assert.NotNull(classBound.ClassOrStructKeyword);
+            Assert.NotEqual(default, classBound.ClassOrStructKeyword);
             Assert.False(classBound.ClassOrStructKeyword.IsMissing);
             Assert.Equal(SyntaxKind.ClassKeyword, classBound.ClassOrStructKeyword.Kind());
 
@@ -1322,16 +1372,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[0].Constraints[2].Kind());
             var bound = (ConstructorConstraintSyntax)cs.ConstraintClauses[0].Constraints[2];
-            Assert.NotNull(bound.NewKeyword);
+            Assert.NotEqual(default, bound.NewKeyword);
             Assert.False(bound.NewKeyword.IsMissing);
-            Assert.NotNull(bound.OpenParenToken);
+            Assert.NotEqual(default, bound.OpenParenToken);
             Assert.False(bound.OpenParenToken.IsMissing);
-            Assert.NotNull(bound.CloseParenToken);
+            Assert.NotEqual(default, bound.CloseParenToken);
             Assert.False(bound.CloseParenToken.IsMissing);
 
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1349,19 +1399,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
             Assert.Null(cs.BaseList);
 
             Assert.Equal(2, cs.ConstraintClauses.Count);
 
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
             Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
@@ -1369,24 +1419,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(typeBound.Type);
             Assert.Equal("c", typeBound.Type.ToString());
 
-            Assert.NotNull(cs.ConstraintClauses[1].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[1].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[1].Name);
             Assert.Equal("b", cs.ConstraintClauses[1].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[1].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[1].ColonToken);
             Assert.False(cs.ConstraintClauses[1].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[1].Constraints.Count);
             Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[1].Constraints[0].Kind());
             var bound = (ConstructorConstraintSyntax)cs.ConstraintClauses[1].Constraints[0];
-            Assert.NotNull(bound.NewKeyword);
+            Assert.NotEqual(default, bound.NewKeyword);
             Assert.False(bound.NewKeyword.IsMissing);
-            Assert.NotNull(bound.OpenParenToken);
+            Assert.NotEqual(default, bound.OpenParenToken);
             Assert.False(bound.OpenParenToken.IsMissing);
-            Assert.NotNull(bound.CloseParenToken);
+            Assert.NotEqual(default, bound.CloseParenToken);
             Assert.False(bound.CloseParenToken.IsMissing);
 
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1404,19 +1454,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
             Assert.Null(cs.BaseList);
 
             Assert.Equal(2, cs.ConstraintClauses.Count);
 
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
             Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
@@ -1424,10 +1474,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(typeBound.Type);
             Assert.Equal("c", typeBound.Type.ToString());
 
-            Assert.NotNull(cs.ConstraintClauses[1].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[1].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[1].Name);
             Assert.Equal("b", cs.ConstraintClauses[1].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[1].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[1].ColonToken);
             Assert.True(cs.ConstraintClauses[1].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[1].Constraints.Count);
             Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[1].Constraints[0].Kind());
@@ -1450,19 +1500,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
             Assert.Null(cs.BaseList);
 
             Assert.Equal(2, cs.ConstraintClauses.Count);
 
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
             Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
@@ -1470,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(typeBound.Type);
             Assert.Equal("c", typeBound.Type.ToString());
 
-            Assert.NotNull(cs.ConstraintClauses[1].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[1].WhereKeyword);
             Assert.True(cs.ConstraintClauses[1].Name.IsMissing);
             Assert.True(cs.ConstraintClauses[1].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[1].Constraints.Count);
@@ -1494,29 +1544,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
             Assert.NotNull(cs.BaseList);
-            Assert.NotNull(cs.BaseList.ColonToken);
+            Assert.NotEqual(default, cs.BaseList.ColonToken);
             Assert.Equal(2, cs.BaseList.Types.Count);
             Assert.Equal("c", cs.BaseList.Types[0].Type.ToString());
             Assert.Equal("d", cs.BaseList.Types[1].Type.ToString());
 
             Assert.Equal(1, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(cs.ConstraintClauses[0].Name);
             Assert.Equal("b", cs.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(3, cs.ConstraintClauses[0].Constraints.Count);
 
             Assert.Equal(SyntaxKind.ClassConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var classBound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
-            Assert.NotNull(classBound.ClassOrStructKeyword);
+            Assert.NotEqual(default, classBound.ClassOrStructKeyword);
             Assert.False(classBound.ClassOrStructKeyword.IsMissing);
             Assert.Equal(SyntaxKind.ClassKeyword, classBound.ClassOrStructKeyword.Kind());
 
@@ -1527,16 +1577,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[0].Constraints[2].Kind());
             var bound = (ConstructorConstraintSyntax)cs.ConstraintClauses[0].Constraints[2];
-            Assert.NotNull(bound.NewKeyword);
+            Assert.NotEqual(default, bound.NewKeyword);
             Assert.False(bound.NewKeyword.IsMissing);
-            Assert.NotNull(bound.OpenParenToken);
+            Assert.NotEqual(default, bound.OpenParenToken);
             Assert.False(bound.OpenParenToken.IsMissing);
-            Assert.NotNull(bound.CloseParenToken);
+            Assert.NotEqual(default, bound.CloseParenToken);
             Assert.False(bound.CloseParenToken.IsMissing);
 
-            Assert.NotNull(cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1554,14 +1604,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1579,9 +1629,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             var gn = cs.TypeParameterList;
             Assert.Equal("<B>", gn.ToString());
             Assert.Equal("A", cs.Identifier.ToString());
@@ -1590,8 +1640,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("B", gn.Parameters[0].Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1609,21 +1659,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
 
             var gn = cs.TypeParameterList;
             Assert.Equal("<[B] out C>", gn.ToString());
             Assert.Equal("A", cs.Identifier.ToString());
             Assert.Equal(1, gn.Parameters[0].AttributeLists.Count);
             Assert.Equal("B", gn.Parameters[0].AttributeLists[0].Attributes[0].Name.ToString());
-            Assert.NotNull(gn.Parameters[0].VarianceKeyword);
+            Assert.NotEqual(default, gn.Parameters[0].VarianceKeyword);
             Assert.Equal(SyntaxKind.OutKeyword, gn.Parameters[0].VarianceKeyword.Kind());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1641,14 +1691,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.StructKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1666,14 +1716,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -1681,14 +1731,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1706,14 +1756,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -1722,14 +1772,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.PrivateKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1747,14 +1797,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -1763,14 +1813,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.ProtectedKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1788,14 +1838,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -1805,14 +1855,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(2, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.ProtectedKeyword, cs.Modifiers[0].Kind());
             Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[1].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1830,14 +1880,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -1847,14 +1897,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(2, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[0].Kind());
             Assert.Equal(SyntaxKind.ProtectedKeyword, cs.Modifiers[1].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1872,14 +1922,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -1888,14 +1938,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.PublicKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1913,14 +1963,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -1929,14 +1979,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
             Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[0].Kind());
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
         }
 
         [Fact]
@@ -1952,17 +2002,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ds.ParameterList.Parameters.Count);
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -1979,17 +2029,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("ref a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ds.ParameterList.Parameters.Count);
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2007,17 +2057,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("ref readonly a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ds.ParameterList.Parameters.Count);
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2054,17 +2104,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal(typeText, ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ds.ParameterList.Parameters.Count);
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2100,12 +2150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
@@ -2113,12 +2163,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ds.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal(typeText, ds.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ds.ParameterList.Parameters[0].Identifier);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2135,12 +2185,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
@@ -2148,12 +2198,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ds.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ds.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ds.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2170,12 +2220,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(2, ds.ParameterList.Parameters.Count);
@@ -2183,19 +2233,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ds.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ds.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ds.ParameterList.Parameters[0].Identifier.ToString());
 
             Assert.Equal(0, ds.ParameterList.Parameters[1].AttributeLists.Count);
             Assert.Equal(0, ds.ParameterList.Parameters[1].Modifiers.Count);
             Assert.NotNull(ds.ParameterList.Parameters[1].Type);
             Assert.Equal("e", ds.ParameterList.Parameters[1].Type.ToString());
-            Assert.NotNull(ds.ParameterList.Parameters[1].Identifier);
+            Assert.NotEqual(default, ds.ParameterList.Parameters[1].Identifier);
             Assert.Equal("f", ds.ParameterList.Parameters[1].Identifier.ToString());
 
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2212,12 +2262,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
@@ -2226,12 +2276,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.RefKeyword, ds.ParameterList.Parameters[0].Modifiers[0].Kind());
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ds.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ds.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2248,12 +2298,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
@@ -2262,12 +2312,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.OutKeyword, ds.ParameterList.Parameters[0].Modifiers[0].Kind());
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ds.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ds.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2284,12 +2334,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
@@ -2298,12 +2348,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ParamsKeyword, ds.ParameterList.Parameters[0].Modifiers[0].Kind());
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ds.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ds.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2321,23 +2371,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
             Assert.Equal(0, ds.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ds.ParameterList.Parameters[0].Modifiers.Count);
             Assert.Null(ds.ParameterList.Parameters[0].Type);
-            Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ds.ParameterList.Parameters[0].Identifier);
 
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2354,12 +2404,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("a", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
@@ -2368,12 +2418,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ds.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ds.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ds.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2392,30 +2442,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, cs.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)cs.Members[0];
-            Assert.NotNull(ds.DelegateKeyword);
+            Assert.NotEqual(default, ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
             Assert.Equal("b", ds.ReturnType.ToString());
-            Assert.NotNull(ds.Identifier);
+            Assert.NotEqual(default, ds.Identifier);
             Assert.Equal("c", ds.Identifier.ToString());
-            Assert.NotNull(ds.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ds.ParameterList.OpenParenToken);
             Assert.False(ds.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ds.ParameterList.Parameters.Count);
-            Assert.NotNull(ds.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ds.ParameterList.CloseParenToken);
             Assert.False(ds.ParameterList.CloseParenToken.IsMissing);
-            Assert.NotNull(ds.SemicolonToken);
+            Assert.NotEqual(default, ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
@@ -2434,14 +2484,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -2451,12 +2501,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -2480,14 +2530,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -2496,12 +2546,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("ref b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -2526,14 +2576,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -2542,12 +2592,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("ref readonly b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -2571,14 +2621,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -2601,14 +2651,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -2629,14 +2679,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -2650,12 +2700,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -2697,14 +2747,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -2715,12 +2765,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PartialKeyword, ms.Modifiers[0].Kind());
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("void", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("M", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -2744,14 +2794,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var structDecl = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, structDecl.AttributeLists.Count);
             Assert.Equal(0, structDecl.Modifiers.Count);
-            Assert.NotNull(structDecl.Keyword);
+            Assert.NotEqual(default, structDecl.Keyword);
             Assert.Equal(SyntaxKind.StructKeyword, structDecl.Keyword.Kind());
-            Assert.NotNull(structDecl.Identifier);
+            Assert.NotEqual(default, structDecl.Identifier);
             Assert.Equal("a", structDecl.Identifier.ToString());
             Assert.Null(structDecl.BaseList);
             Assert.Equal(0, structDecl.ConstraintClauses.Count);
-            Assert.NotNull(structDecl.OpenBraceToken);
-            Assert.NotNull(structDecl.CloseBraceToken);
+            Assert.NotEqual(default, structDecl.OpenBraceToken);
+            Assert.NotEqual(default, structDecl.CloseBraceToken);
 
             Assert.Equal(1, structDecl.Members.Count);
 
@@ -2762,12 +2812,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ReadOnlyKeyword, ms.Modifiers[0].Kind());
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("void", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("M", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -2791,14 +2841,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var structDecl = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, structDecl.AttributeLists.Count);
             Assert.Equal(0, structDecl.Modifiers.Count);
-            Assert.NotNull(structDecl.Keyword);
+            Assert.NotEqual(default, structDecl.Keyword);
             Assert.Equal(SyntaxKind.StructKeyword, structDecl.Keyword.Kind());
-            Assert.NotNull(structDecl.Identifier);
+            Assert.NotEqual(default, structDecl.Identifier);
             Assert.Equal("a", structDecl.Identifier.ToString());
             Assert.Null(structDecl.BaseList);
             Assert.Equal(0, structDecl.ConstraintClauses.Count);
-            Assert.NotNull(structDecl.OpenBraceToken);
-            Assert.NotNull(structDecl.CloseBraceToken);
+            Assert.NotEqual(default, structDecl.OpenBraceToken);
+            Assert.NotEqual(default, structDecl.CloseBraceToken);
 
             Assert.Equal(1, structDecl.Members.Count);
 
@@ -2812,12 +2862,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.RefKeyword, rt.RefKeyword.Kind());
             Assert.Equal(SyntaxKind.ReadOnlyKeyword, rt.ReadOnlyKeyword.Kind());
             Assert.Equal("int", rt.Type.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("M", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -2841,14 +2891,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var structDecl = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, structDecl.AttributeLists.Count);
             Assert.Equal(0, structDecl.Modifiers.Count);
-            Assert.NotNull(structDecl.Keyword);
+            Assert.NotEqual(default, structDecl.Keyword);
             Assert.Equal(SyntaxKind.StructKeyword, structDecl.Keyword.Kind());
-            Assert.NotNull(structDecl.Identifier);
+            Assert.NotEqual(default, structDecl.Identifier);
             Assert.Equal("a", structDecl.Identifier.ToString());
             Assert.Null(structDecl.BaseList);
             Assert.Equal(0, structDecl.ConstraintClauses.Count);
-            Assert.NotNull(structDecl.OpenBraceToken);
-            Assert.NotNull(structDecl.CloseBraceToken);
+            Assert.NotEqual(default, structDecl.OpenBraceToken);
+            Assert.NotEqual(default, structDecl.CloseBraceToken);
 
             Assert.Equal(1, structDecl.Members.Count);
 
@@ -2859,7 +2909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ReadOnlyKeyword, propertySyntax.Modifiers[0].Kind());
             Assert.NotNull(propertySyntax.Type);
             Assert.Equal("int", propertySyntax.Type.ToString());
-            Assert.NotNull(propertySyntax.Identifier);
+            Assert.NotEqual(default, propertySyntax.Identifier);
             Assert.Equal("M", propertySyntax.Identifier.ToString());
             Assert.NotNull(propertySyntax.ExpressionBody);
             Assert.NotEqual(SyntaxKind.None, propertySyntax.ExpressionBody.ArrowToken.Kind());
@@ -2882,14 +2932,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var structDecl = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, structDecl.AttributeLists.Count);
             Assert.Equal(0, structDecl.Modifiers.Count);
-            Assert.NotNull(structDecl.Keyword);
+            Assert.NotEqual(default, structDecl.Keyword);
             Assert.Equal(SyntaxKind.StructKeyword, structDecl.Keyword.Kind());
-            Assert.NotNull(structDecl.Identifier);
+            Assert.NotEqual(default, structDecl.Identifier);
             Assert.Equal("a", structDecl.Identifier.ToString());
             Assert.Null(structDecl.BaseList);
             Assert.Equal(0, structDecl.ConstraintClauses.Count);
-            Assert.NotNull(structDecl.OpenBraceToken);
-            Assert.NotNull(structDecl.CloseBraceToken);
+            Assert.NotEqual(default, structDecl.OpenBraceToken);
+            Assert.NotEqual(default, structDecl.CloseBraceToken);
 
             Assert.Equal(1, structDecl.Members.Count);
 
@@ -2899,7 +2949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, propertySyntax.Modifiers.Count);
             Assert.NotNull(propertySyntax.Type);
             Assert.Equal("int", propertySyntax.Type.ToString());
-            Assert.NotNull(propertySyntax.Identifier);
+            Assert.NotEqual(default, propertySyntax.Identifier);
             Assert.Equal("P", propertySyntax.Identifier.ToString());
             var accessors = propertySyntax.AccessorList.Accessors;
             Assert.Equal(1, accessors.Count);
@@ -2943,14 +2993,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -2960,18 +3010,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(1, ms.ParameterList.Parameters.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ms.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ms.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ms.ParameterList.Parameters[0].Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -2995,14 +3045,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3012,9 +3062,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(2, ms.ParameterList.Parameters.Count);
@@ -3023,17 +3073,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ms.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ms.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ms.ParameterList.Parameters[0].Identifier.ToString());
 
             Assert.Equal(0, ms.ParameterList.Parameters[1].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[1].Modifiers.Count);
             Assert.NotNull(ms.ParameterList.Parameters[1].Type);
             Assert.Equal("e", ms.ParameterList.Parameters[1].Type.ToString());
-            Assert.NotNull(ms.ParameterList.Parameters[1].Identifier);
+            Assert.NotEqual(default, ms.ParameterList.Parameters[1].Identifier);
             Assert.Equal("f", ms.ParameterList.Parameters[1].Identifier.ToString());
 
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -3056,14 +3106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3073,9 +3123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(1, ms.ParameterList.Parameters.Count);
@@ -3085,10 +3135,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(mod, ms.ParameterList.Parameters[0].Modifiers[0].Kind());
             Assert.NotNull(ms.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ms.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ms.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -3121,14 +3171,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3138,9 +3188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(1, ms.ParameterList.Parameters.Count);
@@ -3148,10 +3198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
             Assert.Null(ms.ParameterList.Parameters[0].Type);
-            Assert.NotNull(ms.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal(SyntaxKind.ArgListKeyword, ms.ParameterList.Parameters[0].Identifier.Kind());
 
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -3195,14 +3245,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3212,12 +3262,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal(typeText, ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("M", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -3260,14 +3310,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3277,18 +3327,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(1, ms.ParameterList.Parameters.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ms.ParameterList.Parameters[0].Type);
             Assert.Equal(typeText, ms.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ms.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -3312,14 +3362,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3329,12 +3379,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b<c>", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("M", ms.Identifier.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
@@ -3358,14 +3408,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3375,21 +3425,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b", ms.ReturnType.ToString());
-            Assert.NotNull(ms.Identifier);
+            Assert.NotEqual(default, ms.Identifier);
             Assert.NotNull(ms.TypeParameterList);
             Assert.Equal("X", ms.Identifier.ToString());
             Assert.Equal("<c>", ms.TypeParameterList.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
             Assert.Equal(0, ms.ParameterList.Parameters.Count);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
 
             Assert.Equal(1, ms.ConstraintClauses.Count);
-            Assert.NotNull(ms.ConstraintClauses[0].WhereKeyword);
+            Assert.NotEqual(default, ms.ConstraintClauses[0].WhereKeyword);
             Assert.NotNull(ms.ConstraintClauses[0].Name);
             Assert.Equal("b", ms.ConstraintClauses[0].Name.ToString());
-            Assert.NotNull(ms.ConstraintClauses[0].ColonToken);
+            Assert.NotEqual(default, ms.ConstraintClauses[0].ColonToken);
             Assert.False(ms.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, ms.ConstraintClauses[0].Constraints.Count);
             Assert.Equal(SyntaxKind.TypeConstraint, ms.ConstraintClauses[0].Constraints[0].Kind());
@@ -3439,9 +3489,9 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
@@ -3456,8 +3506,8 @@ class Class1<T>{
             Assert.Equal(0, cn.AttributeLists.Count);
             Assert.Equal(0, cn.Modifiers.Count);
             Assert.NotNull(cn.Body);
-            Assert.NotNull(cn.Body.OpenBraceToken);
-            Assert.NotNull(cn.Body.CloseBraceToken);
+            Assert.NotEqual(default, cn.Body.OpenBraceToken);
+            Assert.NotEqual(default, cn.Body.CloseBraceToken);
         }
 
         private void TestClassConstructorWithModifier(SyntaxKind mod)
@@ -3474,9 +3524,9 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
@@ -3492,8 +3542,8 @@ class Class1<T>{
             Assert.Equal(1, cn.Modifiers.Count);
             Assert.Equal(mod, cn.Modifiers[0].Kind());
             Assert.NotNull(cn.Body);
-            Assert.NotNull(cn.Body.OpenBraceToken);
-            Assert.NotNull(cn.Body.CloseBraceToken);
+            Assert.NotEqual(default, cn.Body.OpenBraceToken);
+            Assert.NotEqual(default, cn.Body.CloseBraceToken);
         }
 
         [Fact]
@@ -3521,9 +3571,9 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
@@ -3535,12 +3585,12 @@ class Class1<T>{
 
             Assert.Equal(SyntaxKind.DestructorDeclaration, cs.Members[0].Kind());
             var cn = (DestructorDeclarationSyntax)cs.Members[0];
-            Assert.NotNull(cn.TildeToken);
+            Assert.NotEqual(default, cn.TildeToken);
             Assert.Equal(0, cn.AttributeLists.Count);
             Assert.Equal(0, cn.Modifiers.Count);
             Assert.NotNull(cn.Body);
-            Assert.NotNull(cn.Body.OpenBraceToken);
-            Assert.NotNull(cn.Body.CloseBraceToken);
+            Assert.NotEqual(default, cn.Body.OpenBraceToken);
+            Assert.NotEqual(default, cn.Body.CloseBraceToken);
         }
 
         [Fact]
@@ -3558,14 +3608,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3576,11 +3626,11 @@ class Class1<T>{
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
             Assert.Null(fs.Declaration.Variables[0].Initializer);
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -3618,14 +3668,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3636,11 +3686,11 @@ class Class1<T>{
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal(typeText, fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
             Assert.Null(fs.Declaration.Variables[0].Initializer);
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -3658,14 +3708,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3677,11 +3727,11 @@ class Class1<T>{
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
             Assert.Null(fs.Declaration.Variables[0].Initializer);
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -3712,14 +3762,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3728,15 +3778,15 @@ class Class1<T>{
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(1, fs.Modifiers.Count);
             Assert.Equal(mod, fs.Modifiers[0].Kind());
-            Assert.NotNull(fs.EventKeyword);
+            Assert.NotEqual(default, fs.EventKeyword);
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
             Assert.Null(fs.Declaration.Variables[0].Initializer);
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -3768,14 +3818,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3787,14 +3837,14 @@ class Class1<T>{
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer);
-            Assert.NotNull(fs.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer.Value);
             Assert.Equal("d", fs.Declaration.Variables[0].Initializer.Value.ToString());
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -3813,14 +3863,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3831,14 +3881,14 @@ class Class1<T>{
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer);
-            Assert.NotNull(fs.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer.Value);
             Assert.Equal("e", fs.Declaration.Variables[0].Initializer.Value.ToString());
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -3857,14 +3907,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3875,15 +3925,15 @@ class Class1<T>{
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer);
-            Assert.NotNull(fs.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ArrayInitializerExpression, fs.Declaration.Variables[0].Initializer.Value.Kind());
             Assert.Equal("{ }", fs.Declaration.Variables[0].Initializer.Value.ToString());
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -3902,14 +3952,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3922,22 +3972,22 @@ class Class1<T>{
 
             Assert.Equal(3, fs.Declaration.Variables.Count);
 
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
             Assert.Null(fs.Declaration.Variables[0].Initializer);
 
-            Assert.NotNull(fs.Declaration.Variables[1].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[1].Identifier);
             Assert.Equal("d", fs.Declaration.Variables[1].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[1].ArgumentList);
             Assert.Null(fs.Declaration.Variables[1].Initializer);
 
-            Assert.NotNull(fs.Declaration.Variables[2].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[2].Identifier);
             Assert.Equal("e", fs.Declaration.Variables[2].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[2].ArgumentList);
             Assert.Null(fs.Declaration.Variables[2].Initializer);
 
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -3956,14 +4006,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3976,31 +4026,31 @@ class Class1<T>{
 
             Assert.Equal(3, fs.Declaration.Variables.Count);
 
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer);
-            Assert.NotNull(fs.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer.Value);
             Assert.Equal("x", fs.Declaration.Variables[0].Initializer.Value.ToString());
 
-            Assert.NotNull(fs.Declaration.Variables[1].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[1].Identifier);
             Assert.Equal("d", fs.Declaration.Variables[1].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[1].ArgumentList);
             Assert.NotNull(fs.Declaration.Variables[1].Initializer);
-            Assert.NotNull(fs.Declaration.Variables[1].Initializer.EqualsToken);
+            Assert.NotEqual(default, fs.Declaration.Variables[1].Initializer.EqualsToken);
             Assert.NotNull(fs.Declaration.Variables[1].Initializer.Value);
             Assert.Equal("y", fs.Declaration.Variables[1].Initializer.Value.ToString());
 
-            Assert.NotNull(fs.Declaration.Variables[2].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[2].Identifier);
             Assert.Equal("e", fs.Declaration.Variables[2].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[2].ArgumentList);
             Assert.NotNull(fs.Declaration.Variables[2].Initializer);
-            Assert.NotNull(fs.Declaration.Variables[2].Initializer.EqualsToken);
+            Assert.NotEqual(default, fs.Declaration.Variables[2].Initializer.EqualsToken);
             Assert.NotNull(fs.Declaration.Variables[2].Initializer.Value);
             Assert.Equal("z", fs.Declaration.Variables[2].Initializer.Value.ToString());
 
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -4019,14 +4069,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4038,15 +4088,15 @@ class Class1<T>{
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.NotNull(fs.Declaration.Variables[0].ArgumentList);
-            Assert.NotNull(fs.Declaration.Variables[0].ArgumentList.OpenBracketToken);
-            Assert.NotNull(fs.Declaration.Variables[0].ArgumentList.CloseBracketToken);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].ArgumentList.OpenBracketToken);
+            Assert.NotEqual(default, fs.Declaration.Variables[0].ArgumentList.CloseBracketToken);
             Assert.Equal(1, fs.Declaration.Variables[0].ArgumentList.Arguments.Count);
             Assert.Equal("10", fs.Declaration.Variables[0].ArgumentList.Arguments[0].ToString());
             Assert.Null(fs.Declaration.Variables[0].Initializer);
-            Assert.NotNull(fs.SemicolonToken);
+            Assert.NotEqual(default, fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
         }
 
@@ -4065,14 +4115,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4082,26 +4132,26 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [Fact]
@@ -4119,14 +4169,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4136,26 +4186,26 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("ref b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
@@ -4174,14 +4224,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4191,26 +4241,26 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("ref readonly b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [Fact]
@@ -4247,14 +4297,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4264,26 +4314,26 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal(typeText, ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [Fact]
@@ -4301,14 +4351,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4318,23 +4368,23 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.NotNull(ps.AccessorList.Accessors[0].Body);
             Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.NotNull(ps.AccessorList.Accessors[1].Body);
             Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[1].SemicolonToken.Kind());
@@ -4355,14 +4405,14 @@ class Class1<T>{
             var cs = (ClassDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4372,22 +4422,22 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
 
@@ -4439,14 +4489,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4456,17 +4506,17 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(1, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.Equal(accessorKind, ps.AccessorList.Accessors[0].Kind());
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(accessorKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
             var body = ps.AccessorList.Accessors[0].Body;
@@ -4495,14 +4545,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4512,17 +4562,17 @@ class Class1<T>{
             Assert.Equal(0, es.Modifiers.Count);
             Assert.NotNull(es.Type);
             Assert.Equal("b", es.Type.ToString());
-            Assert.NotNull(es.Identifier);
+            Assert.NotEqual(default, es.Identifier);
             Assert.Equal("c", es.Identifier.ToString());
 
-            Assert.NotNull(es.AccessorList.OpenBraceToken);
-            Assert.NotNull(es.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, es.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, es.AccessorList.CloseBraceToken);
             Assert.Equal(1, es.AccessorList.Accessors.Count);
 
             Assert.Equal(0, es.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[0].Modifiers.Count);
             Assert.Equal(accessorKind, es.AccessorList.Accessors[0].Kind());
-            Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, es.AccessorList.Accessors[0].Keyword);
             Assert.Equal(accessorKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
             var body = es.AccessorList.Accessors[0].Body;
@@ -4551,14 +4601,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4569,26 +4619,26 @@ class Class1<T>{
             Assert.Equal(mod, ps.Modifiers[0].Kind());
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [Fact]
@@ -4620,14 +4670,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4637,18 +4687,18 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
 
             Assert.Equal(1, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(1, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.Equal(mod, ps.AccessorList.Accessors[0].Modifiers[0].Kind());
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.NotNull(ps.AccessorList.Accessors[0].Body);
             Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
@@ -4683,14 +4733,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4700,28 +4750,28 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.NotNull(ps.ExplicitInterfaceSpecifier);
             Assert.Equal("I", ps.ExplicitInterfaceSpecifier.Name.ToString());
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [Fact]
@@ -4739,14 +4789,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4754,26 +4804,26 @@ class Class1<T>{
             var es = (EventDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, es.AttributeLists.Count);
             Assert.Equal(0, es.Modifiers.Count);
-            Assert.NotNull(es.EventKeyword);
+            Assert.NotEqual(default, es.EventKeyword);
             Assert.NotNull(es.Type);
             Assert.Equal("b", es.Type.ToString());
-            Assert.NotNull(es.Identifier);
+            Assert.NotEqual(default, es.Identifier);
             Assert.Equal("c", es.Identifier.ToString());
 
-            Assert.NotNull(es.AccessorList.OpenBraceToken);
-            Assert.NotNull(es.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, es.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, es.AccessorList.CloseBraceToken);
             Assert.Equal(2, es.AccessorList.Accessors.Count);
 
             Assert.Equal(0, es.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, es.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.AddKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
             Assert.NotNull(es.AccessorList.Accessors[0].Body);
             Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
 
             Assert.Equal(0, es.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(es.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, es.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.RemoveKeyword, es.AccessorList.Accessors[1].Keyword.Kind());
             Assert.NotNull(es.AccessorList.Accessors[1].Body);
             Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[1].SemicolonToken.Kind());
@@ -4793,14 +4843,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4809,26 +4859,26 @@ class Class1<T>{
             Assert.Equal(0, es.AttributeLists.Count);
             Assert.Equal(1, es.Modifiers.Count);
             Assert.Equal(mod, es.Modifiers[0].Kind());
-            Assert.NotNull(es.EventKeyword);
+            Assert.NotEqual(default, es.EventKeyword);
             Assert.NotNull(es.Type);
             Assert.Equal("b", es.Type.ToString());
-            Assert.NotNull(es.Identifier);
+            Assert.NotEqual(default, es.Identifier);
             Assert.Equal("c", es.Identifier.ToString());
 
-            Assert.NotNull(es.AccessorList.OpenBraceToken);
-            Assert.NotNull(es.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, es.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, es.AccessorList.CloseBraceToken);
             Assert.Equal(2, es.AccessorList.Accessors.Count);
 
             Assert.Equal(0, es.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, es.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.AddKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
             Assert.NotNull(es.AccessorList.Accessors[0].Body);
             Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
 
             Assert.Equal(0, es.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(es.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, es.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.RemoveKeyword, es.AccessorList.Accessors[1].Keyword.Kind());
             Assert.NotNull(es.AccessorList.Accessors[1].Body);
             Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[1].SemicolonToken.Kind());
@@ -4861,14 +4911,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4879,18 +4929,18 @@ class Class1<T>{
             Assert.Equal(SyntaxKind.EventKeyword, ps.Modifiers[0].Kind());
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.Identifier);
+            Assert.NotEqual(default, ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
 
             Assert.Equal(1, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(1, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.Equal(mod, ps.AccessorList.Accessors[0].Modifiers[0].Kind());
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.AddKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.NotNull(ps.AccessorList.Accessors[0].Body);
             Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
@@ -4925,14 +4975,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4940,28 +4990,28 @@ class Class1<T>{
             var es = (EventDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, es.AttributeLists.Count);
             Assert.Equal(0, es.Modifiers.Count);
-            Assert.NotNull(es.EventKeyword);
+            Assert.NotEqual(default, es.EventKeyword);
             Assert.NotNull(es.Type);
             Assert.Equal("b", es.Type.ToString());
-            Assert.NotNull(es.Identifier);
+            Assert.NotEqual(default, es.Identifier);
             Assert.NotNull(es.ExplicitInterfaceSpecifier);
             Assert.Equal("I", es.ExplicitInterfaceSpecifier.Name.ToString());
             Assert.Equal("c", es.Identifier.ToString());
 
-            Assert.NotNull(es.AccessorList.OpenBraceToken);
-            Assert.NotNull(es.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, es.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, es.AccessorList.CloseBraceToken);
             Assert.Equal(2, es.AccessorList.Accessors.Count);
 
             Assert.Equal(0, es.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, es.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.AddKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
             Assert.NotNull(es.AccessorList.Accessors[0].Body);
             Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
 
             Assert.Equal(0, es.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(es.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, es.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.RemoveKeyword, es.AccessorList.Accessors[1].Keyword.Kind());
             Assert.NotNull(es.AccessorList.Accessors[1].Body);
             Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[1].SemicolonToken.Kind());
@@ -4982,14 +5032,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -4999,39 +5049,39 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.ThisKeyword);
+            Assert.NotEqual(default, ps.ThisKeyword);
             Assert.Equal("this", ps.ThisKeyword.ToString());
 
             Assert.NotNull(ps.ParameterList); // used with indexer property
-            Assert.NotNull(ps.ParameterList.OpenBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.OpenBracketToken);
             Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
-            Assert.NotNull(ps.ParameterList.CloseBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.CloseBracketToken);
             Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
             Assert.Equal(1, ps.ParameterList.Parameters.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [Fact]
@@ -5049,14 +5099,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -5066,39 +5116,39 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("ref b", ps.Type.ToString());
-            Assert.NotNull(ps.ThisKeyword);
+            Assert.NotEqual(default, ps.ThisKeyword);
             Assert.Equal("this", ps.ThisKeyword.ToString());
 
             Assert.NotNull(ps.ParameterList); // used with indexer property
-            Assert.NotNull(ps.ParameterList.OpenBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.OpenBracketToken);
             Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
-            Assert.NotNull(ps.ParameterList.CloseBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.CloseBracketToken);
             Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
             Assert.Equal(1, ps.ParameterList.Parameters.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
@@ -5117,14 +5167,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -5134,39 +5184,39 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("ref readonly b", ps.Type.ToString());
-            Assert.NotNull(ps.ThisKeyword);
+            Assert.NotEqual(default, ps.ThisKeyword);
             Assert.Equal("this", ps.ThisKeyword.ToString());
 
             Assert.NotNull(ps.ParameterList); // used with indexer property
-            Assert.NotNull(ps.ParameterList.OpenBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.OpenBracketToken);
             Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
-            Assert.NotNull(ps.ParameterList.CloseBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.CloseBracketToken);
             Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
             Assert.Equal(1, ps.ParameterList.Parameters.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [Fact]
@@ -5184,14 +5234,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -5201,13 +5251,13 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
-            Assert.NotNull(ps.ThisKeyword);
+            Assert.NotEqual(default, ps.ThisKeyword);
             Assert.Equal("this", ps.ThisKeyword.ToString());
 
             Assert.NotNull(ps.ParameterList); // used with indexer property
-            Assert.NotNull(ps.ParameterList.OpenBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.OpenBracketToken);
             Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
-            Assert.NotNull(ps.ParameterList.CloseBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.CloseBracketToken);
             Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
 
             Assert.Equal(2, ps.ParameterList.Parameters.Count);
@@ -5216,33 +5266,33 @@ class Class1<T>{
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
 
             Assert.Equal(0, ps.ParameterList.Parameters[1].AttributeLists.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[1].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[1].Type);
             Assert.Equal("e", ps.ParameterList.Parameters[1].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[1].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[1].Identifier);
             Assert.Equal("f", ps.ParameterList.Parameters[1].Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         [Fact]
@@ -5260,14 +5310,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -5283,35 +5333,35 @@ class Class1<T>{
             Assert.Equal("this", ps.ThisKeyword.ToString());
 
             Assert.NotNull(ps.ParameterList); // used with indexer property
-            Assert.NotNull(ps.ParameterList.OpenBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.OpenBracketToken);
             Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
-            Assert.NotNull(ps.ParameterList.CloseBracketToken);
+            Assert.NotEqual(default, ps.ParameterList.CloseBracketToken);
             Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
             Assert.Equal(1, ps.ParameterList.Parameters.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
 
-            Assert.NotNull(ps.AccessorList.OpenBraceToken);
-            Assert.NotNull(ps.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
             Assert.Equal(2, ps.AccessorList.Accessors.Count);
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
-            Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].Keyword);
             Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
-            Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
+            Assert.NotEqual(default, ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
         private void TestClassBinaryOperatorMethod(SyntaxKind op1)
@@ -5328,14 +5378,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -5345,12 +5395,12 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.ReturnType);
             Assert.Equal("b", ps.ReturnType.ToString());
-            Assert.NotNull(ps.OperatorKeyword);
+            Assert.NotEqual(default, ps.OperatorKeyword);
             Assert.Equal(SyntaxKind.OperatorKeyword, ps.OperatorKeyword.Kind());
-            Assert.NotNull(ps.OperatorToken);
+            Assert.NotEqual(default, ps.OperatorToken);
             Assert.Equal(op1, ps.OperatorToken.Kind());
-            Assert.NotNull(ps.ParameterList.OpenParenToken);
-            Assert.NotNull(ps.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ps.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ps.ParameterList.CloseParenToken);
             Assert.NotNull(ps.Body);
 
             Assert.Equal(2, ps.ParameterList.Parameters.Count);
@@ -5359,14 +5409,14 @@ class Class1<T>{
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
 
             Assert.Equal(0, ps.ParameterList.Parameters[1].AttributeLists.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[1].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[1].Type);
             Assert.Equal("e", ps.ParameterList.Parameters[1].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[1].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[1].Identifier);
             Assert.Equal("f", ps.ParameterList.Parameters[1].Identifier.ToString());
         }
 
@@ -5408,14 +5458,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -5425,12 +5475,12 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.ReturnType);
             Assert.Equal("b", ps.ReturnType.ToString());
-            Assert.NotNull(ps.OperatorKeyword);
+            Assert.NotEqual(default, ps.OperatorKeyword);
             Assert.Equal(SyntaxKind.OperatorKeyword, ps.OperatorKeyword.Kind());
-            Assert.NotNull(ps.OperatorToken);
+            Assert.NotEqual(default, ps.OperatorToken);
             Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, ps.OperatorToken.Kind());
-            Assert.NotNull(ps.ParameterList.OpenParenToken);
-            Assert.NotNull(ps.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ps.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ps.ParameterList.CloseParenToken);
             Assert.NotNull(ps.Body);
 
             Assert.Equal(2, ps.ParameterList.Parameters.Count);
@@ -5439,14 +5489,14 @@ class Class1<T>{
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
 
             Assert.Equal(0, ps.ParameterList.Parameters[1].AttributeLists.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[1].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[1].Type);
             Assert.Equal("e", ps.ParameterList.Parameters[1].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[1].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[1].Identifier);
             Assert.Equal("f", ps.ParameterList.Parameters[1].Identifier.ToString());
         }
 
@@ -5464,14 +5514,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -5481,12 +5531,12 @@ class Class1<T>{
             Assert.Equal(0, ps.Modifiers.Count);
             Assert.NotNull(ps.ReturnType);
             Assert.Equal("b", ps.ReturnType.ToString());
-            Assert.NotNull(ps.OperatorKeyword);
+            Assert.NotEqual(default, ps.OperatorKeyword);
             Assert.Equal(SyntaxKind.OperatorKeyword, ps.OperatorKeyword.Kind());
-            Assert.NotNull(ps.OperatorToken);
+            Assert.NotEqual(default, ps.OperatorToken);
             Assert.Equal(op1, ps.OperatorToken.Kind());
-            Assert.NotNull(ps.ParameterList.OpenParenToken);
-            Assert.NotNull(ps.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ps.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ps.ParameterList.CloseParenToken);
             Assert.NotNull(ps.Body);
 
             Assert.Equal(1, ps.ParameterList.Parameters.Count);
@@ -5495,7 +5545,7 @@ class Class1<T>{
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ps.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ps.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ps.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ps.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ps.ParameterList.Parameters[0].Identifier.ToString());
         }
 
@@ -5527,14 +5577,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -5542,21 +5592,21 @@ class Class1<T>{
             var ms = (ConversionOperatorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
-            Assert.NotNull(ms.ImplicitOrExplicitKeyword);
+            Assert.NotEqual(default, ms.ImplicitOrExplicitKeyword);
             Assert.Equal(SyntaxKind.ImplicitKeyword, ms.ImplicitOrExplicitKeyword.Kind());
-            Assert.NotNull(ms.OperatorKeyword);
+            Assert.NotEqual(default, ms.OperatorKeyword);
             Assert.Equal(SyntaxKind.OperatorKeyword, ms.OperatorKeyword.Kind());
             Assert.NotNull(ms.Type);
             Assert.Equal("b", ms.Type.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
 
             Assert.Equal(1, ms.ParameterList.Parameters.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ms.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ms.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ms.ParameterList.Parameters[0].Identifier.ToString());
         }
 
@@ -5575,14 +5625,14 @@ class Class1<T>{
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotNull(cs.Keyword);
+            Assert.NotEqual(default, cs.Keyword);
             Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotNull(cs.Identifier);
+            Assert.NotEqual(default, cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotNull(cs.OpenBraceToken);
-            Assert.NotNull(cs.CloseBraceToken);
+            Assert.NotEqual(default, cs.OpenBraceToken);
+            Assert.NotEqual(default, cs.CloseBraceToken);
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -5590,21 +5640,21 @@ class Class1<T>{
             var ms = (ConversionOperatorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
-            Assert.NotNull(ms.ImplicitOrExplicitKeyword);
+            Assert.NotEqual(default, ms.ImplicitOrExplicitKeyword);
             Assert.Equal(SyntaxKind.ExplicitKeyword, ms.ImplicitOrExplicitKeyword.Kind());
-            Assert.NotNull(ms.OperatorKeyword);
+            Assert.NotEqual(default, ms.OperatorKeyword);
             Assert.Equal(SyntaxKind.OperatorKeyword, ms.OperatorKeyword.Kind());
             Assert.NotNull(ms.Type);
             Assert.Equal("b", ms.Type.ToString());
-            Assert.NotNull(ms.ParameterList.OpenParenToken);
-            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
 
             Assert.Equal(1, ms.ParameterList.Parameters.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
             Assert.NotNull(ms.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Type.ToString());
-            Assert.NotNull(ms.ParameterList.Parameters[0].Identifier);
+            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ms.ParameterList.Parameters[0].Identifier.ToString());
         }
 
@@ -5746,10 +5796,10 @@ partial class PartialPartial
         {
             var text = @"partial enum E{}";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
-                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }
@@ -6260,7 +6310,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.PropertyDeclaration);
                     {
@@ -6268,7 +6318,7 @@ class C
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "A");
                         N(SyntaxKind.AccessorList);
                         {
                             N(SyntaxKind.OpenBraceToken);
@@ -6284,17 +6334,21 @@ class C
                                         N(SyntaxKind.SimpleMemberAccessExpression);
                                         {
                                             N(SyntaxKind.ThisExpression);
-                                            N(SyntaxKind.ThisKeyword);
+                                            {
+                                                N(SyntaxKind.ThisKeyword);
+                                            }
                                             N(SyntaxKind.DotToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
                                         }
-                                        N(SyntaxKind.SemicolonToken);
+                                        M(SyntaxKind.SemicolonToken);
                                     }
-                                    N(SyntaxKind.CloseBraceToken);
+                                    M(SyntaxKind.CloseBraceToken);
                                 }
                             }
-                            N(SyntaxKind.CloseBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
                         }
                     }
                     N(SyntaxKind.FieldDeclaration);
@@ -6308,7 +6362,7 @@ class C
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "B");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -6317,6 +6371,7 @@ class C
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7174,6 +7229,1827 @@ class C<T> where T : struct? {}
                         {
                             N(SyntaxKind.StructKeyword);
                             N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestMethodDeclarationNullValidation()
+        {
+            UsingStatement(@"void M(string name!!) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMethodDeclarationNullValidation_SingleExclamation()
+        {
+            UsingStatement(@"void M(string name!) { }", options: TestOptions.RegularPreview,
+                    // (1,19): error CS1003: Syntax error, '!!' expected
+                    // void M(string name!) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
+
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestMethodDeclarationNullValidation_SingleExclamation_ExtraTrivia()
+        {
+            UsingStatement(@"void M(string name
+                /*comment1*/!/*comment2*/) { }", options: TestOptions.RegularPreview,
+                // (2,1): error CS1003: Syntax error, '!!' expected
+                //                 /*comment1*/!/*comment2*/) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, " ").WithArguments("!!", "!").WithLocation(2, 1));
+
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestOptParamMethodDeclarationWithNullValidation()
+        {
+            UsingStatement(@"void M(string name!! = null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestOptParamMethodDeclarationWithNullValidationNoSpaces()
+        {
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList1()
+        {
+            UsingStatement(@"void M(__arglist!) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist!) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList2()
+        {
+            UsingStatement(@"void M(__arglist!!) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist!!) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList3()
+        {
+            UsingStatement(@"void M(__arglist!! = null) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist!! = null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList4()
+        {
+            UsingStatement(@"void M(__arglist!!= null) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist!!= null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList5()
+        {
+            UsingStatement(@"void M(__arglist[]!!= null) { }", options: TestOptions.RegularPreview,
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
+                // (1,18): error CS1001: Identifier expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
+                // (1,19): error CS1031: Type expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "!").WithLocation(1, 19),
+                // (1,19): error CS1001: Identifier expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 19));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Attribute);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestArgListWithBrackets()
+        {
+            UsingStatement(@"void M(__arglist[]) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
+                    // (1,18): error CS1001: Identifier expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
+                    // (1,19): error CS1031: Type expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 19),
+                    // (1,19): error CS1001: Identifier expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 19));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Attribute);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestArgListWithDefaultValue()
+        {
+            UsingStatement(@"void M(__arglist = null) { }", options: TestOptions.RegularPreview,
+                    // (1,18): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist = null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 18));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithLeadingSpace()
+        {
+            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithLeadingNewLine()
+        {
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithTrailingSpace()
+        {
+            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithTrailingNewLine()
+        {
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceInbetween()
+        {
+            UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
+                    // (1,19): error CS1003: Syntax error, '!!' expected
+                    // void M(string name! !=null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 19));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceAfterParam()
+        {
+            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceAfterBangs()
+        {
+            UsingStatement(@"void M(string name! ! =null) { }", options: TestOptions.RegularPreview,
+                    // (1,19): error CS1003: Syntax error, '!!' expected
+                    // void M(string name! ! =null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceBeforeBangs()
+        {
+            UsingStatement(@"void M(string name ! !=null) { }", options: TestOptions.RegularPreview,
+                    // (1,20): error CS1003: Syntax error, '!!' expected
+                    // void M(string name ! !=null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 20));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceAfterEquals()
+        {
+            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMethodDeclarationNullValidation_ExtraEquals()
+        {
+            UsingStatement(@"void M(string name!!= = null) { }", options: TestOptions.RegularPreview,
+                // (1,23): error CS1525: Invalid expression term '='
+                // void M(string name!!= = null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 23));
+
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedMethod()
+        {
+            UsingTree(@"
+class C
+{
+    public void M(string x!!) { }
+}", options: TestOptions.RegularPreview);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.ExclamationExclamationToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructor()
+        {
+            UsingTree(@"
+class C
+{
+    public C(string x!!) { }
+}", options: TestOptions.RegularPreview);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.ExclamationExclamationToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
+
+
+        [Fact]
+        public void TestNullCheckedOperator()
+        {
+            UsingTree(@"
+class Box
+{
+    public static int operator+ (Box b!!, Box c) 
+    {
+        return 2;
+    }
+}", options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.ReturnStatement);
+                                {
+                                    N(SyntaxKind.ReturnKeyword);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+
+        [Fact]
+        public void TestAnonymousDelegateNullChecking()
+        {
+            UsingTree(@"
+delegate void Del(int x!!);
+Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.DelegateDeclaration);
+                {
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Del");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.ExclamationExclamationToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Del");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Parameter);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.IdentifierToken, "k");
+                                                N(SyntaxKind.ExclamationExclamationToken);
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
+
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void IncompleteGenericInBaseList1()
+        {
+            var tree = UsingNode(@"
+class B : A<int
+{
+}
+", TestOptions.Regular7_3,
+                // (2,16): error CS1003: Syntax error, '>' expected
+                // class B : A<int
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "{").WithLocation(2, 16));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "B");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot1()
+        {
+            var text = @"namespace a..b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (1,13): error CS1001: Identifier expected
+                // namespace a..b { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void IncompleteGenericInBaseList2()
+        {
+            var tree = UsingNode(@"
+class B<X, Y> : A<int
+    where X : Y
+{
+}
+", TestOptions.Regular7_3,
+                // (2,22): error CS1003: Syntax error, '>' expected
+                // class B<X, Y> : A<int
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "").WithLocation(2, 22));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "B");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void TestExtraneousColonInBaseList()
+        {
+            var tree = UsingNode(@"
+class A : B : C
+{
+}
+", TestOptions.Regular7_3,
+                // (2,13): error CS1514: { expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1513: } expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
+                // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
+                // (3,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
+                // {
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"{
+}").WithArguments("top-level statements", "9.0").WithLocation(3, 1),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // {
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
+}").WithLocation(3, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "A");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot2()
+        {
+            var text = @"namespace a
+                    ..b { }";
+
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (2,22): error CS1001: Identifier expected
+                //                     ..b { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 22));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot3()
+        {
+            var text = @"namespace a..
+b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (1,13): error CS1001: Identifier expected
+                // namespace a..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot4()
+        {
+            var text = @"namespace a
+                    ..
+b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (2,22): error CS1001: Identifier expected
+                //                     ..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 22));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefaultConstraint_01(bool useCSharp8)
+        {
+            UsingNode(
+@"class C<T> where T : default { }",
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
+                useCSharp8 ?
+                    new[]
+                    {
+                        // (1,22): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                        // class C<T> where T : default { }
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(1, 22)
+                    } :
+                    Array.Empty<DiagnosticDescription>());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DefaultConstraint_02()
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : default
+    where U : default { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefaultConstraint_03(bool useCSharp8)
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : struct, default
+    where U : default, class { }",
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
+                useCSharp8 ?
+                    new[]
+                    {
+                        // (2,23): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                        //     where T : struct, default
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(2, 23),
+                        // (3,15): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                        //     where U : default, class { }
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(3, 15)
+                    } :
+                    Array.Empty<DiagnosticDescription>());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DefaultConstraint_04()
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : struct default
+    where U : default class { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
                         }
                     }
                     N(SyntaxKind.OpenBraceToken);

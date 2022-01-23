@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,33 +25,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
     [UseExportProvider]
     public class SuggestionTagProducerTests
     {
-        private readonly DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider>();
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.SuggestionTags)]
         public async Task SuggestionTagTest1()
         {
-            var spansAndSelection = await GetTagSpansAndSelectionAsync(
+            var (spans, selection) = await GetTagSpansAndSelectionAsync(
 @"class C {
     void M() {
         var v = [|ne|]w X();
         v.Y = 1;
     }
 }");
-            Assert.Equal(1, spansAndSelection.spans.Length);
-            Assert.Equal(spansAndSelection.selection, spansAndSelection.spans.Single().Span.Span.ToTextSpan());
+            Assert.Equal(1, spans.Length);
+            Assert.Equal(selection, spans.Single().Span.Span.ToTextSpan());
         }
 
-        private async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
+        private static async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(content))
+            using var workspace = TestWorkspace.CreateCSharp(content);
+            var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>()
             {
-                var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>()
-                {
-                    { LanguageNames.CSharp, new DiagnosticAnalyzer[] { new CSharpUseObjectInitializerDiagnosticAnalyzer() } }
-                };
-                var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2;
-                return (spans, workspace.Documents.Single().SelectedSpans.Single());
-            }
+                { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseObjectInitializerDiagnosticAnalyzer()) }
+            };
+
+            var spans = (await TestDiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2;
+            return (spans, workspace.Documents.Single().SelectedSpans.Single());
         }
     }
 }

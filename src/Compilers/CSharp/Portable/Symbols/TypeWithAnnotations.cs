@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -20,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class Boxed
         {
+            internal static readonly Boxed Sentinel = new Boxed(default);
+
             internal readonly TypeWithAnnotations Value;
             internal Boxed(TypeWithAnnotations value)
             {
@@ -43,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeWithAnnotations(TypeSymbol defaultType, NullableAnnotation nullableAnnotation, Extensions extensions)
         {
-            Debug.Assert(defaultType?.IsNullableType() != true || (nullableAnnotation != NullableAnnotation.Oblivious && nullableAnnotation != NullableAnnotation.NotAnnotated));
+            Debug.Assert(defaultType?.IsNullableType() != true || nullableAnnotation == NullableAnnotation.Annotated);
             Debug.Assert(extensions != null);
 
             DefaultType = defaultType;
@@ -53,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string ToString() => Type.ToString();
 
-        internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
@@ -61,18 +67,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly SymbolDisplayFormat TestDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier);
 
-        internal static TypeWithAnnotations Create(bool isNullableEnabled, TypeSymbol typeSymbol, bool isAnnotated = false, ImmutableArray<CustomModifier> customModifiers = default)
+        internal static TypeWithAnnotations Create(bool isNullableEnabled, TypeSymbol typeSymbol, bool isAnnotated = false)
         {
             if (typeSymbol is null)
             {
                 return default;
             }
 
-            return Create(typeSymbol, nullableAnnotation: isAnnotated ? NullableAnnotation.Annotated : isNullableEnabled ? NullableAnnotation.NotAnnotated : NullableAnnotation.Oblivious,
-                          customModifiers.NullToEmpty());
+            return Create(typeSymbol, nullableAnnotation: isAnnotated ? NullableAnnotation.Annotated : isNullableEnabled ? NullableAnnotation.NotAnnotated : NullableAnnotation.Oblivious);
         }
 
         internal static TypeWithAnnotations Create(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation = NullableAnnotation.Oblivious, ImmutableArray<CustomModifier> customModifiers = default)
@@ -82,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
+            Debug.Assert(nullableAnnotation != NullableAnnotation.Ignored || typeSymbol.IsTypeParameter());
             switch (nullableAnnotation)
             {
                 case NullableAnnotation.Oblivious:
@@ -117,22 +122,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Create(Type, NullableAnnotation.NotAnnotated, CustomModifiers);
         }
 
-        internal bool IsPossiblyNullableTypeTypeParameter()
-        {
-            return NullableAnnotation.IsNotAnnotated() &&
-                (Type?.IsPossiblyNullableReferenceTypeTypeParameter() == true ||
-                 Type?.IsNullableTypeOrTypeParameter() == true);
-        }
-
+        // Only used by ConstraintsHelper.
         internal NullableAnnotation GetValueNullableAnnotation()
         {
-            if (IsPossiblyNullableTypeTypeParameter())
+            if (NullableAnnotation.IsAnnotated())
+            {
+                return NullableAnnotation;
+            }
+
+            if (Type?.IsPossiblyNullableReferenceTypeTypeParameter() == true)
             {
                 return NullableAnnotation.Annotated;
             }
 
-            // https://github.com/dotnet/roslyn/issues/31675: Is a similar case needed in ValueCanBeNull?
-            if (NullableAnnotation != NullableAnnotation.NotAnnotated && Type.IsNullableTypeOrTypeParameter())
+            if (Type.IsNullableTypeOrTypeParameter())
             {
                 return NullableAnnotation.Annotated;
             }
@@ -159,11 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsIndexedTypeParameter(TypeSymbol typeSymbol)
-        {
-            return typeSymbol is IndexedTypeParameterSymbol;
-        }
-
         private static TypeWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation, ImmutableArray<CustomModifier> customModifiers)
         {
             return new TypeWithAnnotations(typeSymbol, nullableAnnotation, Extensions.Create(customModifiers));
@@ -184,6 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool HasType => !(DefaultType is null);
 
+#nullable enable
         public TypeWithAnnotations SetIsAnnotated(CSharpCompilation compilation)
         {
             Debug.Assert(CustomModifiers.IsEmpty);
@@ -215,34 +214,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations makeNullableT()
                 => Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol)));
         }
+#nullable disable
 
         /// <summary>
-        /// If this is a lazy nullable type pending resolution, forces this to be resolved as a nullable value type.
+        /// If this is a lazy nullable type pending resolution, forces this to be resolved.
         /// </summary>
-        public void TryForceResolveAsNullableValueType()
+        public void TryForceResolve(bool asValueType)
         {
-            _extensions.TryForceResolveAsNullableValueType();
-        }
-
-        /// <summary>
-        /// If this is a lazy nullable type pending resolution, forces this to be resolved as a nullable reference type.
-        /// </summary>
-        public void TryForceResolveAsNullableReferenceType()
-        {
-            _extensions.TryForceResolveAsNullableReferenceType();
+            _extensions.TryForceResolve(asValueType);
         }
 
         private TypeWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);
         public TypeWithAnnotations AsNotNullableReferenceType() => _extensions.AsNotNullableReferenceType(this);
 
         /// <summary>
-        /// Merges top-level and nested nullability from an otherwise identical type.
+        /// Merges top-level and nested nullability, dynamic/object, and tuple names from an otherwise equivalent type.
         /// </summary>
-        internal TypeWithAnnotations MergeNullability(TypeWithAnnotations other, VarianceKind variance)
+        internal TypeWithAnnotations MergeEquivalentTypes(TypeWithAnnotations other, VarianceKind variance)
         {
             TypeSymbol typeSymbol = other.Type;
             NullableAnnotation nullableAnnotation = this.NullableAnnotation.MergeNullableAnnotation(other.NullableAnnotation, variance);
-            TypeSymbol type = Type.MergeNullability(typeSymbol, variance);
+            TypeSymbol type = Type.MergeEquivalentTypes(typeSymbol, variance);
             Debug.Assert((object)type != null);
             return Create(type, nullableAnnotation, CustomModifiers);
         }
@@ -256,6 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
+        /// 
+        /// To check whether a type is System.Nullable`1 or is a type parameter constrained to System.Nullable`1
+        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter" /> instead.
         /// </summary>
         public bool IsNullableType() => Type.IsNullableType();
 
@@ -303,8 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return str + "?";
                 }
                 else if (NullableAnnotation.IsNotAnnotated() &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                    (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())))
+                    format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier) &&
+                    (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotationInCSharp8())))
                 {
                     return str + "!";
                 }
@@ -327,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
         }
 
-        public bool Equals(TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        public bool Equals(TypeWithAnnotations other, TypeCompareKind comparison)
         {
             if (this.IsSameAs(other))
             {
@@ -341,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
             }
-            else if (!other.HasType || !TypeSymbolEquals(other, comparison, isValueTypeOverrideOpt))
+            else if (!other.HasType || !TypeSymbolEquals(other, comparison))
             {
                 return false;
             }
@@ -367,12 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     TypeSymbol type = Type;
-                    bool isValueType;
-
-                    if (isValueTypeOverrideOpt == null || !(type is TypeParameterSymbol typeParameter) || !isValueTypeOverrideOpt.TryGetValue(typeParameter, out isValueType))
-                    {
-                        isValueType = type.IsValueType && !type.IsNullableType();
-                    }
+                    bool isValueType = type.IsValueType && !type.IsNullableType();
 
                     if (!isValueType)
                     {
@@ -386,15 +376,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed class EqualsComparer : EqualityComparer<TypeWithAnnotations>
         {
-            internal static readonly EqualsComparer ConsiderEverythingComparer = new EqualsComparer(TypeCompareKind.ConsiderEverything, isValueTypeOverrideOpt: null);
+            internal static readonly EqualsComparer ConsiderEverythingComparer = new EqualsComparer(TypeCompareKind.ConsiderEverything);
+            internal static readonly EqualsComparer IgnoreNullableModifiersForReferenceTypesComparer = new EqualsComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
 
             private readonly TypeCompareKind _compareKind;
-            private readonly IReadOnlyDictionary<TypeParameterSymbol, bool> _isValueTypeOverrideOpt;
 
-            public EqualsComparer(TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+            public EqualsComparer(TypeCompareKind compareKind)
             {
                 _compareKind = compareKind;
-                _isValueTypeOverrideOpt = isValueTypeOverrideOpt;
             }
 
             public override int GetHashCode(TypeWithAnnotations obj)
@@ -412,12 +401,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return !y.HasType;
                 }
-                return x.Equals(y, _compareKind, _isValueTypeOverrideOpt);
+                return x.Equals(y, _compareKind);
             }
         }
 
-        internal bool TypeSymbolEquals(TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt) =>
-            _extensions.TypeSymbolEquals(this, other, comparison, isValueTypeOverrideOpt);
+        internal bool TypeSymbolEquals(TypeWithAnnotations other, TypeCompareKind comparison) =>
+            _extensions.TypeSymbolEquals(this, other, comparison);
 
         public bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
@@ -425,29 +414,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    Symbol.GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, owner, ref checkedTypes);
         }
 
-        public bool IsAtLeastAsVisibleAs(Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public bool IsAtLeastAsVisibleAs(Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // System.Nullable is public, so it is safe to delegate to the underlying.
-            return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteDiagnostics);
+            return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteInfo);
         }
 
         public TypeWithAnnotations SubstituteType(AbstractTypeMap typeMap) =>
-            _extensions.SubstituteType(this, typeMap, withTupleUnification: false);
-        public TypeWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap) =>
-            _extensions.SubstituteType(this, typeMap, withTupleUnification: true);
+            _extensions.SubstituteType(this, typeMap);
 
-        internal TypeWithAnnotations TransformToTupleIfCompatible() => _extensions.TransformToTupleIfCompatible(this);
-
-        internal TypeWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap, bool withTupleUnification)
+        internal TypeWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap)
         {
+            // Ignored may only appear on a replacement type and will not survive the substitution (ie. the original annotation wins over Ignored)
+            Debug.Assert(NullableAnnotation != NullableAnnotation.Ignored);
+
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             TypeSymbol typeSymbol = this.Type;
-            var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol, withTupleUnification);
+            var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol);
 
             if (!typeSymbol.IsTypeParameter())
             {
                 Debug.Assert(newTypeWithModifiers.NullableAnnotation.IsOblivious() || (typeSymbol.IsNullableType() && newTypeWithModifiers.NullableAnnotation.IsAnnotated()));
                 Debug.Assert(newTypeWithModifiers.CustomModifiers.IsEmpty);
+                Debug.Assert(NullableAnnotation != NullableAnnotation.Ignored);
 
                 if (typeSymbol.Equals(newTypeWithModifiers.Type, TypeCompareKind.ConsiderEverything) &&
                     newCustomModifiers == CustomModifiers)
@@ -468,27 +457,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this; // substitution had no effect on the type or modifiers
             }
-            else if (Is((TypeParameterSymbol)typeSymbol))
+            else if (Is((TypeParameterSymbol)typeSymbol) && newTypeWithModifiers.NullableAnnotation != NullableAnnotation.Ignored)
+            {
+                return newTypeWithModifiers;
+            }
+
+            if (newTypeWithModifiers.Type is PlaceholderTypeArgumentSymbol)
             {
                 return newTypeWithModifiers;
             }
 
             NullableAnnotation newAnnotation;
-
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
+            Debug.Assert(newTypeWithModifiers.Type is not IndexedTypeParameterSymbol || newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Ignored);
 
             if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
             {
-                newAnnotation = NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated() ?
-                    NullableAnnotation.Annotated : NullableAnnotation.Annotated;
+                newAnnotation = NullableAnnotation.Annotated;
             }
-            else if (IsIndexedTypeParameter(newTypeWithModifiers.Type))
+            else if (newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Ignored)
             {
                 newAnnotation = NullableAnnotation;
             }
             else if (NullableAnnotation != NullableAnnotation.Oblivious)
             {
-                if (!typeSymbol.IsTypeParameterDisallowingAnnotation())
+                if (!typeSymbol.IsTypeParameterDisallowingAnnotationInCSharp8())
                 {
                     newAnnotation = NullableAnnotation;
                 }
@@ -514,15 +506,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
         }
 
-        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics) =>
+        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics) =>
             _extensions.ReportDiagnosticsIfObsolete(this, binder, syntax, diagnostics);
 
-        private bool TypeSymbolEqualsCore(TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool TypeSymbolEqualsCore(TypeWithAnnotations other, TypeCompareKind comparison)
         {
-            return Type.Equals(other.Type, comparison, isValueTypeOverrideOpt);
+            return Type.Equals(other.Type, comparison);
         }
 
-        private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             binder.ReportDiagnosticsIfObsolete(diagnostics, Type, syntax, hasBaseReceiver: false);
         }
@@ -545,6 +537,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
 
+        public TypeWithAnnotations WithType(TypeSymbol typeSymbol) =>
+            _extensions.WithTypeAndModifiers(this, typeSymbol, CustomModifiers);
+
+        /// <summary>
+        /// Used by callers before calling CSharpCompilation.EnsureNullableAttributeExists().
+        /// </summary>
+        /// <remarks>
+        /// This method ignores any [NullableContext]. For example, if there is a [NullableContext(1)]
+        /// at the containing type, and this type reference is oblivious, NeedsNullableAttribute()
+        /// will return false even though a [Nullable(0)] will be emitted for this type reference.
+        /// In practice, this shouldn't be an issue though since EnsuresNullableAttributeExists()
+        /// will have returned true for at least some of other type references that required
+        /// [Nullable(1)] and were subsequently aggregated to the [NullableContext(1)].
+        /// </remarks>
         public bool NeedsNullableAttribute()
         {
             return NeedsNullableAttribute(this, typeOpt: null);
@@ -557,40 +563,85 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = TypeSymbolExtensions.VisitType(
                 typeWithAnnotationsOpt,
                 typeOpt,
-                typeWithAnnotationsPredicateOpt: (t, a, b) => t.NullableAnnotation != NullableAnnotation.Oblivious && !t.Type.IsErrorType() && !t.Type.IsValueType,
-                typePredicateOpt: null,
+                typeWithAnnotationsPredicate: (t, a, b) => t.NullableAnnotation != NullableAnnotation.Oblivious && !t.Type.IsErrorType() && !t.Type.IsValueType,
+                typePredicate: null,
                 arg: (object)null);
             return (object)type != null;
         }
 
+        /// <summary>
+        /// If the type is a non-generic value type or Nullable&lt;&gt;, and
+        /// is not a type parameter, the nullability is not included in the byte[].
+        /// </summary>
+        private static bool IsNonGenericValueType(TypeSymbol type)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if (namedType is null)
+            {
+                return false;
+            }
+            if (namedType.IsGenericType)
+            {
+                return type.IsNullableType();
+            }
+            return type.IsValueType;
+        }
+
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            var typeSymbol = Type;
-            byte flag;
+            AddNullableTransforms(this, transforms);
+        }
 
-            if (NullableAnnotation.IsOblivious() || typeSymbol.IsValueType)
+        private static void AddNullableTransforms(TypeWithAnnotations typeWithAnnotations, ArrayBuilder<byte> transforms)
+        {
+            while (true)
             {
-                flag = NullableAnnotationExtensions.ObliviousAttributeValue;
-            }
-            else if (NullableAnnotation.IsAnnotated())
-            {
-                flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
-            }
-            else
-            {
-                flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-            }
+                var type = typeWithAnnotations.Type;
 
-            transforms.Add(flag);
-            typeSymbol.AddNullableTransforms(transforms);
+                if (!IsNonGenericValueType(type))
+                {
+                    var annotation = typeWithAnnotations.NullableAnnotation;
+                    byte flag;
+                    if (annotation.IsOblivious() || type.IsValueType)
+                    {
+                        flag = NullableAnnotationExtensions.ObliviousAttributeValue;
+                    }
+                    else if (annotation.IsAnnotated())
+                    {
+                        flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                    }
+                    else
+                    {
+                        flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                    }
+                    transforms.Add(flag);
+                }
+
+                if (type.TypeKind != TypeKind.Array)
+                {
+                    type.AddNullableTransforms(transforms);
+                    return;
+                }
+
+                // Avoid recursion to allow for deeply-nested arrays.
+                typeWithAnnotations = ((ArrayTypeSymbol)type).ElementTypeWithAnnotations;
+            }
         }
 
         public bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeWithAnnotations result)
         {
             result = this;
 
+            TypeSymbol oldTypeSymbol = Type;
             byte transformFlag;
-            if (transforms.IsDefault)
+
+            // Check IsNonGenericValueType first to avoid
+            // applying transforms to simple value types.
+            if (IsNonGenericValueType(oldTypeSymbol))
+            {
+                transformFlag = NullableAnnotationExtensions.ObliviousAttributeValue;
+            }
+            else if (transforms.IsDefault)
             {
                 transformFlag = defaultTransformFlag;
             }
@@ -603,9 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            TypeSymbol oldTypeSymbol = Type;
             TypeSymbol newTypeSymbol;
-
             if (!oldTypeSymbol.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newTypeSymbol))
             {
                 return false;
@@ -656,18 +705,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations SetUnknownNullabilityForReferenceTypes()
         {
             var typeSymbol = Type;
+            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
 
             if (NullableAnnotation != NullableAnnotation.Oblivious)
             {
                 if (!typeSymbol.IsValueType)
                 {
-                    typeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
-
-                    return CreateNonLazyType(typeSymbol, NullableAnnotation.Oblivious, CustomModifiers);
+                    return CreateNonLazyType(newTypeSymbol, NullableAnnotation.Oblivious, CustomModifiers);
                 }
             }
-
-            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)newTypeSymbol != typeSymbol)
             {
@@ -682,7 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool Equals(object other)
 #pragma warning restore CS0809
         {
-            throw ExceptionUtilities.Unreachable;
+            // It is possible to get here when we compare diagnostic for equality
+            return other is TypeWithAnnotations t && this.Equals(t, TypeCompareKind.ConsiderEverything);
         }
 
 #pragma warning disable CS0809
@@ -730,9 +777,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Reading from a variable of a type parameter (that could be substituted with a nullable type), but which
             // cannot itself be annotated (because it isn't known to be a reference type), may yield a null value
             // even though the type parameter isn't annotated.
-            return TypeWithState.Create(
-                Type,
-                IsPossiblyNullableTypeTypeParameter() || NullableAnnotation.IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
+            return TypeWithState.Create(Type, getFlowState(Type, NullableAnnotation));
+
+            static NullableFlowState getFlowState(TypeSymbol type, NullableAnnotation annotation)
+            {
+                if (type is null)
+                {
+                    return annotation.IsAnnotated() ? NullableFlowState.MaybeDefault : NullableFlowState.NotNull;
+                }
+                if (type.IsPossiblyNullableReferenceTypeTypeParameter())
+                {
+                    return annotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeDefault, NullableAnnotation.NotAnnotated => NullableFlowState.MaybeNull, _ => NullableFlowState.NotNull };
+                }
+                if (type.IsTypeParameterDisallowingAnnotationInCSharp8())
+                {
+                    return annotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeDefault, _ => NullableFlowState.NotNull };
+                }
+                if (type.IsNullableTypeOrTypeParameter())
+                {
+                    return NullableFlowState.MaybeNull;
+                }
+                return annotation switch { NullableAnnotation.Annotated => NullableFlowState.MaybeNull, _ => NullableFlowState.NotNull };
+            }
         }
 
         /// <summary>
@@ -777,14 +843,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal abstract TypeWithAnnotations WithTypeAndModifiers(TypeWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
-            internal abstract bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt);
-            internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification);
-            internal abstract TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type);
-            internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
+            internal abstract bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison);
+            internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap);
+            internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics);
 
-            internal abstract void TryForceResolveAsNullableValueType();
-
-            internal abstract void TryForceResolveAsNullableReferenceType();
+            internal abstract void TryForceResolve(bool asValueType);
         }
 
         private sealed class NonLazyType : Extensions
@@ -832,37 +895,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return CreateNonLazyType(defaultType, defaultType.IsNullableType() ? type.NullableAnnotation : NullableAnnotation.NotAnnotated, _customModifiers);
             }
 
-            internal override bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+            internal override bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison)
             {
-                return type.TypeSymbolEqualsCore(other, comparison, isValueTypeOverrideOpt);
+                return type.TypeSymbolEqualsCore(other, comparison);
             }
 
-            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification)
+            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap)
             {
-                return type.SubstituteTypeCore(typeMap, withTupleUnification);
+                return type.SubstituteTypeCore(typeMap);
             }
 
-            internal override TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type)
-            {
-                var defaultType = type.DefaultType;
-                var transformedType = TupleTypeSymbol.TransformToTupleIfCompatible(defaultType);
-                if ((object)defaultType != transformedType)
-                {
-                    return TypeWithAnnotations.Create(transformedType, type.NullableAnnotation, _customModifiers);
-                }
-                return type;
-            }
-
-            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 type.ReportDiagnosticsIfObsoleteCore(binder, syntax, diagnostics);
             }
 
-            internal override void TryForceResolveAsNullableValueType()
-            {
-            }
-
-            internal override void TryForceResolveAsNullableReferenceType()
+            internal override void TryForceResolve(bool asValueType)
             {
             }
         }
@@ -894,16 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_resolved == null)
                 {
-                    Debug.Assert(_underlying.IsSafeToResolve());
-
-                    if (!_underlying.Type.IsValueType)
-                    {
-                        TryForceResolveAsNullableReferenceType();
-                    }
-                    else
-                    {
-                        TryForceResolveAsNullableValueType();
-                    }
+                    TryForceResolve(asValueType: _underlying.Type.IsValueType);
                 }
 
                 return _resolved;
@@ -970,14 +1009,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type;
             }
 
-            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification)
+            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap)
             {
                 if ((object)_resolved != null)
                 {
-                    return type.SubstituteTypeCore(typeMap, withTupleUnification);
+                    return type.SubstituteTypeCore(typeMap);
                 }
 
-                var newUnderlying = _underlying.SubstituteTypeCore(typeMap, withTupleUnification);
+                var newUnderlying = _underlying.SubstituteTypeCore(typeMap);
                 if (!newUnderlying.IsSameAs(this._underlying))
                 {
                     if (newUnderlying.Type.Equals(this._underlying.Type, TypeCompareKind.ConsiderEverything) &&
@@ -986,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return CreateLazyNullableType(_compilation, newUnderlying);
                     }
 
-                    return type.SubstituteTypeCore(typeMap, withTupleUnification);
+                    return type.SubstituteTypeCore(typeMap);
                 }
                 else
                 {
@@ -994,12 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type)
-            {
-                return type;
-            }
-
-            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 if ((object)_resolved != null)
                 {
@@ -1011,28 +1045,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+            internal override bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison)
             {
                 var otherLazy = other._extensions as LazyNullableTypeParameter;
 
                 if ((object)otherLazy != null)
                 {
-                    return _underlying.TypeSymbolEquals(otherLazy._underlying, comparison, isValueTypeOverrideOpt);
+                    return _underlying.TypeSymbolEquals(otherLazy._underlying, comparison);
                 }
 
-                return type.TypeSymbolEqualsCore(other, comparison, isValueTypeOverrideOpt);
+                return type.TypeSymbolEqualsCore(other, comparison);
             }
 
-            internal override void TryForceResolveAsNullableValueType()
+            internal override void TryForceResolve(bool asValueType)
             {
-                Interlocked.CompareExchange(ref _resolved,
-                    _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(_underlying)),
-                    null);
-            }
-
-            internal override void TryForceResolveAsNullableReferenceType()
-            {
-                Interlocked.CompareExchange(ref _resolved, _underlying.Type, null);
+                var resolved = asValueType ?
+                    _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(_underlying)) :
+                    _underlying.Type;
+                Interlocked.CompareExchange(ref _resolved, resolved, null);
             }
         }
     }

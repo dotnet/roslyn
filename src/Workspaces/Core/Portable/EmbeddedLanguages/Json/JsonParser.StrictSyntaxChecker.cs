@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var ch in trivia.VirtualChars)
                 {
-                    switch (ch.Char)
+                    switch (ch.Value)
                     {
                         case ' ':
                         case '\t':
@@ -112,12 +113,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 var sequence = node.Sequence;
                 foreach (var child in sequence)
                 {
-                    var childNode = child.Node;
-                    if (childNode.Kind != JsonKind.Property && childNode.Kind != JsonKind.CommaValue)
+                    if (child.IsNode)
                     {
-                        return new EmbeddedDiagnostic(
-                            WorkspacesResources.Only_properties_allowed_in_an_object,
-                            GetFirstToken(childNode).GetSpan());
+                        var childNode = child.Node;
+                        if (childNode.Kind != JsonKind.Property && childNode.Kind != JsonKind.CommaValue)
+                        {
+                            return new EmbeddedDiagnostic(
+                                WorkspacesResources.Only_properties_allowed_in_an_object,
+                                GetFirstToken(childNode).GetSpan());
+                        }
                     }
                 }
 
@@ -128,12 +132,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var child in node.Sequence)
                 {
-                    var childNode = child.Node;
-                    if (childNode.Kind == JsonKind.Property)
+                    if (child.IsNode)
                     {
-                        return new EmbeddedDiagnostic(
-                            WorkspacesResources.Properties_not_allowed_in_an_array,
-                            ((JsonPropertyNode)childNode).ColonToken.GetSpan());
+                        var childNode = child.Node;
+                        if (childNode.Kind == JsonKind.Property)
+                        {
+                            return new EmbeddedDiagnostic(
+                                WorkspacesResources.Properties_not_allowed_in_an_array,
+                                ((JsonPropertyNode)childNode).ColonToken.GetSpan());
+                        }
                     }
                 }
 
@@ -145,7 +152,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // Ensure that this sequence is actually a separated list.
                 for (int i = 0, n = sequence.ChildCount; i < n; i++)
                 {
-                    var child = sequence.ChildAt(i).Node;
+                    var child = sequence[i];
                     if (i % 2 == 0)
                     {
                         if (child.Kind == JsonKind.CommaValue)
@@ -166,11 +173,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     }
                 }
 
-                if (sequence.ChildCount != 0 && sequence.ChildCount % 2 == 0)
+                if (sequence.ChildCount != 0 &&
+                    sequence.ChildCount % 2 == 0)
                 {
+                    var lastChild = sequence[sequence.ChildCount - 1];
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Trailing_comma_not_allowed,
-                        sequence.ChildAt(sequence.ChildCount - 1).Node.GetSpan());
+                        lastChild.GetSpan());
                 }
 
                 return null;
@@ -271,7 +280,7 @@ $",
             private static EmbeddedDiagnostic? CheckString(JsonToken literalToken)
             {
                 var chars = literalToken.VirtualChars;
-                if (chars[0].Char == '\'')
+                if (chars[0] == '\'')
                 {
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Strings_must_start_with_double_quote_not_single_quote,
@@ -280,7 +289,7 @@ $",
 
                 for (int i = 1, n = chars.Length - 1; i < n; i++)
                 {
-                    if (chars[i].Char < ' ')
+                    if (chars[i] < ' ')
                     {
                         return new EmbeddedDiagnostic(
                             WorkspacesResources.Illegal_string_character,

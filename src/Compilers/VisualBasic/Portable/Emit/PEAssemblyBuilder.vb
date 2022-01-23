@@ -1,10 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -45,9 +47,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(sourceAssembly IsNot Nothing)
             Debug.Assert(manifestResources IsNot Nothing)
 
-            Me.m_SourceAssembly = sourceAssembly
-            Me._additionalTypes = additionalTypes.NullToEmpty()
-            Me._metadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
+            m_SourceAssembly = sourceAssembly
+            _additionalTypes = additionalTypes.NullToEmpty()
+            _metadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
 
@@ -57,8 +59,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
-            Return Me._additionalTypes
+        Public Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
+            Return _additionalTypes
+        End Function
+
+        Public Overrides Function GetEmbeddedTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
         Public NotOverridable Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference)
@@ -135,13 +141,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Public ReadOnly Property Identity As AssemblyIdentity Implements IAssemblyReference.Identity
+        Public ReadOnly Property Identity As AssemblyIdentity Implements Cci.IAssemblyReference.Identity
             Get
                 Return m_SourceAssembly.Identity
             End Get
         End Property
 
-        Public ReadOnly Property AssemblyVersionPattern As Version Implements IAssemblyReference.AssemblyVersionPattern
+        Public ReadOnly Property AssemblyVersionPattern As Version Implements Cci.IAssemblyReference.AssemblyVersionPattern
             Get
                 Return m_SourceAssembly.AssemblyVersionPattern
             End Get
@@ -167,9 +173,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+        Public Overrides ReadOnly Property EncSymbolChanges As SymbolChanges
             Get
-                Return 0
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
+            Get
+                Return Nothing
             End Get
         End Property
     End Class

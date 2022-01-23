@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
@@ -18,115 +22,172 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly IVsTaskStatusCenterService _taskCenterService;
         private readonly TaskHandlerOptions _options;
 
-        // these fields are never accessed concurrently
-        private TaskCompletionSource<VoidResult> _currentTask;
-        private DateTimeOffset _lastTimeReported;
+        #region Fields protected by _lock
 
-        // this is only field that is shared between 2 events streams (IDiagnosticService and ISolutionCrawlerProgressReporter)
-        // and can be called concurrently.
-        private volatile ITaskHandler _taskHandler;
+        /// <summary>
+        /// Gate access to reporting sln crawler events so we cannot
+        /// report UI changes concurrently.
+        /// </summary>
+        private readonly object _lock = new();
+
+        /// <summary>
+        /// Task used to trigger throttled UI updates in an interval
+        /// defined by <see cref="s_minimumInterval"/>
+        /// Protected from concurrent access by the <see cref="_lock"/>
+        /// </summary>
+        private Task? _intervalTask;
+
+        /// <summary>
+        /// Stores the last shown <see cref="ProgressData"/>
+        /// Protected from concurrent access by the <see cref="_lock"/>
+        /// </summary>
+        private ProgressData _lastProgressData;
+
+        /// <summary>
+        /// Task used to ensure serialization of UI updates.
+        /// Protected from concurrent access by the <see cref="_lock"/>
+        /// </summary>
+        private Task _updateUITask = Task.CompletedTask;
+
+        #endregion
+
+        #region Fields protected by _updateUITask running serially
+
+        /// <summary>
+        /// Task handler to provide a task to the <see cref="_taskCenterService"/>
+        /// Protected from concurrent access due to serialization from <see cref="_updateUITask"/>
+        /// </summary>
+        private ITaskHandler? _taskHandler;
+
+        /// <summary>
+        /// Stores the currently running task center task.
+        /// This is manually started and completed based on receiving start / stop events
+        /// from the <see cref="ISolutionCrawlerProgressReporter"/>
+        /// Protected from concurrent access due to serialization from <see cref="_updateUITask"/>
+        /// </summary>
+        private TaskCompletionSource<VoidResult>? _taskCenterTask;
+
+        /// <summary>
+        /// Unfortunately, <see cref="ProgressData.PendingItemCount"/> is only reported
+        /// when the <see cref="ProgressData.Status"/> is <see cref="ProgressStatus.PendingItemCountUpdated"/>
+        /// So we have to store the count separately for the UI so that we do not overwrite the last reported count with 0.
+        /// Protected from concurrent access due to serialization from <see cref="_updateUITask"/>
+        /// </summary>
+        private int _lastPendingItemCount;
+
+        #endregion
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TaskCenterSolutionAnalysisProgressReporter(
             SVsTaskStatusCenterService taskStatusCenterService,
             IDiagnosticService diagnosticService,
             VisualStudioWorkspace workspace)
         {
-            _lastTimeReported = DateTimeOffset.UtcNow;
-
             _taskCenterService = (IVsTaskStatusCenterService)taskStatusCenterService;
-
             _options = new TaskHandlerOptions()
             {
-                Title = ServicesVSResources.Live_analysis,
+                Title = ServicesVSResources.Running_low_priority_background_processes,
                 ActionsAfterCompletion = CompletionActions.None
             };
 
-            var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
+            var crawlerService = workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(workspace);
 
-            StartedOrStopped(reporter.InProgress);
+            if (reporter.InProgress)
+            {
+                // The reporter was already sending events before we were able to subscribe, so trigger an update to the task center.
+                OnSolutionCrawlerProgressChanged(this, new ProgressData(ProgressStatus.Started, pendingItemCount: null));
+            }
 
-            // no event unsubscription since it will remain alive until VS shutdown
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
         }
 
-        private void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)
+        /// <summary>
+        /// Retrieve and throttle solution crawler events to be sent to the progress reporter UI.
+        /// 
+        /// there is no concurrent call to this method since ISolutionCrawlerProgressReporter will serialize all
+        /// events to preserve event ordering
+        /// </summary>
+        /// <param name="progressData"></param>
+        public void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)
         {
-            // there is no concurrent call to this method since ISolutionCrawlerProgressReporter will serialize all
-            // events to preserve event ordering
-            switch (progressData.Status)
+            lock (_lock)
             {
-                case ProgressStatus.Started:
-                    StartedOrStopped(started: true);
-                    break;
-                case ProgressStatus.Updated:
-                    ProgressUpdated(progressData.FilePathOpt);
-                    break;
-                case ProgressStatus.Stoped:
-                    StartedOrStopped(started: false);
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(progressData.Status);
+                _lastProgressData = progressData;
+
+                // The task is running which will update the progress.
+                if (_intervalTask != null)
+                {
+                    return;
+                }
+
+                // Kick off task to update the UI after a delay to pick up any new events.
+                _intervalTask = Task.Delay(s_minimumInterval).ContinueWith(_ => ReportProgress(),
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
         }
 
-        private void ProgressUpdated(string filePathOpt)
+        private void ReportProgress()
         {
-            var current = DateTimeOffset.UtcNow;
-            if (current - _lastTimeReported < s_minimumInterval)
+            lock (_lock)
             {
-                // make sure we are not flooding UI. 
-                // this is just presentation, fine to not updating UI especially since
-                // at the end, this notification will go away automatically
+                var data = _lastProgressData;
+                _intervalTask = null;
+
+                _updateUITask = _updateUITask.ContinueWith(_ => UpdateUI(data),
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }
+        }
+
+        private void UpdateUI(ProgressData progressData)
+        {
+            if (progressData.Status == ProgressStatus.Stopped)
+            {
+                StopTaskCenter();
                 return;
             }
 
-            _lastTimeReported = current;
-            ChangeProgress(_taskHandler, filePathOpt != null ? string.Format(ServicesVSResources.Analyzing_0, FileNameUtilities.GetFileName(filePathOpt)) : null);
-        }
-
-        private void StartedOrStopped(bool started)
-        {
-            if (started)
+            // Update the pending item count if the progress data specifies a value.
+            if (progressData.PendingItemCount.HasValue)
             {
-                // if there is any pending one. make sure it is finished.
-                _currentTask?.TrySetResult(default);
-
-                var taskHandler = _taskCenterService.PreRegister(_options, data: default);
-
-                _currentTask = new TaskCompletionSource<VoidResult>();
-                taskHandler.RegisterTask(_currentTask.Task);
-
-                // report initial progress
-                ChangeProgress(taskHandler, message: null);
-
-                // set handler
-                _taskHandler = taskHandler;
+                _lastPendingItemCount = progressData.PendingItemCount.Value;
             }
-            else
+
+            // Start the task center task if not already running.
+            if (_taskHandler == null)
             {
-                // clear progress message
-                ChangeProgress(_taskHandler, message: null);
+                // Register a new task handler to handle a new task center task.
+                // Each task handler can only register one task, so we must create a new one each time we start.
+                _taskHandler = _taskCenterService.PreRegister(_options, data: default);
 
-                // stop progress
-                _currentTask?.TrySetResult(default);
-                _currentTask = null;
-
-                _taskHandler = null;
+                // Create a new non-completed task to be tracked by the task handler.
+                _taskCenterTask = new TaskCompletionSource<VoidResult>();
+                _taskHandler.RegisterTask(_taskCenterTask.Task);
             }
-        }
 
-        private static void ChangeProgress(ITaskHandler taskHandler, string message)
-        {
-            var data = new TaskProgressData
+            var statusMessage = progressData.Status == ProgressStatus.Paused
+                ? ServicesVSResources.Paused_0_tasks_in_queue
+                : ServicesVSResources.Evaluating_0_tasks_in_queue;
+
+            _taskHandler.Progress.Report(new TaskProgressData
             {
-                ProgressText = message,
+                ProgressText = string.Format(statusMessage, _lastPendingItemCount),
                 CanBeCanceled = false,
                 PercentComplete = null,
-            };
+            });
+        }
 
-            taskHandler?.Progress.Report(data);
+        private void StopTaskCenter()
+        {
+            // Mark the progress task as completed so it shows complete in the task center.
+            _taskCenterTask?.TrySetResult(default);
+
+            // Clear tasks and data.
+            _taskCenterTask = null;
+            _taskHandler = null;
+            _lastProgressData = default;
+            _lastPendingItemCount = 0;
         }
     }
 }

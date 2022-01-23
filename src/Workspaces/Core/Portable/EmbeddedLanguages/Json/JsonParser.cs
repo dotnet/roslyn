@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -95,7 +97,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         /// diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
+<<<<<<< HEAD
         public static JsonTree TryParse(VirtualCharSequence text, JsonOptions options)
+=======
+        public static JsonTree? TryParse(VirtualCharSequence text, bool strict)
+>>>>>>> jsonTests
         {
             try
             {
@@ -161,7 +167,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // the top level can't have more than one actual value.
                 var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
                 return new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
+                    string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0]),
                     firstToken.GetSpan());
             }
 
@@ -180,12 +186,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return null;
         }
 
-        private static JsonToken GetFirstToken(JsonNode node)
+        private static JsonToken GetFirstToken(JsonNodeOrToken nodeOrToken)
         {
-            var child = node.ChildAt(0);
-            return child.IsNode
-                ? GetFirstToken(child.Node)
-                : child.Token;
+            return nodeOrToken.IsNode ? GetFirstToken(nodeOrToken.Node.ChildAt(0)) : nodeOrToken.Token;
         }
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNode node)
@@ -210,13 +213,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonToken token)
-            => GetFirstDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNullable() ?? GetFirstDiagnostic(token.TrailingTrivia);
+            => GetFirstDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNull() ?? GetFirstDiagnostic(token.TrailingTrivia);
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(ImmutableArray<JsonTrivia> list)
         {
             foreach (var trivia in list)
             {
-                var diagnostic = trivia.Diagnostics.FirstOrNullable();
+                var diagnostic = trivia.Diagnostics.FirstOrNull();
                 if (diagnostic != null)
                 {
                     return diagnostic;
@@ -368,7 +371,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             // Look for constructors (a json.net extension).  We'll report them as an error
             // in strict model.
-            if (Matches(token, "new"))
+            if (JsonParser.Matches(token, "new"))
             {
                 return ParseConstructor(token);
             }
@@ -376,17 +379,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             // Check for certain literal values.  Some of these (like NaN) are json.net only.
             // We'll check for these later in the strict-mode pass.
             Debug.Assert(token.VirtualChars.Length > 0);
-            if (TryMatch(token, "NaN", JsonKind.NaNLiteralToken, out var newKind) ||
-                TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
-                TryMatch(token, "null", JsonKind.NullLiteralToken, out newKind) ||
-                TryMatch(token, "false", JsonKind.FalseLiteralToken, out newKind) ||
-                TryMatch(token, "Infinity", JsonKind.InfinityLiteralToken, out newKind) ||
-                TryMatch(token, "undefined", JsonKind.UndefinedLiteralToken, out newKind))
+            if (JsonParser.TryMatch(token, "NaN", JsonKind.NaNLiteralToken, out var newKind) ||
+                JsonParser.TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
+                JsonParser.TryMatch(token, "null", JsonKind.NullLiteralToken, out newKind) ||
+                JsonParser.TryMatch(token, "false", JsonKind.FalseLiteralToken, out newKind) ||
+                JsonParser.TryMatch(token, "Infinity", JsonKind.InfinityLiteralToken, out newKind) ||
+                JsonParser.TryMatch(token, "undefined", JsonKind.UndefinedLiteralToken, out newKind))
             {
                 return new JsonLiteralNode(token.With(kind: newKind));
             }
 
-            if (Matches(token, "-Infinity"))
+            if (JsonParser.Matches(token, "-Infinity"))
             {
                 SplitLiteral(token, out var minusToken, out var newLiteralToken);
 
@@ -402,7 +405,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             return new JsonTextNode(
                 token.With(kind: JsonKind.TextToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources._0_unexpected, firstChar.Char),
+                    string.Format(WorkspacesResources._0_unexpected, firstChar.ToString()),
                     firstChar.Span)));
         }
 
@@ -426,9 +429,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return result;
         }
 
-        private bool TryMatch(JsonToken token, string val, JsonKind kind, out JsonKind newKind)
+        private static bool TryMatch(JsonToken token, string val, JsonKind kind, out JsonKind newKind)
         {
-            if (Matches(token, val))
+            if (JsonParser.Matches(token, val))
             {
                 newKind = kind;
                 return true;
@@ -438,26 +441,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return false;
         }
 
-        private bool Matches(JsonToken token, string val)
+        private static bool Matches(JsonToken token, string val)
         {
             var chars = token.VirtualChars;
             if (chars.Length != val.Length)
-            {
                 return false;
-            }
 
-            for (int i = 0; i < val.Length; i++)
+            for (var i = 0; i < val.Length; i++)
             {
-                if (chars[i].Char != val[i])
-                {
+                if (chars[i] != val[i])
                     return false;
-                }
             }
 
             return true;
         }
 
-        private static bool IsDigit(char ch)
+        private static bool IsDigit(VirtualChar ch)
             => ch >= '0' && ch <= '9';
 
         private static JsonLiteralNode ParseLiteral(JsonToken textToken, JsonKind kind)

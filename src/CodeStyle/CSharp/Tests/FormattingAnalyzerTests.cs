@@ -1,14 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    using Verify = CSharpCodeFixVerifier<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>;
+    using Verify = CSharpCodeFixVerifier<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider>;
 
     public class FormattingAnalyzerTests
     {
@@ -28,6 +36,25 @@ class MyClass
         }
 
         [Fact]
+        public async Task TestParamNullChecking()
+        {
+            var testCode = @"
+class MyClass
+{
+    void MyMethod(string s!!)
+    {
+    }
+}
+";
+            await new Verify.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNeedsIndentation()
         {
             var testCode = @"
@@ -42,6 +69,49 @@ class MyClass
 class MyClass
 {
     void MyMethod()
+    {
+    }
+}
+";
+
+            await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+        }
+
+        [Fact]
+        public async Task TestNeedsIndentationButSuppressed()
+        {
+            var testCode = @"
+class MyClass
+{
+  $$void MyMethod1()
+  $${
+  $$}
+
+#pragma warning disable format
+		void MyMethod2()
+  {
+  }
+#pragma warning restore format
+
+  void MyMethod3()
+  $${
+  $$}
+}
+";
+            var fixedCode = @"
+class MyClass
+{
+    void MyMethod1()
+    {
+    }
+
+#pragma warning disable format
+		void MyMethod2()
+  {
+  }
+#pragma warning restore format
+
+  void MyMethod3()
     {
     }
 }
@@ -219,26 +289,18 @@ root = true
 csharp_new_line_before_open_brace = methods
 ";
 
-            var testDirectoryName = Path.GetRandomFileName();
-            Directory.CreateDirectory(testDirectoryName);
-            try
+            await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
             {
-                File.WriteAllText(Path.Combine(testDirectoryName, ".editorconfig"), editorConfig);
-
-                // The contents of this file are ignored, but the coding conventions library checks for existence before
-                // .editorconfig is used.
-                File.WriteAllText(Path.Combine(testDirectoryName, "Test0.cs"), string.Empty);
-
-                await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
+                TestState =
                 {
-                    TestState = { Sources = { (Path.GetFullPath(Path.Combine(testDirectoryName, "Test0.cs")), testCode) } },
-                    FixedState = { Sources = { (Path.GetFullPath(Path.Combine(testDirectoryName, "Test0.cs")), fixedCode) } },
-                }.RunAsync();
-            }
-            finally
-            {
-                Directory.Delete(testDirectoryName, true);
-            }
+                    Sources = { testCode },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.editorconfig", editorConfig),
+                    },
+                },
+                FixedState = { Sources = { fixedCode } },
+            }.RunAsync();
         }
     }
 }

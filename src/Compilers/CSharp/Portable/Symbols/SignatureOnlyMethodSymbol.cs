@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Reflection.Metadata;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -21,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
+        private readonly bool _isInitOnly;
+        private readonly bool _isStatic;
         private readonly TypeWithAnnotations _returnType;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
@@ -33,13 +39,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
             RefKind refKind,
+            bool isInitOnly,
+            bool isStatic,
             TypeWithAnnotations returnType,
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
         {
+            Debug.Assert(returnType.IsDefault || isInitOnly == CustomModifierUtils.HasIsExternalInitModifier(returnType.CustomModifiers));
             _callingConvention = callingConvention;
             _typeParameters = typeParameters;
             _refKind = refKind;
+            _isInitOnly = isInitOnly;
+            _isStatic = isStatic;
             _returnType = returnType;
             _refCustomModifiers = refCustomModifiers;
             _parameters = parameters;
@@ -65,7 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get { return _returnType; } }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
@@ -78,6 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override MethodKind MethodKind { get { return _methodKind; } }
 
         public override string Name { get { return _name; } }
+
+        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
 
         #region Not used by MethodSignatureComparer
 
@@ -99,6 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ObsoleteAttributeData ObsoleteAttributeData { get { throw ExceptionUtilities.Unreachable; } }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable;
+
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() { throw ExceptionUtilities.Unreachable; }
 
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations { get { throw ExceptionUtilities.Unreachable; } }
@@ -115,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Accessibility DeclaredAccessibility { get { throw ExceptionUtilities.Unreachable; } }
 
-        public override bool IsStatic { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsStatic { get { return _isStatic; } }
 
         public override bool IsAsync { get { throw ExceptionUtilities.Unreachable; } }
 
@@ -128,6 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsSealed { get { throw ExceptionUtilities.Unreachable; } }
 
         public override bool IsExtern { get { throw ExceptionUtilities.Unreachable; } }
+
+        public override bool AreLocalsZeroed { get { throw ExceptionUtilities.Unreachable; } }
 
         public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
 
@@ -146,6 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => _isInitOnly;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) { throw ExceptionUtilities.Unreachable; }
 

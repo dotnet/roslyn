@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Text.RegularExpressions
@@ -17,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Public Sub DiagnosticAnalyzerAllInOne()
             Dim source = TestResource.AllInOneVisualBasicBaseline
             Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
-            CreateCompilationWithMscorlib40({source}).VerifyAnalyzerDiagnostics({analyzer})
+            Dim options = New AnalyzerOptions({DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray())
+            CreateCompilationWithMscorlib40({source}).VerifyAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(New HashSet(Of SyntaxKind)())
@@ -42,8 +45,9 @@ End Enum
         <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib40({TestResource.AllInOneVisualBasicCode})
+            Dim options = New AnalyzerOptions({CType(new TestAdditionalText(), AdditionalText)}.ToImmutableArray())
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
-                Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, logAnalyzerExceptionAsDiagnostics:=True))
+                Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, options))
         End Sub
 
         <Fact>
@@ -57,27 +61,5 @@ End Enum
             compilation.GetAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAnalyzerOptions()
         End Sub
-
-        Private NotInheritable Class TestAdditionalText
-            Inherits AdditionalText
-
-            Private ReadOnly _path As String
-            Private ReadOnly _text As SourceText
-
-            Public Sub New(path As String, text As SourceText)
-                _path = path
-                _text = text
-            End Sub
-
-            Public Overrides ReadOnly Property Path As String
-                Get
-                    Return _path
-                End Get
-            End Property
-
-            Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
-                Return _text
-            End Function
-        End Class
     End Class
 End Namespace

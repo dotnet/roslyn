@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Diagnostics
@@ -163,6 +165,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         GoTo Done
                     End If
                 End If
+
+                If (comparisons And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 AndAlso
+                   prop1.SetMethod?.IsInitOnly <> prop2.SetMethod?.IsInitOnly Then
+
+                    results = results Or SymbolComparisonResults.PropertyInitOnlyMismatch
+                    If (stopIfAny And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 Then
+                        GoTo Done
+                    End If
+                End If
             End If
 
             If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch Or SymbolComparisonResults.TupleNamesMismatch)) <> 0 Then
@@ -185,6 +196,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 results = results Or MethodSignatureComparer.DetailedParameterCompare(prop1.Parameters, Nothing, prop2.Parameters, Nothing, comparisons, stopIfAny)
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done
+                End If
+            End If
+
+            If (comparisons And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then
+                If prop1.IsShared <> prop2.IsShared Then
+                    results = results Or SymbolComparisonResults.CallingConventionMismatch
+                    If (stopIfAny And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then
+                        GoTo Done
+                    End If
                 End If
             End If
 

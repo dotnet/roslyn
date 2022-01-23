@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -103,7 +105,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
 
-                    return dialog.fileNameTextBox.Text;
+                    return dialog.DestinationControl.fileNameTextBox.Text;
                 });
             }
         }
@@ -124,7 +126,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     return listItems.Cast<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>()
                         .Where(viewModel => viewModel.IsChecked)
-                        .Select(viewModel => viewModel.MemberName)
+                        .Select(viewModel => viewModel.SymbolName)
                         .ToArray();
                 });
             }
@@ -142,7 +144,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     var memberSelectionList = dialog.GetTestAccessor().Members;
                     var items = memberSelectionList.Items.Cast<ExtractInterfaceDialogViewModel.MemberSymbolViewModel>().ToArray();
-                    var itemViewModel = items.Single(x => x.MemberName == item);
+                    var itemViewModel = items.Single(x => x.SymbolName == item);
                     itemViewModel.IsChecked = !itemViewModel.IsChecked;
 
                     // Wait for changes to propagate

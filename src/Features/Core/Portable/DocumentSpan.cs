@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Additional information attached to a document span by it creator.
         /// </summary>
-        public ImmutableDictionary<string, object> Properties { get; }
+        public ImmutableDictionary<string, object>? Properties { get; }
 
         public DocumentSpan(Document document, TextSpan sourceSpan)
             : this(document, sourceSpan, properties: null)
@@ -28,18 +30,18 @@ namespace Microsoft.CodeAnalysis
         public DocumentSpan(
             Document document,
             TextSpan sourceSpan,
-            ImmutableDictionary<string, object> properties)
+            ImmutableDictionary<string, object>? properties)
         {
             Document = document;
             SourceSpan = sourceSpan;
             Properties = properties ?? ImmutableDictionary<string, object>.Empty;
         }
 
-        public override bool Equals(object obj)
-            => Equals((DocumentSpan)obj);
+        public override bool Equals(object? obj)
+            => obj is DocumentSpan documentSpan && Equals(documentSpan);
 
         public bool Equals(DocumentSpan obj)
-            => this.Document == obj.Document && this.SourceSpan == obj.SourceSpan;
+            => Document == obj.Document && SourceSpan == obj.SourceSpan;
 
         public static bool operator ==(DocumentSpan d1, DocumentSpan d2)
             => d1.Equals(d2);
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
             => Hash.Combine(
-                this.Document,
-                this.SourceSpan.GetHashCode());
+                Document,
+                SourceSpan.GetHashCode());
     }
 }

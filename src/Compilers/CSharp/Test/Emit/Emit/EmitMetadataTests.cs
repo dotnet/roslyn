@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -81,10 +85,38 @@ public class N : D.K<M>
 
             CompileAndVerify(source, symbolValidator: module =>
             {
-                var baseLine = System.Xml.Linq.XElement.Load(new StringReader(Resources.EmitSimpleBaseLine1));
-                System.Xml.Linq.XElement dumpXML = DumpTypeInfo(module);
+                var dump = DumpTypeInfo(module).ToString();
 
-                Assert.Equal(baseLine.ToString(), dumpXML.ToString());
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+<Global>
+  <type name=""&lt;Module&gt;"" />
+  <type name=""A"" Of=""T"" base=""System.Object"">
+    <field name=""x1"" type=""A&lt;T&gt;"" />
+    <field name=""x2"" type=""A&lt;D&gt;"" />
+    <type name=""B"" base=""A&lt;T&gt;"">
+      <field name=""y1"" type=""A&lt;T&gt;.B"" />
+      <field name=""y2"" type=""A&lt;D&gt;.B"" />
+      <type name=""C"" base=""A&lt;T&gt;.B"" />
+    </type>
+    <type name=""H"" Of=""S"" base=""System.Object"">
+      <type name=""I"" base=""A&lt;T&gt;.H&lt;S&gt;"" />
+    </type>
+  </type>
+  <type name=""D"" base=""System.Object"">
+    <type name=""K"" Of=""T"" base=""System.Object"">
+      <type name=""L"" base=""D.K&lt;T&gt;"" />
+    </type>
+  </type>
+  <type name=""F"" base=""A&lt;D&gt;"" />
+  <type name=""G"" base=""A&lt;NS1.E&gt;.B"" />
+  <type name=""J"" base=""A&lt;D&gt;.H&lt;D&gt;"" />
+  <type name=""M"" base=""System.Object"" />
+  <type name=""N"" base=""D.K&lt;M&gt;"" />
+  <NS1>
+    <type name=""E"" base=""D"" />
+  </NS1>
+</Global>
+", dump);
             }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
@@ -161,8 +193,8 @@ public class Test : C107
             {
                 var refs = assembly.Modules[0].ReferencedAssemblies.OrderBy(r => r.Name).ToArray();
                 Assert.Equal(2, refs.Length);
-                Assert.Equal(refs[0].Name, "MDTestLib1", StringComparer.OrdinalIgnoreCase);
-                Assert.Equal(refs[1].Name, "mscorlib", StringComparer.OrdinalIgnoreCase);
+                Assert.Equal("MDTestLib1", refs[0].Name, StringComparer.OrdinalIgnoreCase);
+                Assert.Equal("mscorlib", refs[1].Name, StringComparer.OrdinalIgnoreCase);
             });
         }
 
@@ -743,11 +775,11 @@ class Derived<T, U> : Base<T, U>
             Action<ModuleSymbol> validator = module =>
             {
                 var derivedType = module.GlobalNamespace.GetTypeMembers("Derived").Single();
-                Assert.Equal(derivedType.Arity, 2);
+                Assert.Equal(2, derivedType.Arity);
 
                 var baseType = derivedType.BaseType();
-                Assert.Equal(baseType.Name, "Base");
-                Assert.Equal(baseType.Arity, 2);
+                Assert.Equal("Base", baseType.Name);
+                Assert.Equal(2, baseType.Arity);
 
                 Assert.Equal(derivedType.BaseType(), baseType);
                 Assert.Same(baseType.TypeArguments()[0], derivedType.TypeParameters[0]);
@@ -914,25 +946,25 @@ class C
                 var pBack = p.BackingField;
                 Assert.False(pBack.IsReadOnly);
                 Assert.False(pBack.IsStatic);
-                Assert.Equal(pBack.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, pBack.Type.SpecialType);
 
                 var q = type.GetMember<SourcePropertySymbol>("Q");
                 var qBack = q.BackingField;
                 Assert.False(qBack.IsReadOnly);
                 Assert.False(qBack.IsStatic);
-                Assert.Equal(qBack.Type.SpecialType, SpecialType.System_String);
+                Assert.Equal(SpecialType.System_String, qBack.Type.SpecialType);
 
                 var r = type.GetMember<SourcePropertySymbol>("R");
                 var rBack = r.BackingField;
                 Assert.True(rBack.IsReadOnly);
                 Assert.False(rBack.IsStatic);
-                Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
+                Assert.Equal(SpecialType.System_Decimal, rBack.Type.SpecialType);
 
                 var s = type.GetMember<SourcePropertySymbol>("S");
                 var sBack = s.BackingField;
                 Assert.True(sBack.IsReadOnly);
                 Assert.True(sBack.IsStatic);
-                Assert.Equal(sBack.Type.SpecialType, SpecialType.System_Char);
+                Assert.Equal(SpecialType.System_Char, sBack.Type.SpecialType);
             };
 
             CompileAndVerify(
@@ -985,25 +1017,25 @@ struct S
                 Assert.False(p.HasInitializer);
                 Assert.True(p.IsReadOnly);
                 Assert.False(p.IsStatic);
-                Assert.Equal(p.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, p.Type.SpecialType);
 
                 var q = type.GetMember<SourcePropertySymbol>("Q");
                 var qBack = q.BackingField;
                 Assert.True(qBack.IsReadOnly);
                 Assert.False(qBack.IsStatic);
-                Assert.Equal(qBack.Type.SpecialType, SpecialType.System_String);
+                Assert.Equal(SpecialType.System_String, qBack.Type.SpecialType);
 
                 var r = type.GetMember<SourcePropertySymbol>("R");
                 var rBack = r.BackingField;
                 Assert.True(rBack.IsReadOnly);
                 Assert.False(rBack.IsStatic);
-                Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
+                Assert.Equal(SpecialType.System_Decimal, rBack.Type.SpecialType);
 
                 var s = type.GetMember<SourcePropertySymbol>("T");
                 var sBack = s.BackingField;
                 Assert.True(sBack.IsReadOnly);
                 Assert.True(sBack.IsStatic);
-                Assert.Equal(sBack.Type.SpecialType, SpecialType.System_Char);
+                Assert.Equal(SpecialType.System_Char, sBack.Type.SpecialType);
             };
 
             CompileAndVerify(
@@ -1132,7 +1164,7 @@ public class C : I
         private static void CheckPropertyAccessibility(PropertySymbol property, Accessibility propertyAccessibility, Accessibility getterAccessibility, Accessibility setterAccessibility)
         {
             var type = property.TypeWithAnnotations;
-            Assert.NotEqual(type.PrimitiveTypeCode, Microsoft.Cci.PrimitiveTypeCode.Void);
+            Assert.NotEqual(Microsoft.Cci.PrimitiveTypeCode.Void, type.PrimitiveTypeCode);
             Assert.Equal(propertyAccessibility, property.DeclaredAccessibility);
             CheckPropertyAccessorAccessibility(property, propertyAccessibility, property.GetMethod, getterAccessibility);
             CheckPropertyAccessorAccessibility(property, propertyAccessibility, property.SetMethod, setterAccessibility);
@@ -1142,7 +1174,7 @@ public class C : I
         {
             if (accessor == null)
             {
-                Assert.Equal(accessorAccessibility, Accessibility.NotApplicable);
+                Assert.Equal(Accessibility.NotApplicable, accessorAccessibility);
             }
             else
             {
@@ -1244,7 +1276,7 @@ class C : B<string>
                 var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
                 p = classC.BaseType().GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
-                Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
+                Assert.Equal(SpecialType.System_String, p.Type.SpecialType);
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);
             };
 
@@ -1261,7 +1293,7 @@ class C : B<string>
             {
                 if (property is SourcePropertySymbol sourceProperty)
                 {
-                    Assert.True(sourceProperty.IsAutoProperty);
+                    Assert.True(sourceProperty.IsAutoPropertyWithGetAccessor);
                 }
             }
             else
@@ -1347,7 +1379,7 @@ class C : B<string>
             var sourceType = type as SourceNamedTypeSymbol;
             if ((object)sourceType != null)
             {
-                var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field;
+                var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field.GetCciAdapter();
                 Assert.False(fieldDefinition.IsSpecialName);
                 Assert.False(fieldDefinition.IsRuntimeSpecial);
             }
@@ -1355,7 +1387,7 @@ class C : B<string>
 
         private void CheckEnumType(NamedTypeSymbol type, Accessibility declaredAccessibility, SpecialType underlyingType)
         {
-            Assert.Equal(type.BaseType().SpecialType, SpecialType.System_Enum);
+            Assert.Equal(SpecialType.System_Enum, type.BaseType().SpecialType);
             Assert.Equal(type.EnumUnderlyingType.SpecialType, underlyingType);
             Assert.Equal(type.DeclaredAccessibility, declaredAccessibility);
             Assert.True(type.IsSealed);
@@ -1374,7 +1406,7 @@ class C : B<string>
                 Assert.False(field.IsStatic);
                 Assert.False(field.IsConst);
                 Assert.False(field.IsReadOnly);
-                Assert.Equal(field.DeclaredAccessibility, Accessibility.Public); // Dev10: value__ is public
+                Assert.Equal(Accessibility.Public, field.DeclaredAccessibility); // Dev10: value__ is public
                 Assert.Equal(field.Type, type.EnumUnderlyingType);
 
                 var module = new PEAssemblyBuilder((SourceAssemblySymbol)sourceType.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
@@ -1382,9 +1414,9 @@ class C : B<string>
 
                 var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
-                var typeDefinition = (Microsoft.Cci.ITypeDefinition)type;
+                var typeDefinition = (Microsoft.Cci.ITypeDefinition)type.GetCciAdapter();
                 var fieldDefinition = typeDefinition.GetFields(context).First();
-                Assert.Same(fieldDefinition, field); // Dev10: value__ field is the first field.
+                Assert.Same(fieldDefinition.GetInternalSymbol(), field); // Dev10: value__ field is the first field.
                 Assert.True(fieldDefinition.IsSpecialName);
                 Assert.True(fieldDefinition.IsRuntimeSpecial);
                 context.Diagnostics.Verify();
@@ -2320,7 +2352,7 @@ class Program
             Assert.Equal(0, coffHeader.NumberOfSymbols);
             Assert.Equal(0, coffHeader.PointerToSymbolTable);
             Assert.Equal(0xe0, coffHeader.SizeOfOptionalHeader);
-            Assert.Equal(-609170495, coffHeader.TimeDateStamp);
+            Assert.Equal(-609278808, coffHeader.TimeDateStamp);
 
             Assert.Equal(0, corHeader.EntryPointTokenOrRelativeVirtualAddress);
             Assert.Equal(CorFlags.ILOnly, corHeader.Flags);
@@ -2458,7 +2490,7 @@ class Program
             Assert.Equal(0, coffHeader.NumberOfSymbols);
             Assert.Equal(0, coffHeader.PointerToSymbolTable);
             Assert.Equal(240, coffHeader.SizeOfOptionalHeader);
-            Assert.Equal(-862605524, coffHeader.TimeDateStamp);
+            Assert.Equal(-1823671907, coffHeader.TimeDateStamp);
 
             Assert.Equal(0x06000001, corHeader.EntryPointTokenOrRelativeVirtualAddress);
             Assert.Equal(CorFlags.ILOnly, corHeader.Flags);

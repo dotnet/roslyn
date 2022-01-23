@@ -1,194 +1,80 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal interface ICodeStyleOption
+    /// <inheritdoc cref="CodeStyleOption2{T}"/>
+    public sealed class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-        XElement ToXElement();
-    }
+        static CodeStyleOption()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption<T>), ReadFrom);
+        }
 
-    /// <summary>
-    /// Represents a code style option and an associated notification option.  Supports
-    /// being instantiated with T as a <see cref="bool"/> or an <c>enum type</c>.
-    /// 
-    /// CodeStyleOption also has some basic support for migration a <see cref="bool"/> option
-    /// forward to an <c>enum type</c> option.  Specifically, if a previously serialized
-    /// bool-CodeStyleOption is then deserialized into an enum-CodeStyleOption then 'false' 
-    /// values will be migrated to have the 0-value of the enum, and 'true' values will be
-    /// migrated to have the 1-value of the enum.
-    /// 
-    /// Similarly, enum-type code options will serialize out in a way that is compatible with 
-    /// hosts that expect the value to be a boolean.  Specifically, if the enum value is 0 or 1
-    /// then those values will write back as false/true.
-    /// </summary>
-    public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
-    {
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.Silent);
+        private readonly CodeStyleOption2<T> _codeStyleOptionImpl;
+        public static CodeStyleOption<T> Default => new(default, NotificationOption.Silent);
 
-        private const int SerializationVersion = 1;
+        internal CodeStyleOption(CodeStyleOption2<T> codeStyleOptionImpl)
+            => _codeStyleOptionImpl = codeStyleOptionImpl;
 
         public CodeStyleOption(T value, NotificationOption notification)
+            : this(new CodeStyleOption2<T>(value, (NotificationOption2)notification))
         {
-            Value = value;
-            Notification = notification ?? throw new ArgumentNullException(nameof(notification));
         }
 
-        public T Value { get; set; }
-
-        private int EnumValueAsInt32 => (int)(object)Value;
-
-        public NotificationOption Notification { get; set; }
-
-        public XElement ToXElement() =>
-            new XElement(nameof(CodeStyleOption<T>), // `nameof()` returns just "CodeStyleOption"
-                new XAttribute(nameof(SerializationVersion), SerializationVersion),
-                new XAttribute("Type", GetTypeNameForSerialization()),
-                new XAttribute(nameof(Value), GetValueForSerialization()),
-                new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
-
-        private object GetValueForSerialization()
+        public T Value
         {
-            if (typeof(T) == typeof(string))
-            {
-                return Value;
-            }
-            else if (typeof(T) == typeof(bool))
-            {
-                return Value;
-            }
-            else if (IsZeroOrOneValueOfEnum())
-            {
-                return EnumValueAsInt32 == 1;
-            }
-            else
-            {
-                return EnumValueAsInt32;
-            }
+            get => _codeStyleOptionImpl.Value;
+
+            [Obsolete("Modifying a CodeStyleOption<T> is not supported.", error: true)]
+            set => throw new InvalidOperationException();
         }
 
-        private string GetTypeNameForSerialization()
+        bool IObjectWritable.ShouldReuseInSerialization => _codeStyleOptionImpl.ShouldReuseInSerialization;
+        object ICodeStyleOption.Value => this.Value;
+        NotificationOption2 ICodeStyleOption.Notification => _codeStyleOptionImpl.Notification;
+        ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
+        ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption<T>(Value, (NotificationOption)notification);
+        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
+            => this is TCodeStyleOption ? this : _codeStyleOptionImpl;
+        ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => this;
+
+        public NotificationOption Notification
         {
-            if (typeof(T) == typeof(string))
-            {
-                return nameof(String);
-            }
-            if (typeof(T) == typeof(bool) || IsZeroOrOneValueOfEnum())
-            {
-                return nameof(Boolean);
-            }
-            else
-            {
-                return nameof(Int32);
-            }
+            get => (NotificationOption)_codeStyleOptionImpl.Notification;
+
+            [Obsolete("Modifying a CodeStyleOption<T> is not supported.", error: true)]
+            set => throw new InvalidOperationException();
         }
 
-        private bool IsZeroOrOneValueOfEnum()
-        {
-            var intVal = EnumValueAsInt32;
-            return intVal == 0 || intVal == 1;
-        }
+        internal CodeStyleOption2<T> UnderlyingOption => _codeStyleOptionImpl;
+
+        public XElement ToXElement() => _codeStyleOptionImpl.ToXElement();
 
         public static CodeStyleOption<T> FromXElement(XElement element)
-        {
-            var typeAttribute = element.Attribute("Type");
-            var valueAttribute = element.Attribute(nameof(Value));
-            var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
-            var version = (int)element.Attribute(nameof(SerializationVersion));
+            => new(CodeStyleOption2<T>.FromXElement(element));
 
-            if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
-            {
-                // data from storage is corrupt, or nothing has been stored yet.
-                return Default;
-            }
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+            => _codeStyleOptionImpl.WriteTo(writer);
 
-            if (version != SerializationVersion)
-            {
-                return Default;
-            }
-
-            var parser = GetParser(typeAttribute.Value);
-            var value = parser(valueAttribute.Value);
-            var severity = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), severityAttribute.Value);
-
-            NotificationOption notificationOption;
-            switch (severity)
-            {
-                case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.Silent;
-                    break;
-                case DiagnosticSeverity.Info:
-                    notificationOption = NotificationOption.Suggestion;
-                    break;
-                case DiagnosticSeverity.Warning:
-                    notificationOption = NotificationOption.Warning;
-                    break;
-                case DiagnosticSeverity.Error:
-                    notificationOption = NotificationOption.Error;
-                    break;
-                default:
-                    throw new ArgumentException(nameof(element));
-            }
-
-            return new CodeStyleOption<T>(value, notificationOption);
-        }
-
-        private static Func<string, T> GetParser(string type)
-        {
-            switch (type)
-            {
-                case nameof(Boolean):
-                    // Try to map a boolean value.  Either map it to true/false if we're a 
-                    // CodeStyleOption<bool> or map it to the 0 or 1 value for an enum if we're
-                    // a CodeStyleOption<SomeEnumType>.
-                    return v => Convert(bool.Parse(v));
-                case nameof(Int32):
-                    return v => Convert(int.Parse(v));
-                case nameof(String):
-                    return v => (T)(object)v;
-                default:
-                    throw new ArgumentException(nameof(type));
-            }
-        }
-
-        private static T Convert(bool b)
-        {
-            // If we had a bool and we wanted a bool, then just return this value.
-            if (typeof(T) == typeof(bool))
-            {
-                return (T)(object)b;
-            }
-
-            // Map booleans to the 1/0 value of the enum.
-            return b ? (T)(object)1 : (T)(object)0;
-        }
-
-        private static T Convert(int i)
-        {
-            // We got an int, but we wanted a bool.  Map 0 to false, 1 to true, and anything else to default.
-            if (typeof(T) == typeof(bool))
-            {
-                return (T)(object)(i == 1);
-            }
-
-            // If had an int and we wanted an enum, then just return this value.
-            return (T)(object)(i);
-        }
+        internal static CodeStyleOption<object> ReadFrom(ObjectReader reader)
+            => new(CodeStyleOption2<T>.ReadFrom(reader));
 
         public bool Equals(CodeStyleOption<T> other)
-            => EqualityComparer<T>.Default.Equals(Value, other.Value) &&
-               Notification == other.Notification;
+            => _codeStyleOptionImpl.Equals(other?._codeStyleOptionImpl);
 
         public override bool Equals(object obj)
             => obj is CodeStyleOption<T> option &&
                Equals(option);
 
         public override int GetHashCode()
-            => unchecked((Notification.GetHashCode() * (int)0xA5555529) + Value.GetHashCode());
+            => _codeStyleOptionImpl.GetHashCode();
     }
 }

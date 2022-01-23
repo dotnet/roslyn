@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -39,21 +40,25 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 _textSpan = textSpan;
             }
 
+            public override string Title => FeaturesResources.Generate_overrides;
+
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetService<IPickMembersService>();
-                return service.PickMembers(FeaturesResources.Pick_members_to_override, _viableMembers);
+                var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IPickMembersService>();
+                return service.PickMembers(
+                    FeaturesResources.Pick_members_to_override,
+                    _viableMembers,
+                    selectAll: _document.Project.Solution.Options.GetOption(GenerateOverridesOptions.SelectAll));
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled || result.Members.Length == 0)
-                {
-                    return ImmutableArray<CodeActionOperation>.Empty;
-                }
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                RoslynDebug.AssertNotNull(syntaxTree);
 
                 // If the user has selected just one member then we will insert it at the current
                 // location.  Otherwise, if it's many members, then we'll auto insert them as appropriate.
@@ -71,13 +76,16 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     _document.Project.Solution,
                     _containingType,
                     members,
-                    new CodeGenerationOptions(
+                    new CodeGenerationContext(
                         afterThisLocation: afterThisLocation,
                         contextLocation: syntaxTree.GetLocation(_textSpan)),
                     cancellationToken).ConfigureAwait(false);
 
-                return SpecializedCollections.SingletonEnumerable(
-                    new ApplyChangesOperation(newDocument.Project.Solution));
+                return new CodeActionOperation[]
+                    {
+                        new ApplyChangesOperation(newDocument.Project.Solution),
+                        new ChangeOptionValueOperation(result.SelectedAll),
+                    };
             }
 
             private Task<ISymbol> GenerateOverrideAsync(
@@ -89,7 +97,23 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     cancellationToken: cancellationToken);
             }
 
-            public override string Title => FeaturesResources.Generate_overrides;
+            private class ChangeOptionValueOperation : CodeActionOperation
+            {
+                private readonly bool _selectedAll;
+
+                public ChangeOptionValueOperation(bool selectedAll)
+                    => _selectedAll = selectedAll;
+
+                public override void Apply(Workspace workspace, CancellationToken cancellationToken)
+                {
+                    if (workspace.Options.GetOption(GenerateOverridesOptions.SelectAll) == _selectedAll)
+                        return;
+
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                        workspace.CurrentSolution.Options.WithChangedOption(
+                            GenerateOverridesOptions.SelectAll, _selectedAll)));
+                }
+            }
         }
     }
 }

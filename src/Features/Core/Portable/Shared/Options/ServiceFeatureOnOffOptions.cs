@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Options;
 
@@ -6,34 +8,13 @@ namespace Microsoft.CodeAnalysis.Shared.Options
 {
     internal static class ServiceFeatureOnOffOptions
     {
-        private const bool CSharpClosedFileDiagnosticsEnabledByDefault = false;
-        private const bool DefaultClosedFileDiagnosticsEnabledByDefault = true;
-
         /// <summary>
-        /// this option is solely for performance. don't confused by option name. 
-        /// this option doesn't mean we will show all diagnostics that belong to opened files when turned off,
-        /// rather it means we will only show diagnostics that are cheap to calculate for small scope such as opened files.
+        /// This option is used by TypeScript.
         /// </summary>
-        public static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(
-            "ServiceFeaturesOnOff", "Closed File Diagnostic", defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
-
-        public static bool IsClosedFileDiagnosticsEnabled(Project project)
-        {
-            return IsClosedFileDiagnosticsEnabled(project.Solution.Options, project.Language);
-        }
-
-        public static bool IsClosedFileDiagnosticsEnabled(OptionSet options, string language)
-        {
-            var option = options.GetOption(ClosedFileDiagnostic, language);
-            if (!option.HasValue)
-            {
-                return language == LanguageNames.CSharp ?
-                    CSharpClosedFileDiagnosticsEnabledByDefault :
-                    DefaultClosedFileDiagnosticsEnabledByDefault;
-            }
-
-            return option.Value;
-        }
+#pragma warning disable RS0030 // Do not used banned APIs - to avoid a binary breaking API change.
+        public static readonly PerLanguageOption<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
+            "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
+#pragma warning restore RS0030 // Do not used banned APIs
     }
 }

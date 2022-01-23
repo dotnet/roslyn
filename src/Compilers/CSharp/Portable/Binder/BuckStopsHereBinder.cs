@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -12,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A binder that knows no symbols and will not delegate further.
     /// </summary>
-    internal partial class BuckStopsHereBinder : Binder
+    internal class BuckStopsHereBinder : Binder
     {
         internal BuckStopsHereBinder(CSharpCompilation compilation)
             : base(compilation)
         {
         }
 
-        internal override ImportChain ImportChain
+        internal override ImportChain? ImportChain
         {
             get
             {
@@ -39,17 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
-        {
-            return Imports.Empty;
-        }
-
-        protected override SourceLocalSymbol LookupLocal(SyntaxToken nameToken)
+        protected override SourceLocalSymbol? LookupLocal(SyntaxToken nameToken)
         {
             return null;
         }
 
-        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
+        protected override LocalFunctionSymbol? LookupLocalFunction(SyntaxToken nameToken)
         {
             return null;
         }
@@ -58,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool InExecutableBinder => false;
 
-        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved)
+        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved)
         {
             failedThroughTypeCheck = false;
-            return IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteDiagnostics);
+            return IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteInfo);
         }
 
         internal override ConstantFieldsInProgress ConstantFieldsInProgress
@@ -80,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override LocalSymbol LocalInProgress
+        internal override LocalSymbol? LocalInProgress
         {
             get
             {
@@ -117,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override GeneratedLabelSymbol BreakLabel
+        internal override GeneratedLabelSymbol? BreakLabel
         {
             get
             {
@@ -125,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override GeneratedLabelSymbol ContinueLabel
+        internal override GeneratedLabelSymbol? ContinueLabel
         {
             get
             {
@@ -133,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundExpression ConditionalReceiverExpression
+        internal override BoundExpression? ConditionalReceiverExpression
         {
             get
             {
@@ -143,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // This should only be called in the context of syntactically incorrect programs.  In other
         // contexts statements are surrounded by some enclosing method or lambda.
-        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType()
         {
             // There's supposed to be an enclosing method or lambda.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override Symbol ContainingMemberOrLambda
+        internal override Symbol? ContainingMemberOrLambda
         {
             get
             {
@@ -157,23 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool IsNullableGloballyEnabled()
+        internal override bool AreNullableAnnotationsGloballyEnabled()
         {
-            switch (Compilation.Options.NullableContextOptions)
-            {
-                case NullableContextOptions.Enable:
-                    return true;
-
-                case NullableContextOptions.Disable:
-                case NullableContextOptions.Warnings:
-                    return false;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(Compilation.Options.NullableContextOptions);
-            }
+            return GetGlobalAnnotationState();
         }
 
-        internal override Binder GetBinder(SyntaxNode node)
+        internal override Binder? GetBinder(SyntaxNode node)
         {
             return null;
         }
@@ -188,67 +173,67 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
         {
             // There's supposed to be a SwitchBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundExpression BindSwitchExpressionCore(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundExpression BindSwitchExpressionCore(SwitchExpressionSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
         {
             // There's supposed to be a SwitchExpressionBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
+        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, BindingDiagnosticBag diagnostics)
         {
             // There's supposed to be a SwitchBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
+        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, uint switchGoverningValEscape, BindingDiagnosticBag diagnostics)
         {
             // There's supposed to be an overrider of this method (e.g. SwitchExpressionArmBinder) for the arm in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundForStatement BindForParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundForStatement BindForParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a ForLoopBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundStatement BindForEachParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundStatement BindForEachParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a ForEachLoopBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundStatement BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundStatement BindForEachDeconstruction(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a ForEachLoopBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundWhileStatement BindWhileParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a WhileBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundDoStatement BindDoParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a WhileBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundStatement BindUsingStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundStatement BindUsingStatementParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a UsingStatementBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundStatement BindLockStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundStatement BindLockStatementParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a LockBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;

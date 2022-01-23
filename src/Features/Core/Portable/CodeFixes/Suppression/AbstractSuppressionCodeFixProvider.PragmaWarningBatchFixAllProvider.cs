@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,19 +15,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         /// <summary>
         /// Batch fixer for pragma suppress code action.
         /// </summary>
-        internal sealed class PragmaWarningBatchFixAllProvider : BatchFixAllProvider
+        internal sealed class PragmaWarningBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
         {
             private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
 
             public PragmaWarningBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-            {
-                _suppressionFixProvider = suppressionFixProvider;
-            }
+                => _suppressionFixProvider = suppressionFixProvider;
 
             protected override async Task AddDocumentFixesAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics,

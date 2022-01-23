@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -16,20 +18,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public Reference[] GetContents(string windowCaption)
         {
-            return InvokeOnUIThread(cancellationToken =>
+            return InvokeOnUIThread<Reference[]>(cancellationToken =>
             {
                 // Find the tool window
-                var toolWindow = ((DTE2)GetDTE()).ToolWindows.GetToolWindow(windowCaption);
-
-                // Dig through to get the Find References control.
-                var toolWindowType = toolWindow.GetType();
-                var toolWindowControlField = toolWindowType.GetField("Control");
-                var toolWindowControl = toolWindowControlField.GetValue(toolWindow);
-
-                // Dig further to get the results table (as opposed to the toolbar).
-                var tableControlAndCommandTargetType = toolWindowControl.GetType();
-                var tableControlField = tableControlAndCommandTargetType.GetField("TableControl");
-                var tableControl = (IWpfTableControl2)tableControlField.GetValue(toolWindowControl);
+                var tableControl = GetFindReferencesWindow(windowCaption);
 
                 // Remove all grouping
                 var columnStates = tableControl.ColumnStates;
@@ -45,6 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         groupingPriority: 0);
                     newColumnsStates.Add(newState);
                 }
+
                 tableControl.SetColumnStates(newColumnsStates);
 
                 // Force a refresh, if necessary. This doesn't re-run the Find References or
@@ -56,24 +49,58 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 });
 
                 // Extract the basic text of the results.
-                return forcedUpdateResult.AllEntries.Select(handle =>
-                {
-                    handle.TryGetValue(StandardTableKeyNames.DocumentName, out string filePath);
-                    handle.TryGetValue(StandardTableKeyNames.Line, out int line);
-                    handle.TryGetValue(StandardTableKeyNames.Column, out int column);
-                    handle.TryGetValue(StandardTableKeyNames.Text, out string code);
-
-                    var reference = new Reference
-                    {
-                        FilePath = filePath,
-                        Line = line,
-                        Column = column,
-                        Code = code
-                    };
-
-                    return reference;
-                }).ToArray();
+                return forcedUpdateResult.AllEntries.Select(CreateReference).ToArray();
             });
+        }
+
+        public void NavigateTo(string windowCaption, Reference reference, bool isPreview, bool shouldActivate)
+        {
+            InvokeOnUIThread(cancellationToken =>
+            {
+                var findReferencesWindow = GetFindReferencesWindow(windowCaption);
+
+                foreach (var item in findReferencesWindow.Entries)
+                {
+                    if (reference.Equals(CreateReference(item)))
+                    {
+                        item.NavigateTo(isPreview, shouldActivate);
+                    }
+                }
+            });
+        }
+
+        private static IWpfTableControl2 GetFindReferencesWindow(string windowCaption)
+        {
+            var toolWindow = ((DTE2)GetDTE()).ToolWindows.GetToolWindow(windowCaption);
+
+            // Dig through to get the Find References control.
+            var toolWindowType = toolWindow.GetType();
+            var toolWindowControlField = toolWindowType.GetField("Control");
+            var toolWindowControl = toolWindowControlField.GetValue(toolWindow);
+
+            // Dig further to get the results table (as opposed to the toolbar).
+            var tableControlAndCommandTargetType = toolWindowControl.GetType();
+            var tableControlField = tableControlAndCommandTargetType.GetField("TableControl");
+            var tableControl = (IWpfTableControl2)tableControlField.GetValue(toolWindowControl);
+            return tableControl;
+        }
+
+        private static Reference CreateReference(ITableEntryHandle tableEntryHandle)
+        {
+            tableEntryHandle.TryGetValue(StandardTableKeyNames.DocumentName, out string filePath);
+            tableEntryHandle.TryGetValue(StandardTableKeyNames.Line, out int line);
+            tableEntryHandle.TryGetValue(StandardTableKeyNames.Column, out int column);
+            tableEntryHandle.TryGetValue(StandardTableKeyNames.Text, out string code);
+
+            var reference = new Reference
+            {
+                FilePath = filePath,
+                Line = line,
+                Column = column,
+                Code = code
+            };
+
+            return reference;
         }
     }
 }

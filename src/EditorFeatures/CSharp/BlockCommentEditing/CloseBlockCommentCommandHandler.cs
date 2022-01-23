@@ -1,29 +1,40 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(CloseBlockCommentCommandHandler))]
     [Order(After = nameof(BlockCommentEditingCommandHandler))]
-    internal sealed class CloseBlockCommentCommandHandler : VSCommanding.ICommandHandler<TypeCharCommandArgs>
+    internal sealed class CloseBlockCommentCommandHandler : ICommandHandler<TypeCharCommandArgs>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
-        public CloseBlockCommentCommandHandler()
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CloseBlockCommentCommandHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
 
-        public bool ExecuteCommand(TypeCharCommandArgs args, VSCommanding.CommandExecutionContext executionContext)
+        public bool ExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
         {
             if (args.TypedChar == '/')
             {
@@ -42,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                         if (line.End == position &&
                             line.IsEmptyOrWhitespace(0, line.Length - 2))
                         {
-                            if (args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString) &&
-                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value))
+                            if (_globalOptions.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp) &&
+                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, out _, out _))
                             {
                                 args.SubjectBuffer.Replace(new VisualStudio.Text.Span(position - 1, 1), "/");
                                 return true;
@@ -56,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             return false;
         }
 
-        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args)
-            => VSCommanding.CommandState.Unspecified;
+        public CommandState GetCommandState(TypeCharCommandArgs args)
+            => CommandState.Unspecified;
     }
 }

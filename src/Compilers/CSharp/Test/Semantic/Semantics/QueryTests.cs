@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -2176,7 +2180,7 @@ public class Test2
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
             var info2 = semanticModel.GetSemanticInfoSummary(selectClause);
-            var m = (MethodSymbol)info2.Symbol;
+            var m = (IMethodSymbol)info2.Symbol;
             Assert.Equal("Select", m.ReducedFrom.Name);
         }
 
@@ -2517,7 +2521,7 @@ class Program
             var semanticModel = compilation.GetSemanticModel(tree);
 
             semanticModel.GetDiagnostics().Verify(
-                // (21,30): error CS1935: Could not find an implementation of the query pattern for source type 'System.Collections.Generic.IEnumerable<int>'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
+                // (21,30): error CS1935: Could not find an implementation of the query pattern for source type 'System.Collections.Generic.IEnumerable<int>'.  'Select' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?
                 //         var q1 = from num in System.Linq.Enumerable.Range(4, 5).Where(n => n > 10)
                 Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "System.Linq.Enumerable.Range(4, 5).Where(n => n > 10)").WithArguments("System.Collections.Generic.IEnumerable<int>", "Select"));
         }
@@ -2816,12 +2820,12 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?) (Syntax: 'x')
 ", new DiagnosticDescription[] {
-                // file.cs(9,18): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                // file.cs(9,31): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(9, 18),
-                // file.cs(10,41): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "Cast<GC>").WithArguments("System.GC").WithLocation(9, 31),
+                // file.cs(10,28): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(10, 41)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
             });
         }
 
@@ -2898,7 +2902,7 @@ class C
             var x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
-            Assert.Equal(null, info0.CastInfo.Symbol);
+            Assert.Null(info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
@@ -2931,10 +2935,35 @@ class C
             var x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
-            Assert.Equal(null, info0.CastInfo.Symbol);
+            Assert.Null(info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
+        }
+
+        [Fact]
+        public void SelectFromType_TypeParameter()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using System.Collections.Generic;
+ 
+class C
+{
+    static void M<T>() where T : C
+    {
+        var q = from x in T select x;
+    }
+
+    static Func<Func<int, object>, IEnumerable<object>> Select = null;
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (9,27): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         var q = from x in T select x;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(9, 27)
+            );
         }
 
         [WorkItem(542624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542624")]
@@ -3106,7 +3135,8 @@ class Test
             var selectNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as SelectClauseSyntax;
             var model = compilation.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(selectNode);
-            Assert.NotNull(symbolInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, symbolInfo);
             Assert.Null(symbolInfo.Symbol); // there is no select method to call because the receiver is bad
             var typeInfo = model.GetTypeInfo(selectNode);
             Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
@@ -3134,7 +3164,8 @@ class Test
             var model = compilation.GetSemanticModel(tree);
             var queryInfo = model.GetQueryClauseInfo(joinNode);
 
-            Assert.NotNull(queryInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, queryInfo);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -4128,15 +4159,15 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0119: 'ConsoleApp' is a namespace, which is not valid in the given context
+                // file.cs(13,35): error CS0119: 'ParentNamespace.ConsoleApp' is a namespace, which is not valid in the given context
                 //                 var x = from c in ConsoleApp select 3;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleApp").WithArguments("ConsoleApp", "namespace").WithLocation(13, 35),
-                // CS0119: 'ParentNamespace.ConsoleApp' is a namespace, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleApp").WithArguments("ParentNamespace.ConsoleApp", "namespace").WithLocation(13, 35),
+                // file.cs(14,35): error CS0119: 'ParentNamespace.ConsoleApp' is a namespace, which is not valid in the given context
                 //                 var y = from c in ParentNamespace.ConsoleApp select 3;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "ParentNamespace.ConsoleApp").WithArguments("ParentNamespace.ConsoleApp", "namespace").WithLocation(14, 35),
-                // CS0119: 'NSAlias' is a namespace, which is not valid in the given context
+                // file.cs(15,45): error CS0119: 'ParentNamespace.ConsoleApp' is a namespace, which is not valid in the given context
                 //                 var z = /*<bind>*/from c in NSAlias select 3/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "NSAlias").WithArguments("NSAlias", "namespace").WithLocation(15, 45)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "NSAlias").WithArguments("ParentNamespace.ConsoleApp", "namespace").WithLocation(15, 45)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -4431,10 +4462,104 @@ class Program
                 // (16,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<object>(IEnumerable)'
                 //         var query5 = from object d in T select 5;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "from object d in T").WithArguments("System.Linq.Enumerable.Cast<object>(System.Collections.IEnumerable)").WithLocation(16, 22),
+                // (16,39): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         var query5 = from object d in T select 5;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(16, 39),
+                // (17,32): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         var query6 = from d in T select 6;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(17, 32),
                 // (17,32): error CS1936: Could not find an implementation of the query pattern for source type 'T'.  'Select' not found.
                 //         var query6 = from d in T select 6;
                 Diagnostic(ErrorCode.ERR_QueryNoProvider, "T").WithArguments("T", "Select").WithLocation(17, 32)
                 );
+        }
+
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
+        public void SetOnlyProperty()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+using System.Linq;
+
+var c = new C();
+var test = from i in c.Prop
+           select i;
+
+public class C {
+    public IEnumerable<int> Prop
+    {
+        set {}
+    }
+}
+", options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,22): error CS0154: The property or indexer 'C.Prop' cannot be used in this context because it lacks the get accessor
+                // var test = from i in c.Prop
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.Prop").WithArguments("C.Prop").WithLocation(6, 22)
+            );
+        }
+
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
+        public void DefaultIndexedPropertyParameters_IndexerCall()
+        {
+            CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+var c = new C();
+var test = from i in c[1]
+           select i + 1;
+Console.WriteLine(string.Join(string.Empty, test));
+
+public class C {
+    public IEnumerable<int> this[int i1, int i2 = 1]
+    {
+        get => new[] { i2 };
+        set {}
+    }
+}
+", expectedOutput: "2");
+        }
+
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
+        public void DefaultIndexedPropertyParameters_PropertyGroup()
+        {
+            var vb = CreateVisualBasicCompilation(@"
+Imports System.Collections.Generic
+Imports System.Runtime.InteropServices
+ 
+<ComImport>
+<Guid(""1F9C3731-6AA1-498A-AFA0-359828FCF0CE"")>
+Public Interface I
+    Property X(Optional i as Integer = 1) As IEnumerable(Of Integer)
+End Interface
+
+Public Class A
+    Implements I
+
+    Public Property X(Optional i as Integer = 1) As IEnumerable(Of Integer) Implements I.X
+        Get
+            Return New Integer() { i }
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+");
+
+            vb.VerifyDiagnostics();
+
+            CompileAndVerify(@"
+using System;
+using System.Linq;
+
+I i = new A();
+var test = from @int in i.X
+           select @int + 1;
+Console.WriteLine(string.Join(string.Empty, test));
+", references: new[] { vb.EmitToImageReference() }, expectedOutput: "2");
         }
     }
 }

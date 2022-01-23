@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30030.7
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis", "..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj", "{7B3C638D-D43E-4346-ACAC-56ACCE13B500}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{7b3c638d-d43e-4346-acac-56acce13b500}*SharedItemsImports = 5
+		..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{7b3c638d-d43e-4346-acac-56acce13b500}*SharedItemsImports = 5
+		..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{7b3c638d-d43e-4346-acac-56acce13b500}*SharedItemsImports = 5
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B3C638D-D43E-4346-ACAC-56ACCE13B500}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B3C638D-D43E-4346-ACAC-56ACCE13B500}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B3C638D-D43E-4346-ACAC-56ACCE13B500}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B3C638D-D43E-4346-ACAC-56ACCE13B500}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1A659683-1C0B-4A31-93C6-08B9E9D97170}
+	EndGlobalSection
+EndGlobal

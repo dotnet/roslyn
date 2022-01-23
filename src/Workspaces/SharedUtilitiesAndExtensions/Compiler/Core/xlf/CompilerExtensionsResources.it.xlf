@@ -1,0 +1,247 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../CompilerExtensionsResources.resx">
+    <body>
+      <trans-unit id="Absolute_path_expected">
+        <source>Absolute path expected.</source>
+        <target state="translated">È previsto il percorso assoluto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Abstract_Method">
+        <source>Abstract Method</source>
+        <target state="translated">Metodo astratto</target>
+        <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
+        <source>An element with the same key but a different value already exists.</source>
+        <target state="translated">Esiste già un elemento con la stessa chiave ma valore diverso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Begins_with_I">
+        <source>Begins with I</source>
+        <target state="translated">Inizia con I</target>
+        <note>{locked:I}</note>
+      </trans-unit>
+      <trans-unit id="Class">
+        <source>Class</source>
+        <target state="new">Class</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Delegate">
+        <source>Delegate</source>
+        <target state="new">Delegate</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Enum">
+        <source>Enum</source>
+        <target state="new">Enum</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Event">
+        <source>Event</source>
+        <target state="new">Event</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Cast_is_redundant">
+        <source>Cast is redundant.</source>
+        <target state="translated">Il cast è ridondante.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_level_preferences">
+        <source>Expression-level preferences</source>
+        <target state="translated">Preferenze a livello di espressione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences">
+        <source>Field preferences</source>
+        <target state="translated">Preferenze per campi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface">
+        <source>Interface</source>
+        <target state="new">Interface</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
+        <source>Language keywords vs BCL types preferences</source>
+        <target state="translated">Preferenze per parole chiave linguaggio rispetto a tipi BCL</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method">
+        <source>Method</source>
+        <target state="translated">metodo</target>
+        <note>{locked:method} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Missing_prefix_colon_0">
+        <source>Missing prefix: '{0}'</source>
+        <target state="translated">Manca il prefisso: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Missing_suffix_colon_0">
+        <source>Missing suffix: '{0}'</source>
+        <target state="translated">Manca il suffisso: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences">
+        <source>Modifier preferences</source>
+        <target state="translated">Preferenze per modificatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="translated">Regole di denominazione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_styles">
+        <source>Naming styles</source>
+        <target state="translated">Stili di denominazione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Preferenze per nuova riga</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_Field_Members">
+        <source>Non-Field Members</source>
+        <target state="translated">Membri non di campo</target>
+        <note>{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Organize_usings">
+        <source>Organize usings</source>
+        <target state="translated">Organizza using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="translated">Preferenze per parametri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences">
+        <source>Parentheses preferences</source>
+        <target state="translated">Preferenze per parentesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pascal_Case">
+        <source>Pascal Case</source>
+        <target state="translated">Notazione Pascal</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
+        <source>Prefix '{0}' does not match expected prefix '{1}'</source>
+        <target state="translated">Il prefisso '{0}' non corrisponde al prefisso previsto '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_is_not_expected">
+        <source>Prefix '{0}' is not expected</source>
+        <target state="translated">Il prefisso '{0}' non è previsto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_Method">
+        <source>Private Method</source>
+        <target state="translated">Metodo privato</target>
+        <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="Private_or_Internal_Field">
+        <source>Private or Internal Field</source>
+        <target state="translated">Campo privato o interno</target>
+        <note>{locked: private}{locked: internal}{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Private_or_Internal_Static_Field">
+        <source>Private or Internal Static Field</source>
+        <target state="translated">Campo statico privato o interno</target>
+        <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Property">
+        <source>Property</source>
+        <target state="new">Property</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Public_or_Protected_Field">
+        <source>Public or Protected Field</source>
+        <target state="translated">Campo pubblico o protetto</target>
+        <note>{locked: public}{locked: protected}{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
+        <source>Segment size must be power of 2 greater than 1</source>
+        <target state="translated">Le dimensioni del segmento devono essere una potenza di 2 maggiore di 1</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specified_sequence_has_duplicate_items">
+        <source>Specified sequence has duplicate items</source>
+        <target state="translated">La sequenza specificata contiene elementi duplicati</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Static_Field">
+        <source>Static Field</source>
+        <target state="translated">Campo statico</target>
+        <note>{locked:static}{locked:field} (unless the capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="Static_Method">
+        <source>Static Method</source>
+        <target state="translated">Metodo statico</target>
+        <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="Struct">
+        <source>Struct</source>
+        <target state="new">Struct</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Suppression_preferences">
+        <source>Suppression preferences</source>
+        <target state="translated">Preferenze per eliminazione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_specifications">
+        <source>Symbol specifications</source>
+        <target state="translated">Specifiche dei simboli</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
+        <source>The first word, '{0}', must begin with a lower case character</source>
+        <target state="translated">La prima parola, '{0}', deve iniziare con un carattere minuscolo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_first_word_0_must_begin_with_an_upper_case_character">
+        <source>The first word, '{0}', must begin with an upper case character</source>
+        <target state="translated">La prima parola, '{0}', deve iniziare con un carattere maiuscolo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0">
+        <source>These non-leading words must begin with a lowercase letter: {0}</source>
+        <target state="translated">Queste parole non iniziali devono iniziare con una lettera minuscola: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
+        <source>These non-leading words must begin with an upper case letter: {0}</source>
+        <target state="translated">Queste parole non iniziali devono iniziare con una lettera maiuscola: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_words_cannot_contain_lower_case_characters_colon_0">
+        <source>These words cannot contain lower case characters: {0}</source>
+        <target state="translated">Queste parole non possono contenere caratteri minuscoli: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_words_cannot_contain_upper_case_characters_colon_0">
+        <source>These words cannot contain upper case characters: {0}</source>
+        <target state="translated">Queste parole non possono contenere caratteri maiuscoli: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_words_must_begin_with_upper_case_characters_colon_0">
+        <source>These words must begin with upper case characters: {0}</source>
+        <target state="translated">Queste parole devono iniziare con caratteri maiuscoli: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Types">
+        <source>Types</source>
+        <target state="translated">Tipi</target>
+        <note>{locked:types} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="this_dot_and_Me_dot_preferences">
+        <source>this. and Me. preferences</source>
+        <target state="translated">Preferenze per this. e Me.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +22,7 @@ using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
@@ -34,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         private static readonly FileVersionInfo decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
 
         public CSharpDecompiledSourceService(HostLanguageServices provider)
-        {
-            this.provider = provider;
-        }
+            => this.provider = provider;
 
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
@@ -44,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var containingOrThis = symbol.GetContainingTypeOrThis();
             var fullName = GetFullReflectionName(containingOrThis);
 
+            MetadataReference metadataReference = null;
             string assemblyLocation = null;
             var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
                 && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
@@ -54,23 +59,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                     var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
                 {
                 }
             }
 
             if (assemblyLocation == null)
             {
-                var reference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
-                assemblyLocation = (reference as PortableExecutableReference)?.FilePath;
-                if (assemblyLocation == null)
-                {
-                    throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
-                }
+                metadataReference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
+                assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
             }
 
             // Decompile
-            document = PerformDecompilation(document, fullName, symbolCompilation, assemblyLocation);
+            document = PerformDecompilation(document, fullName, symbolCompilation, metadataReference, assemblyLocation);
 
             document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
@@ -78,23 +79,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
-            var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // Apply formatting rules
-            document = await Formatter.FormatAsync(
-                  document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                  options: null, Formatter.GetDefaultFormattingRules(document), cancellationToken).ConfigureAwait(false);
-
-            return document;
+            return await FormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
-        private Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)
+        public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
+            var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // Apply formatting rules
+            var formattedDoc = await Formatter.FormatAsync(
+                 document,
+                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                 options,
+                 CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
+                 cancellationToken).ConfigureAwait(false);
+
+            return formattedDoc;
+        }
+
+        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, MetadataReference metadataReference, string assemblyLocation)
+        {
+            var logger = new StringBuilder();
+            var resolver = new AssemblyResolver(compilation, logger);
+
             // Load the assembly.
-            var file = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
+            PEFile file = null;
+            if (metadataReference is not null)
+                file = resolver.TryResolve(metadataReference, PEStreamOptions.PrefetchEntireImage);
+
+            if (file is null && assemblyLocation is null)
+            {
+                throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+            }
+
+            file ??= new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
 
             // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(file, new AssemblyResolver(compilation), new DecompilerSettings());
+            var decompiler = new CSharpDecompiler(file, resolver, new DecompilerSettings());
             // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
             // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
             decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
@@ -103,14 +125,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             // Try to decompile; if an exception is thrown the caller will handle it
             var text = decompiler.DecompileTypeAsString(fullTypeName);
+
+            text += "#if false // " + CSharpEditorResources.Decompilation_log + Environment.NewLine;
+            text += logger.ToString();
+            text += "#endif" + Environment.NewLine;
+
             return document.WithText(SourceText.From(text));
         }
 
-        private async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        private static async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            string assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
+            var assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            string assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly);
+            var assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly);
 
             var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
                 .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });
@@ -132,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
+        private static async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -141,19 +168,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return document.WithSyntaxRoot(newSyntaxRoot);
         }
 
-        private string GetFullReflectionName(INamedTypeSymbol containingType)
+        private static string GetFullReflectionName(INamedTypeSymbol containingType)
         {
-            var stack = new Stack<string>();
-            stack.Push(containingType.MetadataName);
-            var ns = containingType.ContainingNamespace;
-            do
-            {
-                stack.Push(ns.Name);
-                ns = ns.ContainingNamespace;
-            }
-            while (ns != null && !ns.IsGlobalNamespace);
+            var containingTypeStack = new Stack<string>();
+            var containingNamespaceStack = new Stack<string>();
 
-            return string.Join(".", stack);
+            for (INamespaceOrTypeSymbol symbol = containingType;
+                symbol is not null and not INamespaceSymbol { IsGlobalNamespace: true };
+                symbol = (INamespaceOrTypeSymbol)symbol.ContainingType ?? symbol.ContainingNamespace)
+            {
+                if (symbol.ContainingType is not null)
+                    containingTypeStack.Push(symbol.MetadataName);
+                else
+                    containingNamespaceStack.Push(symbol.MetadataName);
+            }
+
+            var result = string.Join(".", containingNamespaceStack);
+            if (containingTypeStack.Any())
+            {
+                result += "+" + string.Join("+", containingTypeStack);
+            }
+
+            return result;
         }
     }
 }

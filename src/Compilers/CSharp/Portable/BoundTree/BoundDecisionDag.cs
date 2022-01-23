@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_reachableLabels == null)
                 {
-                    var result = ImmutableHashSet.CreateBuilder<LabelSymbol>();
+                    var result = ImmutableHashSet.CreateBuilder<LabelSymbol>(Symbols.SymbolEqualityComparer.ConsiderEverything);
                     foreach (var node in this.TopologicallySortedNodes)
                     {
                         if (node is BoundLeafDecisionDagNode leaf)
@@ -65,7 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_topologicallySortedNodes.IsDefault)
                 {
                     // We use an iterative topological sort to avoid overflowing the compiler's runtime stack for a large switch statement.
-                    _topologicallySortedNodes = TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { this.RootNode }, Successors);
+                    bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(SpecializedCollections.SingletonEnumerable(this.RootNode), Successors, out _topologicallySortedNodes);
+
+                    // Since these nodes were constructed by an isomorphic mapping from a known acyclic graph, it cannot be cyclic
+                    Debug.Assert(wasAcyclic);
                 }
 
                 return _topologicallySortedNodes;
@@ -77,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// takes as its input the node to be rewritten and a function that returns the previously computed
         /// rewritten node for successor nodes.
         /// </summary>
-        public BoundDecisionDag Rewrite(Func<BoundDecisionDagNode, Func<BoundDecisionDagNode, BoundDecisionDagNode>, BoundDecisionDagNode> makeReplacement)
+        public BoundDecisionDag Rewrite(Func<BoundDecisionDagNode, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode>, BoundDecisionDagNode> makeReplacement)
         {
             // First, we topologically sort the nodes of the dag so that we can translate the nodes bottom-up.
             // This will avoid overflowing the compiler's runtime stack which would occur for a large switch
@@ -88,14 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a node's successors before the node, the replacement should always be in the cache when we need it.
             var replacement = PooledDictionary<BoundDecisionDagNode, BoundDecisionDagNode>.GetInstance();
 
-            Func<BoundDecisionDagNode, BoundDecisionDagNode> getReplacementForChild = n => replacement[n];
-
             // Loop backwards through the topologically sorted nodes to translate them, so that we always visit a node after its successors
             for (int i = sortedNodes.Length - 1; i >= 0; i--)
             {
                 BoundDecisionDagNode node = sortedNodes[i];
                 Debug.Assert(!replacement.ContainsKey(node));
-                BoundDecisionDagNode newNode = makeReplacement(node, getReplacementForChild);
+                BoundDecisionDagNode newNode = makeReplacement(node, replacement);
                 replacement.Add(node, newNode);
             }
 
@@ -106,18 +111,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// A trivial node replacement function for use with <see cref="Rewrite(Func{BoundDecisionDagNode, Func{BoundDecisionDagNode, BoundDecisionDagNode}, BoundDecisionDagNode})"/>.
+        /// A trivial node replacement function for use with <see cref="Rewrite(Func{BoundDecisionDagNode, IReadOnlyDictionary{BoundDecisionDagNode, BoundDecisionDagNode}, BoundDecisionDagNode})"/>.
         /// </summary>
-        public static BoundDecisionDagNode TrivialReplacement(BoundDecisionDagNode dag, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+        public static BoundDecisionDagNode TrivialReplacement(BoundDecisionDagNode dag, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
         {
             switch (dag)
             {
                 case BoundEvaluationDecisionDagNode p:
-                    return p.Update(p.Evaluation, replacement(p.Next));
+                    return p.Update(p.Evaluation, replacement[p.Next]);
                 case BoundTestDecisionDagNode p:
-                    return p.Update(p.Test, replacement(p.WhenTrue), replacement(p.WhenFalse));
+                    return p.Update(p.Test, replacement[p.WhenTrue], replacement[p.WhenFalse]);
                 case BoundWhenDecisionDagNode p:
-                    return p.Update(p.Bindings, p.WhenExpression, replacement(p.WhenTrue), (p.WhenFalse != null) ? replacement(p.WhenFalse) : null);
+                    return p.Update(p.Bindings, p.WhenExpression, replacement[p.WhenTrue], (p.WhenFalse != null) ? replacement[p.WhenFalse] : null);
                 case BoundLeafDecisionDagNode p:
                     return p;
                 default:
@@ -142,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Rewrite(makeReplacement);
 
                 // Make a replacement for a given node, using the precomputed replacements for its successors.
-                BoundDecisionDagNode makeReplacement(BoundDecisionDagNode dag, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+                BoundDecisionDagNode makeReplacement(BoundDecisionDagNode dag, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
                 {
                     if (dag is BoundTestDecisionDagNode p)
                     {
@@ -150,9 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (knownResult(p.Test))
                         {
                             case true:
-                                return replacement(p.WhenTrue);
+                                return replacement[p.WhenTrue];
                             case false:
-                                return replacement(p.WhenFalse);
+                                return replacement[p.WhenFalse];
                         }
                     }
 
@@ -178,6 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return d.Value == inputConstant;
                         case BoundDagTypeTest d:
                             return inputConstant.IsNull ? (bool?)false : null;
+                        case BoundDagRelationalTest d:
+                            var f = ValueSetFactory.ForType(input.Type);
+                            if (f is null) return null;
+                            return f.Related(d.Relation.Operator(), inputConstant, d.Value);
                         default:
                             throw ExceptionUtilities.UnexpectedValue(choice);
                     }
@@ -193,99 +202,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal new string Dump()
         {
             var allStates = this.TopologicallySortedNodes;
-            var stateIdentifierMap = PooledDictionary<BoundDecisionDagNode, int>.GetInstance();
-            for (int i = 0; i < allStates.Length; i++)
-            {
-                stateIdentifierMap.Add(allStates[i], i);
-            }
-
-            int nextTempNumber = 0;
-            var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
-            int tempIdentifier(BoundDagEvaluation e)
-            {
-                return (e == null) ? 0 : tempIdentifierMap.TryGetValue(e, out int value) ? value : tempIdentifierMap[e] = ++nextTempNumber;
-            }
-
-            string tempName(BoundDagTemp t)
-            {
-                return $"t{tempIdentifier(t.Source)}{(t.Index != 0 ? $".{t.Index.ToString()}" : "")}";
-            }
 
             var resultBuilder = PooledStringBuilder.GetInstance();
             var result = resultBuilder.Builder;
 
             foreach (var state in allStates)
             {
-                result.AppendLine($"State " + stateIdentifierMap[state]);
-                switch (state)
-                {
-                    case BoundTestDecisionDagNode node:
-                        result.AppendLine($"  Test: {dump(node.Test)}");
-                        if (node.WhenTrue != null)
-                        {
-                            result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
-                        }
-
-                        if (node.WhenFalse != null)
-                        {
-                            result.AppendLine($"  WhenFalse: {stateIdentifierMap[node.WhenFalse]}");
-                        }
-                        break;
-                    case BoundEvaluationDecisionDagNode node:
-                        result.AppendLine($"  Test: {dump(node.Evaluation)}");
-                        if (node.Next != null)
-                        {
-                            result.AppendLine($"  Next: {stateIdentifierMap[node.Next]}");
-                        }
-                        break;
-                    case BoundWhenDecisionDagNode node:
-                        result.AppendLine($"  WhenClause: " + node.WhenExpression?.Syntax);
-                        if (node.WhenTrue != null)
-                        {
-                            result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
-                        }
-
-                        if (node.WhenFalse != null)
-                        {
-                            result.AppendLine($"  WhenFalse: {stateIdentifierMap[node.WhenFalse]}");
-                        }
-                        break;
-                    case BoundLeafDecisionDagNode node:
-                        result.AppendLine($"  Case: " + node.Syntax);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(state);
-                }
+                result.AppendLine(state.GetDebuggerDisplay());
             }
 
-            stateIdentifierMap.Free();
-            tempIdentifierMap.Free();
             return resultBuilder.ToStringAndFree();
-
-            string dump(BoundDagTest d)
-            {
-                switch (d)
-                {
-                    case BoundDagTypeEvaluation a:
-                        return $"t{tempIdentifier(a)}={a.Kind} {tempName(d.Input)} as {a.Type.ToString()}";
-                    case BoundDagPropertyEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind} {tempName(d.Input)}.{e.Property.Name}";
-                    case BoundDagIndexEvaluation i:
-                        return $"t{tempIdentifier(i)}={i.Kind} {tempName(d.Input)}[{i.Index}]";
-                    case BoundDagEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind}, {tempName(d.Input)}";
-                    case BoundDagTypeTest b:
-                        return $"?{d.Kind} {tempName(d.Input)} is {b.Type.ToString()}";
-                    case BoundDagValueTest v:
-                        return $"?{d.Kind} {v.Value.ToString()} == {tempName(d.Input)}";
-                    case BoundDagNonNullTest t:
-                        return $"?{d.Kind} {tempName(d.Input)} != null";
-                    case BoundDagExplicitNullTest t:
-                        return $"?{d.Kind} {tempName(d.Input)} == null";
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(d);
-                }
-            }
         }
 #endif
     }

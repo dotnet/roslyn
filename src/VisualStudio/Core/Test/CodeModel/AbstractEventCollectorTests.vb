@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -73,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                    End Sub
         End Function
 
-        Private Sub CheckCodeModelEvents(codeModelEvent As CodeModelEvent, codeModelService As ICodeModelService, node As String, parent As String)
+        Private Shared Sub CheckCodeModelEvents(codeModelEvent As CodeModelEvent, codeModelService As ICodeModelService, node As String, parent As String)
             If node IsNot Nothing Then
                 Assert.NotNull(codeModelEvent.Node)
                 Assert.Equal(node, codeModelService.GetName(codeModelEvent.Node))
@@ -98,7 +100,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()
                 Assert.NotNull(codeModelService)

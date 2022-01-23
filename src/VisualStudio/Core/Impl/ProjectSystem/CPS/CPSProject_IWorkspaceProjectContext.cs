@@ -1,16 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
@@ -23,12 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         /// The <see cref="VisualStudioProjectOptionsProcessor"/> we're using to parse command line options. Null if we don't
         /// have the ability to parse command line options.
         /// </summary>
-        private readonly VisualStudioProjectOptionsProcessor _visualStudioProjectOptionsProcessor;
+        private readonly VisualStudioProjectOptionsProcessor? _visualStudioProjectOptionsProcessor;
 
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly IProjectCodeModel _projectCodeModel;
-        private readonly Lazy<ProjectExternalErrorReporter> _externalErrorReporterOpt;
-        private readonly EditAndContinue.VsENCRebuildableProjectImpl _editAndContinueProject;
+        private readonly Lazy<ProjectExternalErrorReporter?> _externalErrorReporter;
 
         public string DisplayName
         {
@@ -36,10 +38,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.DisplayName = value;
         }
 
-        public string ProjectFilePath
+        public string? ProjectFilePath
         {
             get => _visualStudioProject.FilePath;
             set => _visualStudioProject.FilePath = value;
+        }
+
+        public bool IsPrimary
+        {
+            get => _visualStudioProject.IsPrimary;
+            set => _visualStudioProject.IsPrimary = value;
         }
 
         public Guid Guid
@@ -54,12 +62,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.HasAllInformation = value;
         }
 
-        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, ExternalErrorDiagnosticUpdateSource externalErrorDiagnosticUpdateSource, Guid projectGuid, string binOutputPath)
+        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string? binOutputPath)
         {
             _visualStudioProject = visualStudioProject;
             _visualStudioWorkspace = visualStudioWorkspace;
 
-            _externalErrorReporterOpt = new Lazy<ProjectExternalErrorReporter>(() =>
+            _externalErrorReporter = new Lazy<ProjectExternalErrorReporter?>(() =>
             {
                 var prefix = visualStudioProject.Language switch
                 {
@@ -69,8 +77,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     _ => null
                 };
 
-                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioWorkspace, externalErrorDiagnosticUpdateSource) : null;
+                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioProject.Language, visualStudioWorkspace) : null;
             });
+
+            visualStudioWorkspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
 
             _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(visualStudioProject.Id, new CPSCodeModelInstanceFactory(this));
 
@@ -83,19 +93,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     () => _visualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
             }
 
-            // We don't have a SVsShellDebugger service in unit tests, in that case we can't implement ENC. We're OK
-            // leaving the field null in that case.
-            if (Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsShellDebugger)) != null)
-            {
-                // TODO: make this lazier, as fetching all the services up front during load shoudn't be necessary
-                _editAndContinueProject = new EditAndContinue.VsENCRebuildableProjectImpl(_visualStudioWorkspace, _visualStudioProject, Shell.ServiceProvider.GlobalProvider);
-            }
-
             Guid = projectGuid;
             BinOutputPath = binOutputPath;
         }
 
-        public string BinOutputPath
+        public string? BinOutputPath
         {
             get => _visualStudioProject.OutputFilePath;
             set
@@ -104,7 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 if (string.IsNullOrEmpty(value))
                 {
                     _visualStudioProject.OutputFilePath = null;
-                    _visualStudioProject.OutputRefFilePath = null;
                     return;
                 }
 
@@ -123,38 +124,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 {
                     _visualStudioProject.OutputFilePath = value;
                 }
-
-                // Compute the ref path based on the non-ref path. Ideally this should come from the
-                // project system but we don't have a way to fetch that.
-                _visualStudioProject.OutputRefFilePath =
-                    Path.Combine(Path.GetDirectoryName(_visualStudioProject.OutputFilePath),
-                    "ref",
-                    Path.GetFileName(_visualStudioProject.OutputFilePath));
             }
         }
 
-        internal string GetIntermediateOutputFilePath()
-        {
-            return _visualStudioProject.IntermediateOutputFilePath;
-        }
+        internal string? CompilationOutputAssemblyFilePath
+            => _visualStudioProject.CompilationOutputAssemblyFilePath;
 
         public ProjectId Id => _visualStudioProject.Id;
 
+        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         public void SetOptions(string commandLineForOptions)
-        {
-            if (_visualStudioProjectOptionsProcessor != null)
-            {
-                _visualStudioProjectOptionsProcessor.CommandLine = commandLineForOptions;
-            }
-        }
+            => _visualStudioProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
 
-        public string DefaultNamespace
+        public void SetOptions(ImmutableArray<string> arguments)
+            => _visualStudioProjectOptionsProcessor?.SetCommandLine(arguments);
+
+        public string? DefaultNamespace
         {
             get => _visualStudioProject.DefaultNamespace;
             private set => _visualStudioProject.DefaultNamespace = value;
         }
 
-        public void SetProperty(string name, string value)
+        public void SetProperty(string name, string? value)
         {
             if (name == AdditionalPropertyNames.RootNamespace)
             {
@@ -164,6 +155,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // In the future, we might consider officially exposing "default namespace" for VB project 
                 // (e.g. through a <defaultnamespace> msbuild property)
                 DefaultNamespace = value;
+            }
+            else if (name == AdditionalPropertyNames.MaxSupportedLangVersion)
+            {
+                _visualStudioProject.MaxLangVersion = value;
+            }
+            else if (name == AdditionalPropertyNames.RunAnalyzers)
+            {
+                var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzers = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis)
+            {
+                var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
+            {
+                _visualStudioProject.DependencyNodeTargetIdentifier = value;
+            }
+            else if (name == AdditionalPropertyNames.TargetRefPath)
+            {
+                // If we don't have a path, always set it to null
+                if (string.IsNullOrEmpty(value))
+                {
+                    _visualStudioProject.OutputRefFilePath = null;
+                }
+                else
+                {
+                    // If we only have a non-rooted path, make it full. This is apparently working around cases
+                    // where CPS pushes us a temporary path when they're loading. It's possible this hack
+                    // can be removed now, but we still have tests asserting it.
+                    if (!PathUtilities.IsAbsolute(value))
+                    {
+                        var rootDirectory = _visualStudioProject.FilePath != null
+                                            ? Path.GetDirectoryName(_visualStudioProject.FilePath)
+                                            : Path.GetTempPath();
+
+                        _visualStudioProject.OutputRefFilePath = Path.Combine(rootDirectory, value);
+                    }
+                    else
+                    {
+                        _visualStudioProject.OutputRefFilePath = value;
+                    }
+                }
             }
         }
 
@@ -192,10 +227,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _visualStudioProject.RemoveProjectReference(otherProjectReference);
         }
 
-        public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-        {
-            _visualStudioProject.AddSourceFile(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
-        }
+        public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string>? folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+            => _visualStudioProject.AddSourceFile(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
 
         public void RemoveSourceFile(string filePath)
         {
@@ -204,77 +237,63 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
-        {
-            _visualStudioProject.AddAdditionalFile(filePath);
-        }
+            => _visualStudioProject.AddAdditionalFile(filePath);
 
         public void Dispose()
         {
             _projectCodeModel?.OnProjectClosed();
+            _visualStudioProjectOptionsProcessor?.Dispose();
             _visualStudioProject.RemoveFromWorkspace();
         }
 
         public void AddAnalyzerReference(string referencePath)
-        {
-            _visualStudioProject.AddAnalyzerReference(referencePath);
-        }
+            => _visualStudioProject.AddAnalyzerReference(referencePath);
 
         public void RemoveAnalyzerReference(string referencePath)
-        {
-            _visualStudioProject.RemoveAnalyzerReference(referencePath);
-        }
+            => _visualStudioProject.RemoveAnalyzerReference(referencePath);
 
         public void RemoveAdditionalFile(string filePath)
-        {
-            _visualStudioProject.RemoveAdditionalFile(filePath);
-        }
+            => _visualStudioProject.RemoveAdditionalFile(filePath);
 
-        public void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null)
-        {
-            _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
-        }
+        public void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null)
+            => _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
 
         public void RemoveDynamicFile(string filePath)
-        {
-            _visualStudioProject.RemoveDynamicSourceFile(filePath);
-        }
+            => _visualStudioProject.RemoveDynamicSourceFile(filePath);
 
         public void SetRuleSetFile(string filePath)
         {
-            // This is now a no-op: we also recieve the rule set file through SetOptions, and we'll just use that one
+            // This is now a no-op: we also receive the rule set file through SetOptions, and we'll just use that one
         }
 
         private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new ConcurrentQueue<VisualStudioProject.BatchScope>();
 
         public void StartBatch()
-        {
-            _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
-        }
+            => _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
 
+        [Obsolete($"Use {nameof(EndBatchAsync)}.")]
         public void EndBatch()
         {
             Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
             scope.Dispose();
         }
 
-        public void ReorderSourceFiles(IEnumerable<string> filePaths)
+        public ValueTask EndBatchAsync()
         {
-            _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
+            Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
+            return scope.DisposeAsync();
         }
+
+        public void ReorderSourceFiles(IEnumerable<string>? filePaths)
+            => _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
 
         internal VisualStudioProject GetProject_TestOnly()
-        {
-            return _visualStudioProject;
-        }
+            => _visualStudioProject;
 
         public void AddAnalyzerConfigFile(string filePath)
-        {
-            _visualStudioProject.AddAnalyzerConfigFile(filePath);
-        }
+            => _visualStudioProject.AddAnalyzerConfigFile(filePath);
 
         public void RemoveAnalyzerConfigFile(string filePath)
-        {
-            _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
-        }
+            => _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
     }
 }

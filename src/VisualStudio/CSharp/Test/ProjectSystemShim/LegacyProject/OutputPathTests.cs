@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Windows.Controls;
@@ -18,20 +22,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [InlineData(null)]
         public void RefPathPassedToWorkspace(string expectedRefPath)
         {
-            using (var environment = new TestEnvironment())
-            {
-                var hierarchyWithRefPath =
-                    environment.CreateHierarchy(
-                        "WithRefPath",
-                        @"Z:\WithRefPath.dll",
-                        expectedRefPath,
-                        "CSharp");
+            using var environment = new TestEnvironment();
 
-                var project = CSharpHelpers.CreateCSharpProject(environment, "WithRefPath", hierarchyWithRefPath);
-                var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
+            var hierarchyWithRefPath =
+                environment.CreateHierarchy(
+                    "WithRefPath",
+                    @"Z:\WithRefPath.dll",
+                    expectedRefPath,
+                    "CSharp");
 
-                Assert.Equal(expectedRefPath, workspaceProject.OutputRefFilePath);
-            }
+            var project = CSharpHelpers.CreateCSharpProject(environment, "WithRefPath", hierarchyWithRefPath);
+            var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
+
+            Assert.Equal(expectedRefPath, workspaceProject.OutputRefFilePath);
         }
     }
 }

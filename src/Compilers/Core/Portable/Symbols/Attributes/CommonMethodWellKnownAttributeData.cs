@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         private readonly bool _preserveSigFirstWriteWins;
 
         // data from DllImportAttribute
-        private DllImportData _platformInvokeInfo;
+        private DllImportData? _platformInvokeInfo;
         private bool _dllImportPreserveSig;
         private int _dllImportIndex;               // -1 .. not specified
 
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // used by DllImportAttribute
-        public void SetDllImport(int attributeIndex, string moduleName, string entryPointName, MethodImportAttributes flags, bool preserveSig)
+        public void SetDllImport(int attributeIndex, string? moduleName, string? entryPointName, MethodImportAttributes flags, bool preserveSig)
         {
             VerifySealed(expected: false);
             Debug.Assert(attributeIndex >= 0);
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             SetDataStored();
         }
 
-        public DllImportData DllImportPlatformInvokeData
+        public DllImportData? DllImportPlatformInvokeData
         {
             get
             {
@@ -177,7 +176,7 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Security Attributes
-        private SecurityWellKnownAttributeData _lazySecurityAttributeData;
+        private SecurityWellKnownAttributeData? _lazySecurityAttributeData;
 
         SecurityWellKnownAttributeData ISecurityAttributeTarget.GetOrCreateData()
         {
@@ -204,7 +203,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns data decoded from security attributes or null if there are no security attributes.
         /// </summary>
-        public SecurityWellKnownAttributeData SecurityInformation
+        public SecurityWellKnownAttributeData? SecurityInformation
         {
             get
             {

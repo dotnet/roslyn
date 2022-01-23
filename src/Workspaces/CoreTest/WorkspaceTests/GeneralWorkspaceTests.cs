@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,142 +18,132 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestChangeDocumentContent_TryApplyChanges_Throws()
         {
-            using (var ws = new NoChangesAllowedWorkspace())
+            using var ws = new NoChangesAllowedWorkspace();
+            var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+            var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+
+            var changedDoc = originalDoc.WithText(SourceText.From("new"));
+
+            NotSupportedException e = null;
+            try
             {
-                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
-                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+                ws.TryApplyChanges(changedDoc.Project.Solution);
 
-                var changedDoc = originalDoc.WithText(SourceText.From("new"));
-
-                NotSupportedException e = null;
-                try
-                {
-                    ws.TryApplyChanges(changedDoc.Project.Solution);
-
-                }
-                catch (NotSupportedException x)
-                {
-                    e = x;
-                }
-
-                Assert.NotNull(e);
-                Assert.Equal(WorkspacesResources.Changing_documents_is_not_supported, e.Message);
             }
+            catch (NotSupportedException x)
+            {
+                e = x;
+            }
+
+            Assert.NotNull(e);
+            Assert.Equal(WorkspacesResources.Changing_documents_is_not_supported, e.Message);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestChangeDocumentName_TryApplyChanges_Throws()
         {
-            using (var ws = new NoChangesAllowedWorkspace())
+            using var ws = new NoChangesAllowedWorkspace();
+            var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+            var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+            Assert.Equal("TestDocument", originalDoc.Name);
+
+            var newName = "ChangedName";
+            var changedDoc = originalDoc.WithName(newName);
+            Assert.Equal(newName, changedDoc.Name);
+
+            NotSupportedException e = null;
+            try
             {
-                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
-                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
-                Assert.Equal(originalDoc.Name, "TestDocument");
-
-                var newName = "ChangedName";
-                var changedDoc = originalDoc.WithName(newName);
-                Assert.Equal(newName, changedDoc.Name);
-
-                NotSupportedException e = null;
-                try
-                {
-                    ws.TryApplyChanges(changedDoc.Project.Solution);
-                }
-                catch (NotSupportedException x)
-                {
-                    e = x;
-                }
-
-                Assert.NotNull(e);
-                Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
+                ws.TryApplyChanges(changedDoc.Project.Solution);
             }
+            catch (NotSupportedException x)
+            {
+                e = x;
+            }
+
+            Assert.NotNull(e);
+            Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestChangeDocumentFolders_TryApplyChanges_Throws()
         {
-            using (var ws = new NoChangesAllowedWorkspace())
+            using var ws = new NoChangesAllowedWorkspace();
+            var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+            var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+
+            Assert.Equal(0, originalDoc.Folders.Count);
+
+            var changedDoc = originalDoc.WithFolders(new[] { "A", "B" });
+            Assert.Equal(2, changedDoc.Folders.Count);
+            Assert.Equal("A", changedDoc.Folders[0]);
+            Assert.Equal("B", changedDoc.Folders[1]);
+
+            NotSupportedException e = null;
+            try
             {
-                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
-                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
-
-                Assert.Equal(0, originalDoc.Folders.Count);
-
-                var changedDoc = originalDoc.WithFolders(new[] { "A", "B" });
-                Assert.Equal(2, changedDoc.Folders.Count);
-                Assert.Equal("A", changedDoc.Folders[0]);
-                Assert.Equal("B", changedDoc.Folders[1]);
-
-                NotSupportedException e = null;
-                try
-                {
-                    ws.TryApplyChanges(changedDoc.Project.Solution);
-                }
-                catch (NotSupportedException x)
-                {
-                    e = x;
-                }
-
-                Assert.NotNull(e);
-                Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
+                ws.TryApplyChanges(changedDoc.Project.Solution);
             }
+            catch (NotSupportedException x)
+            {
+                e = x;
+            }
+
+            Assert.NotNull(e);
+            Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestChangeDocumentFilePath_TryApplyChanges_Throws()
         {
-            using (var ws = new NoChangesAllowedWorkspace())
+            using var ws = new NoChangesAllowedWorkspace();
+            var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+
+            var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+            Assert.Null(originalDoc.FilePath);
+
+            var newPath = @"\goo\TestDocument.cs";
+            var changedDoc = originalDoc.WithFilePath(newPath);
+            Assert.Equal(newPath, changedDoc.FilePath);
+
+            NotSupportedException e = null;
+            try
             {
-                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
-
-                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
-                Assert.Null(originalDoc.FilePath);
-
-                var newPath = @"\goo\TestDocument.cs";
-                var changedDoc = originalDoc.WithFilePath(newPath);
-                Assert.Equal(newPath, changedDoc.FilePath);
-
-                NotSupportedException e = null;
-                try
-                {
-                    ws.TryApplyChanges(changedDoc.Project.Solution);
-                }
-                catch (NotSupportedException x)
-                {
-                    e = x;
-                }
-
-                Assert.NotNull(e);
-                Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
+                ws.TryApplyChanges(changedDoc.Project.Solution);
             }
+            catch (NotSupportedException x)
+            {
+                e = x;
+            }
+
+            Assert.NotNull(e);
+            Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestChangeDocumentSourceCodeKind_TryApplyChanges_Throws()
         {
-            using (var ws = new NoChangesAllowedWorkspace())
+            using var ws = new NoChangesAllowedWorkspace();
+            var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+
+            var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
+            Assert.Equal(SourceCodeKind.Regular, originalDoc.SourceCodeKind);
+
+            var changedDoc = originalDoc.WithSourceCodeKind(SourceCodeKind.Script);
+            Assert.Equal(SourceCodeKind.Script, changedDoc.SourceCodeKind);
+
+            NotSupportedException e = null;
+            try
             {
-                var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
-
-                var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
-                Assert.Equal(SourceCodeKind.Regular, originalDoc.SourceCodeKind);
-
-                var changedDoc = originalDoc.WithSourceCodeKind(SourceCodeKind.Script);
-                Assert.Equal(SourceCodeKind.Script, changedDoc.SourceCodeKind);
-
-                NotSupportedException e = null;
-                try
-                {
-                    ws.TryApplyChanges(changedDoc.Project.Solution);
-                }
-                catch (NotSupportedException x)
-                {
-                    e = x;
-                }
-
-                Assert.NotNull(e);
-                Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
+                ws.TryApplyChanges(changedDoc.Project.Solution);
             }
+            catch (NotSupportedException x)
+            {
+                e = x;
+            }
+
+            Assert.NotNull(e);
+            Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
         }
 
         private class NoChangesAllowedWorkspace : Workspace
@@ -165,9 +159,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             public override bool CanApplyChange(ApplyChangesKind feature)
-            {
-                return false;
-            }
+                => false;
 
             public Project AddProject(string name, string language)
             {

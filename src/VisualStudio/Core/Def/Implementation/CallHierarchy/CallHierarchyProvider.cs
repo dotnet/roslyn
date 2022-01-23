@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -26,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         public IGlyphService GlyphService { get; }
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CallHierarchyProvider(
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlyphService glyphService)
@@ -37,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         public async Task<ICallHierarchyMemberItem> CreateItemAsync(ISymbol symbol,
             Project project, IEnumerable<Location> callsites, CancellationToken cancellationToken)
         {
-            if (symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property ||
-                symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Field)
+            if (symbol.Kind is SymbolKind.Method or
+                SymbolKind.Property or
+                SymbolKind.Event or
+                SymbolKind.Field)
             {
                 symbol = GetTargetSymbol(symbol);
 
@@ -60,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             return null;
         }
 
-        private ISymbol GetTargetSymbol(ISymbol symbol)
+        private static ISymbol GetTargetSymbol(ISymbol symbol)
         {
             if (symbol is IMethodSymbol methodSymbol)
             {
@@ -82,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public async Task<IEnumerable<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (symbol.Kind == SymbolKind.Property ||
-                    symbol.Kind == SymbolKind.Event ||
-                    symbol.Kind == SymbolKind.Method)
+            if (symbol.Kind is SymbolKind.Property or
+                    SymbolKind.Event or
+                    SymbolKind.Method)
             {
                 var finders = new List<AbstractCallFinder>();
 
@@ -101,9 +107,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     finders.Add(new CallToOverrideFinder(symbol, project.Id, _asyncListener, this));
                 }
 
-                if (symbol.OverriddenMember() != null)
+                if (symbol.GetOverriddenMember() != null)
                 {
-                    finders.Add(new BaseMemberFinder(symbol.OverriddenMember(), project.Id, _asyncListener, this));
+                    finders.Add(new BaseMemberFinder(symbol.GetOverriddenMember(), project.Id, _asyncListener, this));
                 }
 
                 var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -133,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var resolution = id.Resolve(compilation, cancellationToken: cancellationToken);
             var workspace = project.Solution.Workspace;
-            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
+            var options = project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
             var symbolNavigationService = workspace.Services.GetService<ISymbolNavigationService>();
 
             symbolNavigationService.TryNavigateToSymbol(resolution.Symbol, project, options, cancellationToken);

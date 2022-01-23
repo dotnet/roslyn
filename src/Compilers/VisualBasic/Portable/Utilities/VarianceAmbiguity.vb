@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
@@ -47,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Otherwise, if ambiguity wasn't caused in any positions, then left/right are fine.
         ''' Otherwise, left/right have an ambiguity.
         ''' </summary>
-        Public Shared Function HasVarianceAmbiguity(containingType As NamedTypeSymbol, i1 As NamedTypeSymbol, i2 As NamedTypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Shared Function HasVarianceAmbiguity(containingType As NamedTypeSymbol, i1 As NamedTypeSymbol, i2 As NamedTypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Debug.Assert(i1.IsInterfaceType() AndAlso i2.IsInterfaceType())
             Debug.Assert(i1.IsGenericType AndAlso i2.IsGenericType)
             Debug.Assert(TypeSymbol.Equals(i1.OriginalDefinition, i2.OriginalDefinition, TypeCompareKind.ConsiderEverything))
@@ -66,10 +68,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Below call passes "causesAmbiguity" and "preventsAmbiguity" by reference.
                     CheckCorrespondingTypeArguments(containingType,
                                                     nestingType1.TypeParameters(iTypeParameter).Variance,
-                                                    nestingType1.TypeArgumentWithDefinitionUseSiteDiagnostics(iTypeParameter, useSiteDiagnostics),
-                                                    nestingType2.TypeArgumentWithDefinitionUseSiteDiagnostics(iTypeParameter, useSiteDiagnostics),
+                                                    nestingType1.TypeArgumentWithDefinitionUseSiteDiagnostics(iTypeParameter, useSiteInfo),
+                                                    nestingType2.TypeArgumentWithDefinitionUseSiteDiagnostics(iTypeParameter, useSiteInfo),
                                                     causesAmbiguity, preventsAmbiguity,
-                                                    useSiteDiagnostics)
+                                                    useSiteInfo)
                 Next
                 nestingType1 = nestingType1.ContainingType
                 nestingType2 = nestingType2.ContainingType
@@ -115,13 +117,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                            typeArgument2 As TypeSymbol,
                                                            ByRef causesAmbiguity As Boolean,
                                                            ByRef preventsAmbiguity As Boolean,
-                                                           <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                           <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             If Not typeArgument1.IsSameTypeIgnoringAll(typeArgument2) Then
                 Select Case variance
                     Case VarianceKind.In
                         Dim bothAreClasses = (typeArgument1.IsClassType() AndAlso typeArgument2.IsClassType())
                         Dim oneDerivesFromOther = bothAreClasses AndAlso
-                                (Conversions.ClassifyDirectCastConversion(typeArgument1, typeArgument2, useSiteDiagnostics) And ConversionKind.Reference) <> 0
+                                (Conversions.ClassifyDirectCastConversion(typeArgument1, typeArgument2, useSiteInfo) And ConversionKind.Reference) <> 0
 
                         ' (Note that value types are always NotInheritable)
                         If Not typeArgument1.IsNotInheritable() AndAlso Not typeArgument2.IsNotInheritable() AndAlso

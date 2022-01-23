@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -78,50 +80,61 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="needs-review-translation">Mostrar diagnósticos para arquivos fechados;
-Colorir a expressão regular; 
-Destacar os componentes relacionados sob o cursor; 
-Relatório inválidas expressões regulares;
-Permitir a análise de solução completa;
-Realizar análise de recurso de editor em um processo externo;
-Permitir a navegação para descompilado fontes;
-Usando diretivas;
-Posicionar diretivas de sistema primeiro ao classificar usos;
-Separar usando grupos Directiva;
-Sugerir usos para tipos em assemblies de referência;
-Sugerir usos para tipos de pacotes NuGet;
-Destacando-se;
-Destacar as referências para o símbolo sob o cursor;
-Destacar palavras-chave relacionadas sob o cursor;
-Estrutura de tópicos;
-Entrar no modo de estrutura de tópicos quando abrem arquivos;
-Mostrar o procedimento separadores de linha;
-Mostrar a estrutura de tópicos para construções de nível de declaração;
-Mostrar a estrutura de tópicos para construções de nível de código;
-Mostrar a estrutura de tópicos para comentários e regiões de pré-processamento;
-Regiões de colapso ao recolher a definições;
-Desvanecimento;
-Fade-out usos não utilizados;
-Fade-out código inacessível;
-Bloquear guias de estrutura;
-Mostrar guias para construções de nível de declaração;
-Mostrar guias para construções de nível de código;
-Ajuda do editor;
-Gerar comentários de documentação XML para / / /;
-Insira * no início de novas linhas ao escrever / * * / comentários;
-Mostrar visualização para renomear de rastreamento;
-Dividir a cadeia de caracteres literais em Enter;
-Relatório inválido espaços reservados na sequência de caracteres. Chamadas de formato;
-Extrair o método;
-Não colocar ref ou out na struct personalizado;
-Implementar a Interface ou classe abstrata;
-Ao inserir Propriedades, métodos e eventos, colocá-los;
-com outros membros da mesma espécie;
-no final;
-Ao gerar a propriedade;
-prefiro jogar Propriedades;
-Prefiro propriedades auto;</target>
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="new">Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -131,10 +144,10 @@ Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
         <target state="translated">Formatar automaticamente ao digitar;
-Formatar automaticamente a instrução em ponto-e-vírgula;
+Formatar automaticamente a instrução no ponto e vírgula;
 Formatar automaticamente o bloco na chave de fechamento;
-Formatar automaticamente ao retornar;
-Formatar automaticamente ao colar;</target>
+Formatar automaticamente na devolução;
+Formatar automaticamente na pasta;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -147,15 +160,15 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">Recuar conteúdos do bloco; 
-recuar chaves de abertura e fechamento;
-recuar conteúdo de case;
-recuar conteúdo de case (quando bloquear);
-recuar rótulos de case;
-recuo do rótulo;
-posicionar rótulos goto na coluna mais à esquerda;
-recuar rótulos normalmente;
-colocar rótulos goto a recuo a menos que o atual;</target>
+        <target state="translated">Conteúdo do bloqueio de recuo;
+recuo aberto e fechamento de chaves;
+recuo do conteúdo do caso;
+recuo do conteúdo do caso (ao bloquear);
+rótulos de caso de recuo;
+recuo de rótulo;
+coloque os rótulos goto na coluna mais à esquerda;
+rótulos de recuo normalmente;
+coloque os rótulos goto um recuo menor que o atual;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -176,21 +189,21 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="translated">Nova opção de formatação de linha para chaves, novas opções de formatação de linha para palavras-chave, novas opções de linha para chaves;
-Colocar chave de abertura na nova linha para tipos;
-Colocar chave de abertura na nova linha para métodos e funções locais;
-Colocar chave de abertura na nova linha para propriedades, indexadores e eventos;
-Colocar chave de abertura na nova linha para propriedade, indexador e acessadores de evento;
-Colocar chave de abertura na nova linha para métodos anônimos;
-Colocar chave de abertura na nova linha de blocos de controle;
-Colocar chave de abertura na nova linha para tipos anônimos;
-Colocar chave de abertura na nova linha de objeto e coleção inicializadores de matriz;
+        <target state="translated">Nova opção de formatação de linha para chaves;Novas opções de formatação de linha para palavras-chave;Novas opções de linha para chaves;
+Colocar a chave aberta na nova linha para tipos;
+Colocar a chave aberta na nova linha para métodos e funções locais;
+Colocar a chave aberta na nova linha para propriedades, indexadores e eventos;
+Colocar a chave aberta na nova linha para os acessadores de propriedade, indexador e evento;
+Colocar a chave aberta na nova linha para métodos anônimos;
+Colocar a chave aberta na nova linha para os blocos de controle;
+Colocar a chave aberta na nova linha para tipos anônimos;
+Colocar a chave aberta na nova linha para inicializadores de objeto, coleção e matriz;
 Novas opções de linha para palavras-chave;
-Colocar else na nova linha;
-Colocar catch na nova linha;
-Colocar finally na nova linha;
+Colocar outro na nova linha;
+Colocar variável na nova linha;
+Colocar finalmente na nova linha;
 Novas opções de linha para expressão;
-Colocar membros em inicializadores de objetos na nova linha;
+Colocar membros em inicializadores de objeto na nova linha;
 Colocar membros em tipos anônimos na nova linha;
 Colocar cláusulas de expressão de consulta na nova linha;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
@@ -227,37 +240,37 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="translated">Definir espaçamento para declarações de método;
-Inserir espaço entre o nome do método e seu parêntese de abertura;
-Inserir espaço nos parênteses de lista de parâmetro;
-Inserir espaço nos parênteses de lista de parâmetro vazio;
+        <target state="translated">Definir espaçamento para declarações de métodos;
+Inserir espaço entre o nome do método e seus parênteses de abertura;
+Inserir espaço nos parênteses da lista de parâmetros;
+Inserir espaço nos parênteses da lista de parâmetros vazia;
 Definir espaçamento para chamadas de método;
-Inserir espaço nos parênteses de lista de argumento;
-Inserir espaço nos parênteses de lista de argumento vazio;
+Inserir espaço nos parênteses da lista de argumentos;
+Inserir espaço nos parênteses da lista de argumentos vazia;
 Definir outras opções de espaçamento;
-Inserir espaço após palavras-chave nas demonstrações de fluxo de controle;
-Inserir espaço nos parênteses de expressões;
-Inserir espaço nos parênteses de conversões de tipo;
-Inserir espaços entre parênteses das demonstrações de fluxo de controle;
+Inserir espaço após palavras-chave em instruções de fluxo de controle;
+Inserir espaço entre parênteses de expressões;
+Inserir espaço entre parênteses de tipos de conversão;
+Inserir espaços entre parênteses das instruções de fluxo de controle;
 Inserir espaço após conversão;
-Ignorar espaços em instruções de declaração;
+Ignorar espaços em declarações de declaração;
 Definir espaçamento para colchetes;
-Inserir espaço antes de colchetes de abertura;
+Inserir o espaço antes de abrir o colchete;
 Inserir espaço dentro de colchetes vazios;
-Inserir espaços dentro de colchetes;
+Inserir espaços entre colchetes;
 Definir espaçamento para delimitadores;
-Inserir espaço após dois-pontos para base ou interface na declaração de tipo;
+Inserir espaço após dois pontos para base ou interface na declaração de tipo;
 Inserir espaço após vírgula;
-Inserir espaço após ponto;
-Inserir espaço após ponto-e-vírgula na instrução;
-Inserir espaço antes de dois-pontos para base ou interface na declaração de tipo;
+Inserir espaço após o ponto;
+Inserir espaço após ponto e vírgula para instrução;
+Inserir espaço antes dos dois pontos para base ou interface na declaração de tipo;
 Inserir espaço antes da vírgula;
 Inserir espaço antes do ponto;
-Inserir espaço antes de ponto-e-vírgula na instrução;
+Inserir espaço antes do ponto e vírgula para instrução;
 Definir espaçamento para operadores;
-Ignorar espaços em torno de operadores binários;
-Remover espaços antes e depois de operadores binários;
-Inserir espaço antes e depois de operadores binários;</target>
+Ignorar espaços ao redor de operadores binários;
+Remover espaços antes e depois dos operadores binários;
+Inserir espaço antes e depois dos operadores binários;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -269,8 +282,10 @@ Inserir espaço antes e depois de operadores binários;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -279,21 +294,25 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Alterar as configurações de lista de conclusão; pre-selecionar membro usado recentemente; Listas de conclusão;
-Mostrar lista de conclusão após um caractere ser digitado;
-Mostrar lista de conclusão após um caractere ser excluído;
-Realçar partes correspondentes dos itens da lista de conclusão;
-Mostrar filtros de itens de conclusão;
-Comportamento de trechos;
-Nunca incluir trechos;
-Sempre incluir trechos;
-Incluir trechos quando?-Tab é digitado após um identificador;
-Inserir comportamento das teclas;
-Nunca adicionar nova linha ao inserir;
-Somente adicionar nova linha ao inserir após o fim da palavra totalmente digitada;
-Sempre adicionar a nova linha ao inserir;
-Mostrar sugestões de nome;</target>
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="translated">Alterar as configurações da lista de conclusão;Pré-selecionar o membro usado mais recentemente; Listas de Conclusão;
+Mostrar a lista de conclusão após a digitação de um caractere;
+Mostrar a lista de conclusão após a exclusão de um caractere;
+Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental);
+Realçar as partes correspondentes dos itens da lista de conclusão;
+Mostrar os filtros de itens de conclusão;
+Concluir a instrução automaticamente no ponto e vírgula;
+Comportamento de snippets;
+Nunca incluir snippets;
+Sempre incluir snippets;
+Incluir snippets quando ?-Tab é digitado após um identificador;
+Comportamento da tecla Enter;
+Nunca adicionar uma nova linha ao pressionar Enter;
+Apenas adicionar uma nova linha ao pressionar Enter depois que a palavra é digitada completamente;
+Sempre adicionar uma nova linha ao pressionar Enter;
+Mostrar sugestões de nomes;
+Mostrar itens de namespaces não importados (experimental);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -313,7 +332,7 @@ Mostrar sugestões de nome;</target>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">Disposição</target>
+        <target state="translated">Quebra de linha</target>
         <note />
       </trans-unit>
       <trans-unit id="111">
@@ -327,13 +346,13 @@ Mostrar sugestões de nome;</target>
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">Editor CSharp</target>
+        <source>C# Editor</source>
+        <target state="translated">Editor C#</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">Editor CSharp com Codificação</target>
+        <source>C# Editor with Encoding</source>
+        <target state="translated">Editor C# com Codificação</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -373,12 +392,12 @@ Mostrar sugestões de nome;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Um arquivo de script C# vazio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Script do Visual C#</target>
         <note />
       </trans-unit>
     </body>

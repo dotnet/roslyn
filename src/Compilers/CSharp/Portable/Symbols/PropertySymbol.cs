@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a property or indexer.
     /// </summary>
-    internal abstract partial class PropertySymbol : Symbol, IPropertySymbol
+    internal abstract partial class PropertySymbol : Symbol
     {
         /// <summary>
         /// As a performance optimization, cache parameter types and refkinds - overload resolution uses them a lot.
@@ -42,13 +45,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
                 return this.OriginalDefinition;
             }
         }
+
+        /// <summary>
+        /// If a property is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
+        /// listed in those attributes.
+        /// Otherwise, an empty array.
+        /// </summary>
+        internal virtual ImmutableArray<string> NotNullMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenTrueMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenFalseMembers => ImmutableArray<string>.Empty;
 
         /// <summary>
         /// Indicates whether or not the property returns by reference
@@ -116,6 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyParameterSignature.parameterRefKinds;
             }
         }
+
+        /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit receiver. This is false if the symbol is static.
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
 
         /// <summary>
         /// Returns whether the property is really an indexer.
@@ -236,8 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal PropertySymbol GetLeastOverriddenProperty(NamedTypeSymbol accessingTypeOpt)
         {
-            var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
-
+            accessingTypeOpt = accessingTypeOpt?.OriginalDefinition;
             PropertySymbol p = this;
             while (p.IsOverride && !p.HidesBasePropertiesByName)
             {
@@ -262,8 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
                 PropertySymbol overridden = p.OverriddenProperty;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if ((object)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                if ((object)overridden == null ||
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref discardedUseSiteInfo)))
                 {
                     break;
                 }
@@ -333,24 +352,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (this.IsDefinition)
             {
-                return base.GetUseSiteDiagnostic();
+                return new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
             }
 
-            return this.OriginalDefinition.GetUseSiteDiagnostic();
+            return this.OriginalDefinition.GetUseSiteInfo();
         }
 
-        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo result)
+        internal bool CalculateUseSiteDiagnostic(ref UseSiteInfo<AssemblySymbol> result)
         {
             Debug.Assert(this.IsDefinition);
 
             // Check return type, custom modifiers and parameters:
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
-                DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
+            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
+                DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
+                DeriveUseSiteInfoFromParameters(ref result, this.Parameters))
             {
                 return true;
             }
@@ -360,12 +379,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes))
+                DiagnosticInfo diagnosticInfo = result.DiagnosticInfo;
+                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this.Parameters, this, ref unificationCheckedTypes))
                 {
+                    result = result.AdjustDiagnosticInfo(diagnosticInfo);
                     return true;
                 }
+
+                result = result.AdjustDiagnosticInfo(diagnosticInfo);
             }
 
             return false;
@@ -386,126 +409,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
-                return (object)info != null && (info.Code == (int)ErrorCode.ERR_BindToBogus || info.Code == (int)ErrorCode.ERR_ByRefReturnUnsupported);
+                DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
+                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
             }
         }
 
         #endregion
 
-        /// <summary>
-        /// Is this a property of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleProperty
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return false;
-            }
+            return new PublicModel.PropertySymbol(this);
         }
-
-        /// <summary>
-        /// If this is a property of a tuple type, return corresponding underlying property from the
-        /// tuple underlying type. Otherwise, null. 
-        /// </summary>
-        public virtual PropertySymbol TupleUnderlyingProperty
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        #region IPropertySymbol Members
-
-        bool IPropertySymbol.IsIndexer
-        {
-            get { return this.IsIndexer; }
-        }
-
-        ITypeSymbol IPropertySymbol.Type
-        {
-            get { return this.Type; }
-        }
-
-        CodeAnalysis.NullableAnnotation IPropertySymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
-
-        ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters
-        {
-            get { return StaticCast<IParameterSymbol>.From(this.Parameters); }
-        }
-
-        IMethodSymbol IPropertySymbol.GetMethod
-        {
-            get { return this.GetMethod; }
-        }
-
-        IMethodSymbol IPropertySymbol.SetMethod
-        {
-            get { return this.SetMethod; }
-        }
-
-        IPropertySymbol IPropertySymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-
-        IPropertySymbol IPropertySymbol.OverriddenProperty
-        {
-            get { return this.OverriddenProperty; }
-        }
-
-        ImmutableArray<IPropertySymbol> IPropertySymbol.ExplicitInterfaceImplementations
-        {
-            get { return this.ExplicitInterfaceImplementations.Cast<PropertySymbol, IPropertySymbol>(); }
-        }
-
-        bool IPropertySymbol.IsReadOnly
-        {
-            get { return this.IsReadOnly; }
-        }
-
-        bool IPropertySymbol.IsWriteOnly
-        {
-            get { return this.IsWriteOnly; }
-        }
-
-        bool IPropertySymbol.IsWithEvents
-        {
-            get { return false; }
-        }
-
-        ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
-        {
-            get { return this.TypeWithAnnotations.CustomModifiers; }
-        }
-
-        ImmutableArray<CustomModifier> IPropertySymbol.RefCustomModifiers
-        {
-            get { return this.RefCustomModifiers; }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitProperty(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitProperty(this);
-        }
-
-        #endregion
 
         #region Equality
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
-            PropertySymbol other = obj as PropertySymbol;
+            PropertySymbol other = symbol as PropertySymbol;
 
             if (ReferenceEquals(null, other))
             {
@@ -517,9 +437,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            if (other is NativeIntegerPropertySymbol nps)
+            {
+                return nps.Equals(this, compareKind);
+            }
+
             // This checks if the property have the same definition and the type parameters on the containing types have been
             // substituted in the same way.
-            return TypeSymbol.Equals(this.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2) && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
+            return TypeSymbol.Equals(this.ContainingType, other.ContainingType, compareKind) && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
         }
 
         public override int GetHashCode()

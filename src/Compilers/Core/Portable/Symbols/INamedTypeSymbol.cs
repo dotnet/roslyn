@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -75,9 +77,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the top-level nullability of the type arguments that have been substituted
         /// for the type parameters. If nothing has been substituted for a given type parameter,
-        /// then <see cref="NullableAnnotation.NotApplicable"/> is returned for that type argument.
+        /// then <see cref="NullableAnnotation.None"/> is returned for that type argument.
         /// </summary>
-        ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations { get; }
+        ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations { get; }
 
         /// <summary>
         /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
@@ -100,13 +102,13 @@ namespace Microsoft.CodeAnalysis
         /// Such a type will be classified as a delegate but its DelegateInvokeMethod
         /// would be null.
         /// </summary>
-        IMethodSymbol DelegateInvokeMethod { get; }
+        IMethodSymbol? DelegateInvokeMethod { get; }
 
         /// <summary>
         /// For enum types, gets the underlying type. Returns null on all other
         /// kinds of types.
         /// </summary>
-        INamedTypeSymbol EnumUnderlyingType { get; }
+        INamedTypeSymbol? EnumUnderlyingType { get; }
 
         /// <summary>
         /// Returns the type symbol that this type was constructed from. This type symbol
@@ -121,6 +123,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the type.</param>
         INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments);
+
+        /// <summary>
+        /// Returns a constructed type given its type arguments and type argument nullable annotations.
+        /// </summary>
+        INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations);
 
         /// <summary>
         /// Returns an unbound generic type of this named type.
@@ -149,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// Note, the set of possible associated symbols might be expanded in the future to 
         /// reflect changes in the languages.
         /// </summary>
-        ISymbol AssociatedSymbol { get; }
+        ISymbol? AssociatedSymbol { get; }
 
         /// <summary>
         /// Determines if the symbol might contain extension methods. 
@@ -158,13 +165,13 @@ namespace Microsoft.CodeAnalysis
         bool MightContainExtensionMethods { get; }
 
         /// <summary>
-        /// If this is a tuple type symbol, returns the symbol for its underlying type.
+        /// If this is a tuple type with element names, returns the symbol for the tuple type without names.
         /// Otherwise, returns null.
         /// The type argument corresponding to the type of the extension field (VT[8].Rest),
         /// which is at the 8th (one based) position is always a symbol for another tuple, 
         /// rather than its underlying type.
         /// </summary>
-        INamedTypeSymbol TupleUnderlyingType { get; }
+        INamedTypeSymbol? TupleUnderlyingType { get; }
 
         /// <summary>
         /// Returns fields that represent tuple elements for types that are tuples.
@@ -177,5 +184,12 @@ namespace Microsoft.CodeAnalysis
         /// True if the type is serializable (has Serializable metadata flag).
         /// </summary>
         bool IsSerializable { get; }
+
+        /// <summary>
+        /// If this is a native integer, returns the symbol for the underlying type,
+        /// either <see cref="System.IntPtr"/> or <see cref="System.UIntPtr"/>.
+        /// Otherwise, returns null.
+        /// </summary>
+        INamedTypeSymbol? NativeIntegerUnderlyingType { get; }
     }
 }

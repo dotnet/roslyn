@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -33,7 +35,7 @@ namespace Roslyn.Utilities
             Debug.Assert(count > 0);
 
             int totalBytesRead;
-            int bytesRead = 0;
+            int bytesRead;
             for (totalBytesRead = 0; totalBytesRead < count; totalBytesRead += bytesRead)
             {
                 // Note: Don't attempt to save state in-between calls to .Read as it would

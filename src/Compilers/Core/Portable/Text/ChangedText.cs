@@ -1,13 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -19,14 +20,41 @@ namespace Microsoft.CodeAnalysis.Text
         public ChangedText(SourceText oldText, SourceText newText, ImmutableArray<TextChangeRange> changeRanges)
             : base(checksumAlgorithm: oldText.ChecksumAlgorithm)
         {
-            Debug.Assert(newText != null);
+            RoslynDebug.Assert(newText != null);
             Debug.Assert(newText is CompositeText || newText is SubText || newText is StringText || newText is LargeText);
-            Debug.Assert(oldText != null);
+            RoslynDebug.Assert(oldText != null);
             Debug.Assert(oldText != newText);
             Debug.Assert(!changeRanges.IsDefault);
+            RequiresChangeRangesAreValid(oldText, newText, changeRanges);
 
             _newText = newText;
             _info = new ChangeInfo(changeRanges, new WeakReference<SourceText>(oldText), (oldText as ChangedText)?._info);
+        }
+
+        private static void RequiresChangeRangesAreValid(
+            SourceText oldText, SourceText newText, ImmutableArray<TextChangeRange> changeRanges)
+        {
+            var deltaLength = 0;
+            foreach (var change in changeRanges)
+                deltaLength += change.NewLength - change.Span.Length;
+
+            if (oldText.Length + deltaLength != newText.Length)
+                throw new InvalidOperationException("Delta length difference of change ranges didn't match before/after text length.");
+
+            var position = 0;
+            foreach (var change in changeRanges)
+            {
+                if (change.Span.Start < position)
+                    throw new InvalidOperationException("Change preceded current position in oldText");
+
+                if (change.Span.Start > oldText.Length)
+                    throw new InvalidOperationException("Change start was after the end of oldText");
+
+                if (change.Span.End > oldText.Length)
+                    throw new InvalidOperationException("Change end was after the end of oldText");
+
+                position = change.Span.End;
+            }
         }
 
         private class ChangeInfo
@@ -37,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Text
             // used to identify the changes in GetChangeRanges.
             public WeakReference<SourceText> WeakOldText { get; }
 
-            public ChangeInfo Previous { get; private set; }
+            public ChangeInfo? Previous { get; private set; }
 
-            public ChangeInfo(ImmutableArray<TextChangeRange> changeRanges, WeakReference<SourceText> weakOldText, ChangeInfo previous)
+            public ChangeInfo(ImmutableArray<TextChangeRange> changeRanges, WeakReference<SourceText> weakOldText, ChangeInfo? previous)
             {
                 this.ChangeRanges = changeRanges;
                 this.WeakOldText = weakOldText;
@@ -51,10 +79,10 @@ namespace Microsoft.CodeAnalysis.Text
             private void Clean()
             {
                 // look for last info in the chain that still has reference to old text
-                ChangeInfo lastInfo = this;
-                for (var info = this; info != null; info = info.Previous)
+                ChangeInfo? lastInfo = this;
+                for (ChangeInfo? info = this; info != null; info = info.Previous)
                 {
-                    SourceText tmp;
+                    SourceText? tmp;
                     if (info.WeakOldText.TryGetTarget(out tmp))
                     {
                         lastInfo = info;
@@ -62,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 // break chain for any info's beyond that so they get GC'd
-                ChangeInfo prev;
+                ChangeInfo? prev;
                 while (lastInfo != null)
                 {
                     prev = lastInfo.Previous;
@@ -72,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override Encoding Encoding
+        public override Encoding? Encoding
         {
             get { return _newText.Encoding; }
         }
@@ -152,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             // try this quick check first
-            SourceText actualOldText;
+            SourceText? actualOldText;
             if (_info.WeakOldText.TryGetTarget(out actualOldText) && actualOldText == oldText)
             {
                 // the supplied old text is the one we directly reference, so the changes must be the ones we have.
@@ -181,9 +209,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         private bool IsChangedFrom(SourceText oldText)
         {
-            for (var info = _info; info != null; info = info.Previous)
+            for (ChangeInfo? info = _info; info != null; info = info.Previous)
             {
-                SourceText text;
+                SourceText? text;
                 if (info.WeakOldText.TryGetTarget(out text) && text == oldText)
                 {
                     return true;
@@ -197,12 +225,12 @@ namespace Microsoft.CodeAnalysis.Text
         {
             var list = new List<ImmutableArray<TextChangeRange>>();
 
-            var change = newText._info;
+            ChangeInfo? change = newText._info;
             list.Add(change.ChangeRanges);
 
             while (change != null)
             {
-                SourceText actualOldText;
+                SourceText? actualOldText;
                 change.WeakOldText.TryGetTarget(out actualOldText);
 
                 if (actualOldText == oldText)
@@ -229,154 +257,10 @@ namespace Microsoft.CodeAnalysis.Text
             var merged = changeSets[0];
             for (int i = 1; i < changeSets.Count; i++)
             {
-                merged = Merge(merged, changeSets[i]);
+                merged = TextChangeRangeExtensions.Merge(merged, changeSets[i]);
             }
 
             return merged;
-        }
-
-        private static ImmutableArray<TextChangeRange> Merge(ImmutableArray<TextChangeRange> oldChanges, ImmutableArray<TextChangeRange> newChanges)
-        {
-            var list = new List<TextChangeRange>(oldChanges.Length + newChanges.Length);
-
-            int oldIndex = 0;
-            int newIndex = 0;
-            int oldDelta = 0;
-
-nextNewChange:
-            if (newIndex < newChanges.Length)
-            {
-                var newChange = newChanges[newIndex];
-
-nextOldChange:
-                if (oldIndex < oldChanges.Length)
-                {
-                    var oldChange = oldChanges[oldIndex];
-
-tryAgain:
-                    if (oldChange.Span.Length == 0 && oldChange.NewLength == 0)
-                    {
-                        // old change is a non-change, just ignore it and move on
-                        oldIndex++;
-                        goto nextOldChange;
-                    }
-                    else if (newChange.Span.Length == 0 && newChange.NewLength == 0)
-                    {
-                        // new change is a non-change, just ignore it and move on
-                        newIndex++;
-                        goto nextNewChange;
-                    }
-                    else if (newChange.Span.End < (oldChange.Span.Start + oldDelta))
-                    {
-                        // new change occurs entirely before old change
-                        var adjustedNewChange = new TextChangeRange(new TextSpan(newChange.Span.Start - oldDelta, newChange.Span.Length), newChange.NewLength);
-                        AddRange(list, adjustedNewChange);
-                        newIndex++;
-                        goto nextNewChange;
-                    }
-                    else if (newChange.Span.Start > oldChange.Span.Start + oldDelta + oldChange.NewLength)
-                    {
-                        // new change occurs entirely after old change
-                        AddRange(list, oldChange);
-                        oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
-                        oldIndex++;
-                        goto nextOldChange;
-                    }
-                    else if (newChange.Span.Start < oldChange.Span.Start + oldDelta)
-                    {
-                        // new change starts before old change, but overlaps
-                        // add as much of new change deletion as possible and try again
-                        var newChangeLeadingDeletion = (oldChange.Span.Start + oldDelta) - newChange.Span.Start;
-                        AddRange(list, new TextChangeRange(new TextSpan(newChange.Span.Start - oldDelta, newChangeLeadingDeletion), 0));
-                        newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, newChange.Span.Length - newChangeLeadingDeletion), newChange.NewLength);
-                        goto tryAgain;
-                    }
-                    else if (newChange.Span.Start > oldChange.Span.Start + oldDelta)
-                    {
-                        // new change starts after old change, but overlaps
-                        // add as much of the old change as possible and try again
-                        var oldChangeLeadingInsertion = newChange.Span.Start - (oldChange.Span.Start + oldDelta);
-                        AddRange(list, new TextChangeRange(oldChange.Span, oldChangeLeadingInsertion));
-                        oldDelta = oldDelta - oldChange.Span.Length + oldChangeLeadingInsertion;
-                        oldChange = new TextChangeRange(new TextSpan(oldChange.Span.Start, 0), oldChange.NewLength - oldChangeLeadingInsertion);
-                        newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, newChange.Span.Length), newChange.NewLength);
-                        goto tryAgain;
-                    }
-                    else if (newChange.Span.Start == oldChange.Span.Start + oldDelta)
-                    {
-                        // new change and old change start at same position
-                        if (oldChange.NewLength == 0)
-                        {
-                            // old change is just a deletion, go ahead and old change now and deal with new change separately
-                            AddRange(list, oldChange);
-                            oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
-                            oldIndex++;
-                            goto nextOldChange;
-                        }
-                        else if (newChange.Span.Length == 0)
-                        {
-                            // new change is just an insertion, go ahead and tack it on with old change
-                            AddRange(list, new TextChangeRange(oldChange.Span, oldChange.NewLength + newChange.NewLength));
-                            oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
-                            oldIndex++;
-                            newIndex++;
-                            goto nextNewChange;
-                        }
-                        else
-                        {
-                            // delete as much from old change as new change can
-                            // a new change deletion is a reduction in the old change insertion
-                            var oldChangeReduction = Math.Min(oldChange.NewLength, newChange.Span.Length);
-                            AddRange(list, new TextChangeRange(oldChange.Span, oldChange.NewLength - oldChangeReduction));
-                            oldDelta = oldDelta - oldChange.Span.Length + (oldChange.NewLength - oldChangeReduction);
-                            oldIndex++;
-
-                            // deduct the amount removed from oldChange from newChange's deletion span (since its already been applied)
-                            newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, newChange.Span.Length - oldChangeReduction), newChange.NewLength);
-                            goto nextOldChange;
-                        }
-                    }
-                }
-                else
-                {
-                    // no more old changes, just add adjusted new change
-                    var adjustedNewChange = new TextChangeRange(new TextSpan(newChange.Span.Start - oldDelta, newChange.Span.Length), newChange.NewLength);
-                    AddRange(list, adjustedNewChange);
-                    newIndex++;
-                    goto nextNewChange;
-                }
-            }
-            else
-            {
-                // no more new changes, just add remaining old changes
-                while (oldIndex < oldChanges.Length)
-                {
-                    AddRange(list, oldChanges[oldIndex]);
-                    oldIndex++;
-                }
-            }
-
-            return list.ToImmutableArray();
-        }
-
-        private static void AddRange(List<TextChangeRange> list, TextChangeRange range)
-        {
-            if (list.Count > 0)
-            {
-                var last = list[list.Count - 1];
-                if (last.Span.End == range.Span.Start)
-                {
-                    // merge changes together if they are adjacent
-                    list[list.Count - 1] = new TextChangeRange(new TextSpan(last.Span.Start, last.Span.Length + range.Span.Length), last.NewLength + range.NewLength);
-                    return;
-                }
-                else
-                {
-                    Debug.Assert(range.Span.Start > last.Span.End);
-                }
-            }
-
-            list.Add(range);
         }
 
         /// <summary>
@@ -384,8 +268,8 @@ tryAgain:
         /// </summary>
         protected override TextLineCollection GetLinesCore()
         {
-            SourceText oldText;
-            TextLineCollection oldLineInfo;
+            SourceText? oldText;
+            TextLineCollection? oldLineInfo;
 
             if (!_info.WeakOldText.TryGetTarget(out oldText) || !oldText.TryGetLines(out oldLineInfo))
             {
@@ -478,6 +362,12 @@ tryAgain:
             }
 
             return new LineInfo(this, lineStarts.ToArrayAndFree());
+        }
+
+        internal static class TestAccessor
+        {
+            public static ImmutableArray<TextChangeRange> Merge(ImmutableArray<TextChangeRange> oldChanges, ImmutableArray<TextChangeRange> newChanges)
+                => TextChangeRangeExtensions.Merge(oldChanges, newChanges);
         }
     }
 }

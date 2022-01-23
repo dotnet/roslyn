@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -10,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     ' Produces an error unless the construct is already in error.
     ' Always returns false.
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
         ' File: Parser.cpp
         ' Lines: 16764 - 16764
         ' bool .Parser::HandleUnexpectedToken( [ tokens TokenType ] [ _Inout_ bool& ErrorInConstruct ] )

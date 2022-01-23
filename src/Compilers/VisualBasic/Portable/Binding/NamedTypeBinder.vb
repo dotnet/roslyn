@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -72,18 +74,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             ' 1. look for members. This call automatically gets members of base types.
-            originalBinder.LookupMember(lookupResult, _typeSymbol, name, arity, options, useSiteDiagnostics)
+            originalBinder.LookupMember(lookupResult, _typeSymbol, name, arity, options, useSiteInfo)
             If lookupResult.StopFurtherLookup Then
                 Return ' short cut result
             End If
 
             ' 2. Lookup type parameter.
             Dim typeParameterLookupResult = LookupResult.GetInstance()
-            LookupTypeParameter(typeParameterLookupResult, name, arity, options, originalBinder, useSiteDiagnostics)
+            LookupTypeParameter(typeParameterLookupResult, name, arity, options, originalBinder, useSiteInfo)
             lookupResult.MergePrioritized(typeParameterLookupResult)
             typeParameterLookupResult.Free()
 
@@ -131,14 +133,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         arity As Integer,
                                         options As LookupOptions,
                                         originalBinder As Binder,
-                                        <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                        <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(name IsNot Nothing)
             Debug.Assert(lookupResult.IsClear)
 
             If _typeSymbol.Arity > 0 Then
                 For Each tp In _typeSymbol.TypeParameters
                     If IdentifierComparison.Equals(tp.Name, name) Then
-                        lookupResult.SetFrom(originalBinder.CheckViability(tp, arity, options, Nothing, useSiteDiagnostics))
+                        lookupResult.SetFrom(originalBinder.CheckViability(tp, arity, options, Nothing, useSiteInfo))
                     End If
                 Next
             End If
@@ -147,12 +149,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Function CheckAccessibility(sym As Symbol,
-                                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                     <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                      Optional accessThroughType As TypeSymbol = Nothing,
-                                                     Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
+                                                     Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Return If(IgnoresAccessibility,
                 AccessCheckResult.Accessible,
-                AccessCheck.CheckSymbolAccessibility(sym, _typeSymbol, accessThroughType, useSiteDiagnostics, basesBeingResolved))
+                AccessCheck.CheckSymbolAccessibility(sym, _typeSymbol, accessThroughType, useSiteInfo, basesBeingResolved))
         End Function
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol

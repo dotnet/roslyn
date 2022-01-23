@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -7,6 +9,13 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// The action that triggered completion to start.
     /// </summary>
+    /// <remarks>
+    /// NOTE: Roslyn's LSP completion implementation uses this struct. If a new property is added, either:
+    ///     1: The property's type must be serializable
+    ///     OR
+    ///     2. LSP will need to be updated to not use CompletionTrigger - see
+    ///        Features\LanguageServer\Protocol\Handler\Completion\CompletionResolveData.cs
+    /// </remarks>
     public readonly struct CompletionTrigger
     {
         /// <summary>
@@ -22,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Completion
         internal CompletionTrigger(CompletionTriggerKind kind, char character = (char)0)
             : this()
         {
-            this.Kind = kind;
-            this.Character = character;
+            Kind = kind;
+            Character = character;
         }
 
         /// <summary>
@@ -31,24 +40,24 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         [Obsolete("Use 'Invoke' instead.")]
         public static readonly CompletionTrigger Default =
-            new CompletionTrigger(CompletionTriggerKind.Other);
+            new(CompletionTriggerKind.Other);
 
         /// <summary>
         /// The default <see cref="CompletionTrigger"/> when none is specified.
         /// </summary>
         public static readonly CompletionTrigger Invoke =
-            new CompletionTrigger(CompletionTriggerKind.Invoke);
+            new(CompletionTriggerKind.Invoke);
 
         /// <summary>
         /// Creates a new instance of a <see cref="CompletionTrigger"/> association with the insertion of a typed character into the document.
         /// </summary>
         public static CompletionTrigger CreateInsertionTrigger(char insertedCharacter)
-            => new CompletionTrigger(CompletionTriggerKind.Insertion, insertedCharacter);
+            => new(CompletionTriggerKind.Insertion, insertedCharacter);
 
         /// <summary>
         /// Creates a new instance of a <see cref="CompletionTrigger"/> association with the deletion of a character from the document.
         /// </summary>
         public static CompletionTrigger CreateDeletionTrigger(char deletedCharacter)
-            => new CompletionTrigger(CompletionTriggerKind.Deletion, deletedCharacter);
+            => new(CompletionTriggerKind.Deletion, deletedCharacter);
     }
 }

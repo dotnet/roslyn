@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -1169,7 +1171,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Const {|Rename:Value|} As Integer = 1
                 Console.WriteLine(Value)
@@ -1207,7 +1208,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Console.WriteLine(1)
             Else
@@ -1634,8 +1634,8 @@ End Class")
 End Module",
 "Module Program
     Sub Main()
-        Dim {|Rename:v|} As Integer() = New Integer() {}
-        Return v
+        Dim {|Rename:vs|} As Integer() = New Integer() {}
+        Return vs
     End Sub
 End Module")
         End Function
@@ -1953,8 +1953,8 @@ End Class",
 
 Class C
     Shared Sub Main()
-        Dim {|Rename:v|} As Integer() = New C().Goo()
-        Dim x = v(0)
+        Dim {|Rename:vs|} As Integer() = New C().Goo()
+        Dim x = vs(0)
     End Sub
     Function Goo() As Integer()
     End Function
@@ -3124,7 +3124,7 @@ end class")
     end sub
 end class",
 "class C
-    Private Const {|Rename:V|} As Integer = 2
+    Private Const {|Rename:V|} As Integer = (2)
 
     sub Goo()
         Bar(1, V)
@@ -3228,6 +3228,62 @@ Class C
     End Sub
 End Class"
             Await TestMissingAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")>
+        Public Async Function DoNotIntroduceConstantForConstant_Local() As Task
+            Dim source = "
+Class C
+    Sub Test
+        Const i As Integer = [|10|]
+    End Sub
+End Class
+"
+            Await TestMissingAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")>
+        Public Async Function DoNotIntroduceConstantForConstant_Member() As Task
+            Dim source = "
+Class C
+    Const i As Integer = [|10|]
+End Class
+"
+            Await TestMissingAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")>
+        Public Async Function DoNotIntroduceConstantForConstant_Parentheses() As Task
+            Dim source = "
+Class C
+    Const i As Integer = ([|10|])
+End Class
+"
+            Await TestMissingAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")>
+        Public Async Function DoNotIntroduceConstantForConstant_NotForSubExpression() As Task
+            Dim source = "
+Class C
+    Sub Test
+        Const i As Integer = [|10|] + 10
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub Test
+        Const {|Rename:V|} As Integer = 10
+        Const i As Integer = V + 10
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(source, expected, index:=2)
         End Function
     End Class
 End Namespace

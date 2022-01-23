@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -18,8 +22,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpFindReferences))
+        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpFindReferences))
         {
         }
 
@@ -31,7 +35,7 @@ class Program
 {
 }$$
 ");
-            var project = new ProjectUtils.Project(ProjectName); ;
+            var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "File2.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "File2.cs");
 
@@ -70,14 +74,18 @@ class SomeOtherClass
                         Assert.Equal(expected: 24, actual: reference.Column);
                     }
                 });
+
+            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false, shouldActivate: true);
+            // Assert we are in the right file now
+            Assert.Equal("Class1.cs", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal("Program", VisualStudio.Editor.GetLineTextAfterCaret());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
-            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
-            {
-                SetUpEditor(@"
+            using var telemetry = VisualStudio.EnableTestTelemetryChannel();
+            SetUpEditor(@"
 class Program
 {
     static void Main()
@@ -88,18 +96,18 @@ class Program
 }
 ");
 
-                VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-                const string localReferencesCaption = "'local' references";
-                var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
+            const string localReferencesCaption = "'local' references";
+            var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
 
-                var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-                Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+            Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
-                Assert.Collection(
-                    results,
-                    new Action<Reference>[]
-                    {
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
                     reference =>
                     {
                         Assert.Equal(expected: "int local = 1;", actual: reference.Code);
@@ -112,10 +120,9 @@ class Program
                         Assert.Equal(expected: 6, actual: reference.Line);
                         Assert.Equal(expected: 26, actual: reference.Column);
                     }
-                    });
+                });
 
-                telemetry.VerifyFired("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
-            }
+            telemetry.VerifyFired("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
@@ -162,8 +169,9 @@ class Program
 
             VisualStudio.SolutionExplorer.CloseSolution();
 
-            // verify working folder has not set
-            Assert.Null(VisualStudio.Workspace.GetWorkingFolder());
+            // because the solution cache directory is stored in the user temp folder, 
+            // closing the solution has no effect on what is returned.
+            Assert.NotNull(VisualStudio.Workspace.GetWorkingFolder());
         }
     }
 }

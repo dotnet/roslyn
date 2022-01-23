@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -56,18 +60,16 @@ class C
 }";
             var expected = new[]
             {
-                // (7,11): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,11): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     string? s1 = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(7, 11),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
                 // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     Nullable<string> s2 = null;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14)
             };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(expected);
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault);
-            comp.VerifyDiagnostics(expected);
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     string? s1 = null;
@@ -1904,7 +1906,7 @@ Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 || b2").WithArguments("||", "bool?", 
         [Fact]
         public void ShortCircuitLiftedUserDefinedOperators()
         {
-            // This test illustrates an bug in the native compiler which Roslyn fixes.
+            // This test illustrates a bug in the native compiler which Roslyn fixes.
             // The native compiler disallows a *lifted* & operator from being used as an &&
             // operator, but allows a *nullable* & operator to be used as an && operator.
             // There is no good reason for this discrepancy; either both should be legal
@@ -2108,5 +2110,34 @@ class Test
         }
 
         #endregion
+
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
+
+
+_ = (bool?)new S();
+bool? z;
+z = new S();
+
+z.GetValueOrDefault();
+
+struct S
+{
+    [System.Obsolete()]
+    public static implicit operator bool(S s) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // _ = (bool?)new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(bool?)new S()").WithArguments("S.implicit operator bool(S)").WithLocation(4, 5),
+                // (6,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // z = new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new S()").WithArguments("S.implicit operator bool(S)").WithLocation(6, 5)
+                );
+        }
     }
 }

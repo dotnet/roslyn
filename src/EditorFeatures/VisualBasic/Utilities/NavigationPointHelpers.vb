@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
                 line = text.Lines.GetLineFromPosition(eventBlock.EventStatement.Span.End).LineNumber + 1
             End If
 
-            Return GetNavigationPoint(text, indentSize, eventBlock.EventStatement, eventBlock.EndEventStatement, line)
+            Return GetNavigationPoint(text, indentSize, eventBlock.EventStatement, line)
         End Function
 
         Public Function GetNavigationPoint(text As SourceText, indentSize As Integer, methodBlock As MethodBlockBaseSyntax) As VirtualTreePoint
@@ -26,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
                 line = text.Lines.GetLineFromPosition(methodBlock.BlockStatement.Span.End).LineNumber + 1
             End If
 
-            Return GetNavigationPoint(text, indentSize, methodBlock.BlockStatement, methodBlock.EndBlockStatement, line)
+            Return GetNavigationPoint(text, indentSize, methodBlock.BlockStatement, line)
         End Function
 
         Public Function GetHeaderStartPosition(eventBlock As EventBlockSyntax) As Integer
@@ -46,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
         End Function
 
         ' TODO: this function conflates tab size and indent size.
-        Public Function GetNavigationPoint(text As SourceText, indentSize As Integer, beginStatement As StatementSyntax, endStatement As StatementSyntax, lineNumber As Integer) As VirtualTreePoint
+        Public Function GetNavigationPoint(text As SourceText, indentSize As Integer, beginStatement As StatementSyntax, lineNumber As Integer) As VirtualTreePoint
             Dim line = text.Lines(lineNumber)
             Dim nonWhitespaceOffset = line.GetFirstNonWhitespacePosition()
 

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _currentClass As NamedTypeSymbol
         Private _syntax As SyntaxNode
 
-        Public ReadOnly Diagnostics As DiagnosticBag
+        Public ReadOnly Diagnostics As BindingDiagnosticBag
         Public ReadOnly TopLevelMethod As MethodSymbol
         Public ReadOnly CompilationState As TypeCompilationState
 
@@ -62,11 +64,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, node As SyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
+        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, node As SyntaxNode, compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag)
             Me.New(topLevelMethod, currentMethod, Nothing, node, compilationState, diagnostics)
         End Sub
 
-        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, currentClass As NamedTypeSymbol, node As SyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
+        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, currentClass As NamedTypeSymbol, node As SyntaxNode, compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag)
+            Debug.Assert(compilationState IsNot Nothing)
             Me.CompilationState = compilationState
             Me.CurrentMethod = currentMethod
             Me.TopLevelMethod = topLevelMethod
@@ -78,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub AddNestedType(nestedType As NamedTypeSymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(_currentClass, nestedType)
+                [module].AddSynthesizedDefinition(_currentClass, nestedType.GetCciAdapter())
             End If
         End Sub
 
@@ -91,21 +94,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub AddField(containingType As NamedTypeSymbol, field As FieldSymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(containingType, field)
+                [module].AddSynthesizedDefinition(containingType, field.GetCciAdapter())
             End If
         End Sub
 
         Public Sub AddMethod(containingType As NamedTypeSymbol, method As MethodSymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(containingType, method)
+                [module].AddSynthesizedDefinition(containingType, method.GetCciAdapter())
             End If
         End Sub
 
         Public Sub AddProperty(containingType As NamedTypeSymbol, prop As PropertySymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(containingType, prop)
+                [module].AddSynthesizedDefinition(containingType, prop.GetCciAdapter())
             End If
         End Sub
 
@@ -222,20 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function SpecialType(st As SpecialType) As NamedTypeSymbol
-            Dim typeSymbol = Me.Compilation.GetSpecialType(st)
-
-            If typeSymbol.TypeKind = TypeKind.Error AndAlso TypeOf typeSymbol Is MissingMetadataTypeSymbol.TopLevel Then
-                Dim missing = DirectCast(typeSymbol, MissingMetadataTypeSymbol.TopLevel)
-                ReportDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_UndefinedType1,
-                                 MetadataHelpers.BuildQualifiedName(missing.NamespaceName, missing.Name)))
-            Else
-                Dim useSiteError = typeSymbol.GetUseSiteErrorInfo()
-                If useSiteError IsNot Nothing Then
-                    ReportDiagnostic(useSiteError)
-                End If
-            End If
-
-            Return typeSymbol
+            Return Binder.GetSpecialType(Me.Compilation, st, _syntax, Me.Diagnostics)
         End Function
 
         Public Function NullableOf(type As TypeSymbol) As NamedTypeSymbol
@@ -253,31 +243,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function WellKnownType(wt As WellKnownType) As NamedTypeSymbol
-            Dim typeSymbol = Me.Compilation.GetWellKnownType(wt)
-            Debug.Assert(typeSymbol IsNot Nothing)
-
-            Dim useSiteError = typeSymbol.GetUseSiteErrorInfo()
-            If useSiteError IsNot Nothing Then
-                ReportDiagnostic(useSiteError)
-            End If
-
-            Return typeSymbol
+            Return Binder.GetWellKnownType(Me.Compilation, wt, _syntax, Me.Diagnostics)
         End Function
 
-        Public Sub ReportDiagnostic(diagInfo As DiagnosticInfo)
-            Me.Diagnostics.Add(diagInfo, _syntax.GetLocation())
-        End Sub
-
         Public Function WellKnownMember(Of T As Symbol)(wm As WellKnownMember, Optional isOptional As Boolean = False) As T
-            Dim useSiteError As DiagnosticInfo = Nothing
-            Dim member = DirectCast(Binder.GetWellKnownTypeMember(Me.Compilation, wm, useSiteError), T)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim member = DirectCast(Binder.GetWellKnownTypeMember(Me.Compilation, wm, useSiteInfo), T)
 
-            If useSiteError IsNot Nothing Then
-                If isOptional Then
-                    member = Nothing
-                Else
-                    ReportDiagnostic(useSiteError)
-                End If
+            If useSiteInfo.DiagnosticInfo IsNot Nothing AndAlso isOptional Then
+                member = Nothing
+            Else
+                Me.Diagnostics.Add(useSiteInfo, _syntax)
             End If
 
             Return member
@@ -285,19 +261,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function SpecialMember(sm As SpecialMember) As Symbol
             Dim memberSymbol As Symbol = Me.Compilation.GetSpecialTypeMember(sm)
-            Dim diagInfo As DiagnosticInfo = Nothing
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol)
 
             If memberSymbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = SpecialMembers.GetDescriptor(sm)
-                diagInfo = GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, CompilationState.Compilation.Options.EmbedVbCoreRuntime)
+                useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, CompilationState.Compilation.Options.EmbedVbCoreRuntime))
             Else
-                diagInfo = If(memberSymbol.GetUseSiteErrorInfo(), memberSymbol.ContainingType.GetUseSiteErrorInfo())
+                useSiteInfo = Binder.GetUseSiteInfoForMemberAndContainingType(memberSymbol)
             End If
 
-            If diagInfo IsNot Nothing Then
-                ReportDiagnostic(diagInfo)
-            End If
-
+            Me.Diagnostics.Add(useSiteInfo, _syntax)
             Return memberSymbol
         End Function
 
@@ -377,10 +350,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function [Return](Optional expression As BoundExpression = Nothing) As BoundReturnStatement
             If expression IsNot Nothing Then
                 ' If necessary, add a conversion on the return expression.
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim conversion = Conversions.ClassifyDirectCastConversion(expression.Type, Me.CurrentMethod.ReturnType, useSiteDiagnostics)
+                Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Diagnostics, Me.Compilation.Assembly)
+                Dim conversion = Conversions.ClassifyDirectCastConversion(expression.Type, Me.CurrentMethod.ReturnType, useSiteInfo)
                 Debug.Assert(Conversions.IsWideningConversion(conversion))
-                Diagnostics.Add(expression, useSiteDiagnostics)
+                Diagnostics.Add(expression, useSiteInfo)
 
                 If Not Conversions.IsIdentityConversion(conversion) Then
                     expression = New BoundDirectCast(Me.Syntax, expression, conversion, Me.CurrentMethod.ReturnType)
@@ -648,7 +621,7 @@ nextm:
             Debug.Assert(Not expression.Type.IsErrorType)
             Debug.Assert(Not type.IsErrorType)
 
-            Return New BoundTryCast(Me.Syntax, expression, Conversions.ClassifyTryCastConversion(expression.Type, type, Nothing), type)
+            Return New BoundTryCast(Me.Syntax, expression, Conversions.ClassifyTryCastConversion(expression.Type, type, CompoundUseSiteInfo(Of AssemblySymbol).Discarded), type)
         End Function
 
         Public Function [DirectCast](expression As BoundExpression, type As TypeSymbol) As BoundDirectCast
@@ -662,7 +635,7 @@ nextm:
                                        expression,
                                        If(expression.IsNothingLiteral,
                                           ConversionKind.WideningNothingLiteral,
-                                          Conversions.ClassifyDirectCastConversion(expression.Type, type, Nothing)),
+                                          Conversions.ClassifyDirectCastConversion(expression.Type, type, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)),
                                        type)
         End Function
 
@@ -1007,7 +980,7 @@ nextm:
             ElseIf type.IsErrorType() OrElse arg.Type.IsErrorType() Then
                 Return Convert(type, arg, ConversionKind.WideningReference, isChecked) ' will abort before code gen due to error, so doesn't matter if conversion kind is wrong.
             Else
-                Return Convert(type, arg, Conversions.ClassifyConversion(arg.Type, type, Nothing).Key, isChecked)
+                Return Convert(type, arg, Conversions.ClassifyConversion(arg.Type, type, CompoundUseSiteInfo(Of AssemblySymbol).Discarded).Key, isChecked)
             End If
         End Function
 

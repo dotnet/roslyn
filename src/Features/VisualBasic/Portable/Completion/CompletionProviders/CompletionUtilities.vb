@@ -1,11 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Module CompletionUtilities
@@ -13,7 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Const OfSuffix = "(Of"
         Private Const GenericSuffix = OfSuffix + " " & UnicodeEllipsis & ")"
 
-        Private ReadOnly s_defaultTriggerChars As Char() = {"."c, "["c, "#"c, " "c, "="c, "<"c, "{"c}
+        Friend ReadOnly CommonTriggerChars As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("."c, "["c, "#"c, " "c, "="c, "<"c, "{"c)
+
+        Friend ReadOnly CommonTriggerCharsAndParen As ImmutableHashSet(Of Char) = CommonTriggerChars.Add("("c)
+
+        Friend ReadOnly SpaceTriggerChar As ImmutableHashSet(Of Char) = CommonTriggerChars.Add(" "c)
 
         Public Function GetCompletionItemSpan(text As SourceText, position As Integer) As TextSpan
             Return CommonCompletionUtilities.GetWordSpan(
@@ -22,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 AddressOf IsCompletionItemCharacter)
         End Function
 
-        Private Function IsWordStartCharacter(ch As Char) As Boolean
+        Public Function IsWordStartCharacter(ch As Char) As Boolean
             Return SyntaxFacts.IsIdentifierStartCharacter(ch)
         End Function
 
@@ -38,33 +44,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ch = "]"c OrElse IsWordCharacter(ch)
         End Function
 
-        Public Function IsDefaultTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Function IsDefaultTriggerCharacter(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Dim ch = text(characterPosition)
-            If s_defaultTriggerChars.Contains(ch) Then
+            If CommonTriggerChars.Contains(ch) Then
                 Return True
             End If
 
             Return IsStartingNewWord(text, characterPosition, options)
         End Function
 
-        Public Function IsDefaultTriggerCharacterOrParen(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Function IsDefaultTriggerCharacterOrParen(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Dim ch = text(characterPosition)
 
             Return _
                 ch = "("c OrElse
-                s_defaultTriggerChars.Contains(ch) OrElse
+                CommonTriggerChars.Contains(ch) OrElse
                 IsStartingNewWord(text, characterPosition, options)
         End Function
 
-        Public Function IsTriggerAfterSpaceOrStartOfWordCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Function IsTriggerAfterSpaceOrStartOfWordCharacter(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             ' Bring up on space or at the start of a word.
             Dim ch = text(characterPosition)
 
             Return ch = " "c OrElse IsStartingNewWord(text, characterPosition, options)
         End Function
 
-        Private Function IsStartingNewWord(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            If Not options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic) Then
+        Private Function IsStartingNewWord(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
+            If Not options.TriggerOnTypingLetters Then
                 Return False
             End If
 

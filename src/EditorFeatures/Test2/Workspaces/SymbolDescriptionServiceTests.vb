@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -12,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     <[UseExportProvider]>
     Public Class SymbolDescriptionServiceTests
 
-        Private Async Function TestAsync(languageServiceProvider As HostLanguageServices, workspace As TestWorkspace, expectedDescription As String) As Task
+        Private Shared Async Function TestAsync(languageServiceProvider As HostLanguageServices, workspace As TestWorkspace, expectedDescription As String) As Task
 
             Dim solution = workspace.CurrentSolution
             Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
             Dim cursorPosition = cursorDocument.CursorPosition.Value
-            Dim cursorBuffer = cursorDocument.TextBuffer
+            Dim cursorBuffer = cursorDocument.GetTextBuffer()
 
             Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
             Dim semanticModel = Await document.GetSemanticModelAsync()
@@ -25,33 +27,34 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             Dim symbolDescriptionService = languageServiceProvider.GetService(Of ISymbolDisplayService)()
 
-            Dim actualDescription = Await symbolDescriptionService.ToDescriptionStringAsync(workspace, semanticModel, cursorPosition, symbol)
+            Dim options = SymbolDescriptionOptions.From(document.Project)
+            Dim actualDescription = Await symbolDescriptionService.ToDescriptionStringAsync(semanticModel, cursorPosition, symbol, options)
 
             Assert.Equal(expectedDescription, actualDescription)
 
         End Function
 
-        Private Function StringFromLines(ParamArray lines As String()) As String
+        Private Shared Function StringFromLines(ParamArray lines As String()) As String
             Return String.Join(Environment.NewLine, lines)
         End Function
 
-        Private Async Function TestCSharpAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
+        Private Shared Async Function TestCSharpAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
             Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Await TestAsync(GetLanguageServiceProvider(workspace, LanguageNames.CSharp), workspace, expectedDescription)
             End Using
         End Function
 
-        Private Async Function TestBasicAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
+        Private Shared Async Function TestBasicAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
             Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Await TestAsync(GetLanguageServiceProvider(workspace, LanguageNames.VisualBasic), workspace, expectedDescription)
             End Using
         End Function
 
-        Private Function GetLanguageServiceProvider(workspace As TestWorkspace, language As String) As HostLanguageServices
+        Private Shared Function GetLanguageServiceProvider(workspace As TestWorkspace, language As String) As HostLanguageServices
             Return workspace.Services.GetLanguageServices(language)
         End Function
 
-        Private Function WrapCodeInWorkspace(ParamArray lines As String()) As XElement
+        Private Shared Function WrapCodeInWorkspace(ParamArray lines As String()) As XElement
             Dim part1 = "<Workspace> <Project Language=""Visual Basic"" AssemblyName=""VBAssembly"" CommonReferences=""true""> <Document>"
             Dim part2 = "</Document></Project></Workspace>"
             Dim code = StringFromLines(lines)

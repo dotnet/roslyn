@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <PropertyGroup>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
@@ -11,6 +11,11 @@
       command line length for Windows. These projects must manually specify references to avoid this overflow.
     -->
     <DisableTransitiveProjectReferences Condition="'$(IsVsixProject)' == 'true'">true</DisableTransitiveProjectReferences>
+
+    <!-- Setting this to the same as CreateVsixContainer ensures that the VS SDK doesn't try to look for a source.extension.vsixmanifest
+         when we don't have one. -->
+    <CopyVsixManifestToOutput>$(CreateVsixContainer)</CopyVsixManifestToOutput>
+    <SetupProductArch>Neutral</SetupProductArch>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
@@ -25,20 +30,20 @@
   
   <!-- CPS doesn't show these items by default, but we want to show them. -->
   <ItemGroup>
-    <None Include="@(VSCTCompile)" />
+    <AvailableItemName Include="VSCTCompile" />
   </ItemGroup>
 
   <Target Name="IncludeVsixLocalOnlyItems">
     <!-- This is shamelessly ripped from Microsoft.VsSDK.targets -->
     <ItemGroup>
-      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' == ''">
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' and '%(Content.VSIXSubPath)' == ''">
         <!-- Sets VSIXSubPath for content items that are nonlinked files -->
         <VSIXSubPath Condition="'%(Content.Link)' == ''">%(Content.RelativeDir)</VSIXSubPath>
         <!-- Sets VSIXSubPath for content items that are linked files -->
         <VSIXSubPath Condition="'%(Content.Link)' != ''">$([System.IO.Path]::GetDirectoryName(%(Content.Link)))</VSIXSubPath>
       </VSIXSourceItemLocalOnly>
 
-      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' != ''" />
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' and '%(Content.VSIXSubPath)' != ''" />
     </ItemGroup>
   </Target>
 
@@ -53,7 +58,10 @@
        2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
           by the NuGet build task. -->
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolvePackageDependenciesForBuild" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+  <Target Name="IncludeNuGetResolvedAssets"
+          DependsOnTargets="ResolvePackageDependenciesForBuild"
+          BeforeTargets="GeneratePkgDef"
+          Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
 
     <!-- Calculate a list of packages ReferenceCopyLocalPaths originate from whose content should not be included in the VSIX -->
     <ItemGroup>
@@ -70,12 +78,25 @@
       <_AssetsByPackageId Remove="@(_ExcludedPackageId)" />
     </ItemGroup>
 
-    <!-- Include the assets in the VSIX -->
+    <!-- Flow metadata set on NuGetPackageToIncludeInVsix to VSIXCopyLocalReferenceSourceItem -->
+    <JoinItems Left="@(_AssetsByPackageId)" LeftKey="" LeftMetadata="*"
+               Right="@(NuGetPackageToIncludeInVsix)" RightKey="" RightMetadata="*">
+      <Output TaskParameter="JoinResult" ItemName="_AssetsWithMetadata" />
+    </JoinItems>
+
     <ItemGroup>
-      <VSIXCopyLocalReferenceSourceItem Include="@(_AssetsByPackageId->'%(Path)')">
+      <!-- Include the assets in the VSIX -->
+      <VSIXCopyLocalReferenceSourceItem Include="@(_AssetsWithMetadata->'%(Path)')">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
+        <Ngen Condition="'%(_AssetsWithMetadata.Optimization)' == 'true'">true</Ngen>
+        <NgenArchitecture Condition="'%(_AssetsWithMetadata.Optimization)' == 'true'">All</NgenArchitecture>
+        <NgenPriority Condition="'%(_AssetsWithMetadata.Optimization)' == 'true'">3</NgenPriority>
       </VSIXCopyLocalReferenceSourceItem>
+
+      <!-- Add PkgDef* items for assets that specify PkgDefEntry -->
+      <PkgDefBindingRedirect Include="@(_AssetsWithMetadata->'%(Path)')" Condition="'%(_AssetsWithMetadata.PkgDefEntry)' == 'BindingRedirect' and %(_AssetsWithMetadata.AssetType) == 'runtime'" />
+      <PkgDefCodeBase Include="@(_AssetsWithMetadata->'%(Path)')" Condition="'%(_AssetsWithMetadata.PkgDefEntry)' == 'CodeBase' and %(_AssetsWithMetadata.AssetType) == 'runtime'" />
     </ItemGroup>
   </Target>
 
@@ -103,4 +124,29 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
+
+  <!-- Add License and Third Party Notices files into each VSIX. -->
+  <ItemGroup Condition="'$(CreateVsixContainer)' == 'true'">
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.VsixLicense\EULA.rtf">
+      <Link>EULA.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.ThirdPartyNotices\ThirdPartyNotices.rtf">
+      <Link>ThirdPartyNotices.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
+  </ItemGroup>
+
+  <Target Name="_CheckDeploymentTargetVisualStudioVersion"
+		      Condition="'$(DeployExtension)' == 'true' and '$(CreateVsixContainer)' == 'true'"
+          BeforeTargets="DeployVsixExtensionFiles"
+	       	DependsOnTargets="GetVsixDeploymentPath">
+
+    <Error Text="Deployment to Dev16 is not supported in this *-vs-deps branch. Use the corresponding non-VS branch." 
+           Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('16.0'))"/>
+  </Target>
+
+  <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
 </Project>

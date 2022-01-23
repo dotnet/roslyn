@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Threading;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -31,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             _text = ComputeText(location);
         }
 
-        private string ComputeText(Location location)
+        private static string ComputeText(Location location)
         {
             var lineSpan = location.GetLineSpan();
             var start = location.SourceTree.GetText().Lines[lineSpan.StartLinePosition.Line].Start;
@@ -55,13 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public void NavigateTo()
         {
-            var document = _workspace.CurrentSolution.GetDocument(_documentId);
+            var solution = _workspace.CurrentSolution;
+            var document = solution.GetDocument(_documentId);
 
             if (document != null)
             {
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
-                var options = _workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
-                navigator.TryNavigateToSpan(_workspace, document.Id, _span, options);
+                var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)
+                                              .WithChangedOption(NavigationOptions.ActivateTab, false);
+                // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
+                navigator.TryNavigateToSpan(_workspace, document.Id, _span, options, CancellationToken.None);
             }
         }
     }

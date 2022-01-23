@@ -1,47 +1,63 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Markup;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class FindReferencesTests : ServicesTestBase
+    [UseExportProvider]
+    public class FindReferencesTests : TestBase
     {
-        private Solution CreateSolution()
+        private static Workspace CreateWorkspace(Type[] additionalParts = null)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+
+        private static Solution AddProjectWithMetadataReferences(Solution solution, string projectName, string languageName, string code, MetadataReference metadataReference, params ProjectId[] projectReferences)
         {
-            return new AdhocWorkspace().CurrentSolution;
+            var suffix = languageName == LanguageNames.CSharp ? "cs" : "vb";
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+            var pi = ProjectInfo.Create(
+                pid,
+                VersionStamp.Default,
+                projectName,
+                projectName,
+                languageName,
+                metadataReferences: new[] { metadataReference },
+                projectReferences: projectReferences.Select(p => new ProjectReference(p)));
+            return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
         }
 
-        private Solution GetSingleDocumentSolution(string sourceText)
+        private static Solution GetSingleDocumentSolution(Workspace workspace, string sourceText, string languageName = LanguageNames.CSharp)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
-            return CreateSolution()
-                    .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
+            return workspace.CurrentSolution
+                    .AddProject(pid, "goo", "goo", languageName)
                     .AddMetadataReference(pid, MscorlibRef)
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
         }
 
-        private Solution GetMultipleDocumentSolution(string[] sourceTexts)
+        private static Solution GetMultipleDocumentSolution(Workspace workspace, string[] sourceTexts)
         {
             var pid = ProjectId.CreateNewId();
 
-            var solution = CreateSolution()
+            var solution = workspace.CurrentSolution
                     .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef);
 
-            int docCounter = 1;
+            var docCounter = 1;
 
             foreach (var sourceText in sourceTexts)
             {
@@ -65,7 +81,8 @@ public class C {
    }
 }
 ";
-            var solution = GetSingleDocumentSolution(text);
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text);
             var project = solution.Projects.First();
             var symbol = (await project.GetCompilationAsync()).GetTypeByMetadataName("C").GetMembers("X").First();
 
@@ -82,9 +99,10 @@ public class C {
    public string X;
 }
 ";
+            using var workspace = CreateWorkspace();
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
-            var solution = CreateSolution()
+            var solution = workspace.CurrentSolution
                            .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                            .AddMetadataReference(pid, MscorlibRef)
                            .AddMetadataReference(pid, ((PortableExecutableReference)MscorlibRef).WithAliases(new[] { "X" }))
@@ -131,19 +149,19 @@ Module Module1
  End Module
             ");
 
-            ProjectId prj1Id = ProjectId.CreateNewId();
-            DocumentId docId = DocumentId.CreateNewId(prj1Id);
+            var prj1Id = ProjectId.CreateNewId();
+            var docId = DocumentId.CreateNewId(prj1Id);
 
-            Solution sln = new AdhocWorkspace().CurrentSolution
+            var sln = CreateWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.VisualBasic)
                 .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());
 
-            Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
+            var prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
             tree = await prj.GetDocument(docId).GetSyntaxTreeAsync();
-            Compilation comp = await prj.GetCompilationAsync();
+            var comp = await prj.GetCompilationAsync();
 
-            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+            var semanticModel = comp.GetSemanticModel(tree);
 
             SyntaxNode declareMethod = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.VisualBasic.Syntax.DeclareStatementSyntax>().FirstOrDefault();
             SyntaxNode normalMethod = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodStatementSyntax>().ToList()[1];
@@ -202,21 +220,21 @@ static class Module1
     }
                 ");
 
-            ProjectId prj1Id = ProjectId.CreateNewId();
-            DocumentId docId = DocumentId.CreateNewId(prj1Id);
+            var prj1Id = ProjectId.CreateNewId();
+            var docId = DocumentId.CreateNewId(prj1Id);
 
-            var sln = new AdhocWorkspace().CurrentSolution
+            var sln = CreateWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.CSharp)
                 .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());
 
-            Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            var prj = sln.GetProject(prj1Id).WithCompilationOptions(new CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication));
             tree = await prj.GetDocument(docId).GetSyntaxTreeAsync();
-            Compilation comp = await prj.GetCompilationAsync();
+            var comp = await prj.GetCompilationAsync();
 
-            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+            var semanticModel = comp.GetSemanticModel(tree);
 
-            List<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax> methodlist = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax>().ToList();
+            var methodlist = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax>().ToList();
             SyntaxNode declareMethod = methodlist.ElementAt(0);
             SyntaxNode normalMethod = methodlist.ElementAt(2);
 
@@ -251,7 +269,8 @@ class B : C, A
    public void Bar() { Boo(); } // Line 14
 }
 ";
-            var solution = GetSingleDocumentSolution(text);
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text);
             var project = solution.Projects.First();
             var comp = await project.GetCompilationAsync();
 
@@ -261,7 +280,7 @@ class B : C, A
             var result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
-            HashSet<int> expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
+            var expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
             result.ForEach((reference) => Verify(reference, expectedMatchedLines));
 
             Assert.Empty(expectedMatchedLines);
@@ -292,7 +311,7 @@ class B : C, A
         [Fact, WorkItem(28827, "https://github.com/dotnet/roslyn/issues/28827")]
         public async Task FindReferences_DifferingAssemblies()
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            var solution = CreateWorkspace().CurrentSolution;
 
             solution = AddProjectWithMetadataReferences(solution, "NetStandardProject", LanguageNames.CSharp, @"
 namespace N
@@ -327,7 +346,12 @@ namespace N2
 
             var references = (await SymbolFinder.FindReferencesAsync(interfaceMethod, solution)).ToList();
             Assert.Equal(2, references.Count);
-            Assert.True(references.Any(r => r.DefinitionAndProjectId.ProjectId == desktopProject.Id));
+
+            var projectIds = new HashSet<ProjectId>();
+            foreach (var r in references)
+                projectIds.Add(solution.GetOriginatingProjectId(r.Definition));
+
+            Assert.True(projectIds.Contains(desktopProject.Id));
         }
 
         [Fact, WorkItem(35786, "https://github.com/dotnet/roslyn/issues/35786")]
@@ -358,7 +382,8 @@ namespace N2
     }
 }";
 
-            var solution = GetMultipleDocumentSolution(new[] { implText, interface1Text, interface2Text });
+            using var workspace = CreateWorkspace();
+            var solution = GetMultipleDocumentSolution(workspace, new[] { implText, interface1Text, interface2Text });
             solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), new[] { MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref });
 
             var project = solution.Projects.Single();
@@ -380,7 +405,7 @@ namespace N2
         [Fact]
         public async Task OverriddenMethodsFromPortableToDesktop()
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            var solution = CreateWorkspace().CurrentSolution;
 
             // create portable assembly with a virtual method
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -418,7 +443,7 @@ namespace M
             var refsFromVirtual = await SymbolFinder.FindReferencesAsync(baseVirtualMethodSymbol, solution);
             Assert.Equal(2, refsFromVirtual.Count());
 
-            // FAR from the overriden method should find both methods
+            // FAR from the overridden method should find both methods
             var refsFromOverride = await SymbolFinder.FindReferencesAsync(overriddenMethodSymbol, solution);
             Assert.Equal(2, refsFromOverride.Count());
 
@@ -438,7 +463,8 @@ interface unmanaged                             // Line 1
 abstract class C<T> where T : unmanaged         // Line 4
 {
 }";
-            var solution = GetSingleDocumentSolution(text);
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text);
             var project = solution.Projects.First();
             var comp = await project.GetCompilationAsync();
 
@@ -446,6 +472,124 @@ abstract class C<T> where T : unmanaged         // Line 4
             var result = (await SymbolFinder.FindReferencesAsync(constraint, solution)).Single();
 
             Verify(result, new HashSet<int> { 1, 4 });
+        }
+
+        [Fact, WorkItem(1177764, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
+        public async Task DoNotIncludeConstructorReferenceInTypeList_CSharp()
+        {
+            var text = @"
+class C
+{
+}
+
+class Test
+{
+    void M()
+    {
+        C c = new C();
+    }
+}
+";
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text);
+            var project = solution.Projects.First();
+            var compilation = await project.GetCompilationAsync();
+            var symbol = compilation.GetTypeByMetadataName("C");
+
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            Assert.Equal(2, result.Count);
+
+            var typeResult = result.Single(r => r.Definition.Kind == SymbolKind.NamedType);
+            var constructorResult = result.Single(r => r.Definition.Kind == SymbolKind.Method);
+
+            // Should be one hit for the type and one for the constructor.
+            Assert.Equal(1, typeResult.Locations.Count());
+            Assert.Equal(1, constructorResult.Locations.Count());
+
+            // those locations should not be the same
+            Assert.NotEqual(typeResult.Locations.Single().Location.SourceSpan, constructorResult.Locations.Single().Location.SourceSpan);
+        }
+
+        [Fact, WorkItem(1177764, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
+        public async Task DoNotIncludeConstructorReferenceInTypeList_VisualBasic()
+        {
+            var text = @"
+class C
+end class
+
+class Test
+    sub M()
+        dim c as C = new C()
+    end sub
+end class
+";
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.VisualBasic);
+            var project = solution.Projects.First();
+            var compilation = await project.GetCompilationAsync();
+            var symbol = compilation.GetTypeByMetadataName("C");
+
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            Assert.Equal(2, result.Count);
+
+            var typeResult = result.Single(r => r.Definition.Kind == SymbolKind.NamedType);
+            var constructorResult = result.Single(r => r.Definition.Kind == SymbolKind.Method);
+
+            // Should be one hit for the type and one for the constructor.
+            Assert.Equal(1, typeResult.Locations.Count());
+            Assert.Equal(1, constructorResult.Locations.Count());
+
+            // those locations should not be the same
+            Assert.NotEqual(typeResult.Locations.Single().Location.SourceSpan, constructorResult.Locations.Single().Location.SourceSpan);
+        }
+
+        [Fact, WorkItem(49624, "https://github.com/dotnet/roslyn/issues/49624")]
+        public async Task DoNotIncludeSameNamedAlias()
+        {
+            var text = @"
+using NestedDummy = Test.Dummy.NestedDummy;
+
+namespace Test
+{
+    public class DummyFactory
+    {
+        public NestedDummy Create() => new NestedDummy();
+    }
+}
+
+namespace Test
+{
+	public class Dummy
+	{
+		public class NestedDummy { }
+	}
+}
+";
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.CSharp);
+            var project = solution.Projects.First();
+            var compilation = await project.GetCompilationAsync();
+            var symbol = compilation.GetTypeByMetadataName("Test.Dummy+NestedDummy");
+
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            Assert.Equal(2, result.Count);
+
+            var typeResult = result.Single(r => r.Definition.Kind == SymbolKind.NamedType);
+            var constructorResult = result.Single(r => r.Definition.Kind == SymbolKind.Method);
+
+            // Should be one hit for the type and one for the constructor.
+            Assert.Equal(2, typeResult.Locations.Count());
+            Assert.Equal(1, constructorResult.Locations.Count());
+
+            // those locations should not be the same
+            Assert.True(typeResult.Locations.All(loc => loc.Location.SourceSpan != constructorResult.Locations.Single().Location.SourceSpan));
+
+            // Constructor still binds to the alias.
+            Assert.NotNull(constructorResult.Locations.Single().Alias);
+
+            // One type reference is to the type itself, and one is through the alias.
+            Assert.True(typeResult.Locations.Count(loc => loc.Alias == null) == 1);
+            Assert.True(typeResult.Locations.Count(loc => loc.Alias != null) == 1);
         }
 
         private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)

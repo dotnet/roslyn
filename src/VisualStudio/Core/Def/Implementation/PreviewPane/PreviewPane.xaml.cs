@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +17,7 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+using Microsoft.VisualStudio.Text.Differencing;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
@@ -21,14 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private const double DefaultWidth = 400;
 
         private static readonly string s_dummyThreeLineTitle = "A" + Environment.NewLine + "A" + Environment.NewLine + "A";
-        private static readonly Size s_infiniteSize = new Size(double.PositiveInfinity, double.PositiveInfinity);
+        private static readonly Size s_infiniteSize = new(double.PositiveInfinity, double.PositiveInfinity);
 
         private readonly string _id;
         private readonly bool _logIdVerbatimInTelemetry;
         private readonly IVsUIShell _uiShell;
 
         private bool _isExpanded;
-        private double _heightForThreeLineTitle;
+        private readonly double _heightForThreeLineTitle;
         private DifferenceViewerPreview _differenceViewerPreview;
 
         public PreviewPane(
@@ -201,11 +206,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 Contract.ThrowIfFalse(_differenceViewerPreview == null);
 
                 // cache the diff viewer so that we can close it when panel goes away.
-                // this is a bit wierd since we are mutating state here.
+                // this is a bit weird since we are mutating state here.
                 _differenceViewerPreview = (DifferenceViewerPreview)previewItem;
-                PreviewDockPanel.Background = _differenceViewerPreview.Viewer.InlineView.Background;
+                var viewer = (IWpfDifferenceViewer)_differenceViewerPreview.Viewer;
+                PreviewDockPanel.Background = viewer.InlineView.Background;
 
-                var previewElement = _differenceViewerPreview.Viewer.VisualElement;
+                var previewElement = viewer.VisualElement;
                 return previewElement;
             }
 
@@ -252,7 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         // worth by default.
         private void AdjustWidthAndHeight(FrameworkElement previewElement)
         {
-            var headerStackPanelWidth = double.PositiveInfinity;
+            double headerStackPanelWidth;
             var titleTextBlockHeight = double.PositiveInfinity;
             if (previewElement == null)
             {
@@ -299,9 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         }
 
         private static bool IsNormal(double size)
-        {
-            return size > 0 && !double.IsNaN(size) && !double.IsInfinity(size);
-        }
+            => size > 0 && !double.IsNaN(size) && !double.IsInfinity(size);
 
         private bool HasDescription
         {
@@ -326,11 +330,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 return;
             }
 
-            BrowserHelper.StartBrowser(e.Uri);
+            VisualStudioNavigateToLinkService.StartBrowser(e.Uri);
             e.Handled = true;
 
-            var hyperlink = sender as Hyperlink;
-            if (hyperlink == null)
+            if (sender is not Hyperlink hyperlink)
             {
                 return;
             }

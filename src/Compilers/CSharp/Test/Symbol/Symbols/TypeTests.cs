@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -13,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class TypeTests : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         [WorkItem(30023, "https://github.com/dotnet/roslyn/issues/30023")]
         public void Bug18280()
         {
@@ -86,19 +91,19 @@ interface B {
             Assert.Equal(Accessibility.Internal, s.DeclaredAccessibility);
         }
 
-        [Fact]
-        public void InheritedTypesCrossTrees()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void InheritedTypesCrossTrees(string ob, string cb)
         {
-            var text = @"namespace MT {
+            var text = @"namespace MT " + ob + @"
     public interface IGoo { void Goo(); }
     public interface IGoo<T, R> { R Goo(T t); }
-}
+" + cb + @"
 ";
-            var text1 = @"namespace MT {
+            var text1 = @"namespace MT " + ob + @"
     public interface IBar<T> : IGoo { void Bar(T t); }
-}
+" + cb + @"
 ";
-            var text2 = @"namespace NS {
+            var text2 = @"namespace NS " + ob + @"
     using System;
     using MT;
     public class A<T> : IGoo<T, string>, IBar<string> {
@@ -108,11 +113,11 @@ interface B {
     }
 
     public class B : A<int> {}
-}
+" + cb + @"
 ";
-            var text3 = @"namespace NS {
+            var text3 = @"namespace NS " + ob + @"
     public class C : B {}
-}
+" + cb + @"
 ";
 
             var comp = CreateCompilation(new[] { text, text1, text2, text3 });
@@ -528,7 +533,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(text, new[] { TestMetadata.Net40.mscorlib });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
@@ -661,7 +666,7 @@ public class A {
 ";
             var comp = CreateCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyEnum", 0).Single();
-            Assert.NotEqual(null, v);
+            Assert.NotNull(v);
             Assert.Equal(Accessibility.Public, v.DeclaredAccessibility);
 
             var fields = v.GetMembers().OfType<FieldSymbol>().ToList();
@@ -1448,9 +1453,9 @@ class Program
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
-            Assert.Equal("<invalid-global-code>", errSymbol.Name);
+            Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, errSymbol.Name);
             Assert.False(errSymbol.IsErrorType(), "ErrorType");
-            Assert.True(errSymbol.IsImplicitClass, "ImplicitClass");
+            Assert.False(errSymbol.IsImplicitClass, "ImplicitClass");
         }
 
         #region "Nullable"
@@ -1665,7 +1670,7 @@ class A
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilation(tree);
+            var comp = (Compilation)CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var mnode = (MethodDeclarationSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration);
@@ -1674,45 +1679,45 @@ class A
             // 4 locals + 2 lambda params
             Assert.Equal(6, locals.Length);
             // local04
-            var anonymousType = (locals[3] as LocalSymbol).Type;
+            var anonymousType = (locals[3] as ILocalSymbol).Type;
             Assert.True(anonymousType.IsAnonymousType);
 
             // --------------------
             // local01
-            var memType = anonymousType.GetMember<PropertySymbol>("p0").Type;
+            var memType = anonymousType.GetMember<IPropertySymbol>("p0").Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
-            Assert.Same((locals[0] as LocalSymbol).Type, memType);
+            Assert.Equal((locals[0] as ILocalSymbol).Type, memType, SymbolEqualityComparer.ConsiderEverything);
 
             // --------------------
-            var nestedType = anonymousType.GetMember<PropertySymbol>("p1").Type;
+            var nestedType = anonymousType.GetMember<IPropertySymbol>("p1").Type;
             Assert.True(nestedType.IsAnonymousType);
             // local02
-            memType = nestedType.GetMember<PropertySymbol>("p1").Type;
+            memType = nestedType.GetMember<IPropertySymbol>("p1").Type;
             Assert.True(memType.IsDelegateType());
-            Assert.Same((locals[1] as LocalSymbol).Type, memType);
+            Assert.Same((locals[1] as ILocalSymbol).Type, memType);
             // 
-            var paras = memType.DelegateInvokeMethod().Parameters;
+            var paras = ((INamedTypeSymbol)memType).DelegateInvokeMethod.Parameters;
             memType = paras[0].Type;
             Assert.True(memType.IsNullableType());
-            Assert.False(memType.CanBeConst());
+            Assert.False(memType.GetSymbol().CanBeConst());
             memType = paras[1].Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
-            Assert.True(memType.GetNullableUnderlyingType().IsEnumType());
+            Assert.Equal(TypeKind.Enum, memType.GetNullableUnderlyingType().TypeKind);
             Assert.Equal("System.PlatformID?", memType.ToDisplayString());
 
             // local03
-            memType = nestedType.GetMember<PropertySymbol>("local03").Type;
-            Assert.Same((locals[2] as LocalSymbol).Type, memType);
+            memType = nestedType.GetMember<IPropertySymbol>("local03").Type;
+            Assert.Same((locals[2] as ILocalSymbol).Type, memType);
             Assert.True(memType.IsDelegateType());
             // return type
-            memType = memType.DelegateInvokeMethod().ReturnType;
+            memType = ((INamedTypeSymbol)memType).DelegateInvokeMethod.ReturnType;
             Assert.True(memType.IsNullableType());
-            Assert.True(memType.CanBeAssignedNull());
+            Assert.True(memType.GetSymbol().CanBeAssignedNull());
             // --------------------
             // method parameter symbol
-            var compType = (model.GetDeclaredSymbol(mnode) as MethodSymbol).Parameters[0].Type;
-            memType = anonymousType.GetMember<PropertySymbol>("p").Type;
-            Assert.Same(compType, memType);
+            var compType = (model.GetDeclaredSymbol(mnode) as IMethodSymbol).Parameters[0].Type;
+            memType = anonymousType.GetMember<IPropertySymbol>("p").Type;
+            Assert.Equal(compType, memType, SymbolEqualityComparer.ConsiderEverything);
             Assert.True(memType.IsNullableType());
             Assert.Equal("System.Collections.DictionaryEntry?", memType.ToDisplayString());
         }
@@ -1749,12 +1754,12 @@ namespace NS
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilation(tree);
+            var comp = (Compilation)CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var node1 = (LocalDeclarationStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LocalDeclarationStatement, 3);
             var loc = node1.Declaration.Variables.First();
-            var sym = model.GetDeclaredSymbol(node1.Declaration.Variables.First()) as LocalSymbol;
+            var sym = model.GetDeclaredSymbol(node1.Declaration.Variables.First()) as ILocalSymbol;
             // --------------------
             // R?
             var memType = sym.Type;
@@ -1765,16 +1770,16 @@ namespace NS
             var tinfo = model.GetTypeInfo(nodes[0] as IdentifierNameSyntax);
             // obj: IGoo<float, PlatformID>
             Assert.NotNull(tinfo.Type);
-            Assert.True(((TypeSymbol)tinfo.Type).IsInterfaceType());
+            Assert.Equal(TypeKind.Interface, ((ITypeSymbol)tinfo.Type).TypeKind);
             Assert.Equal("NS.IGoo<float, System.PlatformID>", tinfo.Type.ToDisplayString());
             // f: T? -> float?
             tinfo = model.GetTypeInfo(nodes[1] as IdentifierNameSyntax);
-            Assert.True(((TypeSymbol)tinfo.Type).IsNullableType());
+            Assert.True(((ITypeSymbol)tinfo.Type).IsNullableType());
             Assert.Equal("float?", tinfo.Type.ToDisplayString());
             // decimal?
             tinfo = model.GetTypeInfo(nodes[2] as LiteralExpressionSyntax);
-            Assert.True(((TypeSymbol)tinfo.ConvertedType).IsNullableType());
-            Assert.Same(comp.GetSpecialType(SpecialType.System_Decimal), ((TypeSymbol)tinfo.ConvertedType).GetNullableUnderlyingType());
+            Assert.True(((ITypeSymbol)tinfo.ConvertedType).IsNullableType());
+            Assert.Same(comp.GetSpecialType(SpecialType.System_Decimal), ((ITypeSymbol)tinfo.ConvertedType).GetNullableUnderlyingType());
             Assert.Equal("decimal?", tinfo.ConvertedType.ToDisplayString());
         }
 
@@ -1799,7 +1804,7 @@ class Goo {
             var Func_Dynamic = (Goo.GetMembers("Z")[0] as FieldSymbol).Type;
             var Func_Object = (Goo.GetMembers("W")[0] as FieldSymbol).Type;
 
-            var comparator = TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer;
+            var comparator = CSharp.Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability;
             Assert.NotEqual(Object, Dynamic);
             Assert.Equal(comparator.GetHashCode(Dynamic), comparator.GetHashCode(Object));
             Assert.True(comparator.Equals(Dynamic, Object));
@@ -1839,7 +1844,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilation(code);
+            var compilation = (Compilation)CreateCompilation(code);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -1847,11 +1852,11 @@ class C<T>
 
             var info = model.GetSymbolInfo(syntax);
             var symbol = info.Symbol;
-            var originalDefinition = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var originalDefinition = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
 
             Assert.Equal(originalDefinition.InstanceConstructors.Single(), symbol.OriginalDefinition);
             Assert.False(symbol.ContainingType.IsUnboundGenericType);
-            Assert.IsType<UnboundArgumentErrorTypeSymbol>(symbol.ContainingType.TypeArguments.Single());
+            Assert.IsType<UnboundArgumentErrorTypeSymbol>(symbol.ContainingType.TypeArguments.Single().GetSymbol());
         }
 
         [Fact]
@@ -2289,6 +2294,115 @@ public interface I1
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        [WorkItem(41501, "https://github.com/dotnet/roslyn/issues/41501")]
+        public void ImplementNestedInterface_01()
+        {
+            var text = @"
+public struct TestStruct : TestStruct.IInnerInterface
+{
+    public interface IInnerInterface
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(text);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(41501, "https://github.com/dotnet/roslyn/issues/41501")]
+        public void ImplementNestedInterface_02()
+        {
+            var text = @"
+public class TestClass : TestClass.IInnerInterface
+{
+    public interface IInnerInterface
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(text);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CallingConventionOnMethods_FromSource()
+        {
+            var sourceComp = CreateCompilation(@"
+class C
+{
+    void M1() { }
+    void M2(params object[] p) { }
+    void M3(__arglist) { }
+}");
+
+            sourceComp.VerifyDiagnostics();
+            var c = sourceComp.GetTypeByMetadataName("C").GetPublicSymbol();
+            var m1 = (IMethodSymbol)c.GetMember("M1");
+            Assert.NotNull(m1);
+            Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
+
+            var m2 = (IMethodSymbol)c.GetMember("M2");
+            Assert.NotNull(m2);
+            Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
+
+            var m3 = (IMethodSymbol)c.GetMember("M3");
+            Assert.NotNull(m3);
+            Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
+        }
+
+        [Fact]
+        public void CallingConventionOnMethods_FromMetadata()
+        {
+            var metadataComp = CreateCompilationWithIL("", ilSource: @"
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+    .method public hidebysig instance void M1 () cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig instance void M2 (object[] p) cil managed 
+    {
+        .param [1] .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 )
+        ret
+    }
+
+    .method public hidebysig instance vararg void M3 () cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+}");
+
+            metadataComp.VerifyDiagnostics();
+            var c = metadataComp.GetTypeByMetadataName("C").GetPublicSymbol();
+            var m1 = (IMethodSymbol)c.GetMember("M1");
+            Assert.NotNull(m1);
+            Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
+
+            var m2 = (IMethodSymbol)c.GetMember("M2");
+            Assert.NotNull(m2);
+            Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
+
+            var m3 = (IMethodSymbol)c.GetMember("M3");
+            Assert.NotNull(m3);
+            Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.ComponentModel;
@@ -155,15 +159,15 @@ class C
 
                 uint stringTableSize;
                 IntPtr stringTable = Win32Res.GetResource(lib, "#1", "#6", out stringTableSize);
-                Assert.NotNull(stringTable);
+                Assert.NotEqual(default, stringTable);
 
                 uint elevenSize;
                 IntPtr elevenRsrc = Win32Res.GetResource(lib, "#1", "#11", out elevenSize);
-                Assert.NotNull(elevenRsrc);
+                Assert.NotEqual(default, elevenRsrc);
 
                 uint wevtSize;
                 IntPtr wevtRsrc = Win32Res.GetResource(lib, "#1", "WEVT_TEMPLATE", out wevtSize);
-                Assert.NotNull(wevtRsrc);
+                Assert.NotEqual(default, wevtRsrc);
             }
             finally
             {
@@ -388,6 +392,7 @@ class C
             );
         }
 
+#if NET472
         [ConditionalFact(typeof(DesktopOnly))]
         public void AddManagedResource()
         {
@@ -748,7 +753,7 @@ class C
                 Assert.True(result6.Success);
             }
         }
-
+#endif
         [Fact]
         public void AddManagedLinkedResourceFail()
         {

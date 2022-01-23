@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.ObjectModel
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Friend NotInheritable Class AnonymousTypeManager
 
-        Public Function ReportMissingOrErroneousSymbols(diagnostics As DiagnosticBag, hasClass As Boolean, hasDelegate As Boolean, hasKeys As Boolean) As Boolean
+        Public Function ReportMissingOrErroneousSymbols(diagnostics As BindingDiagnosticBag, hasClass As Boolean, hasDelegate As Boolean, hasKeys As Boolean) As Boolean
             Debug.Assert(hasClass OrElse hasDelegate)
             Debug.Assert(Not hasKeys OrElse hasClass)
 
@@ -59,17 +61,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return hasErrors
         End Function
 
-        Private Shared Sub ReportErrorOnSymbol(symbol As Symbol, diagnostics As DiagnosticBag, ByRef hasError As Boolean)
+        Private Shared Sub ReportErrorOnSymbol(symbol As Symbol, diagnostics As BindingDiagnosticBag, ByRef hasError As Boolean)
             If symbol IsNot Nothing Then
-                Dim errorInfo As DiagnosticInfo = symbol.GetUseSiteErrorInfo()
-                If errorInfo IsNot Nothing Then
-                    diagnostics.Add(errorInfo, NoLocation.Singleton)
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = symbol.GetUseSiteInfo()
+                If diagnostics.Add(useSiteInfo, NoLocation.Singleton) Then
                     hasError = True
                 End If
             End If
         End Sub
 
-        Private Shared Sub ReportErrorOnWellKnownMember(symbol As Symbol, member As WellKnownMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
+        Private Shared Sub ReportErrorOnWellKnownMember(symbol As Symbol, member As WellKnownMember, diagnostics As BindingDiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
             If symbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(member)
                 Dim diagInfo = GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, embedVBCore)
@@ -82,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Shared Sub ReportErrorOnSpecialMember(symbol As Symbol, member As SpecialMember, diagnostics As DiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
+        Private Shared Sub ReportErrorOnSpecialMember(symbol As Symbol, member As SpecialMember, diagnostics As BindingDiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
             If symbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = SpecialMembers.GetDescriptor(member)
                 Dim diagInfo = GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, embedVBCore)
@@ -97,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Checks if all special and well-known symbols required for emitting anonymous types 
         ''' provided exist, if not reports errors and returns True.
         ''' </summary>
-        Private Function CheckAndReportMissingSymbols(anonymousTypes As ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol), diagnostics As DiagnosticBag) As Boolean
+        Private Function CheckAndReportMissingSymbols(anonymousTypes As ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol), diagnostics As BindingDiagnosticBag) As Boolean
             Dim hasClass As Boolean = False
             Dim hasDelegate As Boolean = False
             Dim hasKeys As Boolean = False

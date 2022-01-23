@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -533,13 +537,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var gname = (GenericNameSyntax)tname;
             Assert.Equal("goo", gname.Identifier.ToString());
-            Assert.Equal(false, gname.IsUnboundGenericName);
+            Assert.False(gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
 
             var arg = gname.TypeArgumentList.Arguments[0];
             Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
-            Assert.Equal(true, arg.ContainsDiagnostics);
+            Assert.True(arg.ContainsDiagnostics);
             Assert.Equal(1, arg.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_IllegalVarianceSyntax, arg.Errors()[0].Code);
 
@@ -558,13 +562,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var gname = (GenericNameSyntax)tname;
             Assert.Equal("goo", gname.Identifier.ToString());
-            Assert.Equal(false, gname.IsUnboundGenericName);
+            Assert.False(gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
 
             var arg = gname.TypeArgumentList.Arguments[0];
             Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
-            Assert.Equal(true, arg.ContainsDiagnostics);
+            Assert.True(arg.ContainsDiagnostics);
             Assert.Equal(1, arg.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);
 
@@ -584,13 +588,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var gname = (GenericNameSyntax)tname;
             Assert.Equal("goo", gname.Identifier.ToString());
-            Assert.Equal(false, gname.IsUnboundGenericName);
+            Assert.False(gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
 
             var arg = gname.TypeArgumentList.Arguments[0];
             Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
-            Assert.Equal(true, arg.ContainsDiagnostics);
+            Assert.True(arg.ContainsDiagnostics);
             Assert.Equal(1, arg.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);
 
@@ -610,20 +614,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var gname = (GenericNameSyntax)tname;
             Assert.Equal("goo", gname.Identifier.ToString());
-            Assert.Equal(false, gname.IsUnboundGenericName);
+            Assert.False(gname.IsUnboundGenericName);
             Assert.Equal(2, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
             Assert.NotNull(gname.TypeArgumentList.Arguments[1]);
 
             var arg = gname.TypeArgumentList.Arguments[0];
             Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
-            Assert.Equal(true, arg.ContainsDiagnostics);
+            Assert.True(arg.ContainsDiagnostics);
             Assert.Equal(1, arg.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);
 
             var arg2 = gname.TypeArgumentList.Arguments[1];
             Assert.Equal(SyntaxKind.PredefinedType, arg2.Kind());
-            Assert.Equal(false, arg2.ContainsDiagnostics);
+            Assert.False(arg2.ContainsDiagnostics);
             Assert.Equal(0, arg2.Errors().Length);
 
             Assert.Equal(text, tname.ToString());
@@ -642,13 +646,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var gname = (GenericNameSyntax)tname;
             Assert.Equal("goo", gname.Identifier.ToString());
-            Assert.Equal(false, gname.IsUnboundGenericName);
+            Assert.False(gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
 
             var arg = gname.TypeArgumentList.Arguments[0];
             Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
-            Assert.Equal(true, arg.ContainsDiagnostics);
+            Assert.True(arg.ContainsDiagnostics);
             Assert.Equal(1, arg.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);
 
@@ -667,13 +671,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var gname = (GenericNameSyntax)tname;
             Assert.Equal("goo", gname.Identifier.ToString());
-            Assert.Equal(false, gname.IsUnboundGenericName);
+            Assert.False(gname.IsUnboundGenericName);
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
 
             var arg = gname.TypeArgumentList.Arguments[0];
             Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
-            Assert.Equal(true, arg.ContainsDiagnostics);
+            Assert.True(arg.ContainsDiagnostics);
             Assert.Equal(2, arg.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_IllegalVarianceSyntax, arg.Errors()[1].Code);
@@ -688,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "\u0915\u094d\u200d\u0937";
             var tok = SyntaxFactory.ParseToken(text);
 
-            Assert.NotNull(tok);
+            Assert.NotEqual(default, tok);
             Assert.Equal(text, tok.ToString());
             Assert.NotEqual(text, tok.ValueText);
             Assert.Equal("\u0915\u094d\u0937", tok.ValueText); //formatting character \u200d removed
@@ -704,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "x\u00ady";
             var tok = SyntaxFactory.ParseToken(text);
 
-            Assert.NotNull(tok);
+            Assert.NotEqual(default, tok);
             Assert.Equal(text, tok.ToString());
             Assert.NotEqual(text, tok.ValueText);
             Assert.Equal("xy", tok.ValueText); // formatting character SOFT HYPHEN (U+00AD) removed

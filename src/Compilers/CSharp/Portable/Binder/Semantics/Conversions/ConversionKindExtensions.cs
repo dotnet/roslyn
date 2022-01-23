@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.ConversionKind;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static bool IsDynamic(this ConversionKind conversionKind)
         {
-            return conversionKind == ConversionKind.ImplicitDynamic || conversionKind == ConversionKind.ExplicitDynamic;
+            return conversionKind == ImplicitDynamic || conversionKind == ExplicitDynamic;
         }
 
         // Is the particular conversion an implicit conversion?
@@ -20,46 +19,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (conversionKind)
             {
-                case ConversionKind.NoConversion:
-                case ConversionKind.UnsetConversionKind:
+                case NoConversion:
+                case UnsetConversionKind:
                     return false;
 
-                case ConversionKind.Identity:
-                case ConversionKind.ImplicitNumeric:
-                case ConversionKind.ImplicitTupleLiteral:
-                case ConversionKind.ImplicitTuple:
-                case ConversionKind.ImplicitEnumeration:
-                case ConversionKind.ImplicitThrow:
-                case ConversionKind.ImplicitNullable:
-                case ConversionKind.DefaultOrNullLiteral:
-                case ConversionKind.ImplicitReference:
-                case ConversionKind.Boxing:
-                case ConversionKind.ImplicitDynamic:
-                case ConversionKind.ImplicitConstant:
-                case ConversionKind.ImplicitUserDefined:
-                case ConversionKind.AnonymousFunction:
+                case Identity:
+                case ImplicitNumeric:
+                case ImplicitTupleLiteral:
+                case ImplicitTuple:
+                case ImplicitEnumeration:
+                case ImplicitThrow:
+                case ImplicitNullable:
+                case NullLiteral:
+                case DefaultLiteral:
+                case ImplicitReference:
+                case Boxing:
+                case ImplicitDynamic:
+                case ImplicitConstant:
+                case ImplicitUserDefined:
+                case AnonymousFunction:
                 case ConversionKind.MethodGroup:
-                case ConversionKind.PointerToVoid:
-                case ConversionKind.NullToPointer:
-                case ConversionKind.InterpolatedString:
-                case ConversionKind.Deconstruction:
-                case ConversionKind.StackAllocToPointerType:
-                case ConversionKind.StackAllocToSpanType:
+                case ConversionKind.FunctionType:
+                case ImplicitPointerToVoid:
+                case ImplicitNullToPointer:
+                case InterpolatedString:
+                case InterpolatedStringHandler:
+                case SwitchExpression:
+                case ConditionalExpression:
+                case Deconstruction:
+                case StackAllocToPointerType:
+                case StackAllocToSpanType:
+                case ImplicitPointer:
+                case ObjectCreation:
                     return true;
 
-                case ConversionKind.ExplicitNumeric:
-                case ConversionKind.ExplicitTuple:
-                case ConversionKind.ExplicitTupleLiteral:
-                case ConversionKind.ExplicitEnumeration:
-                case ConversionKind.ExplicitNullable:
-                case ConversionKind.ExplicitReference:
-                case ConversionKind.Unboxing:
-                case ConversionKind.ExplicitDynamic:
-                case ConversionKind.ExplicitUserDefined:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
-                case ConversionKind.IntPtr:
+                case ExplicitNumeric:
+                case ExplicitTuple:
+                case ExplicitTupleLiteral:
+                case ExplicitEnumeration:
+                case ExplicitNullable:
+                case ExplicitReference:
+                case Unboxing:
+                case ExplicitDynamic:
+                case ExplicitUserDefined:
+                case ExplicitPointerToPointer:
+                case ExplicitPointerToInteger:
+                case ExplicitIntegerToPointer:
+                case IntPtr:
                     return false;
 
                 default:
@@ -72,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (conversionKind)
             {
-                case ConversionKind.ImplicitUserDefined:
-                case ConversionKind.ExplicitUserDefined:
+                case ImplicitUserDefined:
+                case ExplicitUserDefined:
                     return true;
 
                 default:
@@ -85,11 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
-                case ConversionKind.PointerToVoid:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
-                case ConversionKind.NullToPointer:
+                case ImplicitPointerToVoid:
+                case ExplicitPointerToPointer:
+                case ExplicitPointerToInteger:
+                case ExplicitIntegerToPointer:
+                case ImplicitNullToPointer:
+                case ImplicitPointer:
                     return true;
                 default:
                     return false;

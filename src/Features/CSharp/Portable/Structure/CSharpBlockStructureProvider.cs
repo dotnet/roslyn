@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -17,29 +21,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<AnonymousMethodExpressionSyntax, AnonymousMethodExpressionStructureProvider>();
             builder.Add<ArrowExpressionClauseSyntax, ArrowExpressionClauseStructureProvider>();
             builder.Add<BlockSyntax, BlockSyntaxStructureProvider>();
-            builder.Add<ClassDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
+            builder.Add<ClassDeclarationSyntax, TypeDeclarationStructureProvider>();
             builder.Add<CompilationUnitSyntax, CompilationUnitStructureProvider>();
-            builder.Add<ConstructorDeclarationSyntax, ConstructorDeclarationStructureProvider, MetadataAsSource.MetadataConstructorDeclarationStructureProvider>();
-            builder.Add<ConversionOperatorDeclarationSyntax, ConversionOperatorDeclarationStructureProvider, MetadataAsSource.MetadataConversionOperatorDeclarationStructureProvider>();
-            builder.Add<DelegateDeclarationSyntax, DelegateDeclarationStructureProvider, MetadataAsSource.MetadataDelegateDeclarationStructureProvider>();
-            builder.Add<DestructorDeclarationSyntax, DestructorDeclarationStructureProvider, MetadataAsSource.MetadataDestructorDeclarationStructureProvider>();
+            builder.Add<ConstructorDeclarationSyntax, ConstructorDeclarationStructureProvider>();
+            builder.Add<ConversionOperatorDeclarationSyntax, ConversionOperatorDeclarationStructureProvider>();
+            builder.Add<DelegateDeclarationSyntax, DelegateDeclarationStructureProvider>();
+            builder.Add<DestructorDeclarationSyntax, DestructorDeclarationStructureProvider>();
             builder.Add<DocumentationCommentTriviaSyntax, DocumentationCommentStructureProvider>();
-            builder.Add<EnumDeclarationSyntax, EnumDeclarationStructureProvider, MetadataAsSource.MetadataEnumDeclarationStructureProvider>();
-            builder.Add<EnumMemberDeclarationSyntax, MetadataAsSource.MetadataEnumMemberDeclarationStructureProvider>();
-            builder.Add<EventDeclarationSyntax, EventDeclarationStructureProvider, MetadataAsSource.MetadataEventDeclarationStructureProvider>();
-            builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider, MetadataAsSource.MetadataEventFieldDeclarationStructureProvider>();
-            builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider, MetadataAsSource.MetadataFieldDeclarationStructureProvider>();
-            builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider, MetadataAsSource.MetadataIndexerDeclarationStructureProvider>();
+            builder.Add<EnumDeclarationSyntax, EnumDeclarationStructureProvider>();
+            builder.Add<EnumMemberDeclarationSyntax, EnumMemberDeclarationStructureProvider>();
+            builder.Add<EventDeclarationSyntax, EventDeclarationStructureProvider>();
+            builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider>();
+            builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider>();
+            builder.Add<FileScopedNamespaceDeclarationSyntax, FileScopedNamespaceDeclarationStructureProvider>();
+            builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider>();
             builder.Add<InitializerExpressionSyntax, InitializerExpressionStructureProvider>();
-            builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
-            builder.Add<MethodDeclarationSyntax, MethodDeclarationStructureProvider, MetadataAsSource.MetadataMethodDeclarationStructureProvider>();
+            builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider>();
+            builder.Add<MethodDeclarationSyntax, MethodDeclarationStructureProvider>();
             builder.Add<NamespaceDeclarationSyntax, NamespaceDeclarationStructureProvider>();
-            builder.Add<OperatorDeclarationSyntax, OperatorDeclarationStructureProvider, MetadataAsSource.MetadataOperatorDeclarationStructureProvider>();
+            builder.Add<OperatorDeclarationSyntax, OperatorDeclarationStructureProvider>();
             builder.Add<ParenthesizedLambdaExpressionSyntax, ParenthesizedLambdaExpressionStructureProvider>();
-            builder.Add<PropertyDeclarationSyntax, PropertyDeclarationStructureProvider, MetadataAsSource.MetadataPropertyDeclarationStructureProvider>();
-            builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider, MetadataAsSource.MetadataRegionDirectiveStructureProvider>();
+            builder.Add<PropertyDeclarationSyntax, PropertyDeclarationStructureProvider>();
+            builder.Add<RecordDeclarationSyntax, TypeDeclarationStructureProvider>();
+            builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider>();
             builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
-            builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
+            builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider>();
             builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
             builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
             builder.Add<InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider>();

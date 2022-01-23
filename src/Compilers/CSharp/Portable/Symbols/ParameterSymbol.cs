@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a parameter of a method or indexer.
     /// </summary>
-    internal abstract partial class ParameterSymbol : Symbol, IParameterSymbol
+    internal abstract partial class ParameterSymbol : Symbol, IParameterSymbolInternal
     {
         internal const string ValueParameterName = "value";
 
@@ -36,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -60,6 +64,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract RefKind RefKind { get; }
 
         /// <summary>
+        /// Returns true if the parameter is a discard parameter.
+        /// </summary>
+        public abstract bool IsDiscard { get; }
+
+        /// <summary>
         /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
         /// </summary>
         public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
@@ -69,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Null if no specific marshalling information is available for the parameter.
         /// </summary>
         /// <remarks>PE symbols don't provide this information and always return null.</remarks>
-        internal abstract MarshalPseudoCustomAttributeData MarshallingInformation { get; }
+        internal abstract MarshalPseudoCustomAttributeData? MarshallingInformation { get; }
 
         /// <summary>
         /// Returns the marshalling type of this parameter, or 0 if marshalling information isn't available.
@@ -121,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the parameter is semantically optional.
         /// </summary>
         /// <remarks>
-        /// True iff the parameter has a default argument syntax, 
+        /// True if and only if the parameter has a default argument syntax, 
         /// or the parameter is not a params-array and Optional metadata flag is set.
         /// </remarks>
         public bool IsOptional
@@ -158,6 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsMetadataOptional { get; }
 
         /// <summary>
+        /// True if the compiler will synthesize a null check for this parameter (the parameter is declared in source with a '!' following the parameter name). 
+        /// </summary>
+        public abstract bool IsNullChecked { get; }
+
+        /// <summary>
         /// True if In flag is set in metadata.
         /// </summary>
         internal abstract bool IsMetadataIn { get; }
@@ -180,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// 
         /// The default value can be obtained with <see cref="ExplicitDefaultValue"/> property.
         /// </remarks>
+        [MemberNotNullWhen(true, nameof(ExplicitDefaultConstantValue))]
         public bool HasExplicitDefaultValue
         {
             get
@@ -209,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         /// <exception cref="InvalidOperationException">The parameter has no default value.</exception>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        public object ExplicitDefaultValue
+        public object? ExplicitDefaultValue
         {
             get
             {
@@ -233,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This is used for emitting.  It does not reflect the language semantics
         /// (i.e. even non-optional parameters can have default values).
         /// </remarks>
-        internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
+        internal abstract ConstantValue? ExplicitDefaultConstantValue { get; }
 
         /// <summary>
         /// Gets the kind of this symbol.
@@ -368,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -383,26 +398,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        internal abstract int CallerArgumentExpressionParameterIndex { get; }
+
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
+        internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
+
         /// <summary>
-        /// If there are no annotations on the member (not just that parameter), then returns null. The purpose is to ensure
-        /// that if some annotations are present on the member, then annotations win over the attributes on the member in all positions.
-        /// That could mean removing an attribute.
+        /// Indexes of the parameters that will be passed to the constructor of the interpolated string handler type
+        /// when an interpolated string handler conversion occurs. These indexes are ordered in the order to be passed
+        /// to the constructor.
+        /// <para/>
+        /// Indexes greater than or equal to 0 are references to parameters defined on the containing method or indexer.
+        /// Indexes less than 0 are constants defined on <see cref="BoundInterpolatedStringArgumentPlaceholder"/>.
         /// </summary>
-        protected FlowAnalysisAnnotations? TryGetExtraAttributeAnnotations()
-        {
-            ParameterSymbol originalParameter = this.OriginalDefinition;
-            var containingMethod = originalParameter.ContainingSymbol as MethodSymbol;
+        internal abstract ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes { get; }
 
-            if (containingMethod is null)
-            {
-                return null;
-            }
-
-            string key = ExtraAnnotations.MakeMethodKey(containingMethod);
-            return ExtraAnnotations.TryGetExtraAttributes(key, this.Ordinal);
-        }
+        /// <summary>
+        /// True if the parameter is attributed with <c>InterpolatedStringHandlerArgumentAttribute</c> and the attribute
+        /// has some error (such as invalid names).
+        /// </summary>
+        internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
         protected sealed override int HighestPriorityUseSiteError
         {
@@ -416,49 +432,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = null;
-                DeriveUseSiteDiagnosticFromParameter(ref info, this);
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                UseSiteInfo<AssemblySymbol> info = default;
+                DeriveUseSiteInfoFromParameter(ref info, this);
+                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
 
-        #region IParameterSymbol Members
-
-        ITypeSymbol IParameterSymbol.Type
+        protected override ISymbol CreateISymbol()
         {
-            get { return this.Type; }
+            return new PublicModel.ParameterSymbol(this);
         }
-
-        CodeAnalysis.NullableAnnotation IParameterSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
-
-        ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
-        {
-            get { return this.TypeWithAnnotations.CustomModifiers; }
-        }
-
-        ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers
-        {
-            get { return this.RefCustomModifiers; }
-        }
-
-        IParameterSymbol IParameterSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitParameter(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitParameter(this);
-        }
-
-        #endregion
     }
 }

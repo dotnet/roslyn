@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -64,6 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            public override bool IsReferenceTypeFromConstraintTypes
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
             internal override bool? ReferenceTypeConstraintIsNullable
             {
                 get
@@ -74,9 +81,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool HasNotNullConstraint => false;
 
-            internal override bool? IsNotNullableIfReferenceType => null;
+            internal override bool? IsNotNullable => null;
 
             public override bool HasValueTypeConstraint
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            public override bool IsValueTypeFromConstraintTypes
             {
                 get
                 {
@@ -146,12 +161,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
+            internal override NamedTypeSymbol? GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
             {
                 return null;
             }
 
-            internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
+            internal override TypeSymbol? GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
             {
                 return null;
             }
@@ -161,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(_container.GetHashCode(), _ordinal);
             }
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+            internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -169,9 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var other = t2 as ErrorTypeParameterSymbol;
-                return (object)other != null &&
+                return (object?)other != null &&
                     other._ordinal == _ordinal &&
-                    other.ContainingType.Equals(this.ContainingType, comparison, isValueTypeOverrideOpt);
+                    other.ContainingType.Equals(this.ContainingType, comparison);
             }
         }
     }

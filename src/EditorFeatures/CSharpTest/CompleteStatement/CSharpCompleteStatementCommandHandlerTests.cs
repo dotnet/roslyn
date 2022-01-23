@@ -1,19 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 {
     public class CSharpCompleteStatementCommandHandlerTests : AbstractCompleteStatementTests
     {
-        private string CreateTestWithMethodCall(string code)
+        private static string CreateTestWithMethodCall(string code)
         {
             return
 @"class C
@@ -36,6 +42,75 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
     }
 }";
         }
+
+        #region ParameterList
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("extern void M(object o$$)", "extern void M(object o)")]
+        [InlineData("partial void M(object o$$)", "partial void M(object o)")]
+        [InlineData("abstract void M(object o$$)", "abstract void M(object o)")]
+        [InlineData("abstract void M($$object o)", "abstract void M(object o)")]
+        [InlineData("abstract void M(object o = default(object$$))", "abstract void M(object o = default(object))")]
+        [InlineData("abstract void M(object o = default($$object))", "abstract void M(object o = default(object))")]
+        [InlineData("abstract void M(object o = $$default(object))", "abstract void M(object o = default(object))")]
+        [InlineData("public record C(int X, $$int Y)", "public record C(int X, int Y)")]
+        [InlineData("public record C(int X, int$$ Y)", "public record C(int X, int Y)")]
+        [InlineData("public record C(int X, int Y$$)", "public record C(int X, int Y)")]
+        [InlineData("public record class C(int X, int Y$$)", "public record class C(int X, int Y)")]
+        [InlineData("public record struct C(int X, int Y$$)", "public record struct C(int X, int Y)")]
+        public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
+        {
+            var code = $@"
+public class Class1
+{{
+    {signature}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    {expectedSignature};$$
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_InterfaceMethod()
+        {
+            var code = @"
+public interface I
+{
+    public void M(object o$$)
+}";
+
+            var expected = @"
+public interface I
+{
+    public void M(object o);$$
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("void M$$(object o)")]
+        [InlineData("void Me$$thod(object o)")]
+        [InlineData("void Method(object o$$")]
+        [InlineData("void Method($$object o")]
+        [InlineData("partial void Method($$object o) { }")]
+        public void ParameterList_NotHandled(string signature)
+        {
+            var code = $@"
+public class Class1
+{{
+    {signature}
+}}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
 
         #region ArgumentListOfMethodInvocation
 
@@ -1892,8 +1967,18 @@ public class SaleItem
       set => name = value;
    }
 }";
+            var expected = @"
+public class SaleItem
+{
+   string name;
+   public string Name 
+   {
+      get => name.ToUpper();$$
+      set => name = value;
+   }
+}";
 
-            VerifyNoSpecialSemicolonHandling(code);
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -2313,6 +2398,154 @@ class Program
         }
 
         #endregion
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("default(object$$)", "default(object)")]
+        [InlineData("default($$object)", "default(object)")]
+        public void DefaultExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(52137, "https://github.com/dotnet/roslyn/issues/52137")]
+        [InlineData("typeof(object$$)", "typeof(object)")]
+        [InlineData("typeof($$object)", "typeof(object)")]
+        public void TypeOfExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        var x = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        var x = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(52365, "https://github.com/dotnet/roslyn/issues/52365")]
+        public void TupleExpression_Handled()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        var x = (0, 0$$)
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        var x = (0, 0);$$
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("default$$(object)")]
+        [InlineData("def$$ault(object)")]
+        [InlineData("default(object$$")]
+        [InlineData("default($$object")]
+        public void DefaultExpression_NotHandled(string expression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("checked(3 + 3$$)", "checked(3 + 3)")]
+        [InlineData("checked($$3 + 3)", "checked(3 + 3)")]
+        [InlineData("unchecked(3 + 3$$)", "unchecked(3 + 3)")]
+        [InlineData("unchecked($$3 + 3)", "unchecked(3 + 3)")]
+        public void CheckedExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("checked$$(3 + 3)")]
+        [InlineData("che$$cked(3 + 3)")]
+        [InlineData("checked(3 + 3$$")]
+        [InlineData("checked($$3 + 3")]
+        [InlineData("unchecked$$(3 + 3)")]
+        [InlineData("unche$$cked(3 + 3)")]
+        [InlineData("unchecked(3 + 3$$")]
+        [InlineData("unchecked($$3 + 3")]
+        public void CheckedExpression_NotHandled(string expression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ThrowStatement_MissingBoth()
@@ -3350,7 +3583,6 @@ class C
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-
         [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void AfterElementBindingExpression()
@@ -3757,10 +3989,8 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
-        {
-            return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
-        }
+        internal override ICommandHandler GetCommandHandler(TestWorkspace workspace)
+            => workspace.ExportProvider.GetExportedValues<ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
 
         [WorkItem(32337, "https://github.com/dotnet/roslyn/issues/32337")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -3884,6 +4114,77 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("/$$* comments */")]
+        [InlineData("/*$$ comments */")]
+        [InlineData("/* comments $$*/")]
+        [InlineData("/* comments *$$/")]
+        [InlineData("3, /* comments$$ */")]
+        [InlineData("/$$/ comments ")]
+        [InlineData("//$$ comments ")]
+        [InlineData("// comments $$")]
+        public void InsideComments(string argument)
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(" + argument + ")");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("$$/* comments */")]
+        [InlineData("/* comments */$$")]
+        [InlineData("3$$, /* comments */")]
+        [InlineData("3, $$/* comments */")]
+        [InlineData("// comments \r\n$$")]
+        public void NearComments(string argument)
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(" + argument + ")");
+
+            var expected = CreateTestWithMethodCall(
+                @"var test = ClassC.MethodM(" + argument.Remove(argument.IndexOf("$$"), 2) + ");$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(923157, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/923157")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BrokenCode_ReturnIfCaretDoesNotMove()
+        {
+            var code = @"
+class D
+{
+  public Delegate Task<int> Handles(int num)$$
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(37874, "https://github.com/dotnet/roslyn/pull/37874")]
+        public void TestWithSettingTurnedOff()
+        {
+            var code = @"
+public class ClassC
+{
+    private int xValue = 7;
+    public int XValue
+    {
+        get
+        {
+            return Math.Min(xValue$$, 1)
+        } 
+    }
+}";
+            var expected = code.Replace("$$", ";$$");
+
+            Verify(code, expected, ExecuteTest,
+                setOptionsOpt: workspace =>
+                {
+                    var globalOptions = workspace.GetService<IGlobalOptionService>();
+                    globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon), false);
+                });
+        }
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }

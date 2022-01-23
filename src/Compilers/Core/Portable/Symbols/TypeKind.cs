@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.ComponentModel;
+using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -79,5 +81,26 @@ namespace Microsoft.CodeAnalysis
         /// Type is an interactive submission.
         /// </summary>
         Submission = 12,
+
+        /// <summary>
+        /// Type is a function pointer.
+        /// </summary>
+        FunctionPointer = 13,
+    }
+
+    internal static class TypeKindInternal
+    {
+        /// <summary>
+        /// Internal Symbol representing the inferred signature of
+        /// a lambda expression or method group.
+        /// </summary>
+        internal const TypeKind FunctionType = (TypeKind)255;
+
+#if DEBUG
+        static TypeKindInternal()
+        {
+            Debug.Assert(!EnumUtilities.ContainsValue(FunctionType));
+        }
+#endif
     }
 }

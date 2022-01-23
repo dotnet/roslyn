@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Mono.Options;
 
 namespace RunTests
 {
@@ -21,28 +26,7 @@ namespace RunTests
         /// <summary>
         /// Use HTML output files.
         /// </summary>
-        public bool UseHtml { get; set; }
-
-        /// <summary>
-        /// Use the 64 bit test runner.
-        /// </summary>
-        public bool Test64 { get; set; }
-
-        /// <summary>
-        /// Target framework used to run the tests, e.g. "net472".
-        /// This is currently only used to name the test result files.
-        /// </summary>
-        public string TargetFrameworkMoniker { get; set; }
-
-        /// <summary>
-        /// Use the open integration test runner.
-        /// </summary>
-        public bool TestVsi { get; set; }
-
-        /// <summary>
-        /// Allow the caching of test results.
-        /// </summary>
-        public bool UseCachedResults { get; set; }
+        public bool IncludeHtml { get; set; }
 
         /// <summary>
         /// Display the results files.
@@ -50,19 +34,22 @@ namespace RunTests
         public Display Display { get; set; }
 
         /// <summary>
-        /// Trait string to pass to xunit.
+        /// Filter string to pass to xunit.
         /// </summary>
-        public string Trait { get; set; }
+        public string? TestFilter { get; set; }
+
+        public string Configuration { get; set; }
 
         /// <summary>
-        /// The no-trait string to pass to xunit.
+        /// The set of target frameworks that should be probed for test assemblies.
         /// </summary>
-        public string NoTrait { get; set; }
+        public List<string> TargetFrameworks { get; set; } = new List<string>();
 
-        /// <summary>
-        /// Set of assemblies to test.
-        /// </summary>
-        public List<string> Assemblies { get; set; }
+        public List<string> IncludeFilter { get; set; } = new List<string>();
+
+        public List<string> ExcludeFilter { get; set; } = new List<string>();
+
+        public string ArtifactsDirectory { get; }
 
         /// <summary>
         /// Time after which the runner should kill the xunit process and exit with a failure.
@@ -70,196 +57,211 @@ namespace RunTests
         public TimeSpan? Timeout { get; set; }
 
         /// <summary>
-        /// Whether or not to use proc dump to monitor running processes for failures.
+        /// Retry tests on failure 
         /// </summary>
-        public bool UseProcDump { get; set; }
+        public bool Retry { get; set; }
 
         /// <summary>
-        /// The directory which contains procdump.exe. 
+        /// Whether or not to collect dumps on crashes and timeouts.
         /// </summary>
-        public string ProcDumpDirectory { get; set; }
+        public bool CollectDumps { get; set; }
 
-        public string XunitPath { get; set; }
+        /// <summary>
+        /// The path to procdump.exe
+        /// </summary>
+        public string? ProcDumpFilePath { get; set; }
+
+        /// <summary>
+        /// Disable partitioning and parallelization across test assemblies.
+        /// </summary>
+        public bool Sequential { get; set; }
+
+        /// <summary>
+        /// Whether to run test partitions as Helix work items.
+        /// </summary>
+        public bool UseHelix { get; set; }
+
+        /// <summary>
+        /// Name of the Helix queue to run tests on (only valid when <see cref="UseHelix" /> is <see langword="true" />).
+        /// </summary>
+        public string? HelixQueueName { get; set; }
+
+        /// <summary>
+        /// Path to the dotnet executable we should use for running dotnet test
+        /// </summary>
+        public string DotnetFilePath { get; set; }
 
         /// <summary>
         /// Directory to hold all of the xml files created as test results.
         /// </summary>
-        public string TestResultXmlOutputDirectory { get; set; }
+        public string TestResultsDirectory { get; set; }
 
         /// <summary>
         /// Directory to hold dump files and other log files created while running tests.
         /// </summary>
-        public string LogFilesOutputDirectory { get; set; }
+        public string LogFilesDirectory { get; set; }
 
-        /// <summary>
-        /// Directory to hold secondary dump files created while running tests.
-        /// </summary>
-        public string LogFilesSecondaryOutputDirectory { get; set; }
+        public string Platform { get; set; }
 
-        internal static Options Parse(string[] args)
+        public Options(
+            string dotnetFilePath,
+            string artifactsDirectory,
+            string configuration,
+            string testResultsDirectory,
+            string logFilesDirectory,
+            string platform)
         {
-            if (args == null || args.Any(a => a == null) || args.Length < 2)
-            {
-                return null;
-            }
-
-            var comparer = StringComparer.OrdinalIgnoreCase;
-            bool isOption(string argument, string optionName, out string value)
-            {
-                Debug.Assert(!string.IsNullOrEmpty(optionName) && optionName[0] == '-');
-                if (argument.StartsWith(optionName + ":", StringComparison.OrdinalIgnoreCase))
-                {
-                    value = argument.Substring(optionName.Length + 1);
-                    return !string.IsNullOrEmpty(value);
-                }
-
-                value = null;
-                return false;
-            }
-
-            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true, TestResultXmlOutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
-            var index = 1;
-            var allGood = true;
-            while (index < args.Length)
-            {
-                var current = args[index];
-                if (comparer.Equals(current, "-test64"))
-                {
-                    opt.Test64 = true;
-                    index++;
-                }
-                else if (comparer.Equals(current, "-testVsi"))
-                {
-                    opt.TestVsi = true;
-                    opt.UseCachedResults = false;
-                    index++;
-                }
-                else if (comparer.Equals(current, "-xml"))
-                {
-                    opt.UseHtml = false;
-                    index++;
-                }
-                else if (comparer.Equals(current, "-nocache"))
-                {
-                    opt.UseCachedResults = false;
-                    index++;
-                }
-                else if (isOption(current, "-tfm", out string targetFrameworkMoniker))
-                {
-                    opt.TargetFrameworkMoniker = targetFrameworkMoniker;
-                    index++;
-                }
-                else if (isOption(current, "-out", out string value))
-                {
-                    opt.TestResultXmlOutputDirectory = value;
-                    index++;
-                }
-                else if (isOption(current, "-logs", out string logsPath))
-                {
-                    opt.LogFilesOutputDirectory = logsPath;
-                    index++;
-                }
-                else if (isOption(current, "-secondaryLogs", out string secondaryLogsPath))
-                {
-                    opt.LogFilesSecondaryOutputDirectory = secondaryLogsPath;
-                    index++;
-                }
-                else if (isOption(current, "-display", out value))
-                {
-                    if (Enum.TryParse(value, ignoreCase: true, result: out Display display))
-                    {
-                        opt.Display = display;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"{value} is not a valid option for display");
-                        allGood = false;
-                    }
-
-                    index++;
-                }
-                else if (isOption(current, "-trait", out value))
-                {
-                    opt.Trait = value;
-                    index++;
-                }
-                else if (isOption(current, "-notrait", out value))
-                {
-                    opt.NoTrait = value;
-                    index++;
-                }
-                else if (isOption(current, "-timeout", out value))
-                {
-                    if (int.TryParse(value, out var minutes))
-                    {
-                        opt.Timeout = TimeSpan.FromMinutes(minutes);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"{value} is not a valid minute value for timeout");
-                        allGood = false;
-                    }
-
-                    index++;
-                }
-                else if (isOption(current, "-procdumpPath", out value))
-                {
-                    opt.ProcDumpDirectory = value;
-                    index++;
-                }
-                else if (comparer.Equals(current, "-useprocdump"))
-                {
-                    opt.UseProcDump = false;
-                    index++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            try
-            {
-                opt.XunitPath = opt.Test64
-                    ? Path.Combine(opt.XunitPath, "xunit.console.exe")
-                    : Path.Combine(opt.XunitPath, "xunit.console.x86.exe");
-            }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine($"{opt.XunitPath} is not a valid path: {ex.Message}");
-                return null;
-            }
-
-            if (!File.Exists(opt.XunitPath))
-            {
-                Console.WriteLine($"The file '{opt.XunitPath}' does not exist.");
-                return null;
-            }
-
-            if (opt.UseProcDump && string.IsNullOrEmpty(opt.ProcDumpDirectory))
-            {
-                Console.WriteLine($"The option 'useprocdump' was specified but 'procdumppath' was not provided");
-                return null;
-            }
-
-            // If we weren't passed both -logs and -out but just -out, use the same value for -logs too.
-            if (opt.LogFilesOutputDirectory == null)
-            {
-                opt.LogFilesOutputDirectory = opt.TestResultXmlOutputDirectory;
-            }
-
-            // If we weren't passed both -secondaryLogs and -logs but just -logs (or -out), use the same value for -secondaryLogs too.
-            opt.LogFilesSecondaryOutputDirectory ??= opt.LogFilesOutputDirectory;
-
-            opt.Assemblies = args.Skip(index).ToList();
-            return allGood ? opt : null;
+            DotnetFilePath = dotnetFilePath;
+            ArtifactsDirectory = artifactsDirectory;
+            Configuration = configuration;
+            TestResultsDirectory = testResultsDirectory;
+            LogFilesDirectory = logFilesDirectory;
+            Platform = platform;
         }
 
-        public static void PrintUsage()
+        internal static Options? Parse(string[] args)
         {
-            Console.WriteLine("runtests [xunit-console-runner] [-test64] [-xml] [-trait:name1=value1;...] [-notrait:name1=value1;...] [assembly1] [assembly2] [...]");
-            Console.WriteLine("Example:");
-            Console.WriteLine(@"runtests c:\path-that-contains-xunit.console.exe\ -trait:Feature=Classification Assembly1.dll Assembly2.dll");
+            string? dotnetFilePath = null;
+            var platform = "x64";
+            var includeHtml = false;
+            var targetFrameworks = new List<string>();
+            var configuration = "Debug";
+            var includeFilter = new List<string>();
+            var excludeFilter = new List<string>();
+            var sequential = false;
+            var helix = false;
+            var helixQueueName = "Windows.10.Amd64.Open";
+            var retry = false;
+            string? testFilter = null;
+            int? timeout = null;
+            string? resultFileDirectory = null;
+            string? logFileDirectory = null;
+            var display = Display.None;
+            var collectDumps = false;
+            string? procDumpFilePath = null;
+            string? artifactsPath = null;
+            var optionSet = new OptionSet()
+            {
+                { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
+                { "configuration=", "Configuration to test: Debug or Release", (string s) => configuration = s },
+                { "tfm=", "Target framework to test", (string s) => targetFrameworks.Add(s) },
+                { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", (string s) => includeFilter.Add(s) },
+                { "exclude=", "Expression for excluding unit test dlls: default is empty", (string s) => excludeFilter.Add(s) },
+                { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
+                { "html", "Include HTML file output", o => includeHtml = o is object },
+                { "sequential", "Run tests sequentially", o => sequential = o is object },
+                { "helix", "Run tests on Helix", o => helix = o is object },
+                { "helixQueueName=", "Name of the Helix queue to run tests on", (string s) => helixQueueName = s },
+                { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", (string s) => testFilter = s },
+                { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
+                { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", (string s) => resultFileDirectory = s },
+                { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", (string s) => logFileDirectory = s },
+                { "display=", "Display", (Display d) => display = d },
+                { "artifactspath=", "Path to the artifacts directory", (string s) => artifactsPath = s },
+                { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
+                { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
+                { "retry", "Retry failed test a few times", o => retry = o is object },
+            };
+
+            List<string> assemblyList;
+            try
+            {
+                assemblyList = optionSet.Parse(args);
+            }
+            catch (OptionException e)
+            {
+                ConsoleUtil.WriteLine($"Error parsing command line arguments: {e.Message}");
+                optionSet.WriteOptionDescriptions(Console.Out);
+                return null;
+            }
+
+            if (includeFilter.Count == 0)
+            {
+                includeFilter.Add(".*UnitTests.*");
+            }
+
+            if (targetFrameworks.Count == 0)
+            {
+                targetFrameworks.Add("net472");
+            }
+
+            artifactsPath ??= TryGetArtifactsPath();
+            if (artifactsPath is null || !Directory.Exists(artifactsPath))
+            {
+                ConsoleUtil.WriteLine($"Did not find artifacts directory at {artifactsPath}");
+                return null;
+            }
+
+            resultFileDirectory ??= helix
+                ? "."
+                : Path.Combine(artifactsPath, "TestResults", configuration);
+
+            logFileDirectory ??= resultFileDirectory;
+
+            dotnetFilePath ??= TryGetDotNetPath();
+            if (dotnetFilePath is null || !File.Exists(dotnetFilePath))
+            {
+                ConsoleUtil.WriteLine($"Did not find 'dotnet' at {dotnetFilePath}");
+                return null;
+            }
+
+            if (retry && includeHtml)
+            {
+                ConsoleUtil.WriteLine($"Cannot specify both --retry and --html");
+                return null;
+            }
+
+            if (procDumpFilePath is { } && !collectDumps)
+            {
+                ConsoleUtil.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
+            }
+
+            return new Options(
+                dotnetFilePath: dotnetFilePath,
+                artifactsDirectory: artifactsPath,
+                configuration: configuration,
+                testResultsDirectory: resultFileDirectory,
+                logFilesDirectory: logFileDirectory,
+                platform: platform)
+            {
+                TargetFrameworks = targetFrameworks,
+                IncludeFilter = includeFilter,
+                ExcludeFilter = excludeFilter,
+                Display = display,
+                ProcDumpFilePath = procDumpFilePath,
+                CollectDumps = collectDumps,
+                Sequential = sequential,
+                UseHelix = helix,
+                HelixQueueName = helixQueueName,
+                IncludeHtml = includeHtml,
+                TestFilter = testFilter,
+                Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
+                Retry = retry,
+            };
+
+            static string? TryGetArtifactsPath()
+            {
+                var path = AppContext.BaseDirectory;
+                while (path is object && Path.GetFileName(path) != "artifacts")
+                {
+                    path = Path.GetDirectoryName(path);
+                }
+
+                return path;
+            }
+
+            static string? TryGetDotNetPath()
+            {
+                var dir = RuntimeEnvironment.GetRuntimeDirectory();
+                var programName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet";
+
+                while (dir != null && !File.Exists(Path.Combine(dir, programName)))
+                {
+                    dir = Path.GetDirectoryName(dir);
+                }
+
+                return dir == null ? null : Path.Combine(dir, programName);
+            }
         }
     }
 }

@@ -1,5 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -7,34 +11,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 {
     internal sealed partial class CPSProject : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
     {
-        public int ClearAllErrors()
+        private ProjectExternalErrorReporter GetExternalErrorReporter()
         {
-            return _externalErrorReporterOpt.Value.ClearAllErrors();
+            var errorReporter = _externalErrorReporter.Value;
+
+            if (errorReporter == null)
+            {
+                throw new InvalidOperationException("The language of the project doesn't support external errors.");
+            }
+
+            return errorReporter;
         }
+
+        public int ClearAllErrors()
+            => GetExternalErrorReporter().ClearAllErrors();
 
         public int AddNewErrors(IVsEnumExternalErrors pErrors)
-        {
-            return _externalErrorReporterOpt.Value.AddNewErrors(pErrors);
-        }
+            => GetExternalErrorReporter().AddNewErrors(pErrors);
 
         public int GetErrors(out IVsEnumExternalErrors pErrors)
-        {
-            return _externalErrorReporterOpt.Value.GetErrors(out pErrors);
-        }
+            => GetExternalErrorReporter().GetErrors(out pErrors);
 
         public int ReportError(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
-        {
-            return _externalErrorReporterOpt.Value.ReportError(bstrErrorMessage, bstrErrorId, nPriority, iLine, iColumn, bstrFileName);
-        }
+            => GetExternalErrorReporter().ReportError(bstrErrorMessage, bstrErrorId, nPriority, iLine, iColumn, bstrFileName);
 
         public int ClearErrors()
-        {
-            return _externalErrorReporterOpt.Value.ClearErrors();
-        }
+            => GetExternalErrorReporter().ClearErrors();
 
         public void ReportError2(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
-        {
-            _externalErrorReporterOpt.Value.ReportError2(bstrErrorMessage, bstrErrorId, nPriority, iStartLine, iStartColumn, iEndLine, iEndColumn, bstrFileName);
-        }
+            => GetExternalErrorReporter().ReportError2(bstrErrorMessage, bstrErrorId, nPriority, iStartLine, iStartColumn, iEndLine, iEndColumn, bstrFileName);
     }
 }

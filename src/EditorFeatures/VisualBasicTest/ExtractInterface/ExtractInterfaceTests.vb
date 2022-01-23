@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -1184,7 +1185,7 @@ Partial Class C
     End Property
 End Class</text>.NormalizedValue()
 
-            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProviderFactory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(workspaceXml, composition:=ExtractInterfaceTestState.Composition)
             Using testState = New ExtractInterfaceTestState(workspace)
                 Dim result = Await testState.ExtractViaCommandAsync()
                 Assert.True(result.Succeeded)
@@ -1269,10 +1270,6 @@ End Namespace
         <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestExtractInterfaceCommandDisabledInSubmission()
-            Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
-                .CreateExportProvider()
-
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
@@ -1283,19 +1280,144 @@ End Namespace
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
-                exportProvider:=exportProvider)
+                composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 ' Force initialization.
                 workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New ExtractInterfaceCommandHandler(exportProvider.GetExportedValue(Of IThreadingContext))
+                Dim handler = New ExtractInterfaceCommandHandler(workspace.ExportProvider.GetExportedValue(Of IThreadingContext))
 
                 Dim state = handler.GetCommandState(New ExtractInterfaceCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)
             End Using
         End Sub
+
+        <WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_WithCopyright1() As Task
+            Dim markup = <text>'' Copyright
+
+Imports System
+Class TestClass
+    Public Sub Goo()$$
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedUpdatedDocument = <text>'' Copyright
+
+Imports System
+Class TestClass
+    Implements ITestClass
+
+    Public Sub Goo() Implements ITestClass.Goo
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedInterfaceCode = <text>'' Copyright
+
+Interface ITestClass
+    Sub Goo()
+End Interface
+</text>.NormalizedValue()
+
+            Await TestExtractInterfaceCommandVisualBasicAsync(
+                markup,
+                expectedSuccess:=True,
+                expectedUpdatedOriginalDocumentCode:=expectedUpdatedDocument,
+                expectedInterfaceCode:=expectedInterfaceCode,
+                rootNamespace:="RootNamespace")
+        End Function
+
+        <WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_WithCopyright2() As Task
+            Dim markup = <text>'' Copyright
+
+Imports System
+
+Class Program
+    Class A$$
+        Sub Main(args As String())
+        End Sub
+    End Class
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedUpdatedDocument = <text>'' Copyright
+
+Imports System
+
+Class Program
+    Class A
+        Implements IA
+
+        Sub Main(args As String()) Implements IA.Main
+        End Sub
+    End Class
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedInterfaceCode = <text>'' Copyright
+
+Interface IA
+    Sub Main(args() As String)
+End Interface
+</text>.NormalizedValue()
+
+            Await TestExtractInterfaceCommandVisualBasicAsync(
+                markup,
+                expectedSuccess:=True,
+                expectedUpdatedOriginalDocumentCode:=expectedUpdatedDocument,
+                expectedInterfaceCode:=expectedInterfaceCode,
+                rootNamespace:="RootNamespace")
+        End Function
+
+        <WorkItem(43952, "https://github.com/dotnet/roslyn/issues/43952")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_IgnoreWithEvents() As Task
+            Dim markup = <text>Class C$$
+    Public WithEvents X As Object
+End Class</text>.NormalizedValue()
+            Await TestExtractInterfaceCommandVisualBasicAsync(markup, expectedSuccess:=False)
+        End Function
+
+        <WorkItem(43952, "https://github.com/dotnet/roslyn/issues/43952")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_IgnoreWithEvents2() As Task
+            Dim markup = <text>Class C$$
+    Public WithEvents X As Object
+
+    Sub Method()
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedUpdatedDocument = <text>Class C
+    Implements IC
+
+    Public WithEvents X As Object
+
+    Sub Method() Implements IC.Method
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedInterfaceCode = <text>Interface IC
+    Sub Method()
+End Interface
+</text>.NormalizedValue()
+
+            Await TestExtractInterfaceCommandVisualBasicAsync(
+                markup,
+                expectedSuccess:=True,
+                expectedUpdatedOriginalDocumentCode:=expectedUpdatedDocument,
+                expectedInterfaceCode:=expectedInterfaceCode,
+                rootNamespace:="RootNamespace")
+        End Function
 
         Private Shared Async Function TestTypeDiscoveryAsync(markup As String, typeDiscoveryRule As TypeDiscoveryRule, expectedExtractable As Boolean) As System.Threading.Tasks.Task
             Using testState = ExtractInterfaceTestState.Create(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)

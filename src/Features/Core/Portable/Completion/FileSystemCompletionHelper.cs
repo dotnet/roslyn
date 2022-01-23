@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,8 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // absolute paths
         private readonly ImmutableArray<string> _searchPaths;
-        private readonly string _baseDirectoryOpt;
+        private readonly string? _baseDirectory;
 
         private readonly ImmutableArray<string> _allowableExtensions;
         private readonly CompletionItemRules _itemRules;
@@ -34,15 +36,15 @@ namespace Microsoft.CodeAnalysis.Completion
             Glyph folderGlyph,
             Glyph fileGlyph,
             ImmutableArray<string> searchPaths,
-            string baseDirectoryOpt,
+            string? baseDirectory,
             ImmutableArray<string> allowableExtensions,
             CompletionItemRules itemRules)
         {
             Debug.Assert(searchPaths.All(path => PathUtilities.IsAbsolute(path)));
-            Debug.Assert(baseDirectoryOpt == null || PathUtilities.IsAbsolute(baseDirectoryOpt));
+            Debug.Assert(baseDirectory == null || PathUtilities.IsAbsolute(baseDirectory));
 
             _searchPaths = searchPaths;
-            _baseDirectoryOpt = baseDirectoryOpt;
+            _baseDirectory = baseDirectory;
             _allowableExtensions = allowableExtensions;
             _folderGlyph = folderGlyph;
             _fileGlyph = fileGlyph;
@@ -114,9 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: _itemRules);
 
         public Task<ImmutableArray<CompletionItem>> GetItemsAsync(string directoryPath, CancellationToken cancellationToken)
-        {
-            return Task.Run(() => GetItems(directoryPath, cancellationToken), cancellationToken);
-        }
+            => Task.Run(() => GetItems(directoryPath, cancellationToken), cancellationToken);
 
         private ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
         {
@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 case PathKind.Empty:
                     // base directory
-                    if (_baseDirectoryOpt != null)
+                    if (_baseDirectory != null)
                     {
-                        result.AddRange(GetItemsInDirectory(_baseDirectoryOpt, cancellationToken));
+                        result.AddRange(GetItemsInDirectory(_baseDirectory, cancellationToken));
                     }
 
                     // roots
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 case PathKind.RelativeToCurrentDirectory:
                 case PathKind.RelativeToCurrentParent:
                 case PathKind.RelativeToCurrentRoot:
-                    var fullDirectoryPath = FileUtilities.ResolveRelativePath(directoryPath, basePath: null, baseDirectory: _baseDirectoryOpt);
+                    var fullDirectoryPath = FileUtilities.ResolveRelativePath(directoryPath, basePath: null, baseDirectory: _baseDirectory);
                     if (fullDirectoryPath != null)
                     {
                         result.AddRange(GetItemsInDirectory(fullDirectoryPath, cancellationToken));
@@ -181,15 +181,15 @@ namespace Microsoft.CodeAnalysis.Completion
                 case PathKind.Relative:
 
                     // base directory:
-                    if (_baseDirectoryOpt != null)
+                    if (_baseDirectory != null)
                     {
-                        result.AddRange(GetItemsInDirectory(PathUtilities.CombineAbsoluteAndRelativePaths(_baseDirectoryOpt, directoryPath), cancellationToken));
+                        result.AddRange(GetItemsInDirectory(PathUtilities.CombineAbsoluteAndRelativePaths(_baseDirectory, directoryPath)!, cancellationToken));
                     }
 
                     // search paths:
                     foreach (var searchPath in _searchPaths)
                     {
-                        result.AddRange(GetItemsInDirectory(PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, directoryPath), cancellationToken));
+                        result.AddRange(GetItemsInDirectory(PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, directoryPath)!, cancellationToken));
                     }
 
                     break;
@@ -254,16 +254,14 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
             private readonly FileSystemCompletionHelper _fileSystemCompletionHelper;
 
             public TestAccessor(FileSystemCompletionHelper fileSystemCompletionHelper)
-            {
-                _fileSystemCompletionHelper = fileSystemCompletionHelper;
-            }
+                => _fileSystemCompletionHelper = fileSystemCompletionHelper;
 
             internal ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
                 => _fileSystemCompletionHelper.GetItems(directoryPath, cancellationToken);

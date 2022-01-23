@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
         public abstract string GetRootNamespace(CompilationOptions options);
 
-        public abstract Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
+        public abstract Task<(INamespaceSymbol, INamespaceOrTypeSymbol, Location)> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
             Document document,
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             State state,
             CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
             var generateNewTypeInDialog = false;
             if (state.NamespaceToGenerateInOpt != null)
@@ -118,26 +122,22 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var generateIntoContaining = IsGeneratingIntoContainingNamespace(document, node, state, cancellationToken);
 
                 if ((isSimpleName || generateIntoContaining) &&
-                    CanGenerateIntoContainingNamespace(document, node, state, cancellationToken))
+                    CanGenerateIntoContainingNamespace(document, node, cancellationToken))
                 {
                     result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false));
                 }
             }
 
             if (state.TypeToGenerateInOpt != null)
-            {
                 result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: false, inNewFile: false));
-            }
 
             if (generateNewTypeInDialog)
-            {
                 result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state));
-            }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
-        private bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, State state, CancellationToken cancellationToken)
+        private static bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, CancellationToken cancellationToken)
         {
             var containingNamespace = semanticDocument.SemanticModel.GetEnclosingNamespace(node.SpanStart, cancellationToken);
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 semanticDocument.Document.GetLanguageService<ICodeGenerationService>().CanAddTo(decl, semanticDocument.Project.Solution, cancellationToken);
         }
 
-        private bool IsGeneratingIntoContainingNamespace(
+        private static bool IsGeneratingIntoContainingNamespace(
             SemanticDocument document,
             SyntaxNode node,
             State state,
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 : state.Name;
         }
 
-        protected ImmutableArray<ITypeParameterSymbol> GetTypeParameters(
+        protected static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(
             State state,
             SemanticModel semanticModel,
             IEnumerable<SyntaxNode> typeArguments,
@@ -187,12 +187,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
         {
             var arguments = typeArguments.ToList();
             var arity = arguments.Count;
-            var typeParameters = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var typeParameters);
 
             // For anything that was a type parameter, just use the name (if we haven't already
             // used it).  Otherwise, synthesize new names for the parameters.
-            var names = new string[arity];
-            var isFixed = new bool[arity];
+            using var namesDisposer = ArrayBuilder<string>.GetInstance(arity, out var names);
+            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(arity, out var isFixed);
             for (var i = 0; i < arity; i++)
             {
                 var argument = i < arguments.Count ? arguments[i] : null;
@@ -204,35 +204,34 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // If we haven't seen this type parameter already, then we can use this name
                     // and 'fix' it so that it doesn't change. Otherwise, use it, but allow it
                     // to be changed if it collides with anything else.
-                    isFixed[i] = !names.Contains(name);
-                    names[i] = name;
+                    isFixed.Add(!names.Contains(name));
+                    names.Add(name);
                     typeParameters.Add(typeParameter);
                 }
                 else
                 {
-                    names[i] = "T";
+                    isFixed.Add(false);
+                    names.Add("T");
                     typeParameters.Add(null);
                 }
             }
 
             // We can use a type parameter as long as it hasn't been used in an outer type.
             var canUse = state.TypeToGenerateInOpt == null
-                ? default(Func<string, bool>)
+                ? (Func<string, bool>)null
                 : s => state.TypeToGenerateInOpt.GetAllTypeParameters().All(t => t.Name != s);
 
-            var uniqueNames = NameGenerator.EnsureUniqueness(names, isFixed, canUse: canUse);
-            for (int i = 0; i < uniqueNames.Count; i++)
+            NameGenerator.EnsureUniquenessInPlace(names, isFixed, canUse);
+            for (var i = 0; i < names.Count; i++)
             {
-                if (typeParameters[i] == null || typeParameters[i].Name != uniqueNames[i])
-                {
-                    typeParameters[i] = CodeGenerationSymbolFactory.CreateTypeParameterSymbol(uniqueNames[i]);
-                }
+                if (typeParameters[i] == null || typeParameters[i].Name != names[i])
+                    typeParameters[i] = CodeGenerationSymbolFactory.CreateTypeParameterSymbol(names[i]);
             }
 
-            return typeParameters.ToImmutableAndFree();
+            return typeParameters.ToImmutable();
         }
 
-        protected Accessibility DetermineDefaultAccessibility(
+        protected static Accessibility DetermineDefaultAccessibility(
             State state,
             SemanticModel semanticModel,
             bool intoNamespace,
@@ -272,7 +271,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
         }
 
-        protected async Task<bool> IsWithinTheImportingNamespaceAsync(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)
+        protected static async Task<bool> IsWithinTheImportingNamespaceAsync(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel != null)
@@ -287,7 +286,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             return false;
         }
 
-        protected bool GeneratedTypesMustBePublic(Project project)
+        protected static bool GeneratedTypesMustBePublic(Project project)
         {
             var projectInfoService = project.Solution.Workspace.Services.GetService<IProjectInfoService>();
             if (projectInfoService != null)

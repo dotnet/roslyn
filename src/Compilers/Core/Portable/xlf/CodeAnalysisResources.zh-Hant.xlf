@@ -4,12 +4,27 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">無法指定此選項的語言名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">必須指定此選項的語言名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">包含類型 '{0}' 的組件參考了 .NET Framework，此情形不受支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">變更必須在 SourceText 的界限內</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">在偵錯期間不允許變更組件參考的版本: '{0}' 已將版本變更為 '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
@@ -17,6 +32,31 @@
 '{1}'.</source>
         <target state="translated">分析器 '{0}' 擲回下列例外狀況:
 '{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="translated">請隱藏下列診斷以停用此分析器: {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
+        <target state="translated">位置 {2} 的 hintName {0} 包含無效的字元 '{1}'。</target>
+        <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
+        <target state="translated">新增來源檔案的 hintName '{0}' 在產生器中必須是唯一的。</target>
+        <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">其他檔案不屬於基礎 'CompilationWithAnalyzers'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="translated">隱藏的診斷識別碼 '{0}' 不符合指定隱藏描述項的可隱藏識別碼 '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -32,6 +72,16 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">參數 '{0}' 必須是此編譯或某些參考組件中的符號。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">模組有無效的屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="translated">無法隱藏識別碼為 '{0}' 的非回報診斷。</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -69,9 +119,49 @@
         <target state="translated">不可使用模組複本建立組件中繼資料。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="translated">每個產生器只能註冊一個 {0}。</target>
+        <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
+        <target state="translated">具有 hintName '{0}' 的 SourceText 必須有明確的編碼集。</target>
+        <note>'SourceText' is not localizable. {0}: the provided hintname</note>
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">分析器 '{0}' 在其 'SupportedDiagnostics' 中包含一個 null 描述項。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="translated">分析器 '{0}' 在其 'SupportedSuppressions' 中包含一個 null 描述項。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="translated">隱藏識別碼為 '{2}' 且理由為 '{3}' 的 DiagnosticSuppressor，以程式設計的方式隱藏了診斷 '{0}: {1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="translated">以程式設計方式隱藏分析器診斷</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">SuppressionDescriptor 的識別碼不得為 null、空白字串或只包含空白字元的字串。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="translated">如果指定元組元素可為 Null 的註釋，註釋數目就必須符合元組的基數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">無法判斷失敗的具體原因。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -204,6 +294,11 @@
         <target state="translated">{0}.GetMetadata() 必須傳回 {1} 的執行個體。</target>
         <note />
       </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="translated">隱藏器不支援識別碼為 '{0}' 的回報隱藏。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">值太大，無法呈現為 30 位元不帶正負號的整數。</target>
@@ -241,12 +336,12 @@
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
         <source>Return type can't be a value type, pointer, by-ref or open generic type</source>
-        <target state="translated">傳回類型不可為值類型、指標、by-ref 或開放式泛型類型。</target>
+        <target state="translated">傳回類型不可為值類型、指標、by-ref 或開放式泛型類型</target>
         <note />
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeVoidByRefOrOpen">
         <source>Return type can't be void, by-ref or open generic type</source>
-        <target state="translated">傳回類型不可為 void、by-ref 或開放式泛型類型。</target>
+        <target state="translated">傳回類型不可為 void、by-ref 或開放式泛型類型</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeMustBeSameAsHostObjectTypeOfPreviousSubmission">
@@ -281,12 +376,12 @@
       </trans-unit>
       <trans-unit id="EmptyOrInvalidResourceName">
         <source>Empty or invalid resource name</source>
-        <target state="translated">資源名稱是空的，或其無效。</target>
+        <target state="translated">資源名稱是空的，或其無效</target>
         <note />
       </trans-unit>
       <trans-unit id="EmptyOrInvalidFileName">
         <source>Empty or invalid file name</source>
-        <target state="translated">檔案名稱是空的，或其無效。</target>
+        <target state="translated">檔案名稱是空的，或其無效</target>
         <note />
       </trans-unit>
       <trans-unit id="ResourceDataProviderShouldReturnNonNullStream">
@@ -479,14 +574,34 @@
         <target state="translated">文化特性名稱無效: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">因為全域分析器組態區段名稱 '{0}' 不是絕對路徑，所以無效。將忽略區段。區段已在以下檔案中宣告: '{1}'</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">因為全域分析器組態區段名稱不是絕對路徑，所以無效。將忽略區段。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
-        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <target state="translated">在分析器組態檔的 '{2}' 處，為診斷 '{0}' 提供了無效的嚴重性 '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
         <source>Invalid severity in analyzer config file.</source>
-        <target state="new">Invalid severity in analyzer config file.</target>
+        <target state="translated">分析器組態檔中的嚴重性無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="translated">有多個全域分析器設定檔，在區段 '{1}' 中設定了相同的索引碼 '{0}'。該索引碼設定已取消。下列檔案中設定了索引碼: '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="translated">有多個全域分析器設定檔，設定了相同的索引碼。該索引碼設定已取消。</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
@@ -522,11 +637,16 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">分析器失敗</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">分析器 '{0}' 擲回類型 '{1}' 的例外狀況，訊息為 '{2}'。</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">分析器 '{0}' 擲回了類型為 '{1}' 的例外狀況。訊息: '{2}'。
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
@@ -589,11 +709,6 @@
       <trans-unit id="ArgumentElementCannotBeNull">
         <source>Argument cannot have a null element.</source>
         <target state="translated">引數不能有 null 元素。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">分析器嘗試註冊不受支援的 'async' 動作。</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
@@ -865,7 +980,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}' 的還原序列化讀取器所讀取的值數目不正確。</target>
+        <target state="translated">'{0}' 的還原序列化讀取器所讀取的值數目不正確。</target>
         <note />
       </trans-unit>
       <trans-unit id="Stream_contains_invalid_data">

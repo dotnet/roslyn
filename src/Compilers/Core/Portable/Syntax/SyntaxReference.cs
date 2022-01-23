@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,14 +28,14 @@ namespace Microsoft.CodeAnalysis
         /// This action may cause a parse to happen to recover the syntax node.
         /// </summary>
         /// <returns>The original referenced syntax node.</returns>
-        public abstract SyntaxNode GetSyntax(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract SyntaxNode GetSyntax(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retrieves the original referenced syntax node.  
         /// This action may cause a parse to happen to recover the syntax node.
         /// </summary>
         /// <returns>The original referenced syntax node.</returns>
-        public virtual Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult(this.GetSyntax(cancellationToken));
         }

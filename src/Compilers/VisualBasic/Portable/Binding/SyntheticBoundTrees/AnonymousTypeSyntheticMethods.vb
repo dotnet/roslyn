@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Collections
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private Class AnonymousTypeConstructorSymbol
             Inherits SynthesizedConstructorBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax
@@ -51,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousTypeEqualsMethodSymbol
             Inherits SynthesizedRegularMethodBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax
@@ -82,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousTypeGetHashCodeMethodSymbol
             Inherits SynthesizedRegularMethodBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax
@@ -181,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousType_IEquatable_EqualsMethodSymbol
             Inherits SynthesizedRegularMethodBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax
@@ -211,8 +213,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                        ConversionKind.WideningReference, objectType, Nothing).MakeCompilerGenerated(),
                                                    nothingLiteral, booleanType, reverse:=True)
 
-                ' Final equality check: <valIsNotNothing> AndAlso <combinedFieldCheck>
+                ' Final equality check: Me Is val OrElse (<valIsNotNothing> AndAlso <combinedFieldCheck>)
                 Dim finalEqualityCheck = BuildAndAlso(valIsNotNothing, combinedFieldCheck, booleanType)
+
+                Dim meIsValCheck = BuildIsCheck(boundMeReference, boundValReference, booleanType)
+                finalEqualityCheck = BuildOrElse(meIsValCheck, finalEqualityCheck, booleanType)
 
                 ' Create a bound block 
                 Return New BoundBlock(syntax, Nothing,
@@ -310,12 +315,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return New BoundBinaryOperator(Syntax, BinaryOperatorKind.AndAlso,
                                                left, right, False, booleanType).MakeCompilerGenerated()
             End Function
+
+            Private Function BuildOrElse(left As BoundExpression, right As BoundExpression, booleanType As TypeSymbol) As BoundExpression
+                Return New BoundBinaryOperator(Syntax, BinaryOperatorKind.OrElse,
+                                               left, right, False, booleanType).MakeCompilerGenerated()
+            End Function
         End Class
 
         Partial Private NotInheritable Class AnonymousTypeToStringMethodSymbol
             Inherits SynthesizedRegularMethodBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax

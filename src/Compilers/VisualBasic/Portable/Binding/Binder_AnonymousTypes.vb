@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -16,14 +18,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class Binder
 
-        Private Function BindAnonymousObjectCreationExpression(node As AnonymousObjectCreationExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindAnonymousObjectCreationExpression(node As AnonymousObjectCreationExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             Return AnonymousTypeCreationBinder.BindAnonymousObjectInitializer(Me, node, node.Initializer, node.NewKeyword, diagnostics)
         End Function
 
         Private Function BindAnonymousObjectCreationExpression(node As VisualBasicSyntaxNode,
                                                                typeDescr As AnonymousTypeDescriptor,
                                                                initExpressions As ImmutableArray(Of BoundExpression),
-                                                               diagnostics As DiagnosticBag) As BoundExpression
+                                                               diagnostics As BindingDiagnosticBag) As BoundExpression
             '  Check for restricted types.
             For Each field As AnonymousTypeField In typeDescr.Fields
                 Dim restrictedType As TypeSymbol = Nothing
@@ -103,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                   owningSyntax As VisualBasicSyntaxNode,
                                                                   initializerSyntax As ObjectMemberInitializerSyntax,
                                                                   typeLocationToken As SyntaxToken,
-                                                                  diagnostics As DiagnosticBag) As BoundExpression
+                                                                  diagnostics As BindingDiagnosticBag) As BoundExpression
 
                 Dim fieldsCount = initializerSyntax.Initializers.Count
 
@@ -120,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Sub New(containingBinder As Binder,
                             initializerSyntax As ObjectMemberInitializerSyntax,
-                            diagnostics As DiagnosticBag)
+                            diagnostics As BindingDiagnosticBag)
                 MyBase.New(containingBinder)
 
                 Dim objectType As TypeSymbol = GetSpecialType(SpecialType.System_Object, initializerSyntax, diagnostics)
@@ -206,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function BindInitializersAndCreateBoundNode(owningSyntax As VisualBasicSyntaxNode,
                                                                 initializerSyntax As ObjectMemberInitializerSyntax,
-                                                                diagnostics As DiagnosticBag,
+                                                                diagnostics As BindingDiagnosticBag,
                                                                 typeLocationToken As SyntaxToken) As BoundExpression
                 Dim fieldsCount As Integer = Me._fields.Length
 
@@ -376,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "Binding of member access with omitted left like '.fieldName'"
 
             Protected Friend Overrides Function TryBindOmittedLeftForMemberAccess(node As MemberAccessExpressionSyntax,
-                                                                                  diagnostics As DiagnosticBag,
+                                                                                  diagnostics As BindingDiagnosticBag,
                                                                                   accessingBinder As Binder,
                                                                                   <Out> ByRef wholeMemberAccessExpressionBound As Boolean) As BoundExpression
                 wholeMemberAccessExpressionBound = True
@@ -430,6 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If Me.ContainingMember IsNot accessingBinder.ContainingMember Then
                             ReportDiagnostic(diagnostics, node, ERRID.ERR_CannotLiftAnonymousType1, node.Name.Identifier.ValueText)
+                            hasErrors = True
                         End If
 
                         ' return bound anonymous type access
@@ -460,14 +463,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
             End Function
 
-            Protected Overrides Function TryBindOmittedLeftForDictionaryAccess(node As MemberAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
+            Protected Overrides Function TryBindOmittedLeftForDictionaryAccess(node As MemberAccessExpressionSyntax, accessingBinder As Binder, diagnostics As BindingDiagnosticBag) As BoundExpression
                 ' NOTE: since we don't have the symbol of the anonymous type, we use 
                 '       "<anonymous type>" literal to be consistent with Dev10
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_NoDefaultNotExtend1, StringConstants.AnonymousTypeName)
                 Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
             End Function
 
-            Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
+            Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As BindingDiagnosticBag) As BoundExpression
                 Return Nothing
             End Function
 #End Region

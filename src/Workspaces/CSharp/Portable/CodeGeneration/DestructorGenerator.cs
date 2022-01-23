@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,39 +15,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class DestructorGenerator
     {
-        private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return LastConstructor(members) ?? LastField(members);
-        }
+        private static MemberDeclarationSyntax? LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
+            => LastConstructor(members) ?? LastField(members);
 
         internal static TypeDeclarationSyntax AddDestructorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol destructor,
-            CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            CSharpCodeGenerationOptions options,
+            IList<bool>? availableIndices,
+            CancellationToken cancellationToken)
         {
-            var destructorDeclaration = GenerateDestructorDeclaration(destructor, GetDestination(destination), options);
+            var destructorDeclaration = GenerateDestructorDeclaration(destructor, options, cancellationToken);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
             var members = Insert(destination.Members, destructorDeclaration, options,
                 availableIndices, after: LastConstructorOrField, before: FirstMember);
 
-            return AddMembersTo(destination, members);
+            return AddMembersTo(destination, members, cancellationToken);
         }
 
         internal static DestructorDeclarationSyntax GenerateDestructorDeclaration(
-            IMethodSymbol destructor, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IMethodSymbol destructor, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
-
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<DestructorDeclarationSyntax>(destructor, options);
             if (reusableSyntax != null)
             {
                 return reusableSyntax;
             }
 
-            bool hasNoBody = !options.GenerateMethodBodies;
+            var hasNoBody = !options.Context.GenerateMethodBodies;
 
             var declaration = SyntaxFactory.DestructorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(destructor.GetAttributes(), options),
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(declaration, destructor, options));
+                ConditionallyAddDocumentationCommentTo(declaration, destructor, options, cancellationToken));
         }
 
         private static BlockSyntax GenerateBlock(

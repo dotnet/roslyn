@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -13,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class LocalSymbol
         Inherits Symbol
-        Implements ILocalSymbolInternal
+        Implements ILocalSymbol, ILocalSymbolInternal
 
         Friend Shared ReadOnly UseBeforeDeclarationResultType As ErrorTypeSymbol = New ErrorTypeSymbol()
 
@@ -353,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As DiagnosticBag
+        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As BindingDiagnosticBag
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -391,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ILocalSymbol_NullableAnnotation As NullableAnnotation Implements ILocalSymbol.NullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
             End Get
         End Property
 
@@ -669,7 +672,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Compute the type of this variable.
             Friend Overrides Function ComputeTypeInternal(localBinder As Binder) As TypeSymbol
 
-                Dim diagBag = DiagnosticBag.GetInstance()
                 Dim type As TypeSymbol = Nothing
 
                 type = localBinder.InferForEachVariableType(Me,
@@ -685,8 +687,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                        collectionPlaceholder:=Nothing,
                                                        needToDispose:=Nothing,
                                                        isOrInheritsFromOrImplementsIDisposable:=Nothing,
-                                                       diagBag)
-                diagBag.Free()
+                                                       BindingDiagnosticBag.Discarded)
                 Return type
             End Function
 
@@ -739,8 +740,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Compute the type of this variable.
             Friend Overrides Function ComputeType(Optional containingBinder As Binder = Nothing) As TypeSymbol
 
-                Dim diagBag = DiagnosticBag.GetInstance()
-
                 Dim fromValueExpression As BoundExpression = Nothing
                 Dim toValueExpression As BoundExpression = Nothing
                 Dim stepValueExpression As BoundExpression = Nothing
@@ -755,8 +754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                    fromValueExpression,
                                                    toValueExpression,
                                                    stepValueExpression,
-                                                   diagBag)
-                diagBag.Free()
+                                                   BindingDiagnosticBag.Discarded)
                 Return type
             End Function
 
@@ -790,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private NotInheritable Class EvaluatedConstantInfo
                 Inherits EvaluatedConstant
 
-                Public Sub New(value As ConstantValue, type As TypeSymbol, expression As BoundExpression, diagnostics As DiagnosticBag)
+                Public Sub New(value As ConstantValue, type As TypeSymbol, expression As BoundExpression, diagnostics As BindingDiagnosticBag)
                     MyBase.New(value, type)
 
                     Debug.Assert(expression IsNot Nothing)
@@ -800,7 +798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Sub
 
                 Public ReadOnly Expression As BoundExpression
-                Public ReadOnly Diagnostics As DiagnosticBag
+                Public ReadOnly Diagnostics As BindingDiagnosticBag
             End Class
 
             ''' <summary>
@@ -825,8 +823,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Compute the type of this variable.
             Friend Overrides Function ComputeTypeInternal(localBinder As Binder) As TypeSymbol
 
-                Dim diagBag = DiagnosticBag.GetInstance()
-
                 Dim declType As TypeSymbol = Nothing
                 Dim type As TypeSymbol = Nothing
                 Dim valueExpression As BoundExpression = Nothing
@@ -837,9 +833,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                        _initializerOpt,
                                                        valueExpression,
                                                        declType,
-                                                       diagBag)
+                                                       BindingDiagnosticBag.Discarded)
 
-                diagBag.Free()
                 Return type
             End Function
 
@@ -848,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If IsConst Then
                     If _evaluatedConstant Is Nothing Then
-                        Dim diagBag = New DiagnosticBag()
+                        Dim diagBag = New BindingDiagnosticBag()
 
                         ' BindLocalConstantInitializer may be called before or after the constant's type has been set.
                         ' It is called before when we are inferring the constant's type. In that case the constant has no explicit type 
@@ -891,12 +886,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Value, Nothing)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As DiagnosticBag
+            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As BindingDiagnosticBag
                 GetConstantValue(containingBinder)
                 Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Diagnostics, Nothing)
             End Function
 
-            Private Sub SetConstantExpression(type As TypeSymbol, constantValue As ConstantValue, expression As BoundExpression, diagnostics As DiagnosticBag)
+            Private Sub SetConstantExpression(type As TypeSymbol, constantValue As ConstantValue, expression As BoundExpression, diagnostics As BindingDiagnosticBag)
                 If _evaluatedConstant Is Nothing Then
                     Interlocked.CompareExchange(_evaluatedConstant, New EvaluatedConstantInfo(constantValue, type, expression, diagnostics), Nothing)
                 End If
@@ -998,7 +993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _originalVariable.GetConstantValue(binder)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As DiagnosticBag
+            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As BindingDiagnosticBag
                 Return _originalVariable.GetConstantValueDiagnostics(binder)
             End Function
 

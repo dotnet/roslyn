@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -729,7 +733,7 @@ enum Figure : C { One, Two, Three }
 @"
 partial class EnumPartial
 {
-    internal enum partial
+    internal enum @partial
     { }
     partial M;
 }
@@ -965,13 +969,13 @@ class C<T> { enum E4 : T { } }
                 );
 
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EnumDeclarationSyntax>().ToArray();
-            Assert.Equal(decls.Length, 4);
+            Assert.Equal(4, decls.Length);
 
             foreach (var decl in decls)
             {
                 var symbol = model.GetDeclaredSymbol(decl);
                 var type = symbol.EnumUnderlyingType;
-                Assert.Equal(type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, type.SpecialType);
             }
         }
 

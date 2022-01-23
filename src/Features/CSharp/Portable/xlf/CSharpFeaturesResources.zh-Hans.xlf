@@ -2,20 +2,15 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpFeaturesResources.resx">
     <body>
-      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
-        <source>Add await and ConfigureAwait(false)</source>
-        <target state="translated">添加 await 和 ConfigureAwait(false)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">添加可访问性修饰符</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
-        <source>Add await</source>
-        <target state="translated">添加 await</target>
-        <note />
+        <source>Add 'await'</source>
+        <target state="translated">添加 "await"</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_await_and_ConfigureAwaitFalse">
+        <source>Add 'await' and 'ConfigureAwait(false)'</source>
+        <target state="translated">添加 "await" 和 "ConfigureAwait(false)"</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
@@ -29,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
         <source>Allow unsafe code in this project</source>
-        <target state="new">Allow unsafe code in this project</target>
+        <target state="translated">允许在此项目中使用不安全代码</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -52,19 +47,49 @@
         <target state="translated">应用语言/框架类型首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object/collection initialization preferences</source>
-        <target state="translated">应用对象/集合初始化首选项</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
         <source>Apply 'this.' qualification preferences</source>
         <target state="translated">应用 “this.” 资格首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_switch_statement_to_expression">
-        <source>Convert switch statement to expression</source>
-        <target state="new">Convert switch statement to expression</target>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply preferred 'using' placement preferences</source>
+        <target state="translated">应用首选的 "using" 放置首选项</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters">
+        <source>Assign 'out' parameters</source>
+        <target state="translated">为 "out" 参数赋值</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters_at_start">
+        <source>Assign 'out' parameters (at start)</source>
+        <target state="translated">为 "out" 赋值 (在开始处)</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="translated">赋值给 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
+        <source>Autoselect disabled due to potential pattern variable declaration.</source>
+        <target state="translated">由于可能出现模式变量声明，已禁用自动选择。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_as_expression">
+        <source>Change to 'as' expression</source>
+        <target state="translated">更改为 "as" 表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_cast">
+        <source>Change to cast</source>
+        <target state="translated">更改为强制转换</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="translated">与 "{0}" 比较</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -72,14 +97,39 @@
         <target state="translated">转换为方法</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_regular_string">
+        <source>Convert to regular string</source>
+        <target state="translated">转换为正则字符串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_switch_expression">
+        <source>Convert to 'switch' expression</source>
+        <target state="translated">转换为 "switch" 表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_switch_statement">
+        <source>Convert to 'switch' statement</source>
+        <target state="translated">转换为 \"switch\" 语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_verbatim_string">
+        <source>Convert to verbatim string</source>
+        <target state="translated">转换为逐字字符串</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
         <target state="translated">声明成可为 null</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="translated">在项目中启用可为 null 的引用类型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
-        <target state="new">Fix return type</target>
+        <target state="translated">修复返回类型</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -99,17 +149,32 @@
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>
-        <target state="new">Make 'ref struct'</target>
+        <target state="translated">生成 "ref struct"</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_casts">
-        <source>Remove unnecessary casts</source>
-        <target state="translated">删除不必要的转换</target>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="translated">删除 "in" 关键字</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="translated">删除 "new" 修饰符</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_variables">
-        <source>Remove unused variables</source>
-        <target state="translated">删除未使用的变量</target>
+      <trans-unit id="Reverse_for_statement">
+        <source>Reverse 'for' statement</source>
+        <target state="translated">反向“for”语句</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="translated">所选内容不能包含全局语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="translated">所选内容不能包含顶级语句</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
@@ -122,16 +187,6 @@
         <target state="translated">简化所有事件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">删除不必要的 Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_Usings">
-        <source>&amp;Sort Usings</source>
-        <target state="new">&amp;Sort Usings</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">对可访问性修饰符排序</target>
@@ -139,17 +194,42 @@
       </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
-        <target state="new">Unseal class '{0}'</target>
+        <target state="translated">Unseal 类 "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_switch_expression">
-        <source>Use 'switch' expression</source>
-        <target state="new">Use 'switch' expression</target>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">使用递归模式</target>
         <note />
       </trans-unit>
-      <trans-unit id="if_statement_can_be_simplified">
-        <source>'if' statement can be simplified</source>
-        <target state="translated">可简化“If”语句</target>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="translated">警告: 表达式可能有副作用。代码含义可能更改。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
+        <source>Warning: Inlining temporary into conditional method call.</source>
+        <target state="translated">警告: 即将在条件方法调用中内联临时内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
+        <source>Warning: Inlining temporary variable may change code meaning.</source>
+        <target state="translated">警告: 内联临时变量可能会更改代码含义。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="asynchronous_foreach_statement">
+        <source>asynchronous foreach statement</source>
+        <target state="translated">异步 foreach 语句</target>
+        <note>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="asynchronous_using_declaration">
+        <source>asynchronous using declaration</source>
+        <target state="translated">异步 using 声明</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="extern_alias">
+        <source>extern alias</source>
+        <target state="translated">外部别名</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -162,9 +242,14 @@
         <target state="translated">由于可能出现 lambda 声明，已禁用自动选择。</target>
         <note />
       </trans-unit>
+      <trans-unit id="local_variable_declaration">
+        <source>local variable declaration</source>
+        <target state="translated">局部变量声明</target>
+        <note />
+      </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt;成员名称&gt; =</target>
+        <target state="translated">&lt;成员名称&gt;= </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -174,12 +259,17 @@
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;元素名称&gt;:</target>
+        <target state="translated">&lt;元素名称&gt;: </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
         <source>Autoselect disabled due to possible tuple type element creation.</source>
         <target state="translated">由于可能的元组类型元素创建，已禁用自动选择。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="pattern_variable">
+        <source>&lt;pattern variable&gt;</source>
+        <target state="translated">&lt;模式变量&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -230,21 +320,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">无效的选择。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">所选内容不包含有效令牌。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">没有执行提取的有效选择。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">没有可用于提取的公共根节点。</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -317,11 +392,6 @@
         <target state="translated">组织 Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_and_Sort_Usings">
-        <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">删除 Using 和对其排序(&amp;E)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">插入“await”。</target>
@@ -329,7 +399,7 @@
       </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
-        <target state="translated">使 {0} 返回任务，而不是 void。</target>
+        <target state="translated">使 {0} 返回 Task，而不是 void。</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_return_type_from_0_to_1">
@@ -352,35 +422,25 @@
         <target state="translated">在“{0}”中生成隐式转换运算符</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above">
-        <source>Do not change this code. Put cleanup code in Dispose(bool disposing) above.</source>
-        <target state="translated">请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。</target>
+      <trans-unit id="record_">
+        <source>record</source>
+        <target state="translated">记录</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.</source>
-        <target state="translated">TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。</target>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">记录结构</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。</target>
-        <note />
+      <trans-unit id="switch_statement">
+        <source>switch statement</source>
+        <target state="translated">switch 语句</target>
+        <note>{Locked="switch"} "switch" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="This_code_added_to_correctly_implement_the_disposable_pattern">
-        <source>This code added to correctly implement the disposable pattern.</source>
-        <target state="translated">添加此代码以正确实现可处置模式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
-        <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
-        <target state="translated">TODO: 如果在以上内容中替代了终结器，则取消注释以下行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="translated">Using 指令是不需要的。</target>
-        <note />
+      <trans-unit id="switch_statement_case_clause">
+        <source>switch statement case clause</source>
+        <target state="translated">switch 语句 case 子句</target>
+        <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="try_block">
         <source>try block</source>
@@ -407,6 +467,11 @@
         <target state="translated">fixed 语句</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="using_declaration">
+        <source>using declaration</source>
+        <target state="translated">using 声明</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="using_statement">
         <source>using statement</source>
         <target state="translated">using 语句</target>
@@ -431,11 +496,6 @@
         <source>unchecked statement</source>
         <target state="translated">unchecked 语句</target>
         <note>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="yield_statement">
-        <source>yield statement</source>
-        <target state="translated">yield 语句</target>
-        <note>{Locked="yield"} "yield" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="await_expression">
         <source>await expression</source>
@@ -524,23 +584,13 @@
       </trans-unit>
       <trans-unit id="ref_local_or_expression">
         <source>ref local or expression</source>
-        <target state="translated">引用本地函数或表达式</target>
+        <target state="translated">ref 本地函数或表达式</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="v7_switch">
-        <source>C# 7 enhanced switch statement</source>
-        <target state="translated">C# 7 增强的 switch 语句</target>
-        <note />
       </trans-unit>
       <trans-unit id="global_statement">
         <source>global statement</source>
-        <target state="translated">全局语句</target>
+        <target state="translated">global 语句</target>
         <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="using_namespace">
-        <source>using namespace</source>
-        <target state="translated">using 命名空间</target>
-        <note />
       </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>
@@ -594,7 +644,7 @@
       </trans-unit>
       <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
         <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="translated">'“{0}”不包含采用许多参数的构造函数。</target>
+        <target state="translated">“{0}”不包含采用许多参数的构造函数。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">
@@ -607,34 +657,9 @@
         <target state="translated">隐藏基成员</target>
         <note />
       </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">可简化委托调用。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">属性</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicit_type_instead_of_var">
-        <source>Use explicit type instead of 'var'</source>
-        <target state="translated">用显式类型代替 "var"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicit_type">
-        <source>Use explicit type</source>
-        <target state="translated">使用显式类型</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="use_var_instead_of_explicit_type">
-        <source>use 'var' instead of explicit type</source>
-        <target state="translated">用 "var" 代替显式类型</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_implicit_type">
-        <source>Use implicit type</source>
-        <target state="translated">使用隐式类型</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
@@ -689,22 +714,12 @@
       </trans-unit>
       <trans-unit id="Make_method_async">
         <source>Make method async</source>
-        <target state="translated">将方法改为 Async</target>
+        <target state="translated">使方法异步</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
-        <target state="translated">使方法异步(保持无效)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">添加 "this."</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_Extracting_a_local_function_reference_may_produce_invalid_code">
-        <source>Warning: Extracting a local function reference may produce invalid code</source>
-        <target state="translated">警告: 提取本地函数引用可能会生成无效代码</target>
+        <target state="translated">使方法异步(保持 void)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">
@@ -727,19 +742,9 @@
         <target state="translated">删除未使用的函数</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_is_null_check">
-        <source>Use 'is null' check</source>
-        <target state="translated">使用 "is null" 检查</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
         <target state="translated">添加括号</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_switch">
-        <source>Convert to 'switch'</source>
-        <target state="translated">转换为 “switch</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">
@@ -769,33 +774,18 @@
       </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
-        <target state="translated">介绍 'using' 语句</target>
+        <target state="translated">引入 'using' 语句</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Misplaced_using_directive">
-        <source>Misplaced using directive</source>
-        <target state="new">Misplaced using directive</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      <trans-unit id="yield_break_statement">
+        <source>yield break statement</source>
+        <target state="translated">yield break 语句</target>
+        <note>{Locked="yield break"} "yield break" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Move_misplaced_using_directives">
-        <source>Move misplaced using directives</source>
-        <target state="new">Move misplaced using directives</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
-        <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="new">Using directives must be placed inside of a namespace declaration</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
-        <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="new">Using directives must be placed outside of a namespace declaration</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
-        <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="new">Warning: Moving using directives may change code meaning.</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      <trans-unit id="yield_return_statement">
+        <source>yield return statement</source>
+        <target state="translated">yield return 语句</target>
+        <note>{Locked="yield return"} "yield return" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
   </file>

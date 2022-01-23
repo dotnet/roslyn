@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.Text;
@@ -70,15 +74,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.Throws<ArgumentNullException>(() => SourceText.From((Stream)null, Encoding.UTF8));
             Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: false, canSeek: true), Encoding.UTF8));
-            Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8));
+            Assert.Throws<NotImplementedException>(() => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8));
         }
 
         [Fact]
         public void Indexer1()
         {
             var data = SourceText.From(string.Empty, Encoding.UTF8);
-            Assert.Throws(
-                typeof(IndexOutOfRangeException),
+            Assert.Throws<IndexOutOfRangeException>(
                 () => { var value = data[-1]; });
         }
 

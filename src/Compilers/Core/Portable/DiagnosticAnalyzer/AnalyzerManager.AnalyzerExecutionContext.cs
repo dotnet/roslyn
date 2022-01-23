@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -18,12 +22,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Map from (symbol, analyzer) to count of its member symbols whose symbol declared events are not yet processed.
             /// </summary>
-            private Dictionary<ISymbol, HashSet<ISymbol>> _lazyPendingMemberSymbolsMapOpt;
+            private Dictionary<ISymbol, HashSet<ISymbol>?>? _lazyPendingMemberSymbolsMap;
 
             /// <summary>
             /// Symbol declared events for symbols with pending symbol end analysis for given analyzer.
             /// </summary>
-            private Dictionary<ISymbol, (ImmutableArray<SymbolEndAnalyzerAction>, SymbolDeclaredCompilationEvent)> _lazyPendingSymbolEndActionsOpt;
+            private Dictionary<ISymbol, (ImmutableArray<SymbolEndAnalyzerAction>, SymbolDeclaredCompilationEvent)>? _lazyPendingSymbolEndActionsMap;
+
+            /// <summary>
+            /// Task to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
+            /// These are run only once per every analyzer. 
+            /// </summary>
+            private Task<HostSessionStartAnalysisScope>? _lazySessionScopeTask;
+
+            /// <summary>
+            /// Task to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
+            /// </summary>
+            private Task<HostCompilationStartAnalysisScope>? _lazyCompilationScopeTask;
+
+            /// <summary>
+            /// Task to compute HostSymbolStartAnalysisScope for per-symbol analyzer actions, i.e. AnalyzerActions registered by analyzer's SymbolStartActions.
+            /// </summary>
+            private Dictionary<ISymbol, Task<HostSymbolStartAnalysisScope>>? _lazySymbolScopeTasks;
+
+            /// <summary>
+            /// Supported diagnostic descriptors for diagnostic analyzer, if any.
+            /// </summary>
+            private ImmutableArray<DiagnosticDescriptor> _lazyDiagnosticDescriptors;
+
+            /// <summary>
+            /// Supported suppression descriptors for diagnostic suppressor, if any.
+            /// </summary>
+            private ImmutableArray<SuppressionDescriptor> _lazySuppressionDescriptors;
 
             public AnalyzerExecutionContext(DiagnosticAnalyzer analyzer)
             {
@@ -31,28 +61,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _gate = new object();
             }
 
-            /// <summary>
-            /// Task to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
-            /// These are run only once per every analyzer. 
-            /// </summary>
-            private Task<HostSessionStartAnalysisScope> _lazySessionScopeTask;
-
-            /// <summary>
-            /// Task to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
-            /// </summary>
-            private Task<HostCompilationStartAnalysisScope> _lazyCompilationScopeTask;
-
-            /// <summary>
-            /// Task to compute HostSymbolStartAnalysisScope for per-symbol analyzer actions, i.e. AnalyzerActions registered by analyzer's SymbolStartActions.
-            /// </summary>
-            private Dictionary<ISymbol, Task<HostSymbolStartAnalysisScope>> _lazySymbolScopeTasks;
-
-            /// <summary>
-            /// Supported descriptors for diagnostic analyzer.
-            /// </summary>
-            private ImmutableArray<DiagnosticDescriptor> _lazyDescriptors = default(ImmutableArray<DiagnosticDescriptor>);
-
-            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask(AnalyzerExecutor analyzerExecutor)
+            [PerformanceSensitive(
+                "https://github.com/dotnet/roslyn/issues/26778",
+                AllowCaptures = false)]
+            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(AnalyzerExecutor analyzerExecutor)
             {
                 lock (_gate)
                 {
@@ -62,15 +74,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return _lazySessionScopeTask;
                     }
 
-                    task = Task.Run(() =>
-                    {
-                        var sessionScope = new HostSessionStartAnalysisScope();
-                        analyzerExecutor.ExecuteInitializeMethod(_analyzer, sessionScope);
-                        return sessionScope;
-                    }, analyzerExecutor.CancellationToken);
-
+                    task = getSessionAnalysisScopeTaskSlow(this, analyzerExecutor);
                     _lazySessionScopeTask = task;
                     return task;
+
+                    static Task<HostSessionStartAnalysisScope> getSessionAnalysisScopeTaskSlow(AnalyzerExecutionContext context, AnalyzerExecutor executor)
+                    {
+                        return Task.Run(() =>
+                        {
+                            var sessionScope = new HostSessionStartAnalysisScope();
+                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope);
+                            return sessionScope;
+                        }, executor.CancellationToken);
+                    }
                 }
             }
 
@@ -117,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (_gate)
                 {
-                    _lazySymbolScopeTasks = _lazySymbolScopeTasks ?? new Dictionary<ISymbol, Task<HostSymbolStartAnalysisScope>>();
+                    _lazySymbolScopeTasks ??= new Dictionary<ISymbol, Task<HostSymbolStartAnalysisScope>>();
                     if (!_lazySymbolScopeTasks.TryGetValue(symbol, out var symbolScopeTask))
                     {
                         symbolScopeTask = Task.Run(() => getSymbolAnalysisScopeCore(), analyzerExecutor.CancellationToken);
@@ -137,11 +153,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             var dependentSymbols = getDependentSymbols();
                             lock (_gate)
                             {
-                                _lazyPendingMemberSymbolsMapOpt = _lazyPendingMemberSymbolsMapOpt ?? new Dictionary<ISymbol, HashSet<ISymbol>>();
+                                _lazyPendingMemberSymbolsMap ??= new Dictionary<ISymbol, HashSet<ISymbol>?>();
 
                                 // Guard against entry added from another thread.
                                 VerifyNewEntryForPendingMemberSymbolsMap(symbol, dependentSymbols);
-                                _lazyPendingMemberSymbolsMapOpt[symbol] = dependentSymbols;
+                                _lazyPendingMemberSymbolsMap[symbol] = dependentSymbols;
                             }
                         }
 
@@ -149,9 +165,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-                HashSet<ISymbol> getDependentSymbols()
+                HashSet<ISymbol>? getDependentSymbols()
                 {
-                    HashSet<ISymbol> memberSet = null;
+                    HashSet<ISymbol>? memberSet = null;
                     switch (symbol.Kind)
                     {
                         case SymbolKind.NamedType:
@@ -171,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             if (!member.IsImplicitlyDeclared && member.IsInSource())
                             {
-                                memberSet = memberSet ?? new HashSet<ISymbol>();
+                                memberSet ??= new HashSet<ISymbol>();
                                 memberSet.Add(member);
 
                                 // Ensure that we include symbols for both parts of partial methods.
@@ -193,18 +209,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             [Conditional("DEBUG")]
-            private void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol> dependentSymbols)
+            private void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol>? dependentSymbols)
             {
-                if (_lazyPendingMemberSymbolsMapOpt.TryGetValue(symbol, out var existingDependentSymbols))
+                Debug.Assert(_lazyPendingMemberSymbolsMap != null, $"{nameof(_lazyPendingMemberSymbolsMap)} was expected to be a non-null value.");
+
+                if (_lazyPendingMemberSymbolsMap.TryGetValue(symbol, out var existingDependentSymbols))
                 {
                     if (existingDependentSymbols == null)
                     {
-                        Debug.Assert(dependentSymbols == null);
+                        Debug.Assert(dependentSymbols == null, $"{nameof(dependentSymbols)} was expected to be null.");
                     }
                     else
                     {
-                        Debug.Assert(dependentSymbols != null);
-                        Debug.Assert(dependentSymbols.SetEquals(existingDependentSymbols));
+                        Debug.Assert(dependentSymbols != null, $"{nameof(dependentSymbols)} was expected to be a non-null value.");
+                        Debug.Assert(existingDependentSymbols.IsSubsetOf(dependentSymbols), $"{nameof(existingDependentSymbols)} was expected to be a subset of {nameof(dependentSymbols)}");
                     }
                 }
             }
@@ -217,42 +235,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public ImmutableArray<DiagnosticDescriptor> GetOrComputeDescriptors(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+            public ImmutableArray<DiagnosticDescriptor> GetOrComputeDiagnosticDescriptors(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+                => GetOrComputeDescriptors(ref _lazyDiagnosticDescriptors, ComputeDiagnosticDescriptors, analyzer, analyzerExecutor);
+
+            public ImmutableArray<SuppressionDescriptor> GetOrComputeSuppressionDescriptors(DiagnosticSuppressor suppressor, AnalyzerExecutor analyzerExecutor)
+                => GetOrComputeDescriptors(ref _lazySuppressionDescriptors, ComputeSuppressionDescriptors, suppressor, analyzerExecutor);
+
+            private static ImmutableArray<TDescriptor> GetOrComputeDescriptors<TDescriptor>(
+                ref ImmutableArray<TDescriptor> lazyDescriptors,
+                Func<DiagnosticAnalyzer, AnalyzerExecutor, ImmutableArray<TDescriptor>> computeDescriptors,
+                DiagnosticAnalyzer analyzer,
+                AnalyzerExecutor analyzerExecutor)
             {
-                lock (_gate)
+                if (!lazyDescriptors.IsDefault)
                 {
-                    if (!_lazyDescriptors.IsDefault)
-                    {
-                        return _lazyDescriptors;
-                    }
+                    return lazyDescriptors;
                 }
 
                 // Otherwise, compute the value.
                 // We do so outside the lock statement as we are calling into user code, which may be a long running operation.
-                var descriptors = ComputeDescriptors(analyzer, analyzerExecutor);
+                var descriptors = computeDescriptors(analyzer, analyzerExecutor);
 
-                lock (_gate)
-                {
-                    // Check if another thread already stored the computed value.
-                    if (!_lazyDescriptors.IsDefault)
-                    {
-                        // If so, we return the stored value.
-                        descriptors = _lazyDescriptors;
-                    }
-                    else
-                    {
-                        // Otherwise, store the value computed here.
-                        _lazyDescriptors = descriptors;
-                    }
-                }
-
-                return descriptors;
+                ImmutableInterlocked.InterlockedInitialize(ref lazyDescriptors, descriptors);
+                return lazyDescriptors;
             }
 
             /// <summary>
             /// Compute <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> and exception handler for the given <paramref name="analyzer"/>.
             /// </summary>
-            private static ImmutableArray<DiagnosticDescriptor> ComputeDescriptors(
+            private static ImmutableArray<DiagnosticDescriptor> ComputeDiagnosticDescriptors(
                 DiagnosticAnalyzer analyzer,
                 AnalyzerExecutor analyzerExecutor)
             {
@@ -278,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             supportedDiagnostics = supportedDiagnosticsLocal;
                         }
                     },
-                    argument: default(object));
+                    argument: (object?)null);
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
@@ -301,6 +312,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return supportedDiagnostics;
             }
 
+            private static ImmutableArray<SuppressionDescriptor> ComputeSuppressionDescriptors(
+                DiagnosticAnalyzer analyzer,
+                AnalyzerExecutor analyzerExecutor)
+            {
+                var descriptors = ImmutableArray<SuppressionDescriptor>.Empty;
+
+                if (analyzer is DiagnosticSuppressor suppressor)
+                {
+                    // Catch Exception from suppressor.SupportedSuppressions
+                    analyzerExecutor.ExecuteAndCatchIfThrows(
+                        analyzer,
+                        _ =>
+                        {
+                            var descriptorsLocal = suppressor.SupportedSuppressions;
+                            if (!descriptorsLocal.IsDefaultOrEmpty)
+                            {
+                                foreach (var descriptor in descriptorsLocal)
+                                {
+                                    if (descriptor == null)
+                                    {
+                                        // Disallow null descriptors.
+                                        throw new ArgumentException(string.Format(CodeAnalysisResources.SupportedSuppressionsHasNullDescriptor, analyzer.ToString()), nameof(DiagnosticSuppressor.SupportedSuppressions));
+                                    }
+                                }
+
+                                descriptors = descriptorsLocal;
+                            }
+                        },
+                        argument: (object?)null);
+                }
+
+                return descriptors;
+            }
+
             public bool TryProcessCompletedMemberAndGetPendingSymbolEndActionsForContainer(
                 ISymbol containingSymbol,
                 ISymbol processedMemberSymbol,
@@ -309,22 +354,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 containerEndActionsAndEvent = default;
                 lock (_gate)
                 {
-                    if (_lazyPendingMemberSymbolsMapOpt == null ||
-                        !_lazyPendingMemberSymbolsMapOpt.TryGetValue(containingSymbol, out var pendingMemberSymbols))
+                    if (_lazyPendingMemberSymbolsMap == null ||
+                        !_lazyPendingMemberSymbolsMap.TryGetValue(containingSymbol, out var pendingMemberSymbols))
                     {
                         return false;
                     }
+
+                    Debug.Assert(pendingMemberSymbols != null);
 
                     var removed = pendingMemberSymbols.Remove(processedMemberSymbol);
 
                     if (pendingMemberSymbols.Count > 0 ||
-                        _lazyPendingSymbolEndActionsOpt == null ||
-                        !_lazyPendingSymbolEndActionsOpt.TryGetValue(containingSymbol, out containerEndActionsAndEvent))
+                        _lazyPendingSymbolEndActionsMap == null ||
+                        !_lazyPendingSymbolEndActionsMap.TryGetValue(containingSymbol, out containerEndActionsAndEvent))
                     {
                         return false;
                     }
 
-                    _lazyPendingSymbolEndActionsOpt.Remove(containingSymbol);
+                    _lazyPendingSymbolEndActionsMap.Remove(containingSymbol);
                     return true;
                 }
             }
@@ -336,9 +383,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var symbol = symbolDeclaredEvent.Symbol;
                 lock (_gate)
                 {
-                    Debug.Assert(_lazyPendingMemberSymbolsMapOpt != null);
+                    Debug.Assert(_lazyPendingMemberSymbolsMap != null);
 
-                    if (_lazyPendingMemberSymbolsMapOpt.TryGetValue(symbol, out var pendingMemberSymbols) &&
+                    if (_lazyPendingMemberSymbolsMap.TryGetValue(symbol, out var pendingMemberSymbols) &&
                         pendingMemberSymbols?.Count > 0)
                     {
                         // At least one member is not complete, so mark the event for later processing of symbol end actions.
@@ -347,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     // Try remove the pending event in case it was marked pending by another thread when members were not yet complete.
-                    _lazyPendingSymbolEndActionsOpt?.Remove(symbol);
+                    _lazyPendingSymbolEndActionsMap?.Remove(symbol);
                     return true;
                 }
             }
@@ -356,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (_gate)
                 {
-                    _lazyPendingMemberSymbolsMapOpt?.Remove(symbol);
+                    _lazyPendingMemberSymbolsMap?.Remove(symbol);
                 }
             }
 
@@ -370,8 +417,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private void MarkSymbolEndAnalysisPending_NoLock(ISymbol symbol, ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions, SymbolDeclaredCompilationEvent symbolDeclaredEvent)
             {
-                _lazyPendingSymbolEndActionsOpt = _lazyPendingSymbolEndActionsOpt ?? new Dictionary<ISymbol, (ImmutableArray<SymbolEndAnalyzerAction>, SymbolDeclaredCompilationEvent)>();
-                _lazyPendingSymbolEndActionsOpt[symbol] = (symbolEndActions, symbolDeclaredEvent);
+                _lazyPendingSymbolEndActionsMap ??= new Dictionary<ISymbol, (ImmutableArray<SymbolEndAnalyzerAction>, SymbolDeclaredCompilationEvent)>();
+                _lazyPendingSymbolEndActionsMap[symbol] = (symbolEndActions, symbolDeclaredEvent);
             }
 
             [Conditional("DEBUG")]
@@ -379,8 +426,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (_gate)
                 {
-                    Debug.Assert(_lazyPendingMemberSymbolsMapOpt == null || _lazyPendingMemberSymbolsMapOpt.Count == 0);
-                    Debug.Assert(_lazyPendingSymbolEndActionsOpt == null || _lazyPendingSymbolEndActionsOpt.Count == 0);
+                    Debug.Assert(_lazyPendingMemberSymbolsMap == null || _lazyPendingMemberSymbolsMap.Count == 0);
+                    Debug.Assert(_lazyPendingSymbolEndActionsMap == null || _lazyPendingSymbolEndActionsMap.Count == 0);
                 }
             }
         }

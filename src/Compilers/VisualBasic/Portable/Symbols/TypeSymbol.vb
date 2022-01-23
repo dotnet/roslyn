@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -7,6 +9,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -17,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class TypeSymbol
         Inherits NamespaceOrTypeSymbol
-        Implements ITypeSymbol
+        Implements ITypeSymbol, ITypeSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -91,22 +94,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
 
-        Friend Function BaseTypeWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
+        Friend Function BaseTypeWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As NamedTypeSymbol
             Dim result = BaseTypeNoUseSiteDiagnostics
 
             If result IsNot Nothing Then
-                result.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                result.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             End If
 
             Return result
         End Function
 
-        Friend Function BaseTypeOriginalDefinition(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
+        Friend Function BaseTypeOriginalDefinition(<[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As NamedTypeSymbol
             Dim result = BaseTypeNoUseSiteDiagnostics
 
             If result IsNot Nothing Then
                 result = result.OriginalDefinition
-                result.AddUseSiteDiagnostics(useSiteDiagnostics)
+                result.AddUseSiteInfo(useSiteInfo)
             End If
 
             Return result
@@ -138,14 +141,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Function AllInterfacesWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Function AllInterfacesWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of NamedTypeSymbol)
             Dim result = AllInterfacesNoUseSiteDiagnostics
 
             ' Since bases affect content of AllInterfaces set, we need to make sure they all are good.
-            Me.AddUseSiteDiagnosticsForBaseDefinitions(useSiteDiagnostics)
+            Me.AddUseSiteDiagnosticsForBaseDefinitions(useSiteInfo)
 
             For Each iface In result
-                iface.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                iface.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             Next
 
             Return result
@@ -233,14 +236,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' that <see cref="IsReferenceType"/> and <see cref="IsValueType"/> both return true. However, for an unconstrained
         ''' type parameter, <see cref="IsReferenceType"/> and <see cref="IsValueType"/> will both return false.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsReferenceType As Boolean Implements ITypeSymbol.IsReferenceType
+        Public MustOverride ReadOnly Property IsReferenceType As Boolean Implements ITypeSymbol.IsReferenceType, ITypeSymbolInternal.IsReferenceType
 
         ''' <summary>
         ''' Returns true if this type is known to be a value type. It is never the case
         ''' that <see cref="IsReferenceType"/> and <see cref="IsValueType"/> both return true. However, for an unconstrained
         ''' type parameter, <see cref="IsReferenceType"/> and <see cref="IsValueType"/> will both return false.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsValueType As Boolean Implements ITypeSymbol.IsValueType
+        Public MustOverride ReadOnly Property IsValueType As Boolean Implements ITypeSymbol.IsValueType, ITypeSymbolInternal.IsValueType
 
         ''' <summary>
         ''' Is this a symbol for an anonymous type (including delegate).
@@ -270,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
         ''' </summary>
-        Public Overridable ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType
+        Public Overridable ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType, ITypeSymbolInternal.SpecialType
             Get
                 Return SpecialType.None
             End Get
@@ -329,8 +332,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Operator
 
         Public Overloads Shared Function Equals(left As TypeSymbol, right As TypeSymbol, comparison As TypeCompareKind) As Boolean
-            Return left.IsSameType(right, comparison)
+            Return If(left?.Equals(right, comparison), right Is Nothing)
         End Function
+
+        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+            Return Equals(TryCast(obj, TypeSymbol), TypeCompareKind.ConsiderEverything)
+        End Function
+
+        Public NotOverridable Overrides Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+            Return Equals(TryCast(other, TypeSymbol), compareKind)
+        End Function
+
+        Public MustOverride Overrides Function GetHashCode() As Integer
+
+        Public MustOverride Overloads Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
 
         ''' <summary>
         ''' Lookup an immediately nested type referenced from metadata, names should be
@@ -417,15 +432,15 @@ Done:
             Return namedType
         End Function
 
-        Friend Overridable Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
+        Friend Overridable Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As NamedTypeSymbol
             Return BaseTypeNoUseSiteDiagnostics
         End Function
 
-        Friend Overridable Function GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
+        Friend Overridable Function GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As NamedTypeSymbol
             Dim result = GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved)
 
             If result IsNot Nothing Then
-                result.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                result.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             End If
 
             Return result
@@ -506,7 +521,7 @@ Done:
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = GetUseSiteErrorInfo()
+                Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
                 Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedType1
             End Get
         End Property
@@ -552,7 +567,13 @@ Done:
             End Get
         End Property
 
-        Private ReadOnly Property ITypeSymbol_TypeKind As TYPEKIND Implements ITypeSymbol.TypeKind
+        Private ReadOnly Property ITypeSymbol_IsNativeIntegerType As Boolean Implements ITypeSymbol.IsNativeIntegerType
+            Get
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeSymbol_TypeKind As TYPEKIND Implements ITypeSymbol.TypeKind, ITypeSymbolInternal.TypeKind
             Get
                 Return Me.TypeKind
             End Get
@@ -575,6 +596,13 @@ Done:
         Private ReadOnly Property ITypeSymbol_IsReadOnly As Boolean Implements ITypeSymbol.IsReadOnly
             Get
                 ' VB does not have readonly structures
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeSymbol_IsRecord As Boolean Implements ITypeSymbol.IsRecord
+            Get
+                ' VB does not have records
                 Return False
             End Get
         End Property
@@ -615,8 +643,9 @@ Done:
                 Throw New ArgumentNullException(NameOf(interfaceMember))
             End If
 
-            If Not interfaceMember.ContainingType.IsInterfaceType() OrElse
-               Not Me.ImplementsInterface(interfaceMember.ContainingType, comparer:=EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteDiagnostics:=Nothing) Then
+            If Not interfaceMember.RequiresImplementation() OrElse
+               Me.IsInterfaceType() OrElse ' In VB interfaces do not implement anything
+               Not Me.ImplementsInterface(interfaceMember.ContainingType, comparer:=EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                 Return Nothing
             End If
 
@@ -736,5 +765,20 @@ Done:
         End Class
 
 #End Region
+
+        Private ReadOnly Property ITypeSymbol_NullableAnnotation As NullableAnnotation Implements ITypeSymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
+        Private Function ITypeSymbol_WithNullability(nullableAnnotation As NullableAnnotation) As ITypeSymbol Implements ITypeSymbol.WithNullableAnnotation
+            Return Me
+        End Function
+
+        Private Function ITypeSymbolInternal_GetITypeSymbol() As ITypeSymbol Implements ITypeSymbolInternal.GetITypeSymbol
+            Return Me
+        End Function
+
     End Class
 End Namespace

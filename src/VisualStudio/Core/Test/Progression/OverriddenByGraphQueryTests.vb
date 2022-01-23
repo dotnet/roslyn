@@ -1,15 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.Progression)>
     Public Class OverriddenByGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestOverriddenByMethod1() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -33,7 +36,7 @@ class Goo : Base, IComparable
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New OverriddenByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
@@ -51,7 +54,7 @@ class Goo : Base, IComparable
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestOverriddenByMethod2() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -75,7 +78,7 @@ class Goo : Base, IComparable
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New OverriddenByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(

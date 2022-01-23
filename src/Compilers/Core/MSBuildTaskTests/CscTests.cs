@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -8,6 +10,7 @@ using Xunit;
 using Moq;
 using System.IO;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -351,38 +354,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
-        [Theory]
-        [InlineData(null, "disable")]
-        [InlineData("", "disable")]
-        [InlineData("enable", "disable")]
-        [InlineData("other", "disable")]
-        [InlineData("disable", null)]
-        [InlineData("disable", "")]
-        public void NullableReferenceTypes_NullableWins_Disable(string nullableContextOptions, string nullable)
-        {
-            var csc = new Csc();
-            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.NullableContextOptions = nullableContextOptions;
-            csc.Nullable = nullable;
-            Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
-        }
-
-        [Theory]
-        [InlineData(null, "enable")]
-        [InlineData("", "enable")]
-        [InlineData("disable", "enable")]
-        [InlineData("other", "enable")]
-        [InlineData("enable", null)]
-        [InlineData("enable", "")]
-        public void NullableReferenceTypes_NullableWins_Enable(string nullableContextOptions, string nullable)
-        {
-            var csc = new Csc();
-            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.NullableContextOptions = nullableContextOptions;
-            csc.Nullable = nullable;
-            Assert.Equal("/nullable:enable /out:test.exe test.cs", csc.GenerateResponseFileContents());
-        }
-
         [Fact]
         public void NullableReferenceTypes_Safeonly()
         {
@@ -502,12 +473,48 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs", "subdir\\test.cs");
             csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
-            Assert.Equal(@"/out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.cs subdir\test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal($@"/out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.cs subdir{Path.DirectorySeparatorChar}test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
             Assert.Equal(@"/out:test.exe /analyzerconfig:..\.editorconfig /analyzerconfig:""sub dir\.editorconfig"" test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersFlag()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.SkipAnalyzers = true;
+            Assert.Equal("/out:test.exe /skipanalyzers+ test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.SkipAnalyzers = false;
+            Assert.Equal("/out:test.exe /skipanalyzers- test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(52467, "https://github.com/dotnet/roslyn/issues/52467")]
+        public void UnexpectedExceptionLogsMessage()
+        {
+            var engine = new MockEngine();
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+            };
+
+            csc.ExecuteTool(@"q:\path\csc.exe", "", "", new TestableCompilerServerLogger()
+            {
+                LogFunc = delegate { throw new Exception(""); }
+            });
+            Assert.False(string.IsNullOrEmpty(engine.Log));
         }
     }
 }

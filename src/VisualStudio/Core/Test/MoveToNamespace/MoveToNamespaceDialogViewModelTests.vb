@@ -1,12 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CSharp
-Imports Microsoft.CodeAnalysis.MoveToNamespace
+Imports Microsoft.CodeAnalysis.CSharp.LanguageServices
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
@@ -37,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(viewModel.Icon, KnownMonikers.StatusInvalid)
 
-            viewModel.NamespaceName = viewModel.AvailableNamespaces.First()
+            viewModel.NamespaceName = viewModel.AvailableNamespaces.First().Namespace
 
             Assert.True(viewModel.CanSubmit)
             Assert.False(viewModel.ShowMessage)
@@ -56,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
             monitor.AddExpectation(Function() viewModel.Message)
             monitor.AddExpectation(Function() viewModel.Icon)
 
-            viewModel.NamespaceName = viewModel.AvailableNamespaces.Last() & ".NewNamespace"
+            viewModel.NamespaceName = viewModel.AvailableNamespaces.Last().Namespace & ".NewNamespace"
 
             monitor.VerifyExpectations()
             monitor.Detach()
@@ -65,13 +64,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(viewModel.Icon, KnownMonikers.StatusInformation)
 
-            viewModel.NamespaceName = viewModel.AvailableNamespaces.First()
+            viewModel.NamespaceName = viewModel.AvailableNamespaces.First().Namespace
 
             Assert.True(viewModel.CanSubmit)
             Assert.False(viewModel.ShowMessage)
         End Sub
 
-        Private Function CreateViewModel(Optional defaultNamespace As String = Nothing, Optional availableNamespaces As ImmutableArray(Of String) = Nothing) As MoveToNamespaceDialogViewModel
+        Private Shared Function CreateViewModel(Optional defaultNamespace As String = Nothing, Optional availableNamespaces As ImmutableArray(Of String) = Nothing) As MoveToNamespaceDialogViewModel
             If (defaultNamespace Is Nothing) Then
                 defaultNamespace = "Default.Namespace"
             End If
@@ -83,7 +82,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
                                                             defaultNamespace & "2"})
             End If
 
-            Return New MoveToNamespaceDialogViewModel(defaultNamespace, availableNamespaces, CSharpSyntaxFactsService.Instance)
+            Return New MoveToNamespaceDialogViewModel(defaultNamespace, availableNamespaces, CSharpSyntaxFacts.Instance, ImmutableArray(Of String).Empty)
         End Function
     End Class
 End Namespace

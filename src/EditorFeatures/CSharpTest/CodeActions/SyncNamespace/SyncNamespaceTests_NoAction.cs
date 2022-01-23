@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Threading.Tasks;
@@ -15,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         public async Task NoAction_NotOnNamespaceDeclaration()
         {
             var folders = new[] { "A", "B" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace NS
 {{    
     class [||]Class1
@@ -34,18 +38,40 @@ namespace NS
 
             await TestMissingInRegularAndScriptAsync(code);
         }
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task NoAction_NotOnNamespaceDeclaration_FileScopedNamespace()
+        {
+            var folders = new[] { "A", "B" };
+            var (folder, filePath) = CreateDocumentFilePath(folders);
+
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+namespace NS;
+
+class [||]Class1
+{{
+}}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task NoAction_NotOnFirstMemberInGlobal()
         {
             var folders = new[] { "A" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace="""" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}"">    
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">    
 class Class1
 {{
 }}
@@ -64,13 +90,13 @@ class [||]Class2
         public async Task NoAction_MultipleNamespaceDeclarations()
         {
             var folders = new[] { "A", "B" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]NS1
 {{   
     class Class1
@@ -95,13 +121,13 @@ namespace NS2
         public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnNamespace()
         {
             var folders = new[] { "A", "B" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]NS1
 {{   
     class Class1
@@ -123,13 +149,13 @@ class Class2
         public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnFirstGlobalMember()
         {
             var folders = new[] { "A", "B" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 class [||]Class1
 {{
 }}
@@ -151,13 +177,13 @@ namespace NS1
         public async Task NoAction_NestedNamespaceDeclarations()
         {
             var folders = new[] { "A", "B" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]NS1
 {{   
     namespace NS2
@@ -178,13 +204,13 @@ namespace [||]NS1
         public async Task NoAction_InvalidNamespaceIdentifier()
         {
             var folders = new[] { "A", "B" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace="""" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]
 {{
     class Class1
@@ -202,13 +228,13 @@ namespace [||]
         public async Task NoAction_MatchingNamespace_InGlobalNamespace()
         {
             var folders = Array.Empty<string>();
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""""  CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}"">    
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">    
 class [||]Class1
 {{
 }}
@@ -223,13 +249,13 @@ class [||]Class1
         public async Task NoAction_MatchingNamespace_DefaultGlobalNamespace()
         {
             var folders = new[] { "A", "B", "C" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""""  CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}"">    
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">    
 namespace [||]A.B.C
 {{  
     class Class1
@@ -247,13 +273,13 @@ namespace [||]A.B.C
         public async Task NoAction_MatchingNamespace_InNamespaceDeclaration()
         {
             var folders = new[] { "B", "C" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""A"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]A.B.C
 {{    
     class Class1
@@ -294,13 +320,13 @@ namespace [||]NS
         public async Task NoAction_NoDeclaration()
         {
             var folders = new[] { "A" };
-            var documentPath = CreateDocumentFilePath(folders);
+            var (folder, filePath) = CreateDocumentFilePath(folders);
 
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 using System;   
 [||]
         </Document>

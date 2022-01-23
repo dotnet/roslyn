@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
@@ -7,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
 
         Private Sub EmitUnaryOperatorExpression(expression As BoundUnaryOperator, used As Boolean)
             Debug.Assert((expression.OperatorKind And Not UnaryOperatorKind.IntrinsicOpMask) = 0 AndAlso expression.OperatorKind <> 0)
@@ -93,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitBinaryOperatorExpression(expression As BoundBinaryOperator, used As Boolean)
 
-            Dim operationKind = expression.OperatorKind
+            Dim operationKind = expression.OperatorKind And BinaryOperatorKind.OpMask
             Dim shortCircuit As Boolean = operationKind = BinaryOperatorKind.AndAlso OrElse operationKind = BinaryOperatorKind.OrElse
 
             If Not used AndAlso Not shortCircuit AndAlso Not OperatorHasSideEffects(expression) Then

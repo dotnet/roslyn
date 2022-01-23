@@ -1,8 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -590,6 +597,134 @@ public static class Module1
 ");
         }
 
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void DecimalConstInit002()
+        {
+            var source1 = @"
+class C
+{
+    const decimal d1 = 0.1m;
+}
+";
+            var source2 = @"
+class C
+{
+    static readonly decimal d1 = 0.1m;
+}
+";
+            var expectedIL = @"
+{
+  // Code size       16 (0x10)
+  .maxstack  5
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_000a:  stsfld     ""decimal C.d1""
+  IL_000f:  ret
+}
+";
+            CompileAndVerify(source1).VerifyIL("C..cctor", expectedIL);
+            CompileAndVerify(source2).VerifyIL("C..cctor", expectedIL);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void DecimalConstInit003()
+        {
+            var source1 = @"
+class C
+{
+    const decimal d1 = 0.0m;
+}
+";
+
+            var source2 = @"
+class C
+{
+    static readonly decimal d1 = 0.0m;
+}
+";
+
+            var expectedIL = @"
+{
+  // Code size       16 (0x10)
+  .maxstack  5
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_000a:  stsfld     ""decimal C.d1""
+  IL_000f:  ret
+}
+";
+            CompileAndVerify(source1).VerifyIL("C..cctor", expectedIL);
+            CompileAndVerify(source2).VerifyIL("C..cctor", expectedIL);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void DecimalConstInit004()
+        {
+            var source1 = @"
+class C
+{
+    const decimal d1 = default;
+    const decimal d2 = 0;
+    const decimal d3 = 0m;
+}
+";
+
+            var source2 = @"
+class C
+{
+    static readonly decimal d1 = default;
+    static readonly decimal d2 = 0;
+    static readonly decimal d3 = 0m;
+}
+";
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(source1, symbolValidator: validator, options: options);
+            CompileAndVerify(source2, symbolValidator: validator, options: options);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void StaticLambdaConstructorAlwaysEmitted()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        System.Action a1 = () => { };
+    }
+}
+";
+            CompileAndVerify(source).
+                VerifyIL("C.<>c..cctor", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  newobj     ""C.<>c..ctor()""
+  IL_0005:  stsfld     ""C.<>c C.<>c.<>9""
+  IL_000a:  ret
+}
+");
+        }
+
         [WorkItem(217748, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=217748")]
         [Fact]
         public void BadExpressionConstructor()
@@ -604,6 +739,630 @@ public static class Module1
                 // (4,17): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
                 //     dynamic d = F() * 2;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F()").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(4, 17));
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_01()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static int i = 0;
+    static bool b = false;
+}";
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_02()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static string s = null!;
+}";
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_03()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static (int, object) pair = (0, null!);
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldnull
+  IL_0002:  newobj     ""System.ValueTuple<int, object>..ctor(int, object)""
+  IL_0007:  stsfld     ""System.ValueTuple<int, object> C.pair""
+  IL_000c:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_04()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static (int, object) pair1 = default;
+    static (int, object) pair2 = default((int, object));
+    static (int, object) pair3 = default!;
+    static (int, object) pair4 = default((int, object))!;
+}";
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_05()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static C instance = default!;
+}";
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_06()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+    public int y;
+}
+
+class C
+{
+    static S field1 = default;
+    static S field2 = default(S);
+    static S field3 = new S();
+}";
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_08()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static int x = 1;
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  stsfld     ""int C.x""
+  IL_0006:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_09()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = null;
+    static S? s2 = default(S?);
+}";
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Null(type.GetMember(".cctor"));
+            }
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_10()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = default;
+}";
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_11()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = new S?();
+}";
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_12()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = default(S);
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  newobj     ""S?..ctor(S)""
+  IL_000e:  stsfld     ""S? C.s1""
+  IL_0013:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_13()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = new S();
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  newobj     ""S?..ctor(S)""
+  IL_000e:  stsfld     ""S? C.s1""
+  IL_0013:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_14()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static object s1 = default(S);
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  box        ""S""
+  IL_000e:  stsfld     ""object C.s1""
+  IL_0013:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_15()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static object s1 = new S();
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  box        ""S""
+  IL_000e:  stsfld     ""object C.s1""
+  IL_0013:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_16()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static object s1 = default(S?);
+    static object s2 = (S?)null;
+    static object s3 = new S?();
+}";
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_17()
+        {
+            string source = @"
+unsafe class C
+{
+    static System.IntPtr s1 = (System.IntPtr)0;
+    static System.UIntPtr s2 = (System.UIntPtr)0;
+    static void* s3 = (void*)0;
+}";
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for the `(void*)0` initializer.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, verify: Verification.Skipped).VerifyIL("C..cctor()", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0006:  stsfld     ""System.IntPtr C.s1""
+  IL_000b:  ldc.i4.0
+  IL_000c:  conv.i8
+  IL_000d:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
+  IL_0012:  stsfld     ""System.UIntPtr C.s2""
+  IL_0017:  ldc.i4.0
+  IL_0018:  conv.i
+  IL_0019:  stsfld     ""void* C.s3""
+  IL_001e:  ret
+}");
+        }
+
+        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void StaticNullInitializerHasNoEffectOnTypeIL()
+        {
+            var source1 = @"
+#nullable enable
+class C
+{
+    static string s1;
+}";
+
+            var source2 = @"
+#nullable enable
+class C
+{
+    static string s1 = null!;
+}";
+
+            var expectedIL = @"
+.class private auto ansi beforefieldinit C
+        extends [mscorlib]System.Object
+{
+        // Fields
+        .field private static string s1
+        .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                01 00 01 00 00
+        )
+        // Methods
+        .method public hidebysig specialname rtspecialname
+                instance void .ctor () cil managed
+        {
+                // Method begins at RVA 0x207f
+                // Code size 7 (0x7)
+                .maxstack 8
+                IL_0000: ldarg.0
+                IL_0001: call instance void [mscorlib]System.Object::.ctor()
+                IL_0006: ret
+        } // end of method C::.ctor
+} // end of class C
+";
+
+            CompileAndVerify(source1).VerifyTypeIL("C", expectedIL);
+            CompileAndVerify(source2).VerifyTypeIL("C", expectedIL);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void ExplicitStaticConstructor_01()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static string x = null!;
+
+    static C()
+    {
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void ExplicitStaticConstructor_02()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static string x;
+
+    static C()
+    {
+        x = null!;
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  stsfld     ""string C.x""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact, WorkItem(55797, "https://github.com/dotnet/roslyn/issues/55797")]
+        public void TwoParameterlessConstructors()
+        {
+            string source = @"
+public class C
+{
+    public C() : Garbage()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
+                //     public C() : Garbage()
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12),
+                // (4,18): error CS1018: Keyword 'this' or 'base' expected
+                //     public C() : Garbage()
+                Diagnostic(ErrorCode.ERR_ThisOrBaseExpected, "Garbage").WithLocation(4, 18),
+                // (4,18): error CS1002: ; expected
+                //     public C() : Garbage()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Garbage").WithLocation(4, 18),
+                // (4,18): error CS1520: Method must have a return type
+                //     public C() : Garbage()
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Garbage").WithLocation(4, 18),
+                // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'C.C()' and 'C.C()'
+                //     public C() : Garbage()
+                Diagnostic(ErrorCode.ERR_AmbigCall, "").WithArguments("C.C()", "C.C()").WithLocation(4, 18)
+                );
+        }
+
+        [Fact, WorkItem(55797, "https://github.com/dotnet/roslyn/issues/55797")]
+        public void TwoParameterlessConstructors_2()
+        {
+            string source = @"
+public class C
+{
+    public C() : this()
+    {
+    }
+    public C()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'C.C()' and 'C.C()'
+                //     public C() : this()
+                Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("C.C()", "C.C()").WithLocation(4, 18),
+                // (7,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                //     public C()
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(7, 12)
+                );
+        }
+
+        [Fact, WorkItem(55797, "https://github.com/dotnet/roslyn/issues/55797")]
+        public void TwoParameterlessConstructors_3()
+        {
+            string source = @"
+public class C
+{
+    public C() : this()
+    {
+    }
+    public C2()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'C.C()' and 'C.C()'
+                //     public C() : this()
+                Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("C.C()", "C.C()").WithLocation(4, 18),
+                // (7,12): error CS1520: Method must have a return type
+                //     public C2()
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "C2").WithLocation(7, 12)
+                );
+        }
+
+        [Fact, WorkItem(55797, "https://github.com/dotnet/roslyn/issues/55797")]
+        public void TwoParameterlessConstructors_Struct()
+        {
+            string source = @"
+public struct C
+{
+    public C() : this()
+    {
+    }
+    public C2()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'C.C()' and 'C.C()'
+                //     public C() : this()
+                Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("C.C()", "C.C()").WithLocation(4, 18),
+                // (7,12): error CS1520: Method must have a return type
+                //     public C2()
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "C2").WithLocation(7, 12)
+                );
         }
     }
 }

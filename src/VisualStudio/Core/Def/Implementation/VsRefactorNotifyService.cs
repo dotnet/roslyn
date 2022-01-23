@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -108,7 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            hierarchyToItemIDsMap = null;
             rqnames = null;
             if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out var rqname))
             {
@@ -136,8 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var visualStudioWorkspace = workspace as VisualStudioWorkspace;
-            if (visualStudioWorkspace == null)
+            if (workspace is not VisualStudioWorkspace visualStudioWorkspace)
             {
                 return false;
             }
@@ -151,14 +153,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        private bool TryGetRenamingRQNameForSymbol(ISymbol symbol, out string rqname)
+        private static bool TryGetRenamingRQNameForSymbol(ISymbol symbol, out string rqname)
         {
             if (symbol.Kind == SymbolKind.Method)
             {
                 var methodSymbol = symbol as IMethodSymbol;
 
-                if (methodSymbol.MethodKind == MethodKind.Constructor ||
-                    methodSymbol.MethodKind == MethodKind.Destructor)
+                if (methodSymbol.MethodKind is MethodKind.Constructor or
+                    MethodKind.Destructor)
                 {
                     symbol = symbol.ContainingType;
                 }

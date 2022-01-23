@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -10,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             If TypeOf node Is ExpressionSyntax Then
                 Return CheckExpression(semanticModel, DirectCast(node, ExpressionSyntax), cancellationToken)
             ElseIf TypeOf node Is StatementSyntax Then
-                Return CheckStatement(semanticModel, DirectCast(node, StatementSyntax), cancellationToken)
+                Return CheckStatement(DirectCast(node, StatementSyntax))
             Else
                 Return False
             End If
@@ -28,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return expression.CanReplaceWithRValue(semanticModel, cancellationToken) AndAlso Not expression.ContainsImplicitMemberAccess()
         End Function
 
-        Private Shared Function CheckStatement(semanticModel As SemanticModel, statement As StatementSyntax, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function CheckStatement(statement As StatementSyntax) As Boolean
             If statement.GetAncestor(Of WithBlockSyntax)() IsNot Nothing Then
                 If statement.ContainsImplicitMemberAccess() Then
                     Return False

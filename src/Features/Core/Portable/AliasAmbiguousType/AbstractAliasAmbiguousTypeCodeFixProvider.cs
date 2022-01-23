@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,14 +22,14 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
     {
         protected abstract string GetTextPreviewOfChange(string aliasName, ITypeSymbol typeSymbol);
 
-        public override FixAllProvider GetFixAllProvider() => null;
+        public override FixAllProvider? GetFixAllProvider() => null;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Innermost: We are looking for an IdentifierName. IdentifierName is sometimes at the same span as its parent (e.g. SimpleBaseTypeSyntax).
             var diagnosticNode = root.FindNode(context.Span, getInnermostNodeForTie: true);
@@ -35,15 +38,17 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbolInfo = semanticModel.GetSymbolInfo(diagnosticNode, cancellationToken);
             if (SymbolCandidatesContainsSupportedSymbols(symbolInfo))
             {
-                var addImportService = document.GetLanguageService<IAddImportsService>();
-                var syntaxGenerator = document.GetLanguageService<SyntaxGenerator>();
+                var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
+                var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
+                var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
                 var compilation = semanticModel.Compilation;
-                var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+                var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
+                var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
                 var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
                 foreach (var symbol in symbolInfo.CandidateSymbols.Cast<ITypeSymbol>())
                 {
@@ -52,10 +57,11 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                     codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, c =>
                         {
                             var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
-                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
+                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, preferences, allowInHiddenRegions, cancellationToken);
                             return Task.FromResult(document.WithSyntaxRoot(newRoot));
                         }));
                 }
+
                 var groupingTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
                 var groupingCodeAction = new CodeActionWithNestedActions(groupingTitle, codeActionsBuilder.ToImmutable(), isInlinable: true);
                 context.RegisterCodeFix(groupingCodeAction, context.Diagnostics.First());
@@ -72,8 +78,8 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
 
         private class MyCodeAction : DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument, equivalenceKey: title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, equivalenceKey: title)
             {
             }
         }

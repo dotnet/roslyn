@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -42,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' </summary>
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
         Public Sub New(retargetingModule As RetargetingModuleSymbol, underlyingType As NamedTypeSymbol)
 
@@ -353,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim underlyingBase = _underlyingType.GetDeclaredBase(basesBeingResolved)
 
             Return If(underlyingBase IsNot Nothing,
@@ -365,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return RetargetingTranslator.Retarget(_underlyingType.GetInterfacesToEmit())
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim underlyingBaseInterfaces = _underlyingType.GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved)
 
             Return RetargetingTranslator.Retarget(underlyingBaseInterfaces)
@@ -375,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return New ExtendedErrorTypeSymbol(diag, True)
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim diag = BaseTypeAnalysis.GetDependencyDiagnosticsForImportedClass(Me)
             If diag IsNot Nothing Then
                 Return CyclicInheritanceError(diag)
@@ -394,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return acyclicBase
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim declaredInterfaces As ImmutableArray(Of NamedTypeSymbol) = GetDeclaredInterfacesNoUseSiteDiagnostics(Nothing)
             If (Not Me.IsInterface) Then
                 ' only interfaces needs to check for inheritance cycles via interfaces.
@@ -491,13 +493,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return RetargetingTranslator.Retarget(_underlyingType.LookupMetadataType(emittedTypeName), RetargetOptions.RetargetPrimitiveTypesByName)
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
 
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfo())
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
         Friend Overrides ReadOnly Property DefaultPropertyName As String

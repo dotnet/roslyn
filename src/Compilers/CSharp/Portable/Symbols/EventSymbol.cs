@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -11,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents an event.
     /// </summary>
-    internal abstract partial class EventSymbol : Symbol, IEventSymbol
+    internal abstract partial class EventSymbol : Symbol
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -57,20 +60,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The 'add' accessor of the event.  Null only in error scenarios.
         /// </summary>
-        public abstract MethodSymbol AddMethod { get; }
+        public abstract MethodSymbol? AddMethod { get; }
 
         /// <summary>
         /// The 'remove' accessor of the event.  Null only in error scenarios.
         /// </summary>
-        public abstract MethodSymbol RemoveMethod { get; }
+        public abstract MethodSymbol? RemoveMethod { get; }
 
         internal bool HasAssociatedField
         {
             get
             {
-                return (object)this.AssociatedField != null;
+                return (object?)this.AssociatedField != null;
             }
         }
+
+        /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit receiver. This is false if the symbol is static.
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
 
         /// <summary>
         /// True if this is a Windows Runtime-style event.
@@ -106,12 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public ImmutableArray<CSharpAttributeData> GetFieldAttributes()
         {
-            return (object)this.AssociatedField == null ?
+            return (object?)this.AssociatedField == null ?
                 ImmutableArray<CSharpAttributeData>.Empty :
                 this.AssociatedField.GetAttributes();
         }
 
-        internal virtual FieldSymbol AssociatedField
+        internal virtual FieldSymbol? AssociatedField
         {
             get
             {
@@ -122,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns the overridden event, or null.
         /// </summary>
-        public EventSymbol OverriddenEvent
+        public EventSymbol? OverriddenEvent
         {
             get
             {
@@ -151,15 +159,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                MethodSymbol accessor = AddMethod ?? RemoveMethod;
-                return (object)accessor != null && accessor.HidesBaseMethodsByName;
+                MethodSymbol? accessor = AddMethod ?? RemoveMethod;
+                return (object?)accessor != null && accessor.HidesBaseMethodsByName;
             }
         }
 
-        internal EventSymbol GetLeastOverriddenEvent(NamedTypeSymbol accessingTypeOpt)
+        internal EventSymbol GetLeastOverriddenEvent(NamedTypeSymbol? accessingTypeOpt)
         {
-            var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
-
+            accessingTypeOpt = accessingTypeOpt?.OriginalDefinition;
             EventSymbol e = this;
             while (e.IsOverride && !e.HidesBaseEventsByName)
             {
@@ -183,9 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //   }
                 //
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
-                EventSymbol overridden = e.OverriddenEvent;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if ((object)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
+                EventSymbol? overridden = e.OverriddenEvent;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                if ((object?)overridden == null ||
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref discardedUseSiteInfo)))
                 {
                     break;
                 }
@@ -253,29 +261,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return newOwner.IsDefinition ? this : new SubstitutedEventSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+            Debug.Assert(newOwner.IsDefinition || newOwner is SubstitutedNamedTypeSymbol);
+            return newOwner.IsDefinition ? this : new SubstitutedEventSymbol((newOwner as SubstitutedNamedTypeSymbol)!, this);
         }
 
         internal abstract bool MustCallMethodsDirectly { get; }
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (this.IsDefinition)
             {
-                return base.GetUseSiteDiagnostic();
+                return new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
             }
 
-            return this.OriginalDefinition.GetUseSiteDiagnostic();
+            return this.OriginalDefinition.GetUseSiteInfo();
         }
 
-        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo result)
+        internal bool CalculateUseSiteDiagnostic(ref UseSiteInfo<AssemblySymbol> result)
         {
             Debug.Assert(this.IsDefinition);
 
             // Check event type.
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations))
+            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.None))
             {
                 return true;
             }
@@ -284,11 +293,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // If the member is in an assembly with unified references, 
                 // we check if its definition depends on a type from a unified reference.
-                HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
+                HashSet<TypeSymbol>? unificationCheckedTypes = null;
+                DiagnosticInfo? diagnosticInfo = result.DiagnosticInfo;
+                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this, ref unificationCheckedTypes))
                 {
+                    result = result.AdjustDiagnosticInfo(diagnosticInfo);
                     return true;
                 }
+
+                result = result.AdjustDiagnosticInfo(diagnosticInfo);
             }
 
             return false;
@@ -306,118 +319,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
+                DiagnosticInfo? info = GetUseSiteInfo().DiagnosticInfo;
+                return (object?)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
             }
         }
 
         #endregion
 
-        /// <summary>
-        /// Is this an event of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleEvent
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return false;
-            }
+            return new PublicModel.EventSymbol(this);
         }
-
-        /// <summary>
-        /// If this is an event of a tuple type, return corresponding underlying event from the
-        /// tuple underlying type. Otherwise, null. 
-        /// </summary>
-        public virtual EventSymbol TupleUnderlyingEvent
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        #region IEventSymbol Members
-
-        ITypeSymbol IEventSymbol.Type
-        {
-            get
-            {
-                return this.Type;
-            }
-        }
-
-        CodeAnalysis.NullableAnnotation IEventSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
-
-        IMethodSymbol IEventSymbol.AddMethod
-        {
-            get
-            {
-                return this.AddMethod;
-            }
-        }
-
-        IMethodSymbol IEventSymbol.RemoveMethod
-        {
-            get
-            {
-                return this.RemoveMethod;
-            }
-        }
-
-        IMethodSymbol IEventSymbol.RaiseMethod
-        {
-            get
-            {
-                // C# doesn't have raise methods for events.
-                return null;
-            }
-        }
-
-        IEventSymbol IEventSymbol.OriginalDefinition
-        {
-            get
-            {
-                return this.OriginalDefinition;
-            }
-        }
-
-        IEventSymbol IEventSymbol.OverriddenEvent
-        {
-            get
-            {
-                return this.OverriddenEvent;
-            }
-        }
-
-        ImmutableArray<IEventSymbol> IEventSymbol.ExplicitInterfaceImplementations
-        {
-            get
-            {
-                return this.ExplicitInterfaceImplementations.Cast<EventSymbol, IEventSymbol>();
-            }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitEvent(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitEvent(this);
-        }
-
-        #endregion
 
         #region Equality
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
-            EventSymbol other = obj as EventSymbol;
+            EventSymbol? other = obj as EventSymbol;
 
             if (ReferenceEquals(null, other))
             {
@@ -431,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This checks if the events have the same definition and the type parameters on the containing types have been
             // substituted in the same way.
-            return TypeSymbol.Equals(this.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2) && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
+            return TypeSymbol.Equals(this.ContainingType, other.ContainingType, compareKind) && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
         }
 
         public override int GetHashCode()

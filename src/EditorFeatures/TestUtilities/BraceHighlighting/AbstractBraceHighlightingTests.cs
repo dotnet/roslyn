@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -39,16 +44,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 var provider = new BraceHighlightingViewTaggerProvider(
                     workspace.GetService<IThreadingContext>(),
                     GetBraceMatchingService(workspace),
-                    workspace.GetService<IForegroundNotificationService>(),
+                    workspace.GetService<IGlobalOptionService>(),
                     AsynchronousOperationListenerProvider.NullProvider);
 
                 var testDocument = workspace.Documents.First();
-                var buffer = testDocument.TextBuffer;
+                var buffer = testDocument.GetTextBuffer();
                 var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
                 var context = new TaggerContext<BraceHighlightTag>(
                     document, buffer.CurrentSnapshot,
                     new SnapshotPoint(buffer.CurrentSnapshot, cursorPosition));
-                await provider.ProduceTagsAsync_ForTestingPurposesOnly(context);
+                await provider.GetTestAccessor().ProduceTagsAsync(context);
 
                 var expectedHighlights = expectedSpans.Select(ts => ts.ToSpan()).OrderBy(s => s.Start).ToList();
                 var actualHighlights = context.tagSpans.Select(ts => ts.Span.Span).OrderBy(s => s.Start).ToList();

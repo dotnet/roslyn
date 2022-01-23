@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,19 +8,14 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
-
+using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.CSharp;
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal interface IClientConnectionHost
-    {
-        Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken);
-    }
-
     /// <summary>
     /// This class manages the connections, timeout and general scheduling of the client
     /// requests.
@@ -33,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Running,
 
             /// <summary>
-            /// Server processing existing requests, responding to shutdown commands but is not accepting
-            /// new build requests.
+            /// Server is in the process of shutting down. New connections will not be accepted.
             /// </summary>
             ShuttingDown,
 
@@ -55,19 +51,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal static readonly TimeSpan GCTimeout = TimeSpan.FromSeconds(30);
 
+        private readonly ICompilerServerHost _compilerServerHost;
+        private readonly ICompilerServerLogger _logger;
         private readonly IClientConnectionHost _clientConnectionHost;
         private readonly IDiagnosticListener _diagnosticListener;
         private State _state;
-        private Task _timeoutTask;
-        private Task _gcTask;
-        private Task<IClientConnection> _listenTask;
-        private CancellationTokenSource _listenCancellationTokenSource;
-        private List<Task<ConnectionData>> _connectionList = new List<Task<ConnectionData>>();
+        private Task? _timeoutTask;
+        private Task? _gcTask;
+        private Task<IClientConnection>? _listenTask;
+        private readonly List<Task<CompletionData>> _connectionList = new List<Task<CompletionData>>();
         private TimeSpan? _keepAlive;
         private bool _keepAliveIsDefault;
 
-        internal ServerDispatcher(IClientConnectionHost clientConnectionHost, IDiagnosticListener diagnosticListener = null)
+        internal ServerDispatcher(ICompilerServerHost compilerServerHost, IClientConnectionHost clientConnectionHost, IDiagnosticListener? diagnosticListener = null)
         {
+            _compilerServerHost = compilerServerHost;
+            _logger = compilerServerHost.Logger;
             _clientConnectionHost = clientConnectionHost;
             _diagnosticListener = diagnosticListener ?? new EmptyDiagnosticListener();
         }
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// accepting new connections and wait for existing connections to complete before
         /// returning.
         /// </summary>
-        public void ListenAndDispatchConnections(TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
+        public void ListenAndDispatchConnections(TimeSpan? keepAlive, CancellationToken cancellationToken = default)
         {
             _state = State.Running;
             _keepAlive = keepAlive;
@@ -87,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
+                _clientConnectionHost.BeginListening();
                 ListenAndDispatchConnectionsCore(cancellationToken);
             }
             finally
@@ -95,20 +95,44 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 _gcTask = null;
                 _timeoutTask = null;
 
-                if (_listenTask != null)
+                if (_clientConnectionHost.IsListening)
                 {
-                    CloseListenTask();
+                    _clientConnectionHost.EndListening();
+                }
+
+                if (_listenTask is not null)
+                {
+                    // This type is responsible for cleaning up resources associated with _listenTask. Once EndListening
+                    // is complete this task is guaranteed to be either completed or have a task scheduled to complete
+                    // it. If it ran to completion we need to dispose of the value.
+                    if (!_listenTask.IsCompleted)
+                    {
+                        // Wait for the task to complete
+                        _listenTask.ContinueWith(_ => { }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default)
+                            .Wait(CancellationToken.None);
+                    }
+
+                    if (_listenTask.Status == TaskStatus.RanToCompletion)
+                    {
+                        try
+                        {
+                            _listenTask.Result.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogException(ex, $"Error disposing of {nameof(_listenTask)}");
+                        }
+                    }
                 }
             }
+            _logger.Log($"End ListenAndDispatchConnections");
         }
 
         public void ListenAndDispatchConnectionsCore(CancellationToken cancellationToken)
         {
-            CreateListenTask();
             do
             {
-                Debug.Assert(_listenTask != null);
-
+                MaybeCreateListenTask();
                 MaybeCreateTimeoutTask();
                 MaybeCreateGCTask();
                 WaitForAnyCompletion(cancellationToken);
@@ -120,50 +144,40 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                HandleCancellation();
-                return;
+                ChangeToShuttingDown("Server cancellation");
+                Debug.Assert(_gcTask is null);
+                Debug.Assert(_timeoutTask is null);
             }
 
-            if (_listenTask.IsCompleted)
+            if (_listenTask?.IsCompleted == true)
             {
-                HandleCompletedListenTask(cancellationToken);
+                _diagnosticListener.ConnectionReceived();
+                var connectionTask = ProcessClientConnectionAsync(
+                    _compilerServerHost,
+                    _listenTask,
+                    allowCompilationRequests: _state == State.Running,
+                    cancellationToken);
+                _connectionList.Add(connectionTask);
+
+                // Timeout and GC are only done when there are no active connections.  Now that we have a new
+                // connection cancel out these tasks.
+                _timeoutTask = null;
+                _gcTask = null;
+                _listenTask = null;
             }
 
             if (_timeoutTask?.IsCompleted == true)
             {
-                HandleCompletedTimeoutTask();
+                _diagnosticListener.KeepAliveReached();
+                ChangeToShuttingDown("Keep alive hit");
             }
 
             if (_gcTask?.IsCompleted == true)
             {
-                HandleCompletedGCTask();
+                RunGC();
             }
 
             HandleCompletedConnections();
-        }
-
-        private void HandleCancellation()
-        {
-            Debug.Assert(_listenTask != null);
-
-            // If cancellation has been requested then the server needs to be in the process
-            // of shutting down.
-            _state = State.ShuttingDown;
-
-            CloseListenTask();
-
-            try
-            {
-                Task.WaitAll(_connectionList.ToArray());
-            }
-            catch
-            {
-                // It's expected that some will throw exceptions, in particular OperationCanceledException.  It's
-                // okay for them to throw so long as they complete.
-            }
-
-            HandleCompletedConnections();
-            Debug.Assert(_connectionList.Count == 0);
         }
 
         /// <summary>
@@ -174,81 +188,63 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var all = new List<Task>();
             all.AddRange(_connectionList);
-            all.Add(_timeoutTask);
-            all.Add(_listenTask);
-            all.Add(_gcTask);
+            AddNonNull(_timeoutTask);
+            AddNonNull(_listenTask);
+            AddNonNull(_gcTask);
 
             try
             {
-                var waitArray = all.Where(x => x != null).ToArray();
-                Task.WaitAny(waitArray, cancellationToken);
+                Task.WaitAny(all.ToArray(), cancellationToken);
             }
             catch (OperationCanceledException)
             {
                 // Thrown when the provided cancellationToken is cancelled.  This is handled in the caller,
                 // here it just serves to break out of the WaitAny call.
             }
-        }
 
-        private void CreateListenTask()
-        {
-            Debug.Assert(_listenTask == null);
-            Debug.Assert(_timeoutTask == null);
-            _listenCancellationTokenSource = new CancellationTokenSource();
-            _listenTask = _clientConnectionHost.CreateListenTask(_listenCancellationTokenSource.Token);
-            _diagnosticListener.ConnectionListening();
-        }
-
-        private void CloseListenTask()
-        {
-            Debug.Assert(_listenTask != null);
-
-            _listenCancellationTokenSource.Cancel();
-            _listenCancellationTokenSource = null;
-            _listenTask = null;
-        }
-
-        private void HandleCompletedListenTask(CancellationToken cancellationToken)
-        {
-            _diagnosticListener.ConnectionReceived();
-            var allowCompilationRequests = _state == State.Running;
-            var connectionTask = HandleClientConnection(_listenTask, allowCompilationRequests, cancellationToken);
-            _connectionList.Add(connectionTask);
-
-            // Timeout and GC are only done when there are no active connections.  Now that we have a new
-            // connection cancel out these tasks.
-            _timeoutTask = null;
-            _gcTask = null;
-
-            // Begin listening again for new connections.
-            _listenTask = null;
-            CreateListenTask();
-        }
-
-        private void HandleCompletedTimeoutTask()
-        {
-            _diagnosticListener.KeepAliveReached();
-            _listenCancellationTokenSource.Cancel();
-            _timeoutTask = null;
-            _state = State.ShuttingDown;
-        }
-
-        private void HandleCompletedGCTask()
-        {
-            _gcTask = null;
-            for (int i = 0; i < 10; i++)
+            void AddNonNull(Task? task)
             {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+                if (task is object)
+                {
+                    all.Add(task);
+                }
             }
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-            GC.Collect();
+        }
+
+        private void ChangeToShuttingDown(string reason)
+        {
+            if (_state == State.ShuttingDown)
+            {
+                return;
+            }
+
+            _logger.Log($"Shutting down server: {reason}");
+            Debug.Assert(_state == State.Running);
+            Debug.Assert(_clientConnectionHost.IsListening);
+
+            _state = State.ShuttingDown;
+            _timeoutTask = null;
+            _gcTask = null;
+        }
+
+        private void RunGC()
+        {
+            _gcTask = null;
+            GC.GetTotalMemory(forceFullCollection: true);
+        }
+
+        private void MaybeCreateListenTask()
+        {
+            if (_listenTask is null)
+            {
+                _listenTask = _clientConnectionHost.GetNextClientConnectionAsync();
+            }
         }
 
         private void MaybeCreateTimeoutTask()
         {
             // If there are no active clients running then the server needs to be in a timeout mode.
-            if (_connectionList.Count == 0 && _timeoutTask == null && _keepAlive.HasValue)
+            if (_state == State.Running && _connectionList.Count == 0 && _timeoutTask is null && _keepAlive.HasValue)
             {
                 Debug.Assert(_listenTask != null);
                 _timeoutTask = Task.Delay(_keepAlive.Value);
@@ -257,20 +253,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private void MaybeCreateGCTask()
         {
-            if (_connectionList.Count == 0 && _gcTask == null)
+            if (_state == State.Running && _connectionList.Count == 0 && _gcTask is null)
             {
                 _gcTask = Task.Delay(GCTimeout);
             }
         }
 
         /// <summary>
-        /// Checks the completed connection objects.
+        /// Checks the completed connection objects and updates the server state based on their 
+        /// results.
         /// </summary>
-        /// <returns>False if the server needs to begin shutting down</returns>
         private void HandleCompletedConnections()
         {
             var shutdown = false;
-            var processedCount = 0;
             var i = 0;
             while (i < _connectionList.Count)
             {
@@ -282,86 +277,66 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
 
                 _connectionList.RemoveAt(i);
-                processedCount++;
 
-                var connectionData = current.Result;
-                ChangeKeepAlive(connectionData.KeepAlive);
-
-                switch (connectionData.CompletionReason)
+                // These task should never fail. Unexpected errors will be caught and translated into
+                // a RequestError message
+                Debug.Assert(current.Status == TaskStatus.RanToCompletion);
+                var completionData = current.Result;
+                switch (completionData.Reason)
                 {
-                    case CompletionReason.CompilationCompleted:
-                    case CompletionReason.CompilationNotStarted:
-                        // These are all normal shutdown states.  Nothing to do here.
+                    case CompletionReason.RequestCompleted:
+                        _logger.Log("Client request completed");
+
+                        if (completionData.NewKeepAlive is { } keepAlive)
+                        {
+                            _logger.Log($"Client changed keep alive to {keepAlive}");
+                            ChangeKeepAlive(keepAlive);
+                        }
+
+                        if (completionData.ShutdownRequest)
+                        {
+                            _logger.Log("Client requested shutdown");
+                            shutdown = true;
+                        }
+
                         break;
-                    case CompletionReason.ClientDisconnect:
-                        // Have to assume the worst here which is user pressing Ctrl+C at the command line and
-                        // hence wanting all compilation to end.
-                        _diagnosticListener.ConnectionRudelyEnded();
-                        shutdown = true;
-                        break;
-                    case CompletionReason.ClientException:
-                    case CompletionReason.ClientShutdownRequest:
-                        _diagnosticListener.ConnectionRudelyEnded();
+                    case CompletionReason.RequestError:
+                        _logger.LogError("Client request failed");
                         shutdown = true;
                         break;
                     default:
-                        throw new InvalidOperationException($"Unexpected enum value {connectionData.CompletionReason}");
+                        _logger.LogError("Unexpected enum value");
+                        shutdown = true;
+                        break;
                 }
-            }
 
-            if (processedCount > 0)
-            {
-                _diagnosticListener.ConnectionCompleted(processedCount);
+                _diagnosticListener.ConnectionCompleted(completionData);
             }
 
             if (shutdown)
             {
-                _state = State.ShuttingDown;
+                ChangeToShuttingDown("Error handling client connection");
             }
         }
 
-        private void ChangeKeepAlive(TimeSpan? value)
+        private void ChangeKeepAlive(TimeSpan keepAlive)
         {
-            if (value.HasValue)
+            if (_keepAliveIsDefault || !_keepAlive.HasValue || keepAlive > _keepAlive.Value)
             {
-                if (_keepAliveIsDefault || !_keepAlive.HasValue || value.Value > _keepAlive.Value)
-                {
-                    _keepAlive = value;
-                    _keepAliveIsDefault = false;
-                    _diagnosticListener.UpdateKeepAlive(value.Value);
-                }
+                _keepAlive = keepAlive;
+                _keepAliveIsDefault = false;
+                _diagnosticListener.UpdateKeepAlive(keepAlive);
             }
         }
 
-        /// <summary>
-        /// Creates a Task representing the processing of the new connection.  This will return a task that
-        /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
-        /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
-        /// </summary>
-        internal static async Task<ConnectionData> HandleClientConnection(Task<IClientConnection> clientConnectionTask, bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
+        internal static async Task<CompletionData> ProcessClientConnectionAsync(
+            ICompilerServerHost compilerServerHost,
+            Task<IClientConnection> clientStreamTask,
+            bool allowCompilationRequests,
+            CancellationToken cancellationToken)
         {
-            IClientConnection clientConnection;
-            try
-            {
-                clientConnection = await clientConnectionTask.ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                // Unable to establish a connection with the client.  The client is responsible for
-                // handling this case.  Nothing else for us to do here.
-                CompilerServerLogger.LogException(ex, "Error creating client named pipe");
-                return new ConnectionData(CompletionReason.CompilationNotStarted);
-            }
-
-            try
-            {
-                return await clientConnection.HandleConnection(allowCompilationRequests, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                CompilerServerLogger.LogException(ex, "Error handling connection");
-                return new ConnectionData(CompletionReason.ClientException);
-            }
+            var clientHandler = new ClientConnectionHandler(compilerServerHost);
+            return await clientHandler.ProcessAsync(clientStreamTask, allowCompilationRequests, cancellationToken).ConfigureAwait(false);
         }
     }
 }

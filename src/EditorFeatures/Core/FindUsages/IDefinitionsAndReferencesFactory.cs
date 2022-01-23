@@ -1,26 +1,32 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
+    using static FindUsagesHelpers;
+
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
-        DefinitionItem GetThirdPartyDefinitionItem(
+        Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 
@@ -28,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultDefinitionsAndReferencesFactory()
         {
         }
@@ -36,18 +43,21 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
         /// </summary>
-        public virtual DefinitionItem GetThirdPartyDefinitionItem(
+        public virtual Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
-            return null;
+            return SpecializedTasks.Null<DefinitionItem>();
         }
     }
 
     internal static class DefinitionItemExtensions
     {
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new(
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
         public static DefinitionItem ToNonClassifiedDefinitionItem(
             this ISymbol definition,
-            Project project,
+            Solution solution,
             bool includeHiddenLocations)
         {
             // Because we're passing in 'false' for 'includeClassifiedSpans', this won't ever have
@@ -55,25 +65,54 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // to compute the classified spans for the locations of the definition.  So it's totally 
             // fine to pass in CancellationToken.None and block on the result.
             return ToDefinitionItemAsync(
-                definition, project, includeHiddenLocations, includeClassifiedSpans: false,
+                definition, solution, isPrimary: false, includeHiddenLocations, includeClassifiedSpans: false,
                 options: FindReferencesSearchOptions.Default, cancellationToken: CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+        }
+
+        public static Task<DefinitionItem> ToNonClassifiedDefinitionItemAsync(
+            this ISymbol definition,
+            Solution solution,
+            bool includeHiddenLocations,
+            CancellationToken cancellationToken)
+        {
+            return ToDefinitionItemAsync(
+                definition, solution, isPrimary: false, includeHiddenLocations, includeClassifiedSpans: false,
+                options: FindReferencesSearchOptions.Default.With(unidirectionalHierarchyCascade: true), cancellationToken: cancellationToken);
         }
 
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this ISymbol definition,
-            Project project,
+            Solution solution,
+            bool isPrimary,
             bool includeHiddenLocations,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return ToDefinitionItemAsync(definition, project,
+            return ToDefinitionItemAsync(
+                definition, solution, isPrimary,
                 includeHiddenLocations, includeClassifiedSpans: true,
                 options, cancellationToken);
         }
 
+        public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
+            this SymbolGroup group, Solution solution, bool isPrimary, bool includeHiddenLocations, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+        {
+            // Make a single definition item that knows about all the locations of all the symbols in the group.
+            var allLocations = group.Symbols.SelectMany(s => s.Locations).ToImmutableArray();
+            return ToDefinitionItemAsync(group.Symbols.First(), allLocations, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
+        }
+
+        private static Task<DefinitionItem> ToDefinitionItemAsync(
+            ISymbol definition, Solution solution, bool isPrimary, bool includeHiddenLocations, bool includeClassifiedSpans, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+        {
+            return ToDefinitionItemAsync(definition, definition.Locations, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans, options, cancellationToken);
+        }
+
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
-            this ISymbol definition,
-            Project project,
+            ISymbol definition,
+            ImmutableArray<Location> locations,
+            Solution solution,
+            bool isPrimary,
             bool includeHiddenLocations,
             bool includeClassifiedSpans,
             FindReferencesSearchOptions options,
@@ -85,30 +124,34 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             //
             // This ensures that the type will both display properly to the user, as well as ensuring
             // that we can accurately resolve the type later on when we try to navigate to it.
-            definition = definition.OriginalDefinition;
+            if (!definition.IsTupleField())
+            {
+                // In an earlier implementation of the compiler APIs, tuples and tuple fields symbols were definitions
+                // We pretend this is still the case
+                definition = definition.OriginalDefinition;
+            }
 
-            var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
+            var displayParts = GetDisplayParts(definition);
             var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 options, showMetadataSymbolsWithoutReferences: false);
 
-            var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
-
-            var properties = GetProperties(definition);
+            var properties = GetProperties(definition, isPrimary);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
             // root definition node for it.  That node won't be navigable.
+            using var sourceLocations = TemporaryArray<DocumentSpan>.Empty;
             if (definition.Kind != SymbolKind.Namespace)
             {
-                foreach (var location in definition.Locations)
+                foreach (var location in locations)
                 {
                     if (location.IsInMetadata)
                     {
                         return DefinitionItem.CreateMetadataDefinition(
-                            tags, displayParts, nameDisplayParts, project,
+                            tags, displayParts, nameDisplayParts, solution,
                             definition, properties, displayIfNoReferences);
                     }
                     else if (location.IsInSource)
@@ -119,13 +162,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                             continue;
                         }
 
-                        var document = project.Solution.GetDocument(location.SourceTree);
+                        var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
+                            var classificationOptions = ClassificationOptions.From(document.Project);
+
                             var documentLocation = !includeClassifiedSpans
                                 ? new DocumentSpan(document, location.SourceSpan)
                                 : await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                                    document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
+                                    document, location.SourceSpan, classificationOptions, cancellationToken).ConfigureAwait(false);
 
                             sourceLocations.Add(documentLocation);
                         }
@@ -143,14 +188,21 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     properties, displayIfNoReferences);
             }
 
+            var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
+
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutableAndFree(),
-                nameDisplayParts, properties, displayIfNoReferences);
+                tags, displayParts, sourceLocations.ToImmutableAndClear(),
+                nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
-        private static ImmutableDictionary<string, string> GetProperties(ISymbol definition)
+        private static ImmutableDictionary<string, string> GetProperties(ISymbol definition, bool isPrimary)
         {
             var properties = ImmutableDictionary<string, string>.Empty;
+
+            if (isPrimary)
+            {
+                properties = properties.Add(DefinitionItem.Primary, "");
+            }
 
             var rqName = RQNameInternal.From(definition);
             if (rqName != null)
@@ -172,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return properties;
         }
 
-        public static async Task<SourceReferenceItem> TryCreateSourceReferenceItemAsync(
+        public static async Task<SourceReferenceItem?> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
             DefinitionItem definitionItem,
             bool includeHiddenLocations,
@@ -189,43 +241,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var document = referenceLocation.Document;
             var sourceSpan = location.SourceSpan;
+            var options = ClassificationOptions.From(document.Project);
 
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                document, sourceSpan, cancellationToken).ConfigureAwait(false);
+                document, sourceSpan, options, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo);
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
         }
-
-        private static SymbolDisplayFormat GetFormat(ISymbol definition)
-        {
-            return definition.Kind == SymbolKind.Parameter
-                ? s_parameterDefinitionFormat
-                : s_definitionFormat;
-        }
-
-        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
-            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
-
-        private static readonly SymbolDisplayFormat s_definitionFormat =
-            new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                parameterOptions: SymbolDisplayParameterOptions.IncludeType,
-                propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-                kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword | SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword,
-                localOptions: SymbolDisplayLocalOptions.IncludeType,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeContainingType |
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
-                    SymbolDisplayMemberOptions.IncludeModifiers |
-                    SymbolDisplayMemberOptions.IncludeParameters |
-                    SymbolDisplayMemberOptions.IncludeType,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-        private static SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
-            .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
     }
 }

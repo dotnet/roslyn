@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -8,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     </Project>
                 </Workspace>";
 
-        protected override string GetLanguage()
+        protected internal override string GetLanguage()
             => LanguageNames.CSharp;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -33,54 +36,44 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
-            using (var workspace = TestWorkspace.Create(WorkspaceXml))
-            {
-                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, new TestParameters());
+            // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
+            using var workspace = TestWorkspace.Create(WorkspaceXml, composition: EditorTestCompositions.EditorFeaturesWpf);
+            var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, new TestParameters());
 
-                var expectedCode = "private class D { }";
+            var expectedCode = "private class D { }";
 
-                await TestActionOnLinkedFiles(
-                    workspace,
-                    expectedText: expectedCode,
-                    action: codeIssueOrRefactoring.Actions[0],
-                    expectedPreviewContents: expectedCode);
-            }
+            await TestActionOnLinkedFiles(
+                workspace,
+                expectedText: expectedCode,
+                action: codeIssueOrRefactoring.CodeActions[0].action,
+                expectedPreviewContents: expectedCode);
         }
 
         [Fact]
         public async Task TestWorkspaceTryApplyChangesDirectCall()
         {
-            using (var workspace = TestWorkspace.Create(WorkspaceXml))
-            {
-                var solution = workspace.CurrentSolution;
+            using var workspace = TestWorkspace.Create(WorkspaceXml);
+            var solution = workspace.CurrentSolution;
 
-                var documentId = workspace.Documents.Single(d => !d.IsLinkFile).Id;
-                var text = await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync();
+            var documentId = workspace.Documents.Single(d => !d.IsLinkFile).Id;
+            var text = await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync();
 
-                var linkedDocumentId = workspace.Documents.Single(d => d.IsLinkFile).Id;
-                var linkedText = await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync();
+            var linkedDocumentId = workspace.Documents.Single(d => d.IsLinkFile).Id;
+            var linkedText = await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync();
 
-                var newSolution = solution
-                    .WithDocumentText(documentId, text.Replace(13, 1, "D"))
-                    .WithDocumentText(linkedDocumentId, linkedText.Replace(0, 6, "private"));
+            var newSolution = solution
+                .WithDocumentText(documentId, text.Replace(13, 1, "D"))
+                .WithDocumentText(linkedDocumentId, linkedText.Replace(0, 6, "private"));
 
-                workspace.TryApplyChanges(newSolution);
+            workspace.TryApplyChanges(newSolution);
 
-                var expectedMergedText = "private class D { }";
-                Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync()).ToString());
-                Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync()).ToString());
-            }
-        }
-
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-        {
-            throw new NotSupportedException();
+            var expectedMergedText = "private class D { }";
+            Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync()).ToString());
+            Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync()).ToString());
         }
 
         protected override ParseOptions GetScriptOptions()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         private class TestCodeRefactoringProvider : CodeRefactorings.CodeRefactoringProvider
         {
@@ -94,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     .WithDocumentText(linkedDocument.Id, (await linkedDocument.GetTextAsync()).Replace(0, 6, "private"));
 
 #pragma warning disable RS0005
-                context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)));
+                context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)), context.Span);
 #pragma warning restore RS0005
             }
         }

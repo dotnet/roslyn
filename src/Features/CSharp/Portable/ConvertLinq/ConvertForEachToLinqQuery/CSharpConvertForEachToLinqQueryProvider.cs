@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -17,11 +22,12 @@ using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.Syn
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForEachToLinqQueryProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForEachToLinqQuery), Shared]
     internal sealed class CSharpConvertForEachToLinqQueryProvider
         : AbstractConvertForEachToLinqQueryProvider<ForEachStatementSyntax, StatementSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpConvertForEachToLinqQueryProvider()
         {
         }
@@ -43,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             var currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             var current = forEachStatement.Statement;
-            // Traverse descentants of the forEachStatement.
+            // Traverse descendants of the forEachStatement.
             // If a statement traversed can be converted into a query clause, 
             //  a. Add it to convertingNodesBuilder.
             //  b. set the current to its nested statement and proceed.
@@ -190,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             variable,
                             i == 0 ? localDeclarationLeadingTrivia : separators[i - 1].TrailingTrivia,
                             i == localDeclarationStatement.Declaration.Variables.Count - 1
-                                ? (IEnumerable<SyntaxTrivia>)localDeclarationTrailingTrivia
+                                ? localDeclarationTrailingTrivia
                                 : separators[i].LeadingTrivia));
                         identifiersBuilder.Add(variable.Identifier);
                     }
@@ -285,13 +291,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         .Where(statement => Equals(semanticModel.GetEnclosingSymbol(
                             statement.SpanStart, cancellationToken), memberDeclarationSymbol)).Count();
 
-                    if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block) &&
-                        forEachInfo.ForEachStatement.Parent.Parent == memberDeclarationSyntax)
+                    if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax block) &&
+                        block.Parent == memberDeclarationSyntax)
                     {
                         // Check that 
                         // a. There are either just a single 'yield return' or 'yield return' with 'yield break' just after.
                         // b. Those foreach and 'yield break' (if exists) are last statements in the method (do not count local function declaration statements).
-                        var statementsOnBlockWithForEach = ((BlockSyntax)forEachInfo.ForEachStatement.Parent).Statements
+                        var statementsOnBlockWithForEach = block.Statements
                             .Where(statement => statement.Kind() != SyntaxKind.LocalFunctionStatement).ToArray();
                         var lastNonLocalFunctionStatement = statementsOnBlockWithForEach.Last();
                         if (yieldStatementsCount == 1 && lastNonLocalFunctionStatement == forEachInfo.ForEachStatement)
@@ -326,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     break;
             }
 
-            converter = default;
+            converter = null;
             return false;
         }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -9,13 +11,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// <summary>
     /// A version of ITableDataSource who knows how to connect them to Roslyn solution crawler for live information.
     /// </summary>
-    internal abstract class AbstractRoslynTableDataSource<TItem> : AbstractTableDataSource<TItem>
+    internal abstract class AbstractRoslynTableDataSource<TItem, TData> : AbstractTableDataSource<TItem, TData>
         where TItem : TableItem
+        where TData : notnull
     {
         public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)
-        {
-            ConnectToSolutionCrawlerService(workspace);
-        }
+            => ConnectToSolutionCrawlerService(workspace);
 
         protected ImmutableArray<DocumentId> GetDocumentsWithSameFilePath(Solution solution, DocumentId documentId)
         {
@@ -27,6 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             return solution.GetDocumentIdsWithFilePath(document.FilePath);
         }
+
+        /// <summary>
+        /// Flag indicating if a solution crawler is running incremental analyzers in background.
+        /// We get build progress updates from <see cref="ISolutionCrawlerProgressReporter.ProgressChanged"/>.
+        /// Solution crawler progress events are guaranteed to be invoked in a serial fashion.
+        /// </summary>
+        protected bool IsSolutionCrawlerRunning { get; private set; }
 
         private void ConnectToSolutionCrawlerService(Workspace workspace)
         {
@@ -51,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 case ProgressStatus.Started:
                     SolutionCrawlerProgressChanged(running: true);
                     break;
-                case ProgressStatus.Stoped:
+                case ProgressStatus.Stopped:
                     SolutionCrawlerProgressChanged(running: false);
                     break;
             }
@@ -59,8 +67,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void SolutionCrawlerProgressChanged(bool running)
         {
-            IsStable = !running;
-            ChangeStableState(IsStable);
+            IsSolutionCrawlerRunning = running;
+            ChangeStableStateIfRequired(newIsStable: !IsSolutionCrawlerRunning);
+        }
+
+        protected void ChangeStableStateIfRequired(bool newIsStable)
+        {
+            var oldIsStable = IsStable;
+            if (oldIsStable != newIsStable)
+            {
+                IsStable = newIsStable;
+                ChangeStableState(newIsStable);
+            }
         }
     }
 }

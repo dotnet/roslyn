@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,18 +16,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Const ResponseFileName As String = "vbc.rsp"
         Friend Const VbcCommandLinePrefix = "vbc : " 'Common prefix String For VB diagnostic output with no location.
-        Private Shared s_responseFileName As String
+        Private Shared ReadOnly s_responseFileName As String
         Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
         Private ReadOnly _tempDirectory As String
         Private _additionalTextFiles As ImmutableArray(Of AdditionalTextFile)
 
-        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), buildPaths As BuildPaths, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(parser, responseFile, args, buildPaths, additionalReferenceDirectories, analyzerLoader)
+        Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), buildPaths As BuildPaths, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader, Optional driverCache As GeneratorDriverCache = Nothing)
+            MyBase.New(parser, responseFile, args, buildPaths, additionalReferenceDirectories, analyzerLoader, driverCache)
 
             _diagnosticFormatter = New CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, AddressOf GetAdditionalTextFiles)
             _additionalTextFiles = Nothing
             _tempDirectory = buildPaths.TempDirectory
+
+            Debug.Assert(Arguments.OutputFileName IsNot Nothing OrElse Arguments.Errors.Length > 0 OrElse parser.IsScriptCommandLineParser)
         End Sub
 
         Private Function GetAdditionalTextFiles() As ImmutableArray(Of AdditionalTextFile)
@@ -52,7 +57,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ParseFile(consoleOutput As TextWriter,
                                    parseOptions As VisualBasicParseOptions,
                                    scriptParseOptions As VisualBasicParseOptions,
-                                   diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic),
                                    ByRef hadErrors As Boolean,
                                    file As CommandLineSourceFile,
                                    errorLogger As ErrorLogger) As SyntaxTree
@@ -61,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim content = TryReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
-                ReportDiagnostics(fileReadDiagnostics, consoleOutput, errorLogger)
+                ReportDiagnostics(fileReadDiagnostics, consoleOutput, errorLogger, compilation:=Nothing)
                 fileReadDiagnostics.Clear()
                 hadErrors = True
                 Return Nothing
@@ -70,8 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim tree = VisualBasicSyntaxTree.ParseText(
                 content,
                 If(file.IsScript, scriptParseOptions, parseOptions),
-                file.Path,
-                diagnosticOptions)
+                file.Path)
 
             ' prepopulate line tables.
             ' we will need line tables anyways and it is better to Not wait until we are in emit
@@ -85,7 +88,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function CreateCompilation(consoleOutput As TextWriter,
                                                     touchedFilesLogger As TouchedFileLogger,
                                                     errorLogger As ErrorLogger,
-                                                    analyzerConfigOptions As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
+                                                    analyzerConfigOptions As ImmutableArray(Of AnalyzerConfigOptionsResult),
+                                                    globalAnalyzerConfigOptions As AnalyzerConfigOptionsResult) As Compilation
             Dim parseOptions = Arguments.ParseOptions
 
             ' We compute script parse options once so we don't have to do it repeatedly in
@@ -98,25 +102,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim trees(sourceFiles.Length - 1) As SyntaxTree
 
             If Arguments.CompilationOptions.ConcurrentBuild Then
-                Parallel.For(0, sourceFiles.Length,
-                   UICultureUtilities.WithCurrentUICulture(Of Integer)(
+                RoslynParallel.For(
+                    0,
+                    sourceFiles.Length,
+                    UICultureUtilities.WithCurrentUICulture(Of Integer)(
                         Sub(i As Integer)
-                            Try
-                                ' NOTE: order of trees is important!!
-                                trees(i) = ParseFile(
+                            ' NOTE: order of trees is important!!
+                            trees(i) = ParseFile(
                                 consoleOutput,
                                 parseOptions,
                                 scriptParseOptions,
-                                If(analyzerConfigOptions.IsDefault,
-                                    Nothing,
-                                    analyzerConfigOptions(i).TreeOptions),
                                 hadErrors,
                                 sourceFiles(i),
                                 errorLogger)
-                            Catch ex As Exception When FatalError.Report(ex)
-                                Throw ExceptionUtilities.Unreachable
-                            End Try
-                        End Sub))
+                        End Sub),
+                    CancellationToken.None)
             Else
                 For i = 0 To sourceFiles.Length - 1
                     ' NOTE: order of trees is important!!
@@ -124,9 +124,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         consoleOutput,
                         parseOptions,
                         scriptParseOptions,
-                        If(analyzerConfigOptions.IsDefault,
-                            Nothing,
-                            analyzerConfigOptions(i).TreeOptions),
                         hadErrors,
                         sourceFiles(i),
                         errorLogger)
@@ -150,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim referenceDirectiveResolver As MetadataReferenceResolver = Nothing
             Dim resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, referenceDirectiveResolver)
 
-            If ReportDiagnostics(diagnostics, consoleOutput, errorLogger) Then
+            If ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation:=Nothing) Then
                 Return Nothing
             End If
 
@@ -164,6 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
             Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
+            Dim syntaxTreeOptions = New CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalAnalyzerConfigOptions)
 
             Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
@@ -174,7 +172,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
                      WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
-                     WithSourceReferenceResolver(sourceFileResolver))
+                     WithSourceReferenceResolver(sourceFileResolver).
+                     WithSyntaxTreeOptionsProvider(syntaxTreeOptions))
+        End Function
+
+        Protected Overrides Function GetOutputFileName(compilation As Compilation, cancellationToken As CancellationToken) As String
+            ' The only case this is Nothing is when there are errors during parsing in which case this should never get called
+            Debug.Assert(Arguments.OutputFileName IsNot Nothing)
+            Return Arguments.OutputFileName
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)
@@ -239,9 +244,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (default)")
                 ElseIf v = latestVersion Then
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)")
-                ElseIf v = LanguageVersion.VisualBasic16 Then
-                    ' https://github.com/dotnet/roslyn/issues/29819 This should be removed once we are ready to move VB 16 out of beta
-                    consoleOutput.WriteLine($"{v.ToDisplayString()} *beta*")
                 Else
                     consoleOutput.WriteLine(v.ToDisplayString())
                 End If
@@ -253,11 +255,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "BC", code)
         End Function
 
-        Protected Overrides Function ResolveAnalyzersFromArguments(
+        Protected Overrides Sub ResolveAnalyzersFromArguments(
             diagnostics As List(Of DiagnosticInfo),
-            messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
-            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader)
-        End Function
+            messageProvider As CommonMessageProvider,
+            skipAnalyzers As Boolean,
+            ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
+            ByRef generators As ImmutableArray(Of ISourceGenerator))
+
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, analyzers, generators)
+        End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(
             tree As SyntaxTree,
@@ -291,6 +297,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 embeddedFiles.Add(resolvedPath)
             Next
         End Sub
+
+        Private Protected Overrides Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver
+            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider)
+        End Function
+
     End Class
 End Namespace
-

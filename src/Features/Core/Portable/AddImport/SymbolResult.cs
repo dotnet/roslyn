@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             public readonly double Weight;
 
             // The desired name to change the user text to if this was a fuzzy (spell-checking) match.
-            public readonly string DesiredName;
+            public readonly string? DesiredName;
 
             // The node to convert to the desired name
             public readonly TSimpleNameSyntax NameNode;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
             }
 
-            public SearchResult(string desiredName, TSimpleNameSyntax nameNode, IReadOnlyList<string> nameParts, double weight)
+            public SearchResult(string? desiredName, TSimpleNameSyntax nameNode, IReadOnlyList<string> nameParts, double weight)
             {
                 DesiredName = desiredName;
                 Weight = weight;
@@ -39,31 +41,31 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public bool DesiredNameDiffersFromSourceName()
             {
-                return !string.IsNullOrEmpty(this.DesiredName) &&
-                    this.NameNode != null &&
-                    this.NameNode.GetFirstToken().ValueText != this.DesiredName;
+                return !string.IsNullOrEmpty(DesiredName) &&
+                    NameNode != null &&
+                    NameNode.GetFirstToken().ValueText != DesiredName;
             }
 
             public bool DesiredNameDiffersFromSourceNameOnlyByCase()
             {
                 Debug.Assert(DesiredNameDiffersFromSourceName());
                 return StringComparer.OrdinalIgnoreCase.Equals(
-                    this.NameNode.GetFirstToken().ValueText, this.DesiredName);
+                    NameNode.GetFirstToken().ValueText, DesiredName);
             }
 
             public bool DesiredNameMatchesSourceName(Document document)
             {
-                if (!this.DesiredNameDiffersFromSourceName())
+                if (!DesiredNameDiffersFromSourceName())
                 {
                     // Names match in any language.
                     return true;
                 }
 
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                 // Names differ.  But in a case insensitive language they may match.
                 if (!syntaxFacts.IsCaseSensitive &&
-                    this.DesiredNameDiffersFromSourceNameOnlyByCase())
+                    DesiredNameDiffersFromSourceNameOnlyByCase())
                 {
                     return true;
                 }
@@ -97,22 +99,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public SymbolResult<T2> WithSymbol<T2>(T2 symbol) where T2 : ISymbol
-            {
-                return new SymbolResult<T2>(DesiredName, NameNode, symbol, this.Weight);
-            }
+                => new(DesiredName, NameNode, symbol, Weight);
 
             internal SymbolResult<T> WithDesiredName(string desiredName)
-            {
-                return new SymbolResult<T>(desiredName, NameNode, Symbol, Weight);
-            }
+                => new(desiredName, NameNode, Symbol, Weight);
         }
 
         private struct SymbolResult
         {
             public static SymbolResult<T> Create<T>(string desiredName, TSimpleNameSyntax nameNode, T symbol, double weight) where T : ISymbol
-            {
-                return new SymbolResult<T>(desiredName, nameNode, symbol, weight);
-            }
+                => new(desiredName, nameNode, symbol, weight);
         }
     }
 }

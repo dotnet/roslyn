@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -20,24 +25,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.U
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void AssemblyAndPdb(bool exactPdbPath)
+        [InlineData(DebugInformationFormat.PortablePdb, true)]
+        [InlineData(DebugInformationFormat.PortablePdb, false)]
+        [InlineData(DebugInformationFormat.Embedded, false)]
+        public void AssemblyAndPdb(DebugInformationFormat pdbFormat, bool exactPdbPath)
         {
             var dir = Temp.CreateDirectory();
             var dllFile = dir.CreateFile("lib.dll");
-            var pdbFile = dir.CreateFile("lib.pdb");
+            var pdbFile = (pdbFormat == DebugInformationFormat.Embedded) ? null : dir.CreateFile("lib.pdb");
 
             var source = @"class C { public static void Main() { int x = 1; } }";
 
             var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, assemblyName: "lib");
-            var pdbStream = new MemoryStream();
+            var pdbStream = (pdbFile != null) ? new MemoryStream() : null;
             var debugDirPdbPath = exactPdbPath ? pdbFile.Path : "a/y/z/lib.pdb";
-            var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb, pdbFilePath: debugDirPdbPath), pdbStream: pdbStream);
-            pdbStream.Position = 0;
-
+            var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: pdbFormat, pdbFilePath: debugDirPdbPath), pdbStream: pdbStream);
             dllFile.WriteAllBytes(peImage);
-            pdbFile.WriteAllBytes(pdbStream.ToArray());
+
+            if (pdbFile != null)
+            {
+                pdbStream.Position = 0;
+                pdbFile.WriteAllBytes(pdbStream.ToArray());
+            }
 
             var outputs = new CompilationOutputFilesWithImplicitPdbPath(dllFile.Path);
 
@@ -59,5 +68,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.U
             Directory.Delete(dir.Path, recursive: true);
         }
 
+        [Fact]
+        public void AssemblyFileNotFound()
+        {
+            var dir = Temp.CreateDirectory();
+            var outputs = new CompilationOutputFilesWithImplicitPdbPath(Path.Combine(dir.Path, "nonexistent.dll"));
+            Assert.Null(outputs.OpenPdb());
+            Assert.Null(outputs.OpenAssemblyMetadata(prefetch: false));
+        }
+
+        [Fact]
+        public void PdbFileNotFound()
+        {
+            var dir = Temp.CreateDirectory();
+            var dllFile = dir.CreateFile("lib.dll");
+
+            var source = @"class C { public static void Main() { int x = 1; } }";
+
+            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, assemblyName: "lib");
+            var pdbStream = new MemoryStream();
+            var debugDirPdbPath = Path.Combine(dir.Path, "nonexistent.pdb");
+            var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb, pdbFilePath: debugDirPdbPath), pdbStream: pdbStream);
+            pdbStream.Position = 0;
+
+            dllFile.WriteAllBytes(peImage);
+
+            var outputs = new CompilationOutputFilesWithImplicitPdbPath(dllFile.Path);
+
+            Assert.Null(outputs.OpenPdb());
+
+            using (var metadata = outputs.OpenAssemblyMetadata(prefetch: false))
+            {
+                var mdReader = metadata.GetMetadataReader();
+                Assert.Equal("lib", mdReader.GetString(mdReader.GetAssemblyDefinition().Name));
+            }
+
+            // make sure all files are closed and can be deleted
+            Directory.Delete(dir.Path, recursive: true);
+        }
     }
 }

@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Text.RegularExpressions;
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -61,14 +64,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
                 else
                 {
-                    return await IntroduceFieldAsync(cancellationToken).ConfigureAwait(false);
+                    return await _service.IntroduceFieldAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
                 }
-            }
-
-            private async Task<Document> IntroduceFieldAsync(CancellationToken cancellationToken)
-            {
-                var result = await _service.IntroduceFieldAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
-                return result.Item1;
             }
 
             private string CreateDisplayText(TExpressionSyntax expression)
@@ -80,7 +77,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             // Indexed by: allOccurrences, isConstant, isLocal
-            private static string[,,] formatStrings = new string[2, 2, 2]
+            private static readonly string[,,] formatStrings = new string[2, 2, 2]
                 {
                   {
                     { FeaturesResources.Introduce_field_for_0, FeaturesResources.Introduce_local_for_0 },

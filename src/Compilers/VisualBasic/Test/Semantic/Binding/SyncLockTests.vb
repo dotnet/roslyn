@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
 
@@ -85,7 +87,7 @@ Class Program
     End Sub
 End Class
     </file>
-</compilation>, {SystemCoreRef}).VerifyDiagnostics()
+</compilation>, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
         End Sub
 
         <Fact()>
@@ -177,7 +179,7 @@ Module StringExtensions
     End Sub
 End Module
     </file>
-</compilation>, {SystemCoreRef}).VerifyDiagnostics(Diagnostic(ERRID.ERR_SyncLockRequiresReferenceType1, "syncroot.PrintInt()").WithArguments("Integer"),
+</compilation>, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_SyncLockRequiresReferenceType1, "syncroot.PrintInt()").WithArguments("Integer"),
                                 Diagnostic(ERRID.ERR_VoidValue, "syncroot.PrintVoid"),
                                 Diagnostic(ERRID.WRN_DefAsgUseNullRef, "syncroot").WithArguments("syncroot"))
         End Sub

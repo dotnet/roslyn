@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VisualBasicCodeFixesResources.resx">
+    <body>
+      <trans-unit id="Add_Me">
+        <source>Add 'Me.'</source>
+        <target state="translated">添加 "Me."</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_GetType_to_NameOf">
+        <source>Convert 'GetType' to 'NameOf'</source>
+        <target state="translated">将 "GetType" 转换为 "NameOf"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Imports">
+        <source>Remove Unnecessary Imports</source>
+        <target state="translated">删除不必要的导入</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_object_creation">
+        <source>Simplify object creation</source>
+        <target state="translated">简化对象创建</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

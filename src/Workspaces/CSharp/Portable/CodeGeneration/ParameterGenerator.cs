@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 using Microsoft.CodeAnalysis.PooledObjects;
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
+using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static ParameterListSyntax GenerateParameterList(
             ImmutableArray<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             return GenerateParameterList((IEnumerable<IParameterSymbol>)parameterDefinitions, isExplicit, options);
         }
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static ParameterListSyntax GenerateParameterList(
             IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var parameters = GetParameters(parameterDefinitions, isExplicit, options);
 
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static BracketedParameterListSyntax GenerateBracketedParameterList(
             ImmutableArray<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             return GenerateBracketedParameterList((IList<IParameterSymbol>)parameterDefinitions, isExplicit, options);
         }
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static BracketedParameterListSyntax GenerateBracketedParameterList(
             IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             // Bracketed parameter lists come from indexers.  Those don't have type parameters, so we
             // could never have a typeParameterMapping.
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static ImmutableArray<ParameterSyntax> GetParameters(
             IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var result = ArrayBuilder<ParameterSyntax>.GetInstance();
             var seenOptional = false;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return result.ToImmutableAndFree();
         }
 
-        internal static ParameterSyntax GetParameter(IParameterSymbol p, CodeGenerationOptions options, bool isExplicit, bool isFirstParam, bool seenOptional)
+        internal static ParameterSyntax GetParameter(IParameterSymbol p, CSharpCodeGenerationOptions options, bool isExplicit, bool isFirstParam, bool seenOptional)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ParameterSyntax>(p, options);
             if (reusableSyntax != null)
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateModifiers(
             IParameterSymbol parameter, bool isFirstParam)
         {
-            SyntaxTokenList list = CSharpSyntaxGenerator.GetParameterModifiers(parameter.RefKind);
+            var list = CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter.RefKind);
 
             if (isFirstParam &&
                 parameter.ContainingSymbol is IMethodSymbol methodSymbol &&
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return list;
         }
 
-        private static EqualsValueClauseSyntax GenerateEqualsValueClause(
+        private static EqualsValueClauseSyntax? GenerateEqualsValueClause(
             IParameterSymbol parameter,
             bool isExplicit,
             bool seenOptional)
@@ -134,13 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static ExpressionSyntax GenerateEqualsValueClauseWorker(
             IParameterSymbol parameter,
-            object value)
+            object? value)
         {
             return ExpressionGenerator.GenerateExpression(parameter.Type, value, canUseFieldReference: true);
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-            IParameterSymbol parameter, bool isExplicit, CodeGenerationOptions options)
+            IParameterSymbol parameter, bool isExplicit, CSharpCodeGenerationOptions options)
         {
             if (isExplicit)
             {

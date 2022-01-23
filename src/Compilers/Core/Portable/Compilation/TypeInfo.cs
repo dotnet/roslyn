@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -14,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         /// have a type, null is returned. If the type could not be determined due to an error, then
         /// an IErrorTypeSymbol is returned.
         /// </summary>
-        public ITypeSymbol Type { get; }
+        public ITypeSymbol? Type { get; }
 
         /// <summary>
         /// The top-level nullability information of the expression represented by the syntax node.
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         /// The type of the expression after it has undergone an implicit conversion. If the type
         /// did not undergo an implicit conversion, returns the same as Type.
         /// </summary>
-        public ITypeSymbol ConvertedType { get; }
+        public ITypeSymbol? ConvertedType { get; }
 
         /// <summary>
         /// The top-level nullability of the expression after it has undergone an implicit conversion.
@@ -34,9 +37,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public NullabilityInfo ConvertedNullability { get; }
 
-        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, NullabilityInfo nullability, NullabilityInfo convertedNullability)
+        internal TypeInfo(ITypeSymbol? type, ITypeSymbol? convertedType, NullabilityInfo nullability, NullabilityInfo convertedNullability)
             : this()
         {
+            Debug.Assert(type is null || type.NullableAnnotation == nullability.FlowState.ToAnnotation());
+            Debug.Assert(convertedType is null || convertedType.NullableAnnotation == convertedNullability.FlowState.ToAnnotation());
             this.Type = type;
             this.Nullability = nullability;
             this.ConvertedType = convertedType;
@@ -51,7 +56,7 @@ namespace Microsoft.CodeAnalysis
                 && this.ConvertedNullability.Equals(other.ConvertedNullability);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TypeInfo && this.Equals((TypeInfo)obj);
         }

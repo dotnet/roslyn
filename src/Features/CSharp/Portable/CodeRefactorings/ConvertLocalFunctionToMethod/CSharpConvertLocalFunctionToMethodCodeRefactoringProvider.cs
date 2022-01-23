@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,43 +25,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertLocalFunctionToMethodCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertLocalFunctionToMethod), Shared]
     internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly SyntaxAnnotation s_delegateToReplaceAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpConvertLocalFunctionToMethodCodeRefactoringProvider()
         {
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var identifier = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
-                token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
-            if (identifier == default)
-            {
-                return;
-            }
-
-            if (context.Span.Length > 0 &&
-                context.Span != identifier.Span)
-            {
-                return;
-            }
-
-            var localFunction = (LocalFunctionStatementSyntax)identifier.Parent;
-            if (localFunction.Identifier != identifier)
+            var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
+            if (localFunction == null)
             {
                 return;
             }
@@ -66,8 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
-                c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
+                localFunction.Span);
         }
 
         private static async Task<Document> UpdateDocumentAsync(
@@ -88,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             // First, create a parameter per each capture so that we can pass them as arguments to the final method
             // Filter out `this` because it doesn't need a parameter, we will just make a non-static method for that
-            // We also make a `ref` parameter here for each capture that is being written into inside the funciton
+            // We also make a `ref` parameter here for each capture that is being written into inside the function
             var capturesAsParameters = captures
                 .Where(capture => !capture.IsThisParameter())
                 .Select(capture => CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -112,13 +106,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var containerSymbol = semanticModel.GetDeclaredSymbol(container, cancellationToken);
             var isStatic = containerSymbol.IsStatic || captures.All(capture => !capture.IsThisParameter());
 
+            // GetSymbolModifiers actually checks if the local function needs to be unsafe, not whether
+            // it is declared as such, so this check we don't need to worry about whether the containing method
+            // is unsafe, this will just work regardless.
+            var needsUnsafe = declaredSymbol.GetSymbolModifiers().IsUnsafe;
+
             var methodName = GenerateUniqueMethodName(declaredSymbol);
             var parameters = declaredSymbol.Parameters;
             var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                 containingType: declaredSymbol.ContainingType,
                 attributes: default,
                 accessibility: Accessibility.Private,
-                modifiers: new DeclarationModifiers(isStatic, isAsync: declaredSymbol.IsAsync),
+                modifiers: new DeclarationModifiers(isStatic, isAsync: declaredSymbol.IsAsync, isUnsafe: needsUnsafe),
                 returnType: declaredSymbol.ReturnType,
                 refKind: default,
                 explicitInterfaceImplementations: default,
@@ -126,9 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 typeParameters: typeParameters.ToImmutableArray(),
                 parameters: parameters.AddRange(capturesAsParameters));
 
-            var defaultOptions = CodeGenerationOptions.Default;
-            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified,
-                document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
+            var defaultOptions = await CSharpCodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
+            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, cancellationToken);
 
             var generator = s_generator;
             var editor = new SyntaxEditor(root, generator);
@@ -250,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         }
 
         private static bool SupportsNonTrailingNamedArguments(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
+            => options.LanguageVersion() >= LanguageVersion.CSharp7_2;
 
         private static SyntaxNode GenerateArgument(IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
             => s_generator.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
@@ -264,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         private static ParameterSyntax GenerateParameter(IParameterSymbol p, string name)
         {
             return SyntaxFactory.Parameter(name.ToIdentifierToken())
-                .WithModifiers(CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind))
+                .WithModifiers(CSharpSyntaxGeneratorInternal.GetParameterModifiers(p.RefKind))
                 .WithType(p.Type.GenerateTypeSyntax());
         }
 
@@ -317,8 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
         private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Convert_to_method, createChangedDocument, nameof(CSharpFeaturesResources.Convert_to_method))
             {
             }
         }

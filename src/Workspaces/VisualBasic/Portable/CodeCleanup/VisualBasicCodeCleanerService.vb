@@ -1,10 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
     Partial Friend Class VisualBasicCodeCleanerService
@@ -66,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             End If
         End Sub
 
-        Private Function SkipProcessing(nodeOrToken As SyntaxNodeOrToken, result As ArrayBuilder(Of TextSpan)) As Boolean
+        Private Shared Function SkipProcessing(nodeOrToken As SyntaxNodeOrToken, result As ArrayBuilder(Of TextSpan)) As Boolean
             ' Don't bother looking at nodes or token that don't have any syntax errors in them.
             If Not nodeOrToken.ContainsDiagnostics Then
                 Return True
@@ -82,12 +86,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
             Return False
         End Function
 
-        Private Function ContainsMultiLineStringLiteral(node As SyntaxNode) As Boolean
+        Private Shared Function ContainsMultiLineStringLiteral(node As SyntaxNode) As Boolean
             Return node.DescendantTokens().Any(
                 Function(t)
                     If t.Kind() = SyntaxKind.StringLiteralToken OrElse
                        t.Kind() = SyntaxKind.InterpolatedStringTextToken Then
-                        Return Not VisualBasicSyntaxFactsService.Instance.IsOnSingleLine(t.Parent, fullSpan:=False)
+                        Return Not VisualBasicSyntaxFacts.Instance.IsOnSingleLine(t.Parent, fullSpan:=False)
                     End If
 
                     Return False
@@ -99,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 Return Nothing
             End If
 
-            If Not VisualBasicSyntaxFactsService.Instance.IsOnSingleLine(node, fullSpan:=False) Then
+            If Not VisualBasicSyntaxFacts.Instance.IsOnSingleLine(node, fullSpan:=False) Then
                 Return node
             End If
 

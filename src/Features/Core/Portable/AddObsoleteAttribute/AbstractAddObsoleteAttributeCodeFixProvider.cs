@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -17,16 +19,18 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
     internal abstract class AbstractAddObsoleteAttributeCodeFixProvider
         : SyntaxEditorBasedCodeFixProvider
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly string _title;
 
         protected AbstractAddObsoleteAttributeCodeFixProvider(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             string title)
         {
             _syntaxFacts = syntaxFacts;
             _title = title;
         }
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
                 return;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var diagnotic = context.Diagnostics[0];
             var node = diagnotic.Location.FindNode(cancellationToken);
@@ -58,14 +62,14 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
                 context.Diagnostics);
         }
 
-        private static async Task<INamedTypeSymbol> GetObsoleteAttributeAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<INamedTypeSymbol?> GetObsoleteAttributeAsync(Document document, CancellationToken cancellationToken)
         {
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var attribute = compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var attribute = compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName!);
             return attribute;
         }
 
-        private SyntaxNode GetContainer(SyntaxNode root, SyntaxNode node)
+        private SyntaxNode? GetContainer(SyntaxNode root, SyntaxNode node)
         {
             return _syntaxFacts.GetContainingMemberDeclaration(root, node.SpanStart) ??
                    _syntaxFacts.GetContainingTypeDeclaration(root, node.SpanStart);
@@ -76,7 +80,11 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var obsoleteAttribute = await GetObsoleteAttributeAsync(document, cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // RegisterCodeFixesAsync checked for null
+            Contract.ThrowIfNull(obsoleteAttribute);
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var containers = diagnostics.Select(d => GetContainer(root, d.Location.FindNode(cancellationToken)))
                                         .WhereNotNull()

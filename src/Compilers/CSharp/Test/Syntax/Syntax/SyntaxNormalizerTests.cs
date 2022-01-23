@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -12,6 +16,193 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxNormalizerTests
     {
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizePatternInIf()
+        {
+            TestNormalizeStatement(
+                @"{object x = 1;
+                if (x is {})
+                {
+                }
+                if (x is {} t)
+                {
+                }
+                if (x is int {} t2)
+                {
+                }
+                if (x is System.ValueTuple<int, int>(_, _) { Item1: > 10 } t3)
+                {
+                }
+                if (x is System.ValueTuple<int, int>(_, _) { Item1: > 10, Item2: < 20 })
+                {
+                }
+}",
+                @"{
+  object x = 1;
+  if (x is { })
+  {
+  }
+
+  if (x is { } t)
+  {
+  }
+
+  if (x is int { } t2)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10 } t3)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10, Item2: < 20 })
+  {
+  }
+}".NormalizeLineEndings()
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchExpression()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => ""one"", 2 => ""two"", 3 => ""three"", {} => "">= 4"" };",
+                @"var x = (int)1 switch
+{
+  1 => ""one"",
+  2 => ""two"",
+  3 => ""three"",
+  { } => "">= 4""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchRecPattern()
+        {
+            TestNormalizeStatement(
+                @"var x = (object)1 switch {
+		int { } => ""two"",
+		{ } t when t.GetHashCode() == 42 => ""42"",
+		System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
+		System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),
+		System.ValueType {} => ""not null value"",
+		object {} i when i is not 42 => ""not 42"",
+		{ } => ""not null"",
+		null => ""null"",
+};",
+                @"var x = (object)1 switch
+{
+  int { } => ""two"",
+  { } t when t.GetHashCode() == 42 => ""42"",
+  System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
+  System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),
+  System.ValueType { } => ""not null value"",
+  object { } i when i is not 42 => ""not 42"",
+  { } => ""not null"",
+  null => ""null"",
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchExpressionComplex()
+        {
+            var a = @"var x = vehicle switch
+            {
+                Car { Passengers: 0 } => 2.00m + 0.50m,
+                Car { Passengers: 1 } => 2.0m,
+                Car { Passengers: 2 } => 2.0m - 0.50m,
+                Car c => 2.00m - 1.0m,
+
+                Taxi { Fares: 0 } => 3.50m + 1.00m,
+                Taxi { Fares: 1 } => 3.50m,
+                Taxi { Fares: 2 } => 3.50m - 0.50m,
+                Taxi t => 3.50m - 1.00m,
+
+                Bus b when ((double)b.Riders / (double)b.Capacity) < 0.50 => 5.00m + 2.00m,
+                Bus b when ((double)b.Riders / (double)b.Capacity) > 0.90 => 5.00m - 1.00m,
+                Bus b => 5.00m,
+
+                DeliveryTruck t when (t.GrossWeightClass > 5000) => 10.00m + 5.00m,
+                DeliveryTruck t when (t.GrossWeightClass < 3000) => 10.00m - 2.00m,
+                DeliveryTruck t => 10.00m,
+                { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
+                null => 0//throw new ArgumentNullException(nameof(vehicle))
+            };";
+            var b = @"var x = vehicle switch
+{
+  Car { Passengers: 0 } => 2.00m + 0.50m,
+  Car { Passengers: 1 } => 2.0m,
+  Car { Passengers: 2 } => 2.0m - 0.50m,
+  Car c => 2.00m - 1.0m,
+  Taxi { Fares: 0 } => 3.50m + 1.00m,
+  Taxi { Fares: 1 } => 3.50m,
+  Taxi { Fares: 2 } => 3.50m - 0.50m,
+  Taxi t => 3.50m - 1.00m,
+  Bus b when ((double)b.Riders / (double)b.Capacity) < 0.50 => 5.00m + 2.00m,
+  Bus b when ((double)b.Riders / (double)b.Capacity) > 0.90 => 5.00m - 1.00m,
+  Bus b => 5.00m,
+  DeliveryTruck t when (t.GrossWeightClass > 5000) => 10.00m + 5.00m,
+  DeliveryTruck t when (t.GrossWeightClass < 3000) => 10.00m - 2.00m,
+  DeliveryTruck t => 10.00m,
+  { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
+  null => 0 //throw new ArgumentNullException(nameof(vehicle))
+};".NormalizeLineEndings();
+            TestNormalizeStatement(a, b);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern()
+        {
+            var text = "_ = this is[ 1,2,.. var rest ];";
+            var expected = @"_ = this is [1, 2, ..var rest];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_TrailingComma()
+        {
+            var text = "_ = this is[ 1,2, 3,];";
+            var expected = @"_ = this is [1, 2, 3, ];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_EmptyList()
+        {
+            var text = "_ = this is[];";
+            var expected = @"_ = this is [];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestLineBreakInterpolations()
+        {
+            TestNormalizeExpression(
+                @"$""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""",
+                @"$""Printed: {new Printer(){TextToPrint = ""Hello world!""}.PrintedText}"""
+            );
+        }
+
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestVerbatimStringInterpolationWithLineBreaks()
+        {
+            TestNormalizeStatement(@"Console.WriteLine($@""Test with line
+breaks
+{
+                new[]{
+     1, 2, 3
+  }[2]
+}
+            "");",
+            @"Console.WriteLine($@""Test with line
+breaks
+{new[]{1, 2, 3}[2]}
+            "");"
+            );
+        }
+
         [Fact]
         public void TestNormalizeExpression1()
         {
@@ -62,6 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TestNormalizeExpression("(IList<int>)args", "(IList<int>)args");
             TestNormalizeExpression("(IList<IList<int>>)args", "(IList<IList<int>>)args");
+
+            TestNormalizeExpression("(IList<string?>)args", "(IList<string?>)args");
         }
 
         private void TestNormalizeExpression(string text, string expected)
@@ -165,6 +358,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("Func<string, int> f = blah;", "Func<string, int> f = blah;");
         }
 
+        [Theory]
+        [InlineData("int*p;", "int* p;")]
+        [InlineData("int *p;", "int* p;")]
+        [InlineData("int*p1,p2;", "int* p1, p2;")]
+        [InlineData("int *p1, p2;", "int* p1, p2;")]
+        [InlineData("int**p;", "int** p;")]
+        [InlineData("int **p;", "int** p;")]
+        [InlineData("int**p1,p2;", "int** p1, p2;")]
+        [InlineData("int **p1, p2;", "int** p1, p2;")]
+        [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
+        public void TestNormalizeAsteriskInPointerDeclaration(string text, string expected)
+        {
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
+        public void TestNormalizeAsteriskInPointerReturnTypeOfIndexer()
+        {
+            var text = @"public unsafe class C
+{
+  int*this[int x,int y]{get=>(int*)0;}
+}";
+            var expected = @"public unsafe class C
+{
+  int* this[int x, int y] { get => (int*)0; }
+}";
+            TestNormalizeDeclaration(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeAsteriskInVoidPointerCast()
+        {
+            var text = @"public unsafe class C
+{
+  void*this[int x,int y]{get   =>  (  void  *   ) 0;}
+}";
+            var expected = @"public unsafe class C
+{
+  void* this[int x, int y] { get => (void*)0; }
+}";
+            TestNormalizeDeclaration(text, expected);
+        }
+
         private void TestNormalizeStatement(string text, string expected)
         {
             var node = SyntaxFactory.ParseStatement(text);
@@ -181,9 +418,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("using a.b;", "using a.b;");
             TestNormalizeDeclaration("using A; using B; class C {}", "using A;\r\nusing B;\r\n\r\nclass C\r\n{\r\n}");
 
+            TestNormalizeDeclaration("global  using  a;", "global using a;");
+            TestNormalizeDeclaration("global  using  a=b;", "global using a = b;");
+            TestNormalizeDeclaration("global  using  a.b;", "global using a.b;");
+            TestNormalizeDeclaration("global using A; global using B; class C {}", "global using A;\r\nglobal using B;\r\n\r\nclass C\r\n{\r\n}");
+            TestNormalizeDeclaration("global using A; using B; class C {}", "global using A;\r\nusing B;\r\n\r\nclass C\r\n{\r\n}");
+            TestNormalizeDeclaration("using A; global using B; class C {}", "using A;\r\nglobal using B;\r\n\r\nclass C\r\n{\r\n}");
+
             // namespace
             TestNormalizeDeclaration("namespace a{}", "namespace a\r\n{\r\n}");
             TestNormalizeDeclaration("namespace a{using b;}", "namespace a\r\n{\r\n  using b;\r\n}");
+            TestNormalizeDeclaration("namespace a{global  using  b;}", "namespace a\r\n{\r\n  global using b;\r\n}");
             TestNormalizeDeclaration("namespace a{namespace b{}}", "namespace a\r\n{\r\n  namespace b\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("namespace a{}namespace b{}", "namespace a\r\n{\r\n}\r\n\r\nnamespace b\r\n{\r\n}");
 
@@ -201,10 +446,65 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class a{~a(){}}", "class a\r\n{\r\n  ~a()\r\n  {\r\n  }\r\n}");
 
             // properties
-            TestNormalizeDeclaration("class a{b c{get;}}", "class a\r\n{\r\n  b c\r\n  {\r\n    get;\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b c{get;}}", "class a\r\n{\r\n  b c { get; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint X{get;set;}= 2;\r\n}\r\n", "class a\r\n{\r\n  int X { get; set; } = 2;\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint Y\r\n{get;\r\nset;\r\n}\r\n=99;\r\n}\r\n", "class a\r\n{\r\n  int Y { get; set; } = 99;\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint Z{get;}\r\n}\r\n", "class a\r\n{\r\n  int Z { get; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint T{get;init;}\r\nint R{get=>1;}\r\n}\r\n", "class a\r\n{\r\n  int T { get; init; }\r\n\r\n  int R { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint Q{get{return 0;}init{}}\r\nint R{get=>1;}\r\n}\r\n", "class a\r\n{\r\n  int Q\r\n  {\r\n    get\r\n    {\r\n      return 0;\r\n    }\r\n\r\n    init\r\n    {\r\n    }\r\n  }\r\n\r\n  int R { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint R{get=>1;}\r\n}\r\n", "class a\r\n{\r\n  int R { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint S=>2;\r\n}\r\n", "class a\r\n{\r\n  int S => 2;\r\n}");
+            TestNormalizeDeclaration("class x\r\n{\r\nint _g;\r\nint G\r\n{\r\nget\r\n{\r\nreturn\r\n_g;\r\n}\r\ninit;\r\n}\r\nint H\r\n{\r\nget;\r\nset\r\n{\r\n_g\r\n=\r\n12;\r\n}\r\n}\r\n}\r\n",
+                "class x\r\n{\r\n  int _g;\r\n  int G\r\n  {\r\n    get\r\n    {\r\n      return _g;\r\n    }\r\n\r\n    init;\r\n  }\r\n\r\n  int H\r\n  {\r\n    get;\r\n    set\r\n    {\r\n      _g = 12;\r\n    }\r\n  }\r\n}");
+
+            TestNormalizeDeclaration("class i1\r\n{\r\nint\r\np\r\n{\r\nget;\r\n}\r\n}", "class i1\r\n{\r\n  int p { get; }\r\n}");
+            TestNormalizeDeclaration("class i2\r\n{\r\nint\r\np\r\n{\r\nget=>2;\r\n}\r\n}", "class i2\r\n{\r\n  int p { get => 2; }\r\n}");
+            TestNormalizeDeclaration("class i2a\r\n{\r\nint _p;\r\nint\r\np\r\n{\r\nget=>\r\n_p;set\r\n=>_p\r\n=value\r\n;\r\n}\r\n}", "class i2a\r\n{\r\n  int _p;\r\n  int p { get => _p; set => _p = value; }\r\n}");
+            TestNormalizeDeclaration("class i3\r\n{\r\nint\r\np\r\n{\r\nget{}\r\n}\r\n}", "class i3\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}\r\n}", "class i4\r\n{\r\n  int p { set; }\r\n}");
+            TestNormalizeDeclaration("class i5\r\n{\r\nint\r\np\r\n{\r\nset{}\r\n}\r\n}", "class i5\r\n{\r\n  int p\r\n  {\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i6\r\n{\r\nint\r\np\r\n{\r\ninit;\r\n}\r\n}", "class i6\r\n{\r\n  int p { init; }\r\n}");
+            TestNormalizeDeclaration("class i7\r\n{\r\nint\r\np\r\n{\r\ninit{}\r\n}\r\n}", "class i7\r\n{\r\n  int p\r\n  {\r\n    init\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i8\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset{}\r\n}\r\n}", "class i8\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i9\r\n{\r\nint\r\np\r\n{\r\nget=>1;\r\nset{z=1;}\r\n}\r\n}", "class i9\r\n{\r\n  int p\r\n  {\r\n    get => 1;\r\n    set\r\n    {\r\n      z = 1;\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class ia\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset;\r\n}\r\n}", "class ia\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  }\r\n}");
+            TestNormalizeDeclaration("class ib\r\n{\r\nint\r\np\r\n{\r\nget;\r\nset{}\r\n}\r\n}", "class ib\r\n{\r\n  int p\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+
+            // properties with initializers
+            TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}=1;\r\n}", "class i4\r\n{\r\n  int p { set; } = 1;\r\n}");
+            TestNormalizeDeclaration("class i5\r\n{\r\nint\r\np\r\n{\r\nset{}\r\n}=1;\r\n}", "class i5\r\n{\r\n  int p\r\n  {\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class i6\r\n{\r\nint\r\np\r\n{\r\ninit;\r\n}=1;\r\n}", "class i6\r\n{\r\n  int p { init; } = 1;\r\n}");
+            TestNormalizeDeclaration("class i7\r\n{\r\nint\r\np\r\n{\r\ninit{}\r\n}=1;\r\n}", "class i7\r\n{\r\n  int p\r\n  {\r\n    init\r\n    {\r\n    }\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class i8\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset{}\r\n}=1;\r\n}", "class i8\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class i9\r\n{\r\nint\r\np\r\n{\r\nget=>1;\r\nset{z=1;}\r\n}=1;\r\n}", "class i9\r\n{\r\n  int p\r\n  {\r\n    get => 1;\r\n    set\r\n    {\r\n      z = 1;\r\n    }\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class ia\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset;\r\n}=1;\r\n}", "class ia\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class ib\r\n{\r\nint\r\np\r\n{\r\nget;\r\nset{}\r\n}=1;\r\n}", "class ib\r\n{\r\n  int p\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
 
             // indexers
-            TestNormalizeDeclaration("class a{b this[c d]{get;}}", "class a\r\n{\r\n  b this[c d]\r\n  {\r\n    get;\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b this[c d]{get;}}", "class a\r\n{\r\n  b this[c d] { get; }\r\n}");
+            TestNormalizeDeclaration("class i1\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget;\r\n}\r\n}", "class i1\r\n{\r\n  int this[b c] { get; }\r\n}");
+            TestNormalizeDeclaration("class i2\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget=>1;\r\n}\r\n}", "class i2\r\n{\r\n  int this[b c] { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class i3\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget{}\r\n}\r\n}", "class i3\r\n{\r\n  int this[b c]\r\n  {\r\n    get\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i4\r\n{\r\nint\r\nthis[b c]\r\n{\r\nset;\r\n}\r\n}", "class i4\r\n{\r\n  int this[b c] { set; }\r\n}");
+            TestNormalizeDeclaration("class i5\r\n{\r\nint\r\nthis[b c]\r\n{\r\nset{}\r\n}\r\n}", "class i5\r\n{\r\n  int this[b c]\r\n  {\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i6\r\n{\r\nint\r\nthis[b c]\r\n{\r\ninit;\r\n}\r\n}", "class i6\r\n{\r\n  int this[b c] { init; }\r\n}");
+            TestNormalizeDeclaration("class i7\r\n{\r\nint\r\nthis[b c]\r\n{\r\ninit{}\r\n}\r\n}", "class i7\r\n{\r\n  int this[b c]\r\n  {\r\n    init\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i8\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget{}\r\nset{}\r\n}\r\n}", "class i8\r\n{\r\n  int this[b c]\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i9\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget=>1;\r\nset{z=1;}\r\n}\r\n}", "class i9\r\n{\r\n  int this[b c]\r\n  {\r\n    get => 1;\r\n    set\r\n    {\r\n      z = 1;\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class ia\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget{}\r\nset;\r\n}\r\n}", "class ia\r\n{\r\n  int this[b c]\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  }\r\n}");
+            TestNormalizeDeclaration("class ib\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget;\r\nset{}\r\n}\r\n}", "class ib\r\n{\r\n  int this[b c]\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+
+            // events
+            TestNormalizeDeclaration("class a\r\n{\r\npublic\r\nevent\r\nw\r\ne;\r\n}", "class a\r\n{\r\n  public event w e;\r\n}");
+            TestNormalizeDeclaration("abstract class b\r\n{\r\nevent\r\nw\r\ne\r\n;\r\n}", "abstract class b\r\n{\r\n  event w e;\r\n}");
+            TestNormalizeDeclaration("interface c1\r\n{\r\nevent\r\nw\r\ne\r\n;\r\n}", "interface c1\r\n{\r\n  event w e;\r\n}");
+            TestNormalizeDeclaration("interface c2 : c1\r\n{\r\nabstract\r\nevent\r\nw\r\nc1\r\n.\r\ne\r\n;\r\n}", "interface c2 : c1\r\n{\r\n  abstract event w c1.e;\r\n}");
+            TestNormalizeDeclaration("class d\r\n{\r\nevent w x;\r\nevent\r\nw\r\ne\r\n{\r\nadd\r\n=>\r\nx+=\r\nvalue;\r\nremove\r\n=>x\r\n-=\r\nvalue;\r\n}}", "class d\r\n{\r\n  event w x;\r\n  event w e { add => x += value; remove => x -= value; }\r\n}");
+            TestNormalizeDeclaration("class e\r\n{\r\nevent w e\r\n{\r\nadd{}\r\nremove{\r\n}\r\n}\r\n}", "class e\r\n{\r\n  event w e\r\n  {\r\n    add\r\n    {\r\n    }\r\n\r\n    remove\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class f\r\n{\r\nevent w x;\r\nevent w e\r\n{\r\nadd\r\n{\r\nx\r\n+=\r\nvalue;\r\n}\r\nremove\r\n{\r\nx\r\n-=\r\nvalue;\r\n}\r\n}\r\n}", "class f\r\n{\r\n  event w x;\r\n  event w e\r\n  {\r\n    add\r\n    {\r\n      x += value;\r\n    }\r\n\r\n    remove\r\n    {\r\n      x -= value;\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class g\r\n{\r\nextern\r\nevent\r\nw\r\ne\r\n=\r\nnull\r\n;\r\n}", "class g\r\n{\r\n  extern event w e = null;\r\n}");
+            TestNormalizeDeclaration("class h\r\n{\r\npublic event w e\r\n{\r\nadd\r\n=>\r\nc\r\n(\r\n);\r\nremove\r\n=>\r\nd(\r\n);\r\n}\r\n}", "class h\r\n{\r\n  public event w e { add => c(); remove => d(); }\r\n}");
+            TestNormalizeDeclaration("class i\r\n{\r\nevent w e\r\n{\r\nadd;\r\nremove;\r\n}\r\n}", "class i\r\n{\r\n  event w e { add; remove; }\r\n}");
 
             // fields
             TestNormalizeDeclaration("class a{b c;}", "class a\r\n{\r\n  b c;\r\n}");
@@ -236,6 +536,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFileScopedNamespace()
+        {
+            TestNormalizeDeclaration("namespace NS;class C{}", "namespace NS;\r\nclass C\r\n{\r\n}");
+        }
+
+        [Fact]
+        public void TestSpacingOnRecord()
+        {
+            TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
+            TestNormalizeDeclaration("record  struct  S(int I, int J);", "record struct S(int I, int J);");
+        }
+
+        [Fact]
         [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {
@@ -257,12 +570,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // no space between this and (
             TestNormalizeDeclaration(
                 "class C { C() : this () { } }",
-                "class C\r\n{\r\n  C(): this()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : this()\r\n  {\r\n  }\r\n}");
 
             // no space between base and (
             TestNormalizeDeclaration(
                 "class C { C() : base () { } }",
-                "class C\r\n{\r\n  C(): base()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : base()\r\n  {\r\n  }\r\n}");
 
             // no space between checked and (
             TestNormalizeExpression("checked (a)", "checked(a)");
@@ -439,6 +752,29 @@ namespace goo
             // Note: the literal was formatted as a C# string literal, not as a directive string literal.
         }
 
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveNode()
+        {
+            TestNormalize(
+                SyntaxFactory.LineSpanDirectiveTrivia(
+                    SyntaxFactory.Token(SyntaxKind.HashToken),
+                    SyntaxFactory.Token(SyntaxKind.LineKeyword),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(1), SyntaxFactory.Literal(2)),
+                    SyntaxFactory.Token(SyntaxKind.MinusToken),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(3), SyntaxFactory.Literal(4)),
+                    SyntaxFactory.Literal(5),
+                    SyntaxFactory.Literal("a.txt"),
+                    SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken),
+                    isActive: true),
+                "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+        }
+
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveTrivia()
+        {
+            TestNormalizeTrivia("  #  line( 1,2 )-(3,4)5\"a.txt\"", "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+        }
+
         [WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
         [Fact]
         public void TestNormalizeWithinDirectives()
@@ -559,6 +895,142 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration("(string prefix,string uri)ns", "(string prefix, string uri) ns");
             TestNormalizeDeclaration("public void Foo((string prefix,string uri)ns)", "public void Foo((string prefix, string uri) ns)");
             TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointer()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate * < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate*<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithManagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *managed < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* managed<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConventionAndSpecifiers()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged [ Cdecl ,  Thiscall ] < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged[Cdecl, Thiscall]<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(53254, "https://github.com/dotnet/roslyn/issues/53254")]
+        public void TestNormalizeColonInConstructorInitializer()
+        {
+            var content =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived():base(){}
+}";
+
+            var expected =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived() : base()
+  {
+  }
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(49732, "https://github.com/dotnet/roslyn/issues/49732")]
+        public void TestNormalizeXmlInDocComment()
+        {
+            var code = @"/// <returns>
+/// If this method succeeds, it returns <b xmlns:loc=""http://microsoft.com/wdcml/l10n"">S_OK</b>.
+/// </returns>";
+            TestNormalizeDeclaration(code, code);
+        }
+
+        [Theory]
+        [InlineData("_=()=>{};", "_ = () =>\r\n{\r\n};")]
+        [InlineData("_=x=>{};", "_ = x =>\r\n{\r\n};")]
+        [InlineData("Add(()=>{});", "Add(() =>\r\n{\r\n});")]
+        [InlineData("Add(delegate(){});", "Add(delegate ()\r\n{\r\n});")]
+        [InlineData("Add(()=>{{_=x=>{};}});", "Add(() =>\r\n{\r\n  {\r\n    _ = x =>\r\n    {\r\n    };\r\n  }\r\n});")]
+        [WorkItem(46656, "https://github.com/dotnet/roslyn/issues/46656")]
+        public void TestNormalizeBlockAnonymousFunctions(string actual, string expected)
+        {
+            TestNormalizeStatement(actual, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeExtendedPropertyPattern()
+        {
+            var text = "_ = this is{Property . Property :2};";
+
+            var expected = @"_ = this is { Property.Property: 2 };";
+            TestNormalizeStatement(text, expected);
         }
 
         private void TestNormalize(CSharpSyntaxNode node, string expected)

@@ -2,19 +2,89 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">La propriété d'initialisation uniquement '{0}' peut uniquement être affectée par un initialiseur de membre d'objet, ou sur 'Me', 'MyClass` ou 'MyBase' dans un constructeur d'instance.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">Impossible d’accéder à un membre d’interface abstract partagé.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="translated">Erreur de syntaxe de ligne de commande : '{0}' est une valeur non valide pour l'option '{1}'. La valeur doit se présenter sous la forme '{2}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Utilisez la version de langage {0} ou une version ultérieure pour utiliser des commentaires après le caractère de continuation de la ligne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">Impossible d'incorporer le type '{0}', car il a un membre non abstrait. Affectez la valeur false à la propriété 'Incorporer les types interop'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">Plusieurs fichiers config d'analyseur ne peuvent pas figurer dans le même répertoire ('{0}').</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">'{0}' ne peut pas substituer le '{1}' d'initialisation uniquement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">Impossible d'implémenter le '{0}' d'initialisation uniquement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">Impossible d'incorporer le type '{0}', car il a une nouvelle abstraction d'un membre de l'interface de base. Affectez la valeur false à la propriété 'Incorporer les types interop'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="translated">Le runtime cible ne prend pas en charge l'implémentation d'interface par défaut.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
+        <target state="translated">Le runtime cible ne prend pas en charge l'accessibilité 'Protected', 'Protected Friend' ou 'Private Protected' pour un membre d'interface.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">Les événements des variables WithEvents partagées ne peuvent pas être pris en charge par des méthodes dans un autre type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0} ' {1} 'ne peut pas implémenter l’interface' {3} ', car il contient un abstract partagé' {2} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">L'attribut 'UnmanagedCallersOnly' n'est pas pris en charge.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">expression d’argument de l’appelant</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">commentaires après la continuation de la ligne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">affectation ou passage de propriétés 'ByRef' avec des méthodes setter d'initialisation uniquement</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -95,10 +165,14 @@
 -warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 -ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
--errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
-                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -198,10 +272,10 @@
 -target:winmdobj                  Créer un fichier intermédiaire de métadonnées Windows
 -doc[+|-]                         Génère un fichier de documentation XML.
 -doc:&lt;fichier&gt;                    Génère un fichier de documentation XML dans &lt;fichier&gt;.
--refout:&lt;fichier&gt;                 Référencer la sortie d'assembly à générer
+-refout:&lt;fichier&gt;                 Sortie de l'assembly de référence à générer
 
                                   - FICHIERS D'ENTRÉE -
--addmodule:&lt;liste_fichiers&gt;   Référencer les métadonnées à partir des modules spécifiés
+-addmodule:&lt;liste_fichiers&gt;       Référencer les métadonnées à partir des modules spécifiés
 -link:&lt;liste_fichiers&gt;            Incorporer les métadonnées à partir de
                                   l'assembly d'interopérabilité spécifié. (Forme abrégée : -l)
 -recurse:&lt;générique&gt;              Inclure tous les fichiers dans le répertoire
@@ -211,7 +285,7 @@
                                   l'assembly spécifié. (Forme abrégée : -r)
 -analyzer:&lt;liste_fichiers&gt;        Exécuter les analyseurs à partir de cet assembly
                                   (Forme abrégée : -a)
--additionalfile:&lt;liste_fich.&gt;     Fichiers supplémentaires qui n'affectent pas directement
+-additionalfile:&lt;liste_fichiers&gt;     Fichiers supplémentaires qui n'affectent pas directement
                                   la génération de code mais qui peuvent être utilisés par les analyseurs pour produire
                                   des erreurs ou des avertissements.
 
@@ -255,10 +329,14 @@
 -warnaserror[+|-]:&lt;liste_numéros&gt; Traiter une liste d'avertissements comme des erreurs.
 -ruleset:&lt;fichier&gt;                Spécifier un fichier ruleset qui désactive des
                                   diagnostics spécifiques.
--errorlog:&lt;fichier&gt;               Spécifier un fichier pour journaliser tous les diagnostics du compilateur
-                                  et de l'analyseur.
--reportanalyzer                   Signaler des informations supplémentaires sur l'analyseur, comme
+-errorlog:&lt;fichier&gt;[,version=&lt;version_sarif&gt;]         
+                                  Spécifier un fichier pour journaliser tous les diagnostics du compilateur
+                                  et de l'analyseur au format SARIF.
+                                  version_sarif :{1|2|2.1} La valeur par défaut est 1. 2 et 2.1
+                                  Les deux signifient SARIF version 2.1.0.
+-reportanalyzer                   Signaler des informations supplémentaires sur l'analyseur, par exemple
                                   la durée d'exécution.
+-skipanalyzers[+|-]               Ignorer l'exécution des analyseurs de diagnostic.
 
                                   - LANGAGE -
 -define:&lt;liste_symboles&gt;          Déclarer des symboles de compilation
@@ -294,7 +372,7 @@
 
                                   - AVANCÉ -
 -baseaddress:&lt;numéro&gt;             Adresse de base d'une bibliothèque ou d'un module
-                                  (hex).
+                                  (en hexadécimal).
 -checksumalgorithm:&lt;alg&gt;          Spécifier l'algorithme de calcul de la somme de contrôle
                                   de fichier source stockée dans le fichier PDB. Valeurs prises en charge :
                                   SHA1 ou SHA256 (par défaut).
@@ -327,11 +405,10 @@
                                   Spécifier un mappage pour les noms de chemins sources sortis par
                                   le compilateur.
 -platform:&lt;chaîne&gt;                Limiter les plateformes sur lesquelles ce code peut s'exécuter ;
-                                  doit correspondre à x86, x64, Itanium, arm, arm64,
+                                  doit correspondre à x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred ou anycpu (par défaut).
 -preferreduilang                  Spécifier le nom du langage de sortie préféré.
--nosdkpath                        Désactiver la recherche dans le chemin du SDK par défaut pour trouver
-								  des assemblys de bibliothèques standard.
+-nosdkpath                        Désactivez la recherche du chemin du kit SDK par défaut pour les assemblys de bibliothèque standard.
 -sdkpath:&lt;chemin&gt;                 Emplacement du répertoire du SDK .NET Framework
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Spécifier la version du sous-système du PE de sortie.
@@ -344,6 +421,16 @@
 -vbruntime:&lt;fichier&gt;              Compiler avec le
                                   runtime Visual Basic de remplacement dans &lt;fichier&gt;.
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">Il n'existe aucun type de pointeur de fonction en VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="translated">Il n'existe aucun type d'entier natif dans VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -419,6 +506,70 @@
       <trans-unit id="TypeArgumentCannotBeNothing">
         <source>Type argument cannot be Nothing</source>
         <target state="translated">L'argument de type ne peut pas être Nothing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly '{0}' contenant le type '{1}' référence le .NET Framework, ce qui n'est pas pris en charge.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly chargé référence le .NET Framework, ce qui n'est pas pris en charge.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre « {0} » n’aura aucun effet. Il est appliqué avec un nom de paramètre non valide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre n’aura aucun effet. Il est appliqué avec un nom de paramètre non valide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre « {0} » n’aura aucun effet, car il est auto-référentiel.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre n’aura aucun effet, car il est auto-référentiel.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Le générateur '{0}' n'a pas pu générer la source. Dans la mesure où il ne va pas contribuer à la sortie, des erreurs de compilation peuvent se produire. Exception levée de type '{1}' avec le message '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Le générateur a levé l'exception suivante :
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">Le générateur n'a pas pu générer la source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Échec de l'initialisation du générateur '{0}'. Dans la mesure où il ne va pas contribuer à la sortie, des erreurs de compilation peuvent se produire. Exception levée de type '{1}' avec le message '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Le générateur a levé l'exception suivante :
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">Échec de l'initialisation du générateur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
@@ -746,6 +897,11 @@
         <target state="translated">Caractère non valide.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="translated">L'argument stdin '-' est spécifié, mais l'entrée n'a pas été redirigée à partir du flux d'entrée standard.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
         <source>Option Strict On prohibits operands of type Object for operator '{0}'.</source>
         <target state="translated">Option Strict On interdit les opérandes de type Object pour l'opérateur '{0}'.</target>
@@ -758,7 +914,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodBodyNotAtLineStart">
         <source>First statement of a method body cannot be on the same line as the method declaration.</source>
-        <target state="translated">La première instruction du corps d'une méthode ne peut pas se trouver sur la même ligne que la déclaration de la méthode.</target>
+        <target state="translated">La première instruction d'un corps de méthode ne peut pas se trouver sur la même ligne que la déclaration de la méthode.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MaximumNumberOfErrors">
@@ -1506,8 +1662,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">Échec de l'émission du module '{0}'.</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="translated">Échec de l'émission du module '{0}' : {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -1532,7 +1688,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvInsideEndsProc">
         <source>Statement cannot appear within a method body. End of method assumed.</source>
-        <target state="translated">Cette instruction ne peut pas apparaître dans le corps d'une méthode. Elle est interprétée comme la fin de la méthode.</target>
+        <target state="translated">Cette instruction ne peut pas apparaître dans le corps de méthode. Elle est interprétée comme la fin de la méthode.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameAsFunc">
@@ -2091,7 +2247,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing3">
         <source>Argument matching parameter '{0}' narrows from '{1}' to '{2}'.</source>
-        <target state="translated">L'argument qui correspond au paramètre '{0}' passe de '{1}' à '{2}'.</target>
+        <target state="translated">Le paramètre de correspondance d'arguments '{0}' passe de '{1}' à '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMostSpecificOverload2">
@@ -2720,7 +2876,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExecutableAsDeclaration">
         <source>Statement cannot appear outside of a method body.</source>
-        <target state="translated">Cette instruction ne peut pas apparaître en dehors du corps d'une méthode.</target>
+        <target state="translated">Cette instruction ne peut pas apparaître en dehors du corps de méthode.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructureNoDefault1">
@@ -3236,7 +3392,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">Le caractère de continuation de ligne '_' doit être précédé d'au moins un espace blanc et doit être le dernier caractère de la ligne.</target>
+        <target state="translated">Le caractère de continuation de ligne '_' doit être précédé d'au moins un espace blanc et être suivi d'un commentaire. Sinon, '_' doit être le dernier caractère de la ligne.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -3836,7 +3992,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">]]&gt;' fermant attendu pour une section CDATA XML.</target>
+        <target state="translated">']]&gt;' fermant attendu pour une section CDATA XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">
@@ -3851,7 +4007,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedLT">
         <source>Expected beginning '&lt;' for an XML tag.</source>
-        <target state="translated">&lt;' ouvrant attendu pour une balise XML.</target>
+        <target state="translated">'&lt;' ouvrant attendu pour une balise XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StartAttributeValue">
@@ -4823,7 +4979,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDisallowedForStructConstr1">
         <source>'System.Nullable' does not satisfy the 'Structure' constraint for type parameter '{0}'. Only non-nullable 'Structure' types are allowed.</source>
-        <target state="translated">'System.Nullable' ne satisfait pas la contrainte 'Structure' pour le paramètre de type '{0}'. Seuls les types 'Structure' non Nullable sont autorisés.</target>
+        <target state="translated">'System.Nullable' ne satisfait pas la contrainte 'Structure' pour le paramètre de type '{0}'. Seuls les types 'Structure' non-nullable sont autorisés.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingDirectConstraints3">
@@ -5877,7 +6033,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing2">
         <source>Argument matching parameter '{0}' narrows to '{1}'.</source>
-        <target state="translated">L'argument qui correspond au paramètre '{0}' passe à '{1}'.</target>
+        <target state="translated">Le paramètre de correspondance d'arguments '{0}' passe à '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadCandidate1">
@@ -6729,7 +6885,7 @@
       </trans-unit>
       <trans-unit id="WRN_EqualToLiteralNothing">
         <source>This expression will always evaluate to Nothing (due to null propagation from the equals operator). To check if the value is null consider using 'Is Nothing'.</source>
-        <target state="translated">Cette expression sera toujours évaluée en Nothing (en raison de la propagation null à partir de l'opérateur égal). Pour vérifier si la valeur est null, utilisez 'Is Nothing'.</target>
+        <target state="translated">Cette expression sera toujours évaluée en Nothing (en raison de la propagation nulle à partir de l'opérateur égal). Pour vérifier si la valeur est null, utilisez 'Is Nothing'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualToLiteralNothing_Title">
@@ -6739,7 +6895,7 @@
       </trans-unit>
       <trans-unit id="WRN_NotEqualToLiteralNothing">
         <source>This expression will always evaluate to Nothing (due to null propagation from the equals operator). To check if the value is not null consider using 'IsNot Nothing'.</source>
-        <target state="translated">Cette expression sera toujours évaluée en Nothing (en raison de la propagation null à partir de l'opérateur égal). Pour vérifier si la valeur n'est pas null, utilisez 'IsNot Nothing'.</target>
+        <target state="translated">Cette expression sera toujours évaluée en Nothing (en raison de la propagation nulle à partir de l'opérateur égal). Pour vérifier si la valeur n'est pas null, utilisez 'IsNot Nothing'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NotEqualToLiteralNothing_Title">
@@ -6789,32 +6945,32 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncRef1">
         <source>Function '{0}' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.</source>
-        <target state="translated">La fonction '{0}' ne retourne pas une valeur pour tous les chemins de code. Une exception de référence null peut se produire au moment de l'exécution lorsque le résultat est utilisé.</target>
+        <target state="translated">La fonction '{0}' ne retourne pas une valeur pour tous les chemins du code. Une exception de référence null peut se produire au moment de l'exécution lorsque le résultat est utilisé.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncRef1_Title">
         <source>Function doesn't return a value on all code paths</source>
-        <target state="translated">La fonction ne renvoie pas de valeur sur tous les chemins de code</target>
+        <target state="translated">La fonction ne retourne pas de valeur sur tous les chemins du code</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpRef1">
         <source>Operator '{0}' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.</source>
-        <target state="translated">L'opérateur '{0}' ne retourne pas une valeur pour tous les chemins de code. Une exception de référence null peut se produire au moment de l'exécution lorsque le résultat est utilisé.</target>
+        <target state="translated">L'opérateur '{0}' ne retourne pas une valeur pour tous les chemins du code. Une exception de référence null peut se produire au moment de l'exécution lorsque le résultat est utilisé.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpRef1_Title">
         <source>Operator doesn't return a value on all code paths</source>
-        <target state="translated">L’opérateur ne renvoie pas de valeur sur tous les chemins de code</target>
+        <target state="translated">L’opérateur ne retourne pas de valeur sur tous les chemins du code</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropRef1">
         <source>Property '{0}' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.</source>
-        <target state="translated">La propriété '{0}' ne retourne pas une valeur pour tous les chemins de code. Une exception de référence null peut se produire au moment de l'exécution lorsque le résultat est utilisé.</target>
+        <target state="translated">La propriété '{0}' ne retourne pas une valeur pour tous les chemins du code. Une exception de référence null peut se produire au moment de l'exécution lorsque le résultat est utilisé.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropRef1_Title">
         <source>Property doesn't return a value on all code paths</source>
-        <target state="translated">La propriété ne renvoie pas une valeur sur tous les chemins d’accès de code</target>
+        <target state="translated">La propriété ne retourne pas une valeur sur tous les chemins du code</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr">
@@ -7279,32 +7435,32 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncVal1">
         <source>Function '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">La fonction '{0}' ne retourne pas une valeur pour tous les chemins de code. Une instruction 'Return' est-elle manquante ?</target>
+        <target state="translated">La fonction '{0}' ne retourne pas une valeur pour tous les chemins du code. Une instruction 'Return' est-elle manquante ?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValFuncVal1_Title">
         <source>Function doesn't return a value on all code paths</source>
-        <target state="translated">La fonction ne renvoie pas de valeur sur tous les chemins de code</target>
+        <target state="translated">La fonction ne retourne pas de valeur sur tous les chemins du code</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpVal1">
         <source>Operator '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">L'opérateur '{0}' ne retourne pas une valeur pour tous les chemins de code. Une instruction 'Return' est-elle manquante ?</target>
+        <target state="translated">L'opérateur '{0}' ne retourne pas une valeur pour tous les chemins du code. Une instruction 'Return' est-elle manquante ?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValOpVal1_Title">
         <source>Operator doesn't return a value on all code paths</source>
-        <target state="translated">L’opérateur ne renvoie pas de valeur sur tous les chemins de code</target>
+        <target state="translated">L’opérateur ne retourne pas de valeur sur tous les chemins du code</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropVal1">
         <source>Property '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">La propriété '{0}' ne retourne pas une valeur pour tous les chemins de code. Une instruction 'Return' est-elle manquante ?</target>
+        <target state="translated">La propriété '{0}' ne retourne pas une valeur pour tous les chemins du code. Une instruction 'Return' est-elle manquante ?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValPropVal1_Title">
         <source>Property doesn't return a value on all code paths</source>
-        <target state="translated">La propriété ne renvoie pas une valeur sur tous les chemins d’accès de code</target>
+        <target state="translated">La propriété ne retourne pas une valeur sur tous les chemins du code</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NestedGlobalNamespace">
@@ -8211,12 +8367,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1">
         <source>The AddHandler for Windows Runtime event '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">L'événement AddHandler pour Windows Runtime '{0}' ne retourne pas une valeur pour tous les chemins de code. Une instruction 'Return' est-elle manquante ?</target>
+        <target state="translated">L'événement AddHandler pour Windows Runtime '{0}' ne retourne pas une valeur pour tous les chemins du code. Une instruction 'Return' est-elle manquante ?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1_Title">
         <source>The AddHandler for Windows Runtime event doesn't return a value on all code paths</source>
-        <target state="translated">L’événement AddHandler pour Windows Runtime ne renvoie pas de valeur sur tous les chemins de code</target>
+        <target state="translated">L’événement AddHandler pour Windows Runtime ne retourne pas de valeur sur tous les chemins du code</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodDefaultParameterValueMismatch2">
@@ -8760,8 +8916,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">La longueur de la constante de chaîne dépasse la limite de mémoire actuelle. Essayez de fractionner la chaîne en plusieurs constantes.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="translated">La longueur de la constante de chaîne qui résulte de la concaténation dépasse System.Int32.MaxValue. Essayez de diviser la chaîne en plusieurs constantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -9106,7 +9262,17 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">Le nom de fichier '{0}' est vide, contient des caractères non valides, spécifie un lecteur sans chemin d'accès absolu ou est trop long</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB">
+        <source>'{0}' is not supported in VB.</source>
+        <target state="translated">'{0}' n’est pas pris en charge dans VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
+        <source>Attribute is not supported in VB</source>
+        <target state="translated">L’attribut n’est pas pris en charge dans VB</target>
         <note />
       </trans-unit>
     </body>

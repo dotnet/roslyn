@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -17,39 +21,16 @@ using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty
 {
     [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]
-    internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService, IReplaceMethodWithPropertyService
+    internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService<MethodDeclarationSyntax>, IReplaceMethodWithPropertyService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpReplaceMethodWithPropertyService()
         {
         }
 
-        public SyntaxNode GetMethodDeclaration(SyntaxToken token)
-        {
-            var containingMethod = token.Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-            if (containingMethod == null)
-            {
-                return null;
-            }
-
-            var start = containingMethod.AttributeLists.Count > 0
-                ? containingMethod.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
-                : containingMethod.SpanStart;
-
-            // Offer this refactoring anywhere in the signature of the method.
-            var position = token.SpanStart;
-            if (position < start || position > containingMethod.ParameterList.Span.End)
-            {
-                return null;
-            }
-
-            return containingMethod;
-        }
-
         public void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration)
-        {
-            editor.RemoveNode(setMethodDeclaration);
-        }
+            => editor.RemoveNode(setMethodDeclaration);
 
         public void ReplaceGetMethodWithProperty(
             DocumentOptionSet documentOptions,
@@ -59,27 +40,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
         {
-            var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration as MethodDeclarationSyntax;
-            if (getMethodDeclaration == null)
+            if (getAndSetMethods.GetMethodDeclaration is not MethodDeclarationSyntax getMethodDeclaration)
             {
                 return;
             }
 
+            var languageVersion = parseOptions.LanguageVersion();
             var newProperty = ConvertMethodsToProperty(
-                documentOptions, parseOptions,
+                documentOptions, languageVersion,
                 semanticModel, editor.Generator,
                 getAndSetMethods, propertyName, nameChanged);
 
             editor.ReplaceNode(getMethodDeclaration, newProperty);
         }
 
-        public SyntaxNode ConvertMethodsToProperty(
-            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+        public static SyntaxNode ConvertMethodsToProperty(
+            DocumentOptionSet documentOptions, LanguageVersion languageVersion,
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
         {
             var propertyDeclaration = ConvertMethodsToPropertyWorker(
-                documentOptions, parseOptions, semanticModel,
+                documentOptions, languageVersion, semanticModel,
                 generator, getAndSetMethods, propertyName, nameChanged);
 
             var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
@@ -97,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                     }
                     else if (getAccessor.Body != null &&
                              getAccessor.Body.TryConvertToArrowExpressionBody(
-                                 propertyDeclaration.Kind(), parseOptions, expressionBodyPreference,
+                                 propertyDeclaration.Kind(), languageVersion, expressionBodyPreference,
                                  out var arrowExpression, out var semicolonToken))
                     {
                         return propertyDeclaration.WithExpressionBody(arrowExpression)
@@ -128,14 +109,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             return propertyDeclaration;
         }
 
-        public PropertyDeclarationSyntax ConvertMethodsToPropertyWorker(
-            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+        public static PropertyDeclarationSyntax ConvertMethodsToPropertyWorker(
+            DocumentOptionSet documentOptions, LanguageVersion languageVersion,
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
         {
-            var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration as MethodDeclarationSyntax;
-            var getAccessor = CreateGetAccessor(getAndSetMethods, documentOptions, parseOptions);
-            var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods, documentOptions, parseOptions);
+            var getMethodDeclaration = (MethodDeclarationSyntax)getAndSetMethods.GetMethodDeclaration;
+            var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration as MethodDeclarationSyntax;
+            var getAccessor = CreateGetAccessor(getAndSetMethods, documentOptions, languageVersion);
+            var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods, documentOptions, languageVersion);
 
             var nameToken = GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged);
             var warning = GetWarning(getAndSetMethods);
@@ -149,8 +131,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier,
                 nameToken, accessorList: null);
 
+            // copy 'unsafe' from the set method, if it hasn't been already copied from the get method
+            if (setMethodDeclaration?.Modifiers.Any(SyntaxKind.UnsafeKeyword) == true
+                && !property.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+            {
+                property = property.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            }
+
             property = SetLeadingTrivia(
-                CSharpSyntaxFactsService.Instance, getAndSetMethods, property);
+                CSharpSyntaxFacts.Instance, getAndSetMethods, property);
 
             var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
             if (setAccessor != null)
@@ -163,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             return property.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private SyntaxToken GetPropertyName(SyntaxToken identifier, string propertyName, bool nameChanged)
+        private static SyntaxToken GetPropertyName(SyntaxToken identifier, string propertyName, bool nameChanged)
         {
             return nameChanged
                 ? SyntaxFactory.Identifier(propertyName)
@@ -171,23 +160,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         }
 
         private static AccessorDeclarationSyntax CreateGetAccessor(
-            GetAndSetMethods getAndSetMethods, DocumentOptionSet documentOptions, ParseOptions parseOptions)
+            GetAndSetMethods getAndSetMethods, DocumentOptionSet documentOptions, LanguageVersion languageVersion)
         {
             var accessorDeclaration = CreateGetAccessorWorker(getAndSetMethods);
 
             return UseExpressionOrBlockBodyIfDesired(
-                documentOptions, parseOptions, accessorDeclaration);
+                documentOptions, languageVersion, accessorDeclaration);
         }
 
         private static AccessorDeclarationSyntax UseExpressionOrBlockBodyIfDesired(
-            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+            DocumentOptionSet documentOptions, LanguageVersion languageVersion,
             AccessorDeclarationSyntax accessorDeclaration)
         {
             var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
             if (accessorDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (accessorDeclaration.Body.TryConvertToArrowExpressionBody(
-                        accessorDeclaration.Kind(), parseOptions, expressionBodyPreference,
+                        accessorDeclaration.Kind(), languageVersion, expressionBodyPreference,
                         out var arrowExpression, out var semicolonToken))
                 {
                     return accessorDeclaration.WithBody(null)
@@ -240,18 +229,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
 
         private static AccessorDeclarationSyntax CreateSetAccessor(
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
-            DocumentOptionSet documentOptions, ParseOptions parseOptions)
+            DocumentOptionSet documentOptions, LanguageVersion languageVersion)
         {
             var accessorDeclaration = CreateSetAccessorWorker(semanticModel, generator, getAndSetMethods);
-            return UseExpressionOrBlockBodyIfDesired(documentOptions, parseOptions, accessorDeclaration);
+            return UseExpressionOrBlockBodyIfDesired(documentOptions, languageVersion, accessorDeclaration);
         }
 
         private static AccessorDeclarationSyntax CreateSetAccessorWorker(
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods)
         {
-            var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration as MethodDeclarationSyntax;
             var setMethod = getAndSetMethods.SetMethod;
-            if (setMethodDeclaration == null || setMethod?.Parameters.Length != 1)
+            if (getAndSetMethods.SetMethodDeclaration is not MethodDeclarationSyntax setMethodDeclaration || setMethod?.Parameters.Length != 1)
             {
                 return null;
             }
@@ -320,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         // We use the callback form if "ReplaceNode" here because we want to see the
         // invocation expression after any rewrites we already did when rewriting previous
         // 'get' references.
-        private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceGetReferenceInvocation =
+        private static readonly Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceGetReferenceInvocation =
             (editor, invocation, nameNode, newName) => editor.ReplaceNode(invocation, (i, g) =>
             {
                 var currentInvocation = (InvocationExpressionSyntax)i;
@@ -329,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return currentInvocation.Expression.ReplaceNode(currentName, newName);
             });
 
-        private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceSetReferenceInvocation =
+        private static readonly Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceSetReferenceInvocation =
             (editor, invocation, nameNode, newName) =>
             {
                 if (invocation.ArgumentList?.Arguments.Count != 1 ||
@@ -367,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         public void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged)
             => ReplaceInvocation(editor, nameToken, propertyName, nameChanged, s_replaceSetReferenceInvocation);
 
-        public void ReplaceInvocation(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged,
+        public static void ReplaceInvocation(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged,
             Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> replace)
         {
             if (nameToken.Kind() != SyntaxKind.IdentifierToken)
@@ -375,8 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
-            var nameNode = nameToken.Parent as IdentifierNameSyntax;
-            if (nameNode == null)
+            if (nameToken.Parent is not IdentifierNameSyntax nameNode)
             {
                 return;
             }

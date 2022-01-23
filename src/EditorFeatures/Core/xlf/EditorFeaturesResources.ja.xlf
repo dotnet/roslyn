@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
+        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
+        <target state="translated">識別子 '{0}' のインラインの名前変更セッションがアクティブです。追加オプションにアクセスするには、インラインの名前変更をもう一度呼び出します。名前を変更する識別子はいつでも引き続き編集できます。</target>
+        <note>For screenreaders. {0} is the identifier being renamed.</note>
+      </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">変更の適用</target>
@@ -14,12 +19,17 @@
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
         <source>Code cleanup is not configured</source>
-        <target state="translated">コードのクリーンアップは構成されていません</target>
+        <target state="translated">コード クリーンアップは構成されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
         <target state="translated">今すぐ構成する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_prefer_this_or_Me">
+        <source>Do not prefer 'this.' or 'Me.'</source>
+        <target state="translated">'this.' または 'Me' を優先しない</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
@@ -30,6 +40,21 @@
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
         <source>Do you still want to proceed? This may produce broken code.</source>
         <target state="translated">続行しますか。破損状態のコードが生成される可能性があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="translated">おすすめのアクションを実行する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="translated">インポートされていない名前空間の項目</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="translated">展開コントロール</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method_encountered_the_following_issues">
@@ -47,6 +72,76 @@
         <target state="translated">ドキュメントのフォーマットで追加のクリーンアップが実行されました</target>
         <note />
       </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="translated">'{0}' のヘルプの表示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0_from_Bing">
+        <source>Get help for '{0}' from Bing</source>
+        <target state="translated">Bing から '{0}' のヘルプを表示します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_0">
+        <source>Gathering Suggestions - '{0}'</source>
+        <target state="translated">提案を収集しています - '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="translated">提案を収集しています - ソリューションが完全に読み込まれるのを待機しています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="translated">基本へ移動</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators</source>
+        <target state="translated">算術演算子内で</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators</source>
+        <target state="translated">その他のバイナリ演算子内で</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators</source>
+        <target state="translated">関係演算子内で</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_Size">
+        <source>Indentation Size</source>
+        <target state="translated">インデントのサイズ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Error">
+        <source>Inline Diagnostics - Error</source>
+        <target state="translated">インライン診断 - エラー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Rude_Edit">
+        <source>Inline Diagnostics - Rude Edit</source>
+        <target state="translated">インライン診断 - Rude Edit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Warning">
+        <source>Inline Diagnostics - Warning</source>
+        <target state="translated">インライン診断 - 警告</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">インラインのヒント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Final_Newline">
+        <source>Insert Final Newline</source>
+        <target state="translated">最後の改行を挿入する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">無効なアセンブリ名</target>
@@ -62,9 +157,24 @@
         <target state="translated">キーワード - コントロール</target>
         <note />
       </trans-unit>
-      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
-        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="translated">{0} を初期化できませんでした。状態 = {1}。例外 = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="translated">ベースを検索しています...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Line">
+        <source>New Line</source>
+        <target state="translated">改行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No">
+        <source>No</source>
+        <target state="translated">いいえ</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -77,6 +187,16 @@
         <target state="translated">追跡の貼り付け</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">参照の等値性のチェックには 'is null' を優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_this_or_Me">
+        <source>Prefer 'this.' or 'Me.'</source>
+        <target state="translated">'this.' または 'Me' を優先する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">プリプロセッサ テキスト</target>
@@ -85,6 +205,51 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">句読点</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_event_access_with_this_or_Me">
+        <source>Qualify event access with 'this' or 'Me'</source>
+        <target state="translated">イベント アクセスを 'this' または 'Me' で修飾する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_this_or_Me">
+        <source>Qualify field access with 'this' or 'Me'</source>
+        <target state="translated">フィールド アクセスを 'this' または 'Me' で修飾する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this_or_Me">
+        <source>Qualify method access with 'this' or 'Me'</source>
+        <target state="translated">メソッド アクセスを 'this' または 'Me' で修飾する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this_or_Me">
+        <source>Qualify property access with 'this' or 'Me'</source>
+        <target state="translated">プロパティ アクセスを 'this' または 'Me' で修飾する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="translated">再割り当てされる変数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_name_doesnt_match">
+        <source>Rename _file (type does not match file name)</source>
+        <target state="translated">ファイル名の変更 (種類がファイル名と一致しません)(_F)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_partial_type">
+        <source>Rename _file (not allowed on partial types)</source>
+        <target state="translated">ファイル名の変更 (部分型では許可されません)(_F)</target>
+        <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="translated">シンボルのファイルの名前を変更する(_F)</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">コメントの分割</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -97,9 +262,44 @@
         <target state="translated">シンボル - 静的</target>
         <note />
       </trans-unit>
+      <trans-unit id="Tab_Size">
+        <source>Tab Size</source>
+        <target state="translated">タブのサイズ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
+        <source>The results may be incomplete due to the solution still loading projects.</source>
+        <target state="translated">ソリューションでプロジェクトを読み込み中であるため、結果は不完全になる可能性があります。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">シンボルにベースがありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">ブロック コメントの切り替え</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">行コメントの切り替え</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">ブロック コメントを切り替えています...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">行コメントを切り替えています...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Tabs">
+        <source>Use Tabs</source>
+        <target state="translated">タブの使用</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -177,6 +377,16 @@
         <target state="translated">ユーザー タイプ - インターフェイス</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Record_Structs">
+        <source>User Types - Record Structs</source>
+        <target state="translated">ユーザー タイプ - レコード構造体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">ユーザー タイプ - レコード</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Structures">
         <source>User Types - Structures</source>
         <target state="translated">ユーザー タイプ - 構造体</target>
@@ -190,6 +400,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">文字列 - Verbatim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="translated">バックグラウンド作業が終了するのを待っています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_image_element">
@@ -317,14 +532,34 @@
         <target state="translated">名前を変更すると、{1} 個のファイル内の {0} 個の参照が更新されます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Yes">
+        <source>Yes</source>
+        <target state="translated">はい</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
+        <source>You cannot rename this element because it is contained in a read-only file.</source>
+        <target state="translated">この要素は、読み取り専用ファイルに含まれているため、名前を変更できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
+        <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
+        <target state="translated">この要素は、移動できない場所にあるため、名前を変更できません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">'{0}' ベース</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">{0} 個の競合が解決されます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implemented_members">
+        <source>'{0}' implemented members</source>
+        <target state="translated">'{0}' が実装されたメンバー</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -405,11 +640,6 @@
       <trans-unit id="Given_Workspace_doesn_t_support_Undo">
         <source>Given Workspace doesn't support Undo</source>
         <target state="translated">指定されたワークスペースは元に戻す操作をサポートしていません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
-        <source>Document must be contained in the workspace that created this service</source>
-        <target state="translated">このサービスを作成したワークスペースにドキュメントが含まれている必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="Searching">
@@ -544,7 +774,7 @@
       </trans-unit>
       <trans-unit id="Rename_operation_was_cancelled_or_is_not_valid">
         <source>Rename operation was cancelled or is not valid</source>
-        <target state="translated">名前の変更操作は取り消されたか、または検証されていません。</target>
+        <target state="translated">名前の変更操作は取り消されたか、または検証されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Symbol">
@@ -564,7 +794,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{0}' を '{1}' に名前変更</target>
+        <target state="translated">'{0}' を '{1}' に名前変更</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -572,9 +802,9 @@
         <target state="translated">警告のプレビュー</target>
         <note />
       </trans-unit>
-      <trans-unit id="from_metadata">
-        <source>from metadata</source>
-        <target state="translated">メタデータから</target>
+      <trans-unit id="external">
+        <source>(external)</source>
+        <target state="translated">(外部)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_Line_Ender">
@@ -650,11 +880,6 @@
       <trans-unit id="Format_Token">
         <source>Format Token</source>
         <target state="translated">書式トークン</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">スマート インデント</target>
         <note />
       </trans-unit>
       <trans-unit id="Find_References">
@@ -864,7 +1089,7 @@
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
-        <target state="translated">対話型ウィンドウにエンジンを関連付ける必要があります。</target>
+        <target state="translated">インタラクティブ ウィンドウにエンジンを関連付ける必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changes_the_current_prompt_settings">
@@ -930,11 +1155,6 @@
       <trans-unit id="Peek">
         <source>Peek</source>
         <target state="translated">ピーク</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="symbol_cannot_be_a_namespace">
-        <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'symbol' は名前空間にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">
@@ -1016,7 +1236,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
-        <target state="translated">{0}' の名前を '{1}' に変更します。</target>
+        <target state="translated">'{0}' の名前を '{1}' に変更します:</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_Field_colon">
@@ -1031,7 +1251,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Calls_To_0">
         <source>Calls To '{0}'</source>
-        <target state="translated">{0}' への呼び出し</target>
+        <target state="translated">'{0}' への呼び出し</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Base_Member_0">
@@ -1051,7 +1271,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
-        <target state="translated">{0}' を実装します</target>
+        <target state="translated">'{0}' を実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Initializers">
@@ -1071,7 +1291,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
-        <target state="translated">プレビューの変更(_P)</target>
+        <target state="translated">変更のプレビュー(_P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply3">
@@ -1122,11 +1342,6 @@ Do you want to proceed?</source>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">かっこ完了</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">次の場所のすべての出現箇所を修正します</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
@@ -1209,11 +1424,6 @@ Do you want to proceed?</source>
         <target state="translated">'{0}' の宣言</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_inline_rename_session_is_active">
-        <source>An inline rename session is active</source>
-        <target state="translated">インラインの名前変更セッションがアクティブです</target>
-        <note>For screenreaders</note>
-      </trans-unit>
       <trans-unit id="Inline_Rename_Conflict">
         <source>Inline Rename Conflict</source>
         <target state="translated">インラインの名前変更の競合</target>
@@ -1277,6 +1487,51 @@ Do you want to proceed?</source>
       <trans-unit id="Outlining">
         <source>Outlining</source>
         <target state="translated">アウトライン</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">正規表現 - コメント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">正規表現 - 文字クラス</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">正規表現 - 代替</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">正規表現 - アンカー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">正規表現 - 量指定子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">正規表現 - 自己エスケープ文字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">正規表現 - グループ化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">正規表現 - テキスト</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">正規表現 - 他のエスケープ</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking_Cancellation">

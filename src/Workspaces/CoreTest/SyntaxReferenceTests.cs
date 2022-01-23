@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -15,37 +21,41 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SyntaxReferenceTests : TestBase
     {
-        private Solution CreateSingleFileCSharpSolution(string source)
+        private static Workspace CreateWorkspace(Type[] additionalParts = null)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+
+        private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
+            => CreateWorkspace(new[]
+            {
+                typeof(TestProjectCacheService),
+                typeof(TestTemporaryStorageService)
+            });
+
+        private static Solution AddSingleFileCSharpProject(Solution solution, string source)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
-            return CreateEmptySolutionUsingRecoverableSyntaxTrees()
-                           .AddProject(pid, "Test", "Test.dll", LanguageNames.CSharp)
-                           .AddDocument(did, "Test.cs", SourceText.From(source));
+            return solution
+                .AddProject(pid, "Test", "Test.dll", LanguageNames.CSharp)
+                .AddDocument(did, "Test.cs", SourceText.From(source));
         }
 
-        private Solution CreateSingleFileVisualBasicSolution(string source)
+        private static Solution AddSingleFileVisualBasicProject(Solution solution, string source)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
-            return CreateEmptySolutionUsingRecoverableSyntaxTrees()
-                           .AddProject(pid, "Test", "Test.dll", LanguageNames.VisualBasic)
-                           .AddDocument(did, "Test.vb", SourceText.From(source));
-        }
-
-        private static Solution CreateEmptySolutionUsingRecoverableSyntaxTrees()
-        {
-            var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), workspaceKind: "NotKeptAlive");
-            workspace.Options = workspace.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
-            return workspace.CurrentSolution;
+            return solution
+                .AddProject(pid, "Test", "Test.dll", LanguageNames.VisualBasic)
+                .AddDocument(did, "Test.vb", SourceText.From(source));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCSharpReferenceToZeroWidthNode()
         {
-            var solution = CreateSingleFileCSharpSolution(@"
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
 public class C<> 
 {
 }
@@ -68,7 +78,8 @@ public class C<>
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestVisualBasicReferenceToZeroWidthNode()
         {
-            var solution = CreateSingleFileVisualBasicSolution(@"
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
 Public Class C(Of )
 End Class
 ");
@@ -90,14 +101,14 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCSharpReferenceToNodeInStructuredTrivia()
         {
-            var solution = CreateSingleFileCSharpSolution(@"
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
 #if true || true
 public class C 
 {
 }
 #endif
 ");
-
             var tree = solution.Projects.First().Documents.First().GetSyntaxTreeAsync().Result;
 
             // find binary node that is part of #if directive
@@ -114,7 +125,8 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestVisualBasicReferenceToNodeInStructuredTrivia()
         {
-            var solution = CreateSingleFileVisualBasicSolution(@"
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
 #If True Or True Then
 Public Class C
 End Class
@@ -137,7 +149,8 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCSharpReferenceToZeroWidthNodeInStructuredTrivia()
         {
-            var solution = CreateSingleFileCSharpSolution(@"
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
 #if true ||
 public class C 
 {
@@ -165,7 +178,8 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async System.Threading.Tasks.Task TestVisualBasicReferenceToZeroWidthNodeInStructuredTriviaAsync()
         {
-            var solution = CreateSingleFileVisualBasicSolution(@"
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
 #If (True Or ) Then
 Public Class C
 End Class

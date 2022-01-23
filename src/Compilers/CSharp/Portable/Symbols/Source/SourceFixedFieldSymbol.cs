@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VariableDeclaratorSyntax declarator,
             DeclarationModifiers modifiers,
             bool modifierErrors,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(containingType, declarator, modifiers, modifierErrors, diagnostics)
         {
             // Checked in parser: a fixed field declaration requires a length in square brackets
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_fixedSize == FixedSizeNotInitialized)
                 {
-                    DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+                    BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
                     int size = 0;
 
                     VariableDeclaratorSyntax declarator = VariableDeclaratorNode;
@@ -231,5 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
             => ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
+
+        public sealed override bool AreLocalsZeroed
+            => throw ExceptionUtilities.Unreachable;
+
+        internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 }

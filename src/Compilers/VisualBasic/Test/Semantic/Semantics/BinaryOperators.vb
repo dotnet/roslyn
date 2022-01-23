@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SpecialType
@@ -1417,6 +1420,126 @@ BC42038: This expression will always evaluate to Nothing (due to null propagatio
                         Throw ExceptionUtilities.UnexpectedValue(i)
                 End Select
             Next
+        End Sub
+
+        <ConditionalFact(GetType(NoIOperationValidation))>
+        <WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(529600, "DevDiv"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        Public Sub Bug529600()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module M
+    Sub Main()
+    End Sub
+
+    Const c0 = "<%= New String("0"c, 65000) %>"
+
+    Const C1=C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0
+
+    Const C2=C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef)
+
+            Dim err = compilation.GetDiagnostics().Single()
+
+            Assert.Equal(ERRID.ERR_ConstantStringTooLong, err.Code)
+            Assert.Equal("Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim fieldInitializerOperations = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().
+                Select(Function(v) v.Initializer.Value).
+                Select(Function(i) model.GetOperation(i))
+
+            Dim numChildren = 0
+
+            For Each iop in fieldInitializerOperations
+                EnumerateChildren(iop, numChildren)
+            Next
+
+            Assert.Equal(1203, numChildren)
+        End Sub
+
+        Private Sub EnumerateChildren(iop As IOperation, ByRef numChildren as Integer)
+            numChildren += 1
+            Assert.NotNull(iop)
+            For Each child In iop.ChildOperations
+                EnumerateChildren(child, numChildren)
+            Next
+        End Sub
+
+        <ConditionalFact(GetType(NoIOperationValidation), AlwaysSkip:="https://github.com/dotnet/roslyn/issues/57806"), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        Public Sub TestLargeStringConcatenation()
+
+            Dim mid = New StringBuilder()
+            For i As Integer = 0 To 4999
+                mid.Append("""Lorem ipsum dolor sit amet"" + "", consectetur adipiscing elit, sed"" + "" do eiusmod tempor incididunt"" + "" ut labore et dolore magna aliqua. "" +" + vbCrLf)
+            Next
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module M
+    Sub Main()
+        Dim s As String = "BEGIN "+
+        <%= mid.ToString() %> "END"
+        System.Console.WriteLine(System.Linq.Enumerable.Sum(s, Function(c As Char) System.Convert.ToInt32(c)))
+    End Sub
+End Module
+    </file>
+</compilation>
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+            compilation.VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="58430604")
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim initializer = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax).Single().Initializer.Value
+            Dim literalOperation = model.GetOperation(initializer)
+
+            Dim stringTextBuilder As New StringBuilder()
+            stringTextBuilder.Append("BEGIN ")
+            For i = 0 To 4999
+                stringTextBuilder.Append("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ")
+            Next
+            stringTextBuilder.Append("END")
+
+            Assert.Equal(stringTextBuilder.ToString(), literalOperation.ConstantValue.Value)
         End Sub
 
     End Class

@@ -1,5 +1,6 @@
 Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript
 Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter
+Microsoft.CodeAnalysis.CSharp.Scripting.ScriptOptionsExtensions
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.FormatException(System.Exception e) -> string
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions options) -> string
 static Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.Create(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Type globalsType = null, Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader assemblyLoader = null) -> Microsoft.CodeAnalysis.Scripting.Script<object>
@@ -11,3 +12,4 @@ static Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.EvaluateAsync<T>(str
 static Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.RunAsync(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, object globals = null, System.Type globalsType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<object>>
 static Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.RunAsync<T>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, object globals = null, System.Type globalsType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<T>>
 static Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.Instance.get -> Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter
+static Microsoft.CodeAnalysis.CSharp.Scripting.ScriptOptionsExtensions.WithLanguageVersion(this Microsoft.CodeAnalysis.Scripting.ScriptOptions options, Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions

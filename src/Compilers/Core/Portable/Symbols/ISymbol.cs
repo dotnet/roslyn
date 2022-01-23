@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// change it in the future.
     /// </remarks>
     [InternalImplementationOnly]
-    public interface ISymbol : IEquatable<ISymbol>
+    public interface ISymbol : IEquatable<ISymbol?>
     {
         /// <summary>
         /// Gets the <see cref="SymbolKind"/> indicating what kind of symbol it is.
@@ -56,6 +59,13 @@ namespace Microsoft.CodeAnalysis
         string MetadataName { get; }
 
         /// <summary>
+        /// Gets the metadata token associated with this symbol, or 0 if the symbol is not loaded from metadata.
+        /// </summary>
+        int MetadataToken { get; }
+
+#nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
+#pragma warning disable RS0041 // uses oblivious reference types
+        /// <summary>
         /// Gets the <see cref="ISymbol"/> for the immediately containing symbol.
         /// </summary>
         ISymbol ContainingSymbol { get; }
@@ -83,6 +93,8 @@ namespace Microsoft.CodeAnalysis
         /// symbol isn't contained in a namespace.
         /// </summary>
         INamespaceSymbol ContainingNamespace { get; }
+#nullable enable
+#pragma warning restore RS0041 // uses oblivious reference types
 
         /// <summary>
         /// Gets a value indicating whether the symbol is the original definition. Returns false
@@ -122,7 +134,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
+        /// an explicit corresponding source code declaration.
         /// </summary> 
         /// <remarks>
         /// This is intended for symbols that are ordinary symbols in the language sense, and may be
@@ -132,14 +144,17 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// Examples include (this list is not exhaustive):
         /// <list type="bullet">
-        /// <item> the default constructor for a class or struct that is created if one is not provided, </item>
-        /// <item> the BeginInvoke/Invoke/EndInvoke methods for a delegate, </item>
-        /// <item> the generated backing field for an auto property or a field-like event, </item>
-        /// <item> the "this" parameter for non-static methods, </item>
-        /// <item> the "value" parameter for a property setter, </item>
-        /// <item> the parameters on indexer accessor methods (not on the indexer itself), </item>
-        /// <item> methods in anonymous types </item>
+        /// <item><description>The default constructor for a class or struct that is created if one is not provided.</description></item>
+        /// <item><description>The BeginInvoke/Invoke/EndInvoke methods for a delegate.</description></item>
+        /// <item><description>The generated backing field for an auto property or a field-like event.</description></item>
+        /// <item><description>The "this" parameter for non-static methods.</description></item>
+        /// <item><description>The "value" parameter for a property setter.</description></item>
+        /// <item><description>The parameters on indexer accessor methods (not on the indexer itself).</description></item>
+        /// <item><description>Methods in anonymous types.</description></item>
         /// </list>
+        /// </para>
+        /// <para>
+        /// The class and entry point method for top-level statements are not considered as implicitly declared.
         /// </para>
         /// </remarks>
         bool IsImplicitlyDeclared { get; }
@@ -195,13 +210,13 @@ namespace Microsoft.CodeAnalysis
         ISymbol OriginalDefinition { get; }
 
         void Accept(SymbolVisitor visitor);
-        TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
+        TResult? Accept<TResult>(SymbolVisitor<TResult> visitor);
 
         /// <summary>
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't
         /// support documentation comments.
         /// </summary>
-        string GetDocumentationCommentId();
+        string? GetDocumentationCommentId();
 
         /// <summary>
         /// Gets the XML (as text) for the comment associated with the symbol.
@@ -210,14 +225,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="expandIncludes">Optionally, expand &lt;include&gt; elements.  No impact on non-source documentation comments.</param>
         /// <param name="cancellationToken">Token allowing cancellation of request.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
-        string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
+        string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Converts the symbol to a string representation.
         /// </summary>
         /// <param name="format">Format or null for the default.</param>
         /// <returns>A formatted string representation of the symbol.</returns>
-        string ToDisplayString(SymbolDisplayFormat format = null);
+        string ToDisplayString(SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. Useful for
@@ -226,7 +241,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="format">Formatting rules - null implies
         /// SymbolDisplayFormat.ErrorMessageFormat.</param>
         /// <returns>A read-only array of string parts.</returns>
-        ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null);
+        ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Convert a symbol to a string that can be displayed to the user. May be tailored to a
@@ -241,7 +256,7 @@ namespace Microsoft.CodeAnalysis
         string ToMinimalDisplayString(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null);
+            SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. May be tailored
@@ -256,7 +271,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null);
+            SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Indicates that this symbol uses metadata that cannot be supported by the language.
@@ -264,9 +279,9 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// Examples include:
         /// <list type="bullet">
-        /// <item> Pointer types in VB </item>
-        /// <item> ByRef return type </item>
-        /// <item> Required custom modifiers </item>
+        /// <item><description>Pointer types in VB</description></item>
+        /// <item><description>ByRef return type</description></item>
+        /// <item><description>Required custom modifiers</description></item>
         /// </list>
         /// </para>
         /// 
@@ -278,15 +293,23 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// This is set for metadata symbols, as follows:
         /// <list type="bullet">
-        /// <item> Type - if a type is unsupported (e.g., a pointer type, etc.) </item>
-        /// <item> Method - parameter or return type is unsupported </item>
-        /// <item> Field - type is unsupported </item>
-        /// <item> Event - type is unsupported </item>
-        /// <item> Property - type is unsupported </item>
-        /// <item> Parameter - type is unsupported </item>
+        /// <item><description>Type - if a type is unsupported (for example, a pointer type)</description></item>
+        /// <item><description>Method - parameter or return type is unsupported</description></item>
+        /// <item><description>Field - type is unsupported</description></item>
+        /// <item><description>Event - type is unsupported</description></item>
+        /// <item><description>Property - type is unsupported</description></item>
+        /// <item><description>Parameter - type is unsupported</description></item>
         /// </list>
         /// </para>
         /// </summary>
         bool HasUnsupportedMetadata { get; }
+
+        /// <summary>
+        /// Determines if this symbol is equal to another, according to the rules of the provided <see cref="SymbolEqualityComparer"/>
+        /// </summary>
+        /// <param name="other">The other symbol to compare against</param>
+        /// <param name="equalityComparer">The <see cref="SymbolEqualityComparer"/> to use when comparing symbols</param>
+        /// <returns>True if the symbols are equivalent.</returns>
+        bool Equals([NotNullWhen(returnValue: true)] ISymbol? other, SymbolEqualityComparer equalityComparer);
     }
 }

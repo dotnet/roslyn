@@ -1,15 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal static class IVsHierarchyExtensions
     {
-        public static bool TryGetItemProperty<T>(this IVsHierarchy hierarchy, uint itemId, int propertyId, out T value)
+        public static bool TryGetItemProperty<T>(this IVsHierarchy hierarchy, uint itemId, int propertyId, [MaybeNullWhen(false)] out T value)
         {
             if (ErrorHandler.Failed(hierarchy.GetProperty(itemId, propertyId, out var property)) ||
                 !(property is T))
@@ -23,80 +24,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        public static bool TryGetProperty<T>(this IVsHierarchy hierarchy, int propertyId, out T value)
+        public static bool TryGetProperty<T>(this IVsHierarchy hierarchy, int propertyId, [MaybeNullWhen(false)] out T value)
         {
             const uint root = VSConstants.VSITEMID_ROOT;
             return hierarchy.TryGetItemProperty(root, propertyId, out value);
         }
 
-        public static bool TryGetProperty<T>(this IVsHierarchy hierarchy, __VSHPROPID propertyId, out T value)
-        {
-            return hierarchy.TryGetProperty((int)propertyId, out value);
-        }
+        public static bool TryGetProperty<T>(this IVsHierarchy hierarchy, __VSHPROPID propertyId, [MaybeNullWhen(false)] out T value)
+            => hierarchy.TryGetProperty((int)propertyId, out value);
 
-        public static bool TryGetItemProperty<T>(this IVsHierarchy hierarchy, uint itemId, __VSHPROPID propertyId, out T value)
-        {
-            return hierarchy.TryGetItemProperty(itemId, (int)propertyId, out value);
-        }
+        public static bool TryGetItemProperty<T>(this IVsHierarchy hierarchy, uint itemId, __VSHPROPID propertyId, [MaybeNullWhen(false)] out T value)
+            => hierarchy.TryGetItemProperty(itemId, (int)propertyId, out value);
 
         public static bool TryGetGuidProperty(this IVsHierarchy hierarchy, int propertyId, out Guid guid)
-        {
-            return ErrorHandler.Succeeded(hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, propertyId, out guid));
-        }
+            => ErrorHandler.Succeeded(hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, propertyId, out guid));
 
         public static bool TryGetGuidProperty(this IVsHierarchy hierarchy, __VSHPROPID propertyId, out Guid guid)
-        {
-            return ErrorHandler.Succeeded(hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, (int)propertyId, out guid));
-        }
+            => ErrorHandler.Succeeded(hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, (int)propertyId, out guid));
 
-        public static bool TryGetProject(this IVsHierarchy hierarchy, out EnvDTE.Project project)
-        {
-            return hierarchy.TryGetProperty(__VSHPROPID.VSHPROPID_ExtObject, out project);
-        }
+        public static bool TryGetProject(this IVsHierarchy hierarchy, [NotNullWhen(returnValue: true)] out EnvDTE.Project? project)
+            => hierarchy.TryGetProperty<EnvDTE.Project>(__VSHPROPID.VSHPROPID_ExtObject, out project);
 
-        public static Guid GetProjectGuid(this IVsHierarchy hierarchy)
-        {
-            ErrorHandler.ThrowOnFailure(hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectIDGuid, out var guid));
-            return guid;
-        }
+        public static bool TryGetName(this IVsHierarchy hierarchy, [NotNullWhen(returnValue: true)] out string? name)
+            => hierarchy.TryGetProperty<string>(__VSHPROPID.VSHPROPID_Name, out name);
 
-        public static bool TryGetProjectGuid(this IVsHierarchy hierarchy, out Guid guid)
-            => ErrorHandler.Succeeded(hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectIDGuid, out guid)) && guid != Guid.Empty;
+        public static bool TryGetItemName(this IVsHierarchy hierarchy, uint itemId, [NotNullWhen(returnValue: true)] out string? name)
+            => hierarchy.TryGetItemProperty<string>(itemId, __VSHPROPID.VSHPROPID_Name, out name);
 
-        public static bool TryGetName(this IVsHierarchy hierarchy, out string name)
-        {
-            return hierarchy.TryGetProperty(__VSHPROPID.VSHPROPID_Name, out name);
-        }
+        public static bool TryGetCanonicalName(this IVsHierarchy hierarchy, uint itemId, [NotNullWhen(returnValue: true)] out string? name)
+            => ErrorHandler.Succeeded(hierarchy.GetCanonicalName(itemId, out name));
 
-        public static bool TryGetItemName(this IVsHierarchy hierarchy, uint itemId, out string name)
-        {
-            return hierarchy.TryGetItemProperty(itemId, __VSHPROPID.VSHPROPID_Name, out name);
-        }
-
-        public static bool TryGetCanonicalName(this IVsHierarchy hierarchy, uint itemId, out string name)
-        {
-            return ErrorHandler.Succeeded(hierarchy.GetCanonicalName(itemId, out name));
-        }
-
-        public static bool TryGetParentHierarchy(this IVsHierarchy hierarchy, out IVsHierarchy parentHierarchy)
-        {
-            return hierarchy.TryGetProperty(__VSHPROPID.VSHPROPID_ParentHierarchy, out parentHierarchy);
-        }
+        public static bool TryGetParentHierarchy(this IVsHierarchy hierarchy, [NotNullWhen(returnValue: true)] out IVsHierarchy? parentHierarchy)
+            => hierarchy.TryGetProperty<IVsHierarchy>(__VSHPROPID.VSHPROPID_ParentHierarchy, out parentHierarchy);
 
         public static bool TryGetTypeGuid(this IVsHierarchy hierarchy, out Guid typeGuid)
-        {
-            return hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_TypeGuid, out typeGuid);
-        }
+            => hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_TypeGuid, out typeGuid);
 
-        public static bool TryGetTargetFrameworkMoniker(this IVsHierarchy hierarchy, uint itemId, out string targetFrameworkMoniker)
-        {
-            return hierarchy.TryGetItemProperty(itemId, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out targetFrameworkMoniker);
-        }
+        public static bool TryGetTargetFrameworkMoniker(this IVsHierarchy hierarchy, uint itemId, [NotNullWhen(returnValue: true)] out string? targetFrameworkMoniker)
+            => hierarchy.TryGetItemProperty<string>(itemId, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out targetFrameworkMoniker);
 
         public static uint TryGetItemId(this IVsHierarchy hierarchy, string moniker)
         {
-            uint itemid;
-            if (ErrorHandler.Succeeded(hierarchy.ParseCanonicalName(moniker, out itemid)))
+            if (ErrorHandler.Succeeded(hierarchy.ParseCanonicalName(moniker, out var itemid)))
             {
                 return itemid;
             }
@@ -104,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.VSITEMID_NIL;
         }
 
-        public static string TryGetProjectFilePath(this IVsHierarchy hierarchy)
+        public static string? TryGetProjectFilePath(this IVsHierarchy hierarchy)
         {
             if (ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var projectFilePath)) && !string.IsNullOrEmpty(projectFilePath))
             {

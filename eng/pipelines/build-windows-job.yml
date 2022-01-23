@@ -1,0 +1,64 @@
+# Build on windows desktop
+parameters:
+- name: jobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: queueName
+  type: string
+  default: ''
+- name: vmImageName
+  type: string
+  default: ''
+- name: buildArguments
+  type: string
+  default: ''
+
+jobs:
+- job: ${{ parameters.jobName }}
+  pool:
+    ${{ if ne(parameters.queueName, '') }}:
+      name: NetCore1ESPool-Public
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+
+    ${{ if ne(parameters.vmImageName, '') }}:
+      vmImage: ${{ parameters.vmImageName }}
+  timeoutInMinutes: 40
+
+  steps:
+    - template: checkout-windows-task.yml
+
+    - task: PowerShell@2
+      displayName: Restore
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog
+
+    - task: PowerShell@2 
+      displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog -skipDocumentation ${{ parameters.buildArguments }}
+
+    - task: PowerShell@2 
+      displayName: Prepare Unit Tests
+      inputs:
+        filePath: eng/prepare-tests.ps1
+        arguments: -configuration ${{ parameters.configuration }}
+
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Test Payload
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)\artifacts\testPayload'
+        artifactName: ${{ parameters.testArtifactName }}
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}
+

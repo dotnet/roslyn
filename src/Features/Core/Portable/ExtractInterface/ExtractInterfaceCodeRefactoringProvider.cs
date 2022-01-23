@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
@@ -12,14 +18,16 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
     internal class ExtractInterfaceCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ExtractInterfaceCodeRefactoringProvider()
         {
         }
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var service = context.Document.GetLanguageService<AbstractExtractInterfaceService>();
-            var actions = await service.GetExtractInterfaceCodeActionAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
+            var (document, textSpan, cancellationToken) = context;
+            var service = document.GetLanguageService<AbstractExtractInterfaceService>();
+            var actions = await service.GetExtractInterfaceCodeActionAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -108,20 +112,18 @@ class C
 
         private static void UncommentSelection(string markup, string expected)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var doc = workspace.Documents.First();
-                SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var doc = workspace.Documents.First();
+            SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
-                var commandHandler = new CommentUncommentSelectionCommandHandler(
-                    workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
-                    workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
-                var textView = doc.GetTextView();
-                var textBuffer = doc.GetTextBuffer();
-                commandHandler.ExecuteCommand(textView, textBuffer, CommentUncommentSelectionCommandHandler.Operation.Uncomment, TestCommandExecutionContext.Create());
+            var commandHandler = new CommentUncommentSelectionCommandHandler(
+                workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
+                workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
+            var textView = doc.GetTextView();
+            var textBuffer = doc.GetTextBuffer();
+            commandHandler.ExecuteCommand(textView, textBuffer, Operation.Uncomment, TestCommandExecutionContext.Create());
 
-                Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText());
-            }
+            Assert.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         private static void SetupSelection(IWpfTextView textView, IEnumerable<Span> spans)

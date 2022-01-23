@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -57,8 +59,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if the reference name matches the definition identity.</returns>
         public bool ReferenceMatchesDefinition(string referenceDisplayName, AssemblyIdentity definition)
         {
-            bool unificationApplied;
-            return Compare(null, referenceDisplayName, definition, out unificationApplied, ignoreVersion: false) != ComparisonResult.NotEquivalent;
+            return Compare(reference: null, referenceDisplayName, definition, unificationApplied: out _, ignoreVersion: false) != ComparisonResult.NotEquivalent;
         }
 
         /// <summary>
@@ -69,8 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if the reference identity matches the definition identity.</returns>
         public bool ReferenceMatchesDefinition(AssemblyIdentity reference, AssemblyIdentity definition)
         {
-            bool unificationApplied;
-            return Compare(reference, null, definition, out unificationApplied, ignoreVersion: false) != ComparisonResult.NotEquivalent;
+            return Compare(reference, referenceDisplayName: null, definition, unificationApplied: out _, ignoreVersion: false) != ComparisonResult.NotEquivalent;
         }
 
         /// <summary>
@@ -80,31 +80,30 @@ namespace Microsoft.CodeAnalysis
         /// <param name="definition">Definition identity.</param>
         public ComparisonResult Compare(AssemblyIdentity reference, AssemblyIdentity definition)
         {
-            bool unificationApplied;
-            return Compare(reference, null, definition, out unificationApplied, ignoreVersion: true);
+            return Compare(reference, referenceDisplayName: null, definition, unificationApplied: out _, ignoreVersion: true);
         }
 
         // internal for testing
-        internal ComparisonResult Compare(AssemblyIdentity reference, string referenceDisplayName, AssemblyIdentity definition, out bool unificationApplied, bool ignoreVersion)
+        internal ComparisonResult Compare(AssemblyIdentity? reference, string? referenceDisplayName, AssemblyIdentity definition, out bool unificationApplied, bool ignoreVersion)
         {
-            Debug.Assert((reference != null) ^ (referenceDisplayName != null));
+            Debug.Assert((reference is not null) ^ (referenceDisplayName != null));
             unificationApplied = false;
             AssemblyIdentityParts parts;
 
-            if (reference != null)
+            if (reference is not null)
             {
                 // fast path
                 bool? eq = TriviallyEquivalent(reference, definition);
                 if (eq.HasValue)
                 {
-                    return eq.Value ? ComparisonResult.Equivalent : ComparisonResult.NotEquivalent;
+                    return eq.GetValueOrDefault() ? ComparisonResult.Equivalent : ComparisonResult.NotEquivalent;
                 }
 
                 parts = AssemblyIdentityParts.Name | AssemblyIdentityParts.Version | AssemblyIdentityParts.Culture | AssemblyIdentityParts.PublicKeyToken;
             }
             else
             {
-                if (!AssemblyIdentity.TryParseDisplayName(referenceDisplayName, out reference, out parts) ||
+                if (!AssemblyIdentity.TryParseDisplayName(referenceDisplayName!, out reference, out parts) ||
                     reference.ContentType != definition.ContentType)
                 {
                     return ComparisonResult.NotEquivalent;

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="CannotSetLanguageSpecificOption">
         <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>
-        <target state="new">Cannot set {0} specific option {1} because the options were already configured for a different language.</target>
+        <target state="translated">{0} 固有のオプション {1} を設定できません。オプションが異なる言語用に既に構成されているためです。</target>
         <note />
       </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="CantAssignTo">
         <source>Can't assign '{0}' to '{1}'.</source>
-        <target state="translated">{0}' を '{1}' に割り当てられません。</target>
+        <target state="translated">'{0}' を '{1}' に割り当てられません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ExpectedAnAssemblyReference">

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -299,10 +303,10 @@ public class E
             compVerifier.VerifyDiagnostics(DiagnosticDescription.None);
             var semanticModel = compVerifier.Compilation.GetSemanticModel(compVerifier.Compilation.SyntaxTrees.Single());
 
-            var eventSymbol1 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_1*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as EventSymbol;
+            var eventSymbol1 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_1*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as IEventSymbol;
             Assert.NotNull(eventSymbol1);
 
-            var eventSymbol2 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_2*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as EventSymbol;
+            var eventSymbol2 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_2*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as IEventSymbol;
             Assert.NotNull(eventSymbol2);
         }
 
@@ -807,15 +811,49 @@ class D
             var compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) },
                                                 expectedOutput: "Event raised");
 
-            var comp = compVerifier.Compilation;
+            var comp = (CSharpCompilation)compVerifier.Compilation;
             var classSymbol = (PENamedTypeSymbol)comp.GetTypeByMetadataName("C");
             var eventSymbol = (PEEventSymbol)classSymbol.GetMember("E");
             Assert.Equal("System.Action<System.Object>", eventSymbol.Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void StaticEventDoesNotRequireInstanceReceiver()
+        {
+            var source = @"using System;
+class C
+{
+    public static event EventHandler E;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): warning CS0067: The event 'C.E' is never used
+                //     public static event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 38));
+            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            Assert.False(eventSymbol.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceEventRequiresInstanceReceiver()
+        {
+            var source = @"using System;
+class C
+{
+    public event EventHandler E;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (4,31): warning CS0067: The event 'C.E' is never used
+                //     public event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
+            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            Assert.True(eventSymbol.RequiresInstanceReceiver);
+        }
+
         #endregion
 
         #region Error cases
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979
+        [WorkItem(39979, "https://github.com/dotnet/roslyn/issues/39979")]
         public void VoidEvent()
         {
             var text =
@@ -1407,10 +1445,15 @@ class C
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            var expected = new[] {
                 // (4,25): error CS0065: 'C.E': event property must have both add and remove accessors
                 //     event System.Action E { remove { } }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E")
+                };
+
+            CreateCompilation(text).VerifyDiagnostics(expected).VerifyEmitDiagnostics(expected);
+
+            CreateCompilation(text).VerifyEmitDiagnostics(expected);
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
@@ -2418,6 +2461,25 @@ namespace ConsoleApplication3
                 //             base.MyEvent += Goo; // error
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent += Goo").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(20, 13)
                 );
+        }
+
+        [Fact, WorkItem(40092, "https://github.com/dotnet/roslyn/issues/40092")]
+        public void ExternEventInitializer()
+        {
+            var text = @"
+delegate void D();
+
+class Test
+{
+#pragma warning disable 414 // The field '{0}' is assigned but its value is never used
+#pragma warning disable 626 // Method, operator, or accessor '{0}' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+    public extern event D e = null; // 1
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,27): error CS8760: 'Test.e': extern event cannot have initializer
+                //     public extern event D e = null; // 1
+                Diagnostic(ErrorCode.ERR_ExternEventInitializer, "e").WithArguments("Test.e").WithLocation(8, 27));
         }
 
         #endregion

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -10,12 +12,8 @@ Namespace Tests
     Public Class OverrideCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New OverrideCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(OverrideCompletionProvider)
         End Function
 
 #Region "CompletionItem tests"
@@ -566,7 +564,7 @@ End Class</a>.Value
             Dim position As Integer
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -587,7 +585,7 @@ End Class</a>.Value
 
             Await BaseVerifyWorkerAsync(
                 code, position, "[Class]", "Property CBase.Class As Integer",
-                SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+                SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -937,7 +935,6 @@ Public Class derived
     Overrides $$
 End Class</a>
 
-
             Dim expectedCode = <a>Public Class base
     Public Overridable Property goo As String
 End Class
@@ -1032,6 +1029,68 @@ End Class</a>
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "goo", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitPropertyInaccessibleParameterAttributesAreNotGenerated() As Task
+            Dim markupBeforeCommit = <a><![CDATA[Imports System
+
+Public Class Class1
+    Private Class MyPrivate
+        Inherits Attribute
+    End Class
+    Public Class MyPublic
+        Inherits Attribute
+    End Class
+
+    Default Public Overridable Property Item(<MyPrivate, MyPublic> i As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+
+Public Class Class2
+    Inherits Class1
+
+    Public Overrides Property $$
+End Class]]></a>
+
+            Dim expectedCode = <a><![CDATA[Imports System
+
+Public Class Class1
+    Private Class MyPrivate
+        Inherits Attribute
+    End Class
+    Public Class MyPublic
+        Inherits Attribute
+    End Class
+
+    Default Public Overridable Property Item(<MyPrivate, MyPublic> i As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+
+Public Class Class2
+    Inherits Class1
+
+    Default Public Overrides Property Item(<MyPublic> i As Integer) As Integer
+        Get
+            Return MyBase.Item(i)$$
+        End Get
+        Set(value As Integer)
+            MyBase.Item(i) = value
+        End Set
+    End Property
+End Class]]></a>
+
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Item(i As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
+
         <WorkItem(543937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543937")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitOptionalKeywordAndParameterValuesAreGenerated() As Task
@@ -1099,6 +1158,53 @@ Class CDerived
 End Class]]></a>
 
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "goo()", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitInaccessibleParameterAttributesAreNotGenerated() As Task
+            Dim markupBeforeCommit = <a><![CDATA[Imports System
+
+Public Class Class1
+    Private Class MyPrivate
+        Inherits Attribute
+    End Class
+    Public Class MyPublic
+        Inherits Attribute
+    End Class
+
+    Public Overridable Sub M(<MyPrivate, MyPublic> i As Integer)
+    End Sub
+End Class
+
+Public Class Class2
+    Inherits Class1
+
+    Public Overrides Sub $$
+End Class]]></a>
+
+            Dim expectedCode = <a><![CDATA[Imports System
+
+Public Class Class1
+    Private Class MyPrivate
+        Inherits Attribute
+    End Class
+    Public Class MyPublic
+        Inherits Attribute
+    End Class
+
+    Public Overridable Sub M(<MyPrivate, MyPublic> i As Integer)
+    End Sub
+End Class
+
+Public Class Class2
+    Inherits Class1
+
+    Public Overrides Sub M(<MyPublic> i As Integer)
+        MyBase.M(i)$$
+    End Sub
+End Class]]></a>
+
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "M(i As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1740,15 +1846,19 @@ public class C
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(text)
+            Using workspace = TestWorkspace.Create(text, exportProvider:=ExportProvider)
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
-                Dim service = GetCompletionService(workspace)
+                Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Invoke)
                 Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
             End Using
+        End Function
+
+        Public Overloads Function VerifyItemExistsAsync(markup As String, expectedItem As String) As Task
+            Return VerifyItemExistsAsync(markup, expectedItem, isComplexTextEdit:=True)
         End Function
     End Class
 End Namespace

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -15,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class HostWorkspaceServicesExtensions
     {
-        public static HostLanguageServices GetLanguageServices(
+        public static HostLanguageServices? GetLanguageServices(
             this HostWorkspaceServices workspaceServices, ITextBuffer textBuffer)
         {
             return workspaceServices.GetLanguageServices(textBuffer.ContentType);
         }
 
-        public static HostLanguageServices GetLanguageServices(
+        public static HostLanguageServices? GetLanguageServices(
             this HostWorkspaceServices workspaceServices, IContentType contentType)
         {
             foreach (var language in workspaceServices.SupportedLanguages)
@@ -36,12 +39,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         /// <summary>
+        /// Returns the name of the language (see <see cref="LanguageNames"/>) associated with the specified buffer. 
+        /// </summary>
+        internal static string? GetLanguageName(this ITextBuffer buffer)
+            => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace) ?
+               workspace.Services.GetLanguageServices(buffer.ContentType)?.Language : null;
+
+        /// <summary>
         /// A cache of host services -> (language name -> content type name).
         /// </summary>
         private static readonly ConditionalWeakTable<HostWorkspaceServices, Dictionary<string, string>> s_hostServicesToContentTypeMap
-            = new ConditionalWeakTable<HostWorkspaceServices, Dictionary<string, string>>();
+            = new();
 
-        private static string GetDefaultContentTypeName(HostWorkspaceServices workspaceServices, string language)
+        private static string? GetDefaultContentTypeName(HostWorkspaceServices workspaceServices, string language)
         {
             if (!s_hostServicesToContentTypeMap.TryGetValue(workspaceServices, out var contentTypeMap))
             {

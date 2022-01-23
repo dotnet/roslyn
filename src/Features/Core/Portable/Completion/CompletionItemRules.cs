@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The rule used when no rule is specified when constructing a <see cref="CompletionItem"/>.
         /// </summary>
         public static CompletionItemRules Default =
-            new CompletionItemRules(
+            new(
                 filterCharacterRules: default,
                 commitCharacterRules: default,
                 enterKeyRule: EnterKeyRule.Default,
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableArray<CharacterSetModificationRule> FilterCharacterRules { get; }
 
         /// <summary>
-        /// Rules that modify the set of characters that can be typed to cause the selected item to be commited.
+        /// Rules that modify the set of characters that can be typed to cause the selected item to be committed.
         /// </summary>
         public ImmutableArray<CharacterSetModificationRule> CommitCharacterRules { get; }
 
@@ -175,19 +177,19 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<int> matchPriority = default,
             Optional<CompletionItemSelectionBehavior> selectionBehavior = default)
         {
-            var newFilterRules = filterRules.HasValue ? filterRules.Value : this.FilterCharacterRules;
-            var newCommitRules = commitRules.HasValue ? commitRules.Value : this.CommitCharacterRules;
-            var newEnterKeyRule = enterKeyRule.HasValue ? enterKeyRule.Value : this.EnterKeyRule;
-            var newFormatOnCommit = formatOnCommit.HasValue ? formatOnCommit.Value : this.FormatOnCommit;
-            var newMatchPriority = matchPriority.HasValue ? matchPriority.Value : this.MatchPriority;
-            var newSelectionBehavior = selectionBehavior.HasValue ? selectionBehavior.Value : this.SelectionBehavior;
+            var newFilterRules = filterRules.HasValue ? filterRules.Value : FilterCharacterRules;
+            var newCommitRules = commitRules.HasValue ? commitRules.Value : CommitCharacterRules;
+            var newEnterKeyRule = enterKeyRule.HasValue ? enterKeyRule.Value : EnterKeyRule;
+            var newFormatOnCommit = formatOnCommit.HasValue ? formatOnCommit.Value : FormatOnCommit;
+            var newMatchPriority = matchPriority.HasValue ? matchPriority.Value : MatchPriority;
+            var newSelectionBehavior = selectionBehavior.HasValue ? selectionBehavior.Value : SelectionBehavior;
 
-            if (newFilterRules == this.FilterCharacterRules &&
-                newCommitRules == this.CommitCharacterRules &&
-                newEnterKeyRule == this.EnterKeyRule &&
-                newFormatOnCommit == this.FormatOnCommit &&
-                newMatchPriority == this.MatchPriority &&
-                newSelectionBehavior == this.SelectionBehavior)
+            if (newFilterRules == FilterCharacterRules &&
+                newCommitRules == CommitCharacterRules &&
+                newEnterKeyRule == EnterKeyRule &&
+                newFormatOnCommit == FormatOnCommit &&
+                newMatchPriority == MatchPriority &&
+                newSelectionBehavior == SelectionBehavior)
             {
                 return this;
             }
@@ -204,58 +206,42 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="FilterCharacterRules"/> property changed.
         /// </summary>
         public CompletionItemRules WithFilterCharacterRules(ImmutableArray<CharacterSetModificationRule> filterCharacterRules)
-        {
-            return this.With(filterRules: filterCharacterRules);
-        }
+            => With(filterRules: filterCharacterRules);
 
         internal CompletionItemRules WithFilterCharacterRule(CharacterSetModificationRule rule)
-        {
-            return this.With(filterRules: ImmutableArray.Create(rule));
-        }
+            => With(filterRules: ImmutableArray.Create(rule));
 
         internal CompletionItemRules WithCommitCharacterRule(CharacterSetModificationRule rule)
-        {
-            return this.With(commitRules: ImmutableArray.Create(rule));
-        }
+            => With(commitRules: ImmutableArray.Create(rule));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="CommitCharacterRules"/> property changed.
         /// </summary>
         public CompletionItemRules WithCommitCharacterRules(ImmutableArray<CharacterSetModificationRule> commitCharacterRules)
-        {
-            return this.With(commitRules: commitCharacterRules);
-        }
+            => With(commitRules: commitCharacterRules);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="EnterKeyRule"/> property changed.
         /// </summary>
         public CompletionItemRules WithEnterKeyRule(EnterKeyRule enterKeyRule)
-        {
-            return this.With(enterKeyRule: enterKeyRule);
-        }
+            => With(enterKeyRule: enterKeyRule);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="FormatOnCommit"/> property changed.
         /// </summary>
         public CompletionItemRules WithFormatOnCommit(bool formatOnCommit)
-        {
-            return this.With(formatOnCommit: formatOnCommit);
-        }
+            => With(formatOnCommit: formatOnCommit);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="MatchPriority"/> property changed.
         /// </summary>
         public CompletionItemRules WithMatchPriority(int matchPriority)
-        {
-            return this.With(matchPriority: matchPriority);
-        }
+            => With(matchPriority: matchPriority);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="SelectionBehavior"/> property changed.
         /// </summary>
         public CompletionItemRules WithSelectionBehavior(CompletionItemSelectionBehavior selectionBehavior)
-        {
-            return this.With(selectionBehavior: selectionBehavior);
-        }
+            => With(selectionBehavior: selectionBehavior);
     }
 }

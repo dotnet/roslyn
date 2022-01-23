@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -64,18 +66,19 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ArrayBuilder<Reference> allReferences, TSimpleNameSyntax nameNode,
                 string name, int arity, bool isAttributeSearch, CancellationToken cancellationToken)
             {
-                if (_searchReferenceAssemblies)
+                if (_options.SearchReferenceAssemblies)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindReferenceAssemblyTypeReferencesAsync(
                         allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
 
-                foreach (var packageSource in _packageSources)
+                var packageSources = PackageSourceHelper.GetPackageSources(_packageSources);
+                foreach (var (sourceName, sourceUrl) in packageSources)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindNugetTypeReferencesAsync(
-                        packageSource, allReferences,
+                        sourceName, sourceUrl, allReferences,
                         nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -91,14 +94,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 cancellationToken.ThrowIfCancellationRequested();
                 var results = await _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
                     name, arity, cancellationToken).ConfigureAwait(false);
-                if (results == null)
-                {
-                    return;
-                }
 
                 var project = _document.Project;
-                var projectId = project.Id;
-                var workspace = project.Solution.Workspace;
 
                 foreach (var result in results)
                 {
@@ -111,7 +108,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             private async Task FindNugetTypeReferencesAsync(
-                PackageSource source,
+                string sourceName,
+                string sourceUrl,
                 ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
@@ -121,22 +119,14 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var results = await _symbolSearchService.FindPackagesWithTypeAsync(
-                    source.Name, name, arity, cancellationToken).ConfigureAwait(false);
-                if (results == null)
-                {
-                    return;
-                }
-
-                var project = _document.Project;
-                var projectId = project.Id;
-                var workspace = project.Solution.Workspace;
+                    sourceName, name, arity, cancellationToken).ConfigureAwait(false);
 
                 foreach (var result in results)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     HandleNugetReference(
-                        source.Source, allReferences, nameNode,
-                        project, isAttributeSearch, result,
+                        sourceUrl, allReferences, nameNode,
+                        isAttributeSearch, result,
                         weight: allReferences.Count);
                 }
             }
@@ -153,7 +143,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 foreach (var reference in project.MetadataReferences)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
                     var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
                     if (assemblySymbol?.Name == result.AssemblyName)
                     {
@@ -171,7 +162,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                 string source,
                 ArrayBuilder<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
-                Project project,
                 bool isAttributeSearch,
                 PackageWithTypeResult result,
                 int weight)
@@ -182,16 +172,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                     source, result.PackageName, result.Version));
             }
 
-            private static string GetDesiredName(bool isAttributeSearch, string typeName)
-            {
-                var desiredName = typeName;
-                if (isAttributeSearch)
-                {
-                    desiredName = desiredName.GetWithoutAttributeSuffix(isCaseSensitive: false);
-                }
-
-                return desiredName;
-            }
+            private static string? GetDesiredName(bool isAttributeSearch, string typeName)
+                => isAttributeSearch ? typeName.GetWithoutAttributeSuffix(isCaseSensitive: false) : typeName;
         }
     }
 }

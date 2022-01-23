@@ -1,11 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                         destination As CodeGenerationDestination,
                                                         options As CodeGenerationOptions) As DeclarationStatementSyntax
 
-            If options.GenerateMethodBodies AndAlso
+            If options.Context.GenerateMethodBodies AndAlso
                 ([event].AddMethod IsNot Nothing OrElse [event].RemoveMethod IsNot Nothing OrElse [event].RaiseMethod IsNot Nothing) Then
                 Return GenerateCustomEventDeclarationWorker([event], destination, options)
             Else
@@ -127,6 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 result = result.WithEventStatement(
                     result.EventStatement.WithImplementsClause(GenerateImplementsClause(explicitInterface)))
             End If
+
             Return result
         End Function
 
@@ -160,21 +161,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GenerateModifiers([event] As IEventSymbol,
                                                   destination As CodeGenerationDestination,
                                                   options As CodeGenerationOptions) As SyntaxTokenList
-            Dim tokens = New List(Of SyntaxToken)()
+            Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
+            Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
 
-            If destination <> CodeGenerationDestination.InterfaceType Then
-                AddAccessibilityModifiers([event].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
+                If destination <> CodeGenerationDestination.InterfaceType Then
+                    AddAccessibilityModifiers([event].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
 
-                If [event].IsStatic Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                    If [event].IsStatic Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                    End If
+
+                    If [event].IsAbstract Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
+                    End If
                 End If
 
-                If [event].IsAbstract Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
-                End If
-            End If
-
-            Return SyntaxFactory.TokenList(tokens)
+                Return SyntaxFactory.TokenList(tokens)
+            End Using
         End Function
 
         Private Function GenerateAsClause([event] As IEventSymbol) As SimpleAsClauseSyntax

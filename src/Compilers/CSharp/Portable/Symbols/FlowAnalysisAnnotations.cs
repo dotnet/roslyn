@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 
@@ -16,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         NotNullWhenTrue = 1 << 4,
         NotNullWhenFalse = 1 << 5,
         NotNull = NotNullWhenTrue | NotNullWhenFalse,
-        AssertsTrue = 1 << 6,
-        AssertsFalse = 1 << 7,
+        DoesNotReturnIfFalse = 1 << 6,
+        DoesNotReturnIfTrue = 1 << 7,
+        DoesNotReturn = DoesNotReturnIfTrue | DoesNotReturnIfFalse,
     }
 }

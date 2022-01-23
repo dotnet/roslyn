@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Analyzers</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicAnalyzersResources.resx" GenerateSource="true" Link="VisualBasicAnalyzersResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)VisualBasicAnalyzersResources.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiers.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\VisualBasicAddRequiredParenthesesDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderHelper.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\VisualBasicConsecutiveStatementPlacementDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\VisualBasicMultipleBlankLinesDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\VisualBasicOrderModifiersDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\VisualBasicOrderModifiersHelper.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\VisualBasicPopulateSwitchStatementDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\VisualBasicQualifyMemberAccessDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\VisualBasicRemoveRedundantEqualityDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryByVal\VisualBasicRemoveUnnecessaryByValDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\VisualBasicRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\VisualBasicRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\VisualBasicSimplifyConditionalDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\VisualBasicSimplifyInterpolationHelpers.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\VisualBasicSimplifyInterpolationDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyObjectCreation\VisualBasicSimplifyObjectCreationDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\Utilities.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\VisualBasicUseAutoPropertyAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\VisualBasicUseCoalesceExpressionDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\Utilities.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\VisualBasicUseCompoundAssignmentDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForAssignmentDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForReturnDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\VisualBasicUseInferredMemberNameDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNotExpression\VisualBasicUseIsNotDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\VisualBasicUseNullPropagationDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\VisualBasicValidateFormatStringDiagnosticAnalyzer.vb" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+</Project>

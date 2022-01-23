@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _F;
         private readonly PooledDictionary<LocalSymbol, LocalSymbol> _tempSubstitution;
 
-        private SpillSequenceSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, DiagnosticBag diagnostics)
+        private SpillSequenceSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, BindingDiagnosticBag diagnostics)
         {
             _F = new SyntheticBoundNodeFactory(method, syntaxNode, compilationState, diagnostics);
             _F.CurrentFunction = method;
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ArrayBuilder<LocalSymbol> _locals;
             private ArrayBuilder<BoundStatement> _statements;
 
-            public BoundSpillSequenceBuilder(BoundExpression value = null)
-                : base(SpillSequenceBuilderKind, null, value?.Type)
+            public BoundSpillSequenceBuilder(SyntaxNode syntax, BoundExpression value = null)
+                : base(SpillSequenceBuilderKind, syntax, value?.Type)
             {
                 Debug.Assert(value?.Kind != SpillSequenceBuilderKind);
                 this.Value = value;
@@ -75,14 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal BoundSpillSequenceBuilder Update(BoundExpression value)
             {
-                var result = new BoundSpillSequenceBuilder(value);
+                var result = new BoundSpillSequenceBuilder(this.Syntax, value);
                 result._locals = _locals;
                 result._statements = _statements;
                 return result;
             }
-
-            protected override BoundExpression ShallowClone()
-                => throw ExceptionUtilities.Unreachable;
 
             public void Free()
             {
@@ -211,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundStatement Rewrite(BoundStatement body, MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal static BoundStatement Rewrite(BoundStatement body, MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var tempSubstitution = PooledDictionary<LocalSymbol, LocalSymbol>.GetInstance();
             var spiller = new SpillSequenceSpiller(method, body.Syntax, compilationState, tempSubstitution, diagnostics);
@@ -273,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddStatement(statement);
             }
 
-            var result = _F.Block(builder.GetLocals(), builder.GetStatements());
+            var result = new BoundBlock(statement.Syntax, builder.GetLocals(), builder.GetStatements()) { WasCompilerGenerated = true };
 
             builder.Free();
             return result;
@@ -286,6 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool sideEffectsOnly = false)
         {
             Debug.Assert(builder != null);
+            if (builder.Syntax != null)
+                _F.Syntax = builder.Syntax;
 
             while (true)
             {
@@ -312,11 +311,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        // neither the side-effects nor the value of the sequence contains await 
-                        // (otherwise it would be converted to a SpillSequenceBuilder).
                         if (refKind != RefKind.None)
                         {
-                            return expression;
+                            var sequence = (BoundSequence)expression;
+
+                            PromoteAndAddLocals(builder, sequence.Locals);
+                            builder.AddExpressions(sequence.SideEffects);
+                            expression = sequence.Value;
+                            continue;
+                        }
+
+                        goto default;
+
+                    case BoundKind.AssignmentOperator:
+                        var assignment = (BoundAssignmentOperator)expression;
+                        if (assignment.IsRef &&
+                            assignment is not { Left.Kind: BoundKind.Local, Right.Kind: BoundKind.ArrayAccess }) // Optimize for some known to be safe scenarios.
+                        {
+                            var left = Spill(builder, assignment.Left, RefKind.Ref);
+                            var right = Spill(builder, assignment.Right, RefKind.Ref);
+                            expression = assignment.Update(left, right, assignment.IsRef, assignment.Type);
                         }
 
                         goto default;
@@ -442,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (builder == null)
             {
-                builder = new BoundSpillSequenceBuilder();
+                builder = new BoundSpillSequenceBuilder(lastSpill < newList.Length ? (newList[lastSpill] as BoundSpillSequenceBuilder)?.Syntax : null);
             }
 
             var result = ArrayBuilder<BoundExpression>.GetInstance(newList.Length);
@@ -523,6 +537,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateStatement(builder, node.Update(expression));
         }
 
+        public override BoundNode VisitCatchBlock(BoundCatchBlock node)
+        {
+            BoundExpression exceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);
+            var locals = node.Locals;
+
+            var exceptionFilterPrologueOpt = node.ExceptionFilterPrologueOpt;
+            Debug.Assert(exceptionFilterPrologueOpt is null); // it is introduced by this pass
+            BoundSpillSequenceBuilder builder = null;
+            var exceptionFilterOpt = VisitExpression(ref builder, node.ExceptionFilterOpt);
+            if (builder is { })
+            {
+                Debug.Assert(builder.Value is null);
+                locals = locals.AddRange(builder.GetLocals());
+                exceptionFilterPrologueOpt = new BoundStatementList(node.Syntax, builder.GetStatements());
+            }
+
+            BoundBlock body = (BoundBlock)this.Visit(node.Body);
+            TypeSymbol exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
+            return node.Update(locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
+        }
+
 #if DEBUG
         public override BoundNode DefaultVisit(BoundNode node)
         {
@@ -546,8 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSpillSequence(BoundSpillSequence node)
         {
-            Debug.Assert(node.Locals.All(l => l.SynthesizedKind.IsLongLived()));
-            var builder = new BoundSpillSequenceBuilder();
+            var builder = new BoundSpillSequenceBuilder(node.Syntax);
 
             // Ensure later errors (e.g. in async rewriting) are associated with the correct node.
             _F.Syntax = node.Syntax;
@@ -555,7 +589,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.AddStatements(VisitList(node.SideEffects));
             builder.AddLocals(node.Locals);
             var value = VisitExpression(ref builder, node.Value);
-            value = Spill(builder, value);
             return builder.Update(value);
         }
 
@@ -586,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // spill the array if there were await expressions in the indices
                 if (builder == null)
                 {
-                    builder = new BoundSpillSequenceBuilder();
+                    builder = new BoundSpillSequenceBuilder(indicesBuilder.Syntax);
                 }
 
                 expression = Spill(builder, expression);
@@ -614,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // spill bounds expressions if initializers contain await
-                var boundsBuilder = new BoundSpillSequenceBuilder();
+                var boundsBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
                 bounds = VisitExpressionList(ref boundsBuilder, node.Bounds, forceSpill: true);
                 boundsBuilder.Include(builder);
                 builder = boundsBuilder;
@@ -649,7 +682,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.Conversion, node.Type));
+            Debug.Assert(node.OperandPlaceholder is null);
+            Debug.Assert(node.OperandConversion is null);
+            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.OperandPlaceholder, node.OperandConversion, node.Type));
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -665,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // if the right-hand-side has await, spill the left
-                var leftBuilder = new BoundSpillSequenceBuilder();
+                var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
 
                 switch (left.Kind)
                 {
@@ -680,17 +715,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (field.FieldSymbol.IsStatic) break;
 
                         // instance fields are directly assignable, but receiver is pushed, so need to spill that.
-                        var receiver = VisitExpression(ref leftBuilder, field.ReceiverOpt);
-                        receiver = Spill(builder, receiver, field.FieldSymbol.ContainingType.IsValueType ? RefKind.Ref : RefKind.None);
-                        left = field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+                        left = fieldWithSpilledReceiver(field, ref leftBuilder, isAssignmentTarget: true);
                         break;
 
                     case BoundKind.ArrayAccess:
                         var arrayAccess = (BoundArrayAccess)left;
                         // array and indices are pushed on stack so need to spill that
                         var expression = VisitExpression(ref leftBuilder, arrayAccess.Expression);
-                        expression = Spill(builder, expression, RefKind.None);
-                        var indices = this.VisitExpressionList(ref builder, arrayAccess.Indices, forceSpill: true);
+                        expression = Spill(leftBuilder, expression, RefKind.None);
+                        var indices = this.VisitExpressionList(ref leftBuilder, arrayAccess.Indices, forceSpill: true);
                         left = arrayAccess.Update(expression, indices, arrayAccess.Type);
                         break;
 
@@ -713,6 +746,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return UpdateExpression(builder, node.Update(left, right, node.IsRef, node.Type));
+
+            BoundExpression fieldWithSpilledReceiver(BoundFieldAccess field, ref BoundSpillSequenceBuilder leftBuilder, bool isAssignmentTarget)
+            {
+                var generateDummyFieldAccess = false;
+                if (!field.FieldSymbol.IsStatic)
+                {
+                    Debug.Assert(field.ReceiverOpt is object);
+                    BoundExpression receiver;
+                    if (field.FieldSymbol.ContainingType.IsReferenceType)
+                    {
+                        // a reference type can always live across await so Spill using leftBuilder
+                        receiver = Spill(leftBuilder, VisitExpression(ref leftBuilder, field.ReceiverOpt));
+
+                        // dummy field access to trigger NRE
+                        // a.b = c will trigger a NRE if a is null on assignment,
+                        // but a.b.c = d will trigger a NRE if a is null before evaluating d
+                        // so check whether we assign to the field directly
+                        generateDummyFieldAccess = !isAssignmentTarget;
+                    }
+                    else if (field.ReceiverOpt is BoundArrayAccess arrayAccess)
+                    {
+                        // an arrayAccess returns a ref so can only be called after the await, but spill expression and indices
+                        var expression = VisitExpression(ref leftBuilder, arrayAccess.Expression);
+                        expression = Spill(leftBuilder, expression, RefKind.None);
+                        var indices = this.VisitExpressionList(ref leftBuilder, arrayAccess.Indices, forceSpill: true);
+                        receiver = arrayAccess.Update(expression, indices, arrayAccess.Type);
+                        // dummy array access to trigger IndexOutRangeException or NRE
+                        // we only need this if the array access is a receiver since
+                        // a[0] = b triggers a NRE/IORE on assignment
+                        // but a[0].b = c triggers an NRE/IORE before evaluating c
+                        Spill(leftBuilder, receiver, sideEffectsOnly: true);
+                    }
+                    else if (field.ReceiverOpt is BoundFieldAccess receiverField)
+                    {
+                        receiver = fieldWithSpilledReceiver(receiverField, ref leftBuilder, isAssignmentTarget: false);
+                    }
+                    else
+                    {
+                        receiver = Spill(leftBuilder, VisitExpression(ref leftBuilder, field.ReceiverOpt), RefKind.Ref);
+                    }
+
+                    field = field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+                }
+
+                if (generateDummyFieldAccess)
+                {
+                    Spill(leftBuilder, field, sideEffectsOnly: true);
+                }
+
+                return field;
+            }
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -737,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var leftBuilder = new BoundSpillSequenceBuilder();
+                var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
                 left = VisitExpression(ref leftBuilder, node.Left);
                 left = Spill(leftBuilder, left);
                 if (node.OperatorKind == BinaryOperatorKind.LogicalBoolOr || node.OperatorKind == BinaryOperatorKind.LogicalBoolAnd)
@@ -759,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.MethodOpt, node.ResultKind, left, right, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)
@@ -768,14 +852,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
 
             BoundExpression receiver = null;
-            if (builder == null)
+            if (builder == null || node.ReceiverOpt is BoundTypeExpression)
             {
                 receiver = VisitExpression(ref builder, node.ReceiverOpt);
             }
-            else if (!node.Method.IsStatic)
+            else if (node.Method.RequiresInstanceReceiver)
             {
                 // spill the receiver if there were await expressions in the arguments
-                var receiverBuilder = new BoundSpillSequenceBuilder();
+                var receiverBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
 
                 receiver = node.ReceiverOpt;
                 RefKind refKind = ReceiverSpillRefKind(receiver);
@@ -799,6 +883,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
+
+            BoundExpression invokedExpression;
+            if (builder == null)
+            {
+                invokedExpression = VisitExpression(ref builder, node.InvokedExpression);
+            }
+            else
+            {
+                var invokedExpressionBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+
+                invokedExpression = Spill(invokedExpressionBuilder, VisitExpression(ref invokedExpressionBuilder, node.InvokedExpression));
+                invokedExpressionBuilder.Include(builder);
+                builder = invokedExpressionBuilder;
+            }
+
+            return UpdateExpression(builder, node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, node.ResultKind, node.Type));
+        }
+
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
             BoundSpillSequenceBuilder conditionBuilder = null;
@@ -812,12 +918,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (consequenceBuilder == null && alternativeBuilder == null)
             {
-                return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
+                return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type));
             }
 
-            if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder();
-            if (consequenceBuilder == null) consequenceBuilder = new BoundSpillSequenceBuilder();
-            if (alternativeBuilder == null) alternativeBuilder = new BoundSpillSequenceBuilder();
+            if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder((consequenceBuilder ?? alternativeBuilder).Syntax);
+            if (consequenceBuilder == null) consequenceBuilder = new BoundSpillSequenceBuilder(alternativeBuilder.Syntax);
+            if (alternativeBuilder == null) alternativeBuilder = new BoundSpillSequenceBuilder(consequenceBuilder.Syntax);
 
             if (node.Type.IsVoidType())
             {
@@ -844,19 +950,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConversion(BoundConversion node)
         {
+            if (node.ConversionKind == ConversionKind.AnonymousFunction && node.Type.IsExpressionTree())
+            {
+                // Expression trees do not contain any code that requires spilling.
+                return node;
+            }
+
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
             return UpdateExpression(
                 builder,
-                node.Update(
-                    operand,
-                    node.Conversion,
-                    isBaseConversion: node.IsBaseConversion,
-                    @checked: node.Checked,
-                    explicitCastInCode: node.ExplicitCastInCode,
-                    conversionGroupOpt: node.ConversionGroupOpt,
-                    constantValueOpt: node.ConstantValueOpt,
-                    type: node.Type));
+                node.UpdateOperand(operand));
         }
 
         public override BoundNode VisitPassByCopy(BoundPassByCopy node)
@@ -879,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var argument = VisitExpression(ref builder, node.Argument);
-            return UpdateExpression(builder, node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.Type));
+            return UpdateExpression(builder, node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.WasTargetTyped, node.Type));
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
@@ -893,16 +997,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.Conversion, node.Type));
+            return UpdateExpression(builder, node.Update(operand, node.TargetType, node.ConversionKind, node.Type));
         }
 
         public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
         {
-            throw ExceptionUtilities.Unreachable;
+            BoundSpillSequenceBuilder builder = null;
+            var operand = VisitExpression(ref builder, node.Operand);
+            return UpdateExpression(builder, node.Update(operand, node.Type));
         }
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
+            Debug.Assert(node.LeftPlaceholder is null);
+            Debug.Assert(node.LeftConversion is null);
             BoundSpillSequenceBuilder builder = null;
             var right = VisitExpression(ref builder, node.RightOperand);
             BoundExpression left;
@@ -912,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var leftBuilder = new BoundSpillSequenceBuilder();
+                var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
                 left = VisitExpression(ref leftBuilder, node.LeftOperand);
                 left = Spill(leftBuilder, left);
 
@@ -926,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(leftBuilder, _F.Local(tmp));
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.OperatorResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
@@ -947,10 +1055,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(receiverBuilder, node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.Type));
             }
 
-            if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder();
-            if (whenNotNullBuilder == null) whenNotNullBuilder = new BoundSpillSequenceBuilder();
-            if (whenNullBuilder == null) whenNullBuilder = new BoundSpillSequenceBuilder();
-
+            if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder((whenNotNullBuilder ?? whenNullBuilder).Syntax);
+            if (whenNotNullBuilder == null) whenNotNullBuilder = new BoundSpillSequenceBuilder(whenNullBuilder.Syntax);
+            if (whenNullBuilder == null) whenNullBuilder = new BoundSpillSequenceBuilder(whenNotNullBuilder.Syntax);
 
             BoundExpression condition;
             if (receiver.Type.IsReferenceType || receiver.Type.IsValueType || receiverRefKind == RefKind.None)
@@ -1090,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.InitializerExpressionOpt == null);
             BoundSpillSequenceBuilder builder = null;
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
-            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.BinderOpt, node.Type));
+            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValueOpt, node.InitializerExpressionOpt, node.Type));
         }
 
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)
@@ -1104,21 +1211,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var expressionBuilder = new BoundSpillSequenceBuilder();
+                var expressionBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
                 expression = VisitExpression(ref expressionBuilder, node.Expression);
                 expression = Spill(expressionBuilder, expression);
                 expressionBuilder.Include(builder);
                 builder = expressionBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(expression, index, node.Checked, node.Type));
+            return UpdateExpression(builder, node.Update(expression, index, node.Checked, node.RefersToLocation, node.Type));
         }
 
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(operand, node.Type));
+            return UpdateExpression(builder, node.Update(operand, node.RefersToLocation, node.Type));
         }
 
         public override BoundNode VisitSequence(BoundSequence node)
@@ -1137,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (builder == null)
             {
-                builder = new BoundSpillSequenceBuilder();
+                builder = new BoundSpillSequenceBuilder(valueBuilder.Syntax);
             }
 
             PromoteAndAddLocals(builder, node.Locals);
@@ -1181,7 +1288,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             BoundExpression operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ConstrainedToTypeOpt, node.ResultKind, node.Type));
+        }
+
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression operand = VisitExpression(ref builder, node.Operand);
+            return UpdateExpression(builder, node.Update(operand, node.ConversionMethod, node.Type));
+        }
+
+        public override BoundNode VisitSequencePointExpression(BoundSequencePointExpression node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression expression = VisitExpression(ref builder, node.Expression);
+            return UpdateExpression(builder, node.Update(expression, node.Type));
         }
 
         #endregion

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
@@ -7,9 +11,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
     {
-        private RefKind _refKind;
+        private readonly RefKind _refKind;
         public ITypeSymbol Type { get; }
-        public NullableAnnotation NullableAnnotation { get; }
+        public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
         public bool IsIndexer { get; }
 
         public ImmutableArray<IParameterSymbol> Parameters { get; }
@@ -31,10 +35,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<IParameterSymbol> parametersOpt,
             IMethodSymbol getMethod,
             IMethodSymbol setMethod)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
-            this._refKind = refKind;
+            _refKind = refKind;
             this.IsIndexer = isIndexer;
             this.Parameters = parametersOpt.NullToEmpty();
             this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
@@ -71,11 +75,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public new IPropertySymbol OriginalDefinition => this;
 
-        public RefKind RefKind => this._refKind;
+        public RefKind RefKind => _refKind;
 
-        public bool ReturnsByRef => this._refKind == RefKind.Ref;
+        public bool ReturnsByRef => _refKind == RefKind.Ref;
 
-        public bool ReturnsByRefReadonly => this._refKind == RefKind.RefReadOnly;
+        public bool ReturnsByRefReadonly => _refKind == RefKind.RefReadOnly;
 
         public IPropertySymbol OverriddenProperty => null;
 

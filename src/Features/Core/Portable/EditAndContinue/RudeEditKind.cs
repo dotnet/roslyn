@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -19,46 +23,46 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         VarianceUpdate = 7,
         FieldKindUpdate = 8,
         TypeUpdate = 9,
-        ConstraintKindUpdate = 10,
+        //ConstraintKindUpdate = 10,
         InitializerUpdate = 11,
         FixedSizeFieldUpdate = 12,
         EnumUnderlyingTypeUpdate = 13,
         BaseTypeOrInterfaceUpdate = 14,
         TypeKindUpdate = 15,
         AccessorKindUpdate = 16,
-        MethodKindUpdate = 17,
+        //MethodKindUpdate = 17,
         DeclareLibraryUpdate = 18,
         DeclareAliasUpdate = 19,
         Renamed = 20,
         Insert = 21,
-        //// InsertNonPrivate = 22,
+        // InsertNonPrivate = 22,
         InsertVirtual = 23,
         InsertOverridable = 24,
         InsertExtern = 25,
         InsertOperator = 26,
-        //// InsertNonPublicConstructor = 27,
+        // InsertNonPublicConstructor = 27,
         InsertGenericMethod = 28,
         InsertDllImport = 29,
         InsertIntoStruct = 30,
         InsertIntoClassWithLayout = 31,
         Move = 32,
         Delete = 33,
-        MethodBodyAdd = 34,
-        MethodBodyDelete = 35,
+        // MethodBodyAdd = 34,
+        // MethodBodyDelete = 35,
         GenericMethodUpdate = 36,
         GenericMethodTriviaUpdate = 37,
         GenericTypeUpdate = 38,
         GenericTypeTriviaUpdate = 39,
         GenericTypeInitializerUpdate = 40,
-        PartialTypeInitializerUpdate = 41,
-        //// AsyncMethodUpdate = 42,
-        //// AsyncMethodTriviaUpdate = 43,
+        // PartialTypeInitializerUpdate = 41,
+        // AsyncMethodUpdate = 42,
+        // AsyncMethodTriviaUpdate = 43,
         StackAllocUpdate = 44,
 
         ExperimentalFeaturesEnabled = 45,
 
         AwaitStatementUpdate = 46,
-        ChangingConstructorVisibility = 47,
+        ChangingAccessibility = 47,
 
         CapturingVariable = 48,
         NotCapturingVariable = 49,
@@ -93,15 +97,43 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         UpdatingStateMachineMethodMissingAttribute = 75,
 
         SwitchBetweenLambdaAndLocalFunction = 76,
-        RefStruct = 77,
-        ReadOnlyStruct = 78,
-        ReadOnlyReferences = 79,
+        //RefStruct = 77,
+        //ReadOnlyStruct = 78,
+        //ReadOnlyReferences = 79,
 
         InternalError = 80,
 
         InsertMethodWithExplicitInterfaceSpecifier = 81,
+        InsertIntoInterface = 82,
+        InsertLocalFunctionIntoInterfaceMethod = 83,
+        //SwitchExpressionUpdate = 84,
+        ChangingFromAsynchronousToSynchronous = 85,
+        ChangingStateMachineShape = 86,
 
-        // TODO: remove values below
-        RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,
+        // Chagned from 0x103 in 16.1 and from 82 to 87 in 16.8
+        ComplexQueryExpression = 87,
+
+        MemberBodyInternalError = 88,
+        SourceFileTooBig = 89,
+        MemberBodyTooBig = 90,
+        InsertIntoGenericType = 91,
+
+        ImplementRecordParameterAsReadOnly = 92,
+        ImplementRecordParameterWithSet = 93,
+        //AddRecordPositionalParameter = 94,
+        //DeleteRecordPositionalParameter = 95,
+        ExplicitRecordMethodParameterNamesMustMatch = 96,
+        NotSupportedByRuntime = 97,
+        MakeMethodAsync = 98,
+        MakeMethodIterator = 99,
+        InsertNotSupportedByRuntime = 100,
+        ChangingAttributesNotSupportedByRuntime = 101,
+        ChangeImplicitMainReturnType = 102,
+        ChangingParameterTypes = 103,
+        ChangingTypeParameters = 104,
+        ChangingConstraints = 105,
+        ChangingReloadableTypeNotSupportedByRuntime = 106,
+        RenamingNotSupportedByRuntime = 107,
+        ChangingNonCustomAttribute = 108
     }
 }

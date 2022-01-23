@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -8,12 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private bool ValidateLambdaParameterNameConflictsInScope(Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateLambdaParameterNameConflictsInScope(Location location, string name, BindingDiagnosticBag diagnostics)
         {
             return ValidateNameConflictsInScope(null, location, name, diagnostics);
         }
 
-        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, DiagnosticBag diagnostics)
+        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, BindingDiagnosticBag diagnostics)
         {
             Location location = GetLocation(symbol);
             return ValidateNameConflictsInScope(symbol, location, symbol.Name, diagnostics);
@@ -29,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
             bool allowShadowingNames,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
-            PooledHashSet<string> tpNames = null;
+            PooledHashSet<string>? tpNames = null;
             if (!typeParameters.IsDefaultOrEmpty)
             {
                 tpNames = PooledHashSet<string>.GetInstance();
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            PooledHashSet<string> pNames = null;
+            PooledHashSet<string>? pNames = null;
             if (!parameters.IsDefaultOrEmpty)
             {
                 pNames = PooledHashSet<string>.GetInstance();
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Don't call this one directly - call one of the helpers.
         /// </remarks>
-        private bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateNameConflictsInScope(Symbol? symbol, Location location, string name, BindingDiagnosticBag diagnostics)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool allowShadowing = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
 
-            for (Binder binder = this; binder != null; binder = binder.Next)
+            for (Binder? binder = this; binder != null; binder = binder.Next)
             {
                 // no local scopes enclose members
                 if (binder is InContainerBinder)
@@ -119,9 +121,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return false;
                 }
+
+                if (binder.IsLastBinderWithinMember())
+                {
+                    // Declarations within a member do not conflict with declarations outside.
+                    return false;
+                }
             }
 
             return false;
+        }
+
+        private bool IsLastBinderWithinMember()
+        {
+            var containingMemberOrLambda = this.ContainingMemberOrLambda;
+
+            switch (containingMemberOrLambda?.Kind)
+            {
+                case null:
+                case SymbolKind.NamedType:
+                case SymbolKind.Namespace:
+                    return true;
+                default:
+                    return containingMemberOrLambda.ContainingSymbol?.Kind == SymbolKind.NamedType &&
+                           this.Next?.ContainingMemberOrLambda != containingMemberOrLambda;
+            }
         }
     }
 }

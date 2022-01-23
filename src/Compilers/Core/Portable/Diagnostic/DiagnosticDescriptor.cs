@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -11,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Provides a description about a <see cref="Diagnostic"/>
     /// </summary>
-    public sealed class DiagnosticDescriptor : IEquatable<DiagnosticDescriptor>
+    public sealed class DiagnosticDescriptor : IEquatable<DiagnosticDescriptor?>
     {
         /// <summary>
         /// An unique identifier for the diagnostic.
@@ -59,6 +63,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<string> CustomTags { get; }
 
+        internal ImmutableArray<string> ImmutableCustomTags
+        {
+            get
+            {
+                Debug.Assert(CustomTags is ImmutableArray<string>);
+                return (ImmutableArray<string>)CustomTags;
+            }
+        }
+
         /// <summary>
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
         /// NOTE: For localizable <paramref name="title"/>, <paramref name="description"/> and/or <paramref name="messageFormat"/>,
@@ -81,8 +94,8 @@ namespace Microsoft.CodeAnalysis
             string category,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
-            string description = null,
-            string helpLinkUri = null,
+            string? description = null,
+            string? helpLinkUri = null,
             params string[] customTags)
             : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.AsImmutableOrEmpty())
         {
@@ -118,8 +131,8 @@ namespace Microsoft.CodeAnalysis
             string category,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
-            LocalizableString description = null,
-            string helpLinkUri = null,
+            LocalizableString? description = null,
+            string? helpLinkUri = null,
             params string[] customTags)
             : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.AsImmutableOrEmpty())
         {
@@ -132,10 +145,12 @@ namespace Microsoft.CodeAnalysis
             string category,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
-            LocalizableString description,
-            string helpLinkUri,
+            LocalizableString? description,
+            string? helpLinkUri,
             ImmutableArray<string> customTags)
         {
+            Debug.Assert(!customTags.IsDefault);
+
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentException(CodeAnalysisResources.DiagnosticIdCantBeNullOrWhitespace, nameof(id));
@@ -167,8 +182,13 @@ namespace Microsoft.CodeAnalysis
             this.CustomTags = customTags;
         }
 
-        public bool Equals(DiagnosticDescriptor other)
+        public bool Equals(DiagnosticDescriptor? other)
         {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return
                 other != null &&
                 this.Category == other.Category &&
@@ -181,7 +201,7 @@ namespace Microsoft.CodeAnalysis
                 this.Title.Equals(other.Title);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as DiagnosticDescriptor);
         }
@@ -211,11 +231,12 @@ namespace Microsoft.CodeAnalysis
 
             // Create a dummy diagnostic to compute the effective diagnostic severity for given compilation options
             // TODO: Once https://github.com/dotnet/roslyn/issues/3650 is fixed, we can avoid creating a no-location diagnostic here.
-            var effectiveDiagnostic = compilationOptions.FilterDiagnostic(Diagnostic.Create(this, Location.None));
+            var effectiveDiagnostic = compilationOptions.FilterDiagnostic(Diagnostic.Create(this, Location.None), CancellationToken.None);
             return effectiveDiagnostic != null ? MapSeverityToReport(effectiveDiagnostic.Severity) : ReportDiagnostic.Suppress;
         }
 
-        private static ReportDiagnostic MapSeverityToReport(DiagnosticSeverity severity)
+        // internal for testing purposes.
+        internal static ReportDiagnostic MapSeverityToReport(DiagnosticSeverity severity)
         {
             switch (severity)
             {
@@ -238,7 +259,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsNotConfigurable()
         {
-            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
+            return AnalyzerManager.HasNotConfigurableTag(ImmutableCustomTags);
+        }
+
+        /// <summary>
+        /// Returns true if diagnostic descriptor is a built-in compiler diagnostic or is not configurable.
+        /// </summary>
+        internal bool IsCompilerOrNotConfigurable()
+        {
+            return AnalyzerManager.HasCompilerOrNotConfigurableTag(ImmutableCustomTags);
         }
     }
 }

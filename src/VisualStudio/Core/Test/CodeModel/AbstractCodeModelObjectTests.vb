@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Options
@@ -10,10 +12,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Protected MustOverride ReadOnly Property LanguageName As String
 
-        Protected Function GetWorkspaceDefinition(code As XElement) As XElement
+        Protected Function GetWorkspaceDefinition(code As XElement, Optional editorConfig As String = "") As XElement
             Return <Workspace>
                        <Project Language=<%= LanguageName %> CommonReferences="true">
                            <Document><%= code.Value.Trim() %></Document>
+                           <AnalyzerConfigDocument FilePath="z:\\.editorconfig">
+                               <%= editorConfig %>
+                           </AnalyzerConfigDocument>
                        </Project>
                    </Workspace>
         End Function
@@ -62,8 +67,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddProperty(code As XElement, expectedCode As XElement, data As PropertyData,
-                                                       Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
+        Private Protected Overridable Function TestAddProperty(
+                code As XElement, expectedCode As XElement, data As PropertyData,
+                Optional options As IDictionary(Of OptionKey2, Object) = Nothing,
+                Optional editorConfig As String = "") As Task
             Throw New NotImplementedException
         End Function
 

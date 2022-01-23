@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +14,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -75,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var symbol = model.GetDeclaredSymbol(designation);
             Assert.Equal(designation.Identifier.ValueText, symbol.Name);
             Assert.Equal(designation, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(LocalDeclarationKind.PatternVariable, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
 
             var other = model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single();
@@ -98,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
                         Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-                        var local = ((SourceLocalSymbol)symbol);
+                        var local = ((ILocalSymbol)symbol);
                         var type = local.Type;
                         if (type.IsErrorType())
                         {
@@ -122,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        private static void AssertTypeInfo(SemanticModel model, TypeSyntax typeSyntax, TypeSymbol expectedType)
+        private static void AssertTypeInfo(SemanticModel model, TypeSyntax typeSyntax, ITypeSymbol expectedType)
         {
             TypeInfo typeInfo = model.GetTypeInfo(typeSyntax);
             Assert.Equal(expectedType, typeInfo.Type);
@@ -136,12 +142,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var symbol = model.GetDeclaredSymbol(designation);
             Assert.Equal(designation.Identifier.ValueText, symbol.Name);
             Assert.Equal(designation, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(LocalDeclarationKind.PatternVariable, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
             Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
 
-            var type = ((LocalSymbol)symbol).Type;
+            var type = ((ILocalSymbol)symbol).Type;
             switch (designation.Parent)
             {
                 case DeclarationPatternSyntax decl:
@@ -162,10 +168,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var symbol = model.GetDeclaredSymbol(declarator);
             Assert.Equal(declarator.Identifier.ValueText, symbol.Name);
             Assert.Equal(declarator, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
-            Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Equal(LocalDeclarationKind.RegularVariable, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)declarator));
             Assert.NotEqual(symbol, model.LookupSymbols(declarator.SpanStart, name: declarator.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(declarator.SpanStart).Contains(declarator.Identifier.ValueText));
+        }
+
+        internal static void VerifyModelForDuplicateVariableDeclarationInSameScope(
+            SemanticModel model,
+            SingleVariableDesignationSyntax designation,
+            LocalDeclarationKind kind = LocalDeclarationKind.PatternVariable)
+        {
+            var symbol = model.GetDeclaredSymbol(designation);
+            Assert.Equal(designation.Identifier.ValueText, symbol.Name);
+            Assert.Equal(designation, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(kind, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
+            Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
         }
 
         protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
@@ -184,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             if (symbol.Kind == SymbolKind.Local)
             {
-                Assert.NotEqual(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
+                Assert.NotEqual(LocalDeclarationKind.PatternVariable, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
             }
 
             var other = model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single();
@@ -242,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Contains(designation.Identifier.ValueText, names);
 
-            var local = (FieldSymbol)symbol;
+            var local = (IFieldSymbol)symbol;
             switch (designation.Parent)
             {
                 case DeclarationPatternSyntax decl:
@@ -352,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(model.GetTypeInfo(designation).Type);
             Assert.Null(model.GetDeclaredSymbol(designation));
 
-            var symbol = (Symbol)model.GetDeclaredSymbol(designation);
+            var symbol = (ISymbol)model.GetDeclaredSymbol(designation);
 
             if (designation.Parent is DeclarationPatternSyntax decl)
             {
@@ -362,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 if ((object)symbol != null)
                 {
-                    var type = symbol.GetTypeOrReturnType().Type;
+                    var type = symbol.GetTypeOrReturnType();
                     Assert.Equal(type, typeInfo.Type);
                     Assert.Equal(type, typeInfo.ConvertedType);
                 }
@@ -390,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Null(model.GetSymbolInfo(reference).Symbol);
                 Assert.False(model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Any());
                 Assert.DoesNotContain(reference.Identifier.ValueText, model.LookupNames(reference.SpanStart));
-                Assert.True(((TypeSymbol)model.GetTypeInfo(reference).Type).IsErrorType());
+                Assert.True(model.GetTypeInfo(reference).Type.IsErrorType());
             }
         }
 
@@ -401,10 +421,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected CSharpCompilation CreatePatternCompilation(string source, CSharpCompilationOptions options = null)
         {
-            return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
         }
 
-        private const string _iTupleSource = @"
+        protected const string _iTupleSource = @"
 namespace System.Runtime.CompilerServices
 {
     public interface ITuple
@@ -414,7 +434,32 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+        protected static void AssertEmpty(SymbolInfo info)
+        {
+            Assert.NotEqual(default, info);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+        }
 
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0)
+            where T : CSharpSyntaxNode
+        {
+#if DEBUG
+            var tree = comp.SyntaxTrees.First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().ElementAt(index);
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(node.SpanStart);
+            var decisionDag = node switch
+            {
+                SwitchStatementSyntax n => ((BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded)).DecisionDag,
+                SwitchExpressionSyntax n => ((BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).DecisionDag,
+                IsPatternExpressionSyntax n => ((BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).DecisionDag,
+                var v => throw ExceptionUtilities.UnexpectedValue(v)
+            };
+
+            AssertEx.Equal(expectedDecisionDag, decisionDag.Dump());
+#endif
+        }
         #endregion helpers
     }
 }

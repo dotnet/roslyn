@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -16,11 +20,11 @@ namespace Microsoft.Cci
     internal interface IAssemblyReference : IModuleReference
     {
         AssemblyIdentity Identity { get; }
-        Version AssemblyVersionPattern { get; }
+        Version? AssemblyVersionPattern { get; }
     }
 
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal struct DefinitionWithLocation
+    internal struct DefinitionWithLocation : IEquatable<DefinitionWithLocation>
     {
         public readonly IDefinition Definition;
         public readonly int StartLine;
@@ -45,6 +49,21 @@ namespace Microsoft.Cci
 
         private string GetDebuggerDisplay()
             => $"{Definition} => ({StartLine},{StartColumn}) - ({EndLine}, {EndColumn})";
+
+        public override bool Equals(object? obj)
+        {
+            return obj is DefinitionWithLocation other && Equals(other);
+        }
+
+        public bool Equals(DefinitionWithLocation other)
+        {
+            return Definition == other.Definition && StartLine == other.StartLine && StartColumn == other.StartColumn && EndLine == other.EndLine && EndColumn == other.EndColumn;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(RuntimeHelpers.GetHashCode(Definition), StartLine.GetHashCode());
+        }
     }
 
     /// <summary>

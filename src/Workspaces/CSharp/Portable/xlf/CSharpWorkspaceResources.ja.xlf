@@ -2,16 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../CSharpWorkspaceResources.resx">
     <body>
-      <trans-unit id="Code_block_preferences">
-        <source>Code-block preferences</source>
-        <target state="translated">コード ブロックの設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expression_bodied_members">
-        <source>Expression-bodied members</source>
-        <target state="translated">式のようなメンバー</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_preferences">
         <source>Indentation preferences</source>
         <target state="translated">インデント設定</target>
@@ -27,11 +17,6 @@
         <target state="translated">名前空間は、このターゲットでは追加できません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expected_string_or_char_literal">
-        <source>Expected string or char literal</source>
-        <target state="translated">文字列または文字リテラルが必要です</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Node_does_not_descend_from_root">
         <source>Node does not descend from root.</source>
         <target state="translated">ノードがルートから派生していません。</target>
@@ -42,14 +27,14 @@
         <target state="translated">ノードが親の子リストにありません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Null_checking_preferences">
-        <source>Null-checking preferences</source>
-        <target state="translated">Null チェック設定</target>
+      <trans-unit id="Remove_and_Sort_Usings">
+        <source>R&amp;emove and Sort Usings</source>
+        <target state="translated">Using の削除と並び替え(&amp;E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pattern_matching_preferences">
-        <source>Pattern matching preferences</source>
-        <target state="translated">パターン マッチング設定</target>
+      <trans-unit id="Sort_Usings">
+        <source>&amp;Sort Usings</source>
+        <target state="translated">using の並べ替え(&amp;S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Space_preferences">
@@ -74,22 +59,12 @@
       </trans-unit>
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
-        <target state="translated">インターフェイスを実装します。</target>
+        <target state="translated">インターフェイスを実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
         <target state="translated">折り返しの設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_directive_preferences">
-        <source>'using' directive preferences</source>
-        <target state="new">'using' directive preferences</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="var_preferences">
-        <source>var preferences</source>
-        <target state="translated">var を優先</target>
         <note />
       </trans-unit>
     </body>

@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,12 +13,12 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Workspace
     {
         private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration> s_bufferToWorkspaceRegistrationMap =
-            new ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>();
+            new();
 
         /// <summary>
         /// Gets the workspace associated with the specific text container.
         /// </summary>
-        public static bool TryGetWorkspace(SourceTextContainer textContainer, out Workspace workspace)
+        public static bool TryGetWorkspace(SourceTextContainer textContainer, [NotNullWhen(true)] out Workspace? workspace)
         {
             if (textContainer == null)
             {
@@ -65,9 +68,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)
-        {
-            return new WorkspaceRegistration();
-        }
+            => new();
 
         private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
 

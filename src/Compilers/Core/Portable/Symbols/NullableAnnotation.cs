@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,13 +15,18 @@ namespace Microsoft.CodeAnalysis
         /// The expression has not been analyzed, or the syntax is
         /// not an expression (such as a statement).
         /// </summary>
-        NotApplicable = 0,
-        /// <summary>
-        /// The expression comes from a library not updated to C# 8
-        /// or nullable was disabled for the definition, and has no
-        /// nullability information. Analysis is disabled.
-        /// </summary>
-        Disabled,
+        /// <remarks>
+        /// There are a few different reasons the expression could
+        /// have not been analyzed:
+        ///     1) The symbol producing the expression comes from
+        ///        a method that has not been annotated, such as
+        ///        invoking a C# 7.3 or earlier method, or a
+        ///        method in this compilation that is in a disabled
+        ///        context.
+        ///     2) Nullable is completely disabled in this
+        ///        compilation.
+        /// </remarks>
+        None = 0,
         /// <summary>
         /// The expression is not annotated (does not have a ?).
         /// </summary>

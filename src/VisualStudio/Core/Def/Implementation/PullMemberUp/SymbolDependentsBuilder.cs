@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.  
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
@@ -30,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             private readonly ImmutableHashSet<ISymbol> _membersInType;
             private readonly Project _project;
+            private readonly ISymbolDeclarationService _declarationService;
             private readonly HashSet<ISymbol> _dependents;
             private readonly ISymbol _member;
             private readonly CancellationToken _cancellationToken;
@@ -41,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 CancellationToken cancellationToken)
             {
                 _project = project;
+                _declarationService = project.LanguageServices.GetRequiredService<ISymbolDeclarationService>();
                 _membersInType = membersInType.ToImmutableHashSet();
                 _dependents = new HashSet<ISymbol>();
                 _member = member;
@@ -49,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
             public async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync()
             {
-                var tasks = _member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(_cancellationToken));
+                var tasks = _declarationService.GetDeclarations(_member).Select(@ref => @ref.GetSyntaxAsync(_cancellationToken));
                 var syntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 foreach (var syntax in syntaxes)
@@ -70,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 }
 
                 // This check is added for checking method invoked in the member
-                // It is seperated since IInvocationOperation is not subtype of IMemberReferenceOperation
+                // It is separated since IInvocationOperation is not subtype of IMemberReferenceOperation
                 // issue for this https://github.com/dotnet/roslyn/issues/26206#issuecomment-382105829
                 if (operation is IInvocationOperation methodReferenceOp &&
                     _membersInType.Contains(methodReferenceOp.TargetMethod))

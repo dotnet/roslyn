@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -18,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var count = codeElements.Count;
             var elementsBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance(count);
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 // We use "i + 1" since CodeModel indices are 1-based
                 if (ErrorHandler.Succeeded(codeElements.Item(i + 1, out var element)))
@@ -31,9 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         public CodeElementSnapshot(ImmutableArray<EnvDTE.CodeElement> elements)
-        {
-            _elements = elements;
-        }
+            => _elements = elements;
 
         public override int Count
         {

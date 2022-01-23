@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -86,31 +90,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return text;
         }
 
-        // TODO: Remove this method and fix callsites to directly invoke Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString().
-        //       https://github.com/dotnet/roslyn/issues/11915
-        public static string ToTestDisplayString(this ISymbol symbol)
-        {
-            return CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString(symbol);
-        }
-
         private static SymbolDisplayFormat GetDisplayFormat(bool includeNonNullable)
         {
             var format = SymbolDisplayFormat.TestFormat;
             if (includeNonNullable)
             {
-                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+                format = format.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
+                    .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
             }
 
             return format;
         }
 
-        public static string ToTestDisplayString(this TypeWithAnnotations symbol, bool includeNonNullable = false)
+        public static string ToTestDisplayString(this TypeWithAnnotations type, bool includeNonNullable = false)
+        {
+            SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
+            return type.ToDisplayString(format);
+        }
+
+        public static string[] ToTestDisplayStrings(this IEnumerable<TypeWithAnnotations> types)
+        {
+            return types.Select(t => t.ToTestDisplayString()).ToArray();
+        }
+
+        public static string[] ToTestDisplayStrings(this IEnumerable<ISymbol> symbols)
+        {
+            return symbols.Select(s => s.ToTestDisplayString()).ToArray();
+        }
+
+        public static string[] ToTestDisplayStrings(this IEnumerable<Symbol> symbols, SymbolDisplayFormat format = null)
+        {
+            format ??= SymbolDisplayFormat.TestFormat;
+            return symbols.Select(s => s.ToDisplayString(format)).ToArray();
+        }
+
+        public static string ToTestDisplayString(this ISymbol symbol, bool includeNonNullable)
         {
             SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
             return symbol.ToDisplayString(format);
         }
 
-        public static string ToTestDisplayString(this ISymbol symbol, bool includeNonNullable)
+        public static string ToTestDisplayString(this Symbol symbol, bool includeNonNullable)
         {
             SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
             return symbol.ToDisplayString(format);

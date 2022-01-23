@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -10,12 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 {
     internal abstract partial class AbstractLegacyProject : IProjectSiteEx
     {
-        private readonly Stack<VisualStudioProject.BatchScope> _batchScopes = new Stack<VisualStudioProject.BatchScope>();
+        private readonly Stack<VisualStudioProject.BatchScope> _batchScopes = new();
 
         public void StartBatch()
-        {
-            _batchScopes.Push(VisualStudioProject.CreateBatchScope());
-        }
+            => _batchScopes.Push(VisualStudioProject.CreateBatchScope());
 
         public void EndBatch()
         {
@@ -31,6 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             //    ? SourceCodeKind.Script
             //    : SourceCodeKind.Regular;
             AddFile(filePath, linkMetadata, SourceCodeKind.Regular);
+        }
+
+        public void SetProperty([MarshalAs(UnmanagedType.LPWStr)] string property, [MarshalAs(UnmanagedType.LPWStr)] string value)
+        {
+            // TODO: Handle the properties we care about.
         }
     }
 }

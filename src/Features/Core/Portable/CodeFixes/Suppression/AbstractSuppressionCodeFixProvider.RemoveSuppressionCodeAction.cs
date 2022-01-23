@@ -1,11 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         /// <summary>
         /// Base type for remove suppression code actions.
@@ -31,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
                 else if (documentOpt != null && !SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(diagnostic))
                 {
-                    return PragmaRemoveAction.Create(suppressionTargetInfo, documentOpt, diagnostic, fixer);
+                    var options = await SyntaxFormattingOptions.FromDocumentAsync(documentOpt, cancellationToken).ConfigureAwait(false);
+                    return PragmaRemoveAction.Create(suppressionTargetInfo, documentOpt, options, diagnostic, fixer);
                 }
                 else
                 {

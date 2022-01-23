@@ -1,16 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
 
@@ -20,14 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     {
         /// <summary>
         /// Base type of all <see cref="Entry"/>s that represent some source location in 
-        /// a <see cref="CodeAnalysis.Document"/>.  Navigation to that location is provided by this type.
+        /// a <see cref="Document"/>.  Navigation to that location is provided by this type.
         /// Subclasses can be used to provide customized line text to display in the entry.
         /// </summary>
-        private abstract class AbstractDocumentSpanEntry : Entry
+        private abstract class AbstractDocumentSpanEntry : AbstractItemEntry
         {
-            private readonly AbstractTableDataSourceFindUsagesContext _context;
-
-            private readonly string _projectName;
             private readonly object _boxedProjectGuid;
 
             private readonly SourceText _lineText;
@@ -36,60 +30,30 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected AbstractDocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                string projectName,
                 Guid projectGuid,
                 SourceText lineText,
                 MappedSpanResult mappedSpanResult)
-                : base(definitionBucket)
+                : base(definitionBucket, context.Presenter)
             {
-                _context = context;
-
-                _projectName = projectName;
                 _boxedProjectGuid = projectGuid;
 
                 _lineText = lineText;
                 _mappedSpanResult = mappedSpanResult;
             }
 
-            protected StreamingFindUsagesPresenter Presenter => _context.Presenter;
+            protected abstract string GetProjectName();
 
-            protected override object GetValueWorker(string keyName)
-            {
-                switch (keyName)
+            protected override object? GetValueWorker(string keyName)
+                => keyName switch
                 {
-                    case StandardTableKeyNames.DocumentName:
-                        return _mappedSpanResult.FilePath;
-                    case StandardTableKeyNames.Line:
-                        return _mappedSpanResult.LinePositionSpan.Start.Line;
-                    case StandardTableKeyNames.Column:
-                        return _mappedSpanResult.LinePositionSpan.Start.Character;
-                    case StandardTableKeyNames.ProjectName:
-                        return _projectName;
-                    case StandardTableKeyNames.ProjectGuid:
-                        return _boxedProjectGuid;
-                    case StandardTableKeyNames.Text:
-                        return _lineText.ToString().Trim();
-                }
-
-                return null;
-            }
-
-            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
-            {
-                if (columnName == StandardTableColumnDefinitions2.LineText)
-                {
-                    var inlines = CreateLineTextInlines();
-                    var textBlock = inlines.ToTextBlock(Presenter.ClassificationFormatMap, wrap: false);
-
-                    content = textBlock;
-                    return true;
-                }
-
-                content = null;
-                return false;
-            }
-
-            protected abstract IList<Inline> CreateLineTextInlines();
+                    StandardTableKeyNames.DocumentName => _mappedSpanResult.FilePath,
+                    StandardTableKeyNames.Line => _mappedSpanResult.LinePositionSpan.Start.Line,
+                    StandardTableKeyNames.Column => _mappedSpanResult.LinePositionSpan.Start.Character,
+                    StandardTableKeyNames.ProjectName => GetProjectName(),
+                    StandardTableKeyNames.ProjectGuid => _boxedProjectGuid,
+                    StandardTableKeyNames.Text => _lineText.ToString().Trim(),
+                    _ => null,
+                };
 
             public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
             {
@@ -109,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // if span mapping service filtered out the span, make sure
                 // to return null so that we remove the span from the result
-                return results.FirstOrNullable(r => !r.IsDefault);
+                return results.FirstOrNull(r => !r.IsDefault);
             }
 
             public static SourceText GetLineContainingPosition(SourceText text, int position)

@@ -1,66 +1,39 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.PullMemberUp)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.PullMemberUp), Shared]
     internal class CSharpPullMemberUpCodeRefactoringProvider : AbstractPullMemberUpRefactoringProvider
     {
         /// <summary>
         /// Test purpose only.
         /// </summary>
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         public CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : base(service)
         {
         }
 
         [ImportingConstructor]
-        public CSharpPullMemberUpCodeRefactoringProvider() : base(null)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpPullMemberUpCodeRefactoringProvider() : this(service: null)
         {
         }
 
-        protected override bool IsSelectionValid(TextSpan span, SyntaxNode selectedNode)
-        {
-            var identifier = GetIdentifier(selectedNode);
-            if (identifier == default)
-            {
-                return false;
-            }
-            else if (identifier.FullSpan.Contains(span) && span.Contains(identifier.Span))
-            {
-                // Selection lies within the identifier's span
-                return true;
-            }
-            else if (identifier.Span.Contains(span) && span.IsEmpty)
-            {
-                // Cursor stands on the identifier
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private SyntaxToken GetIdentifier(SyntaxNode selectedNode)
-        {
-            switch (selectedNode)
-            {
-                case MemberDeclarationSyntax memberDeclarationSyntax:
-                    // Nested type is checked in before this method is called.
-                    return memberDeclarationSyntax.GetNameToken();
-                case VariableDeclaratorSyntax variableDeclaratorSyntax:
-                    // It handles multiple fields or events declared in one line
-                    return variableDeclaratorSyntax.Identifier;
-                default:
-                    return default;
-            }
-        }
+        protected override Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context)
+            => NodeSelectionHelpers.GetSelectedDeclarationOrVariableAsync(context);
     }
 }

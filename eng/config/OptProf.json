@@ -2,43 +2,220 @@
   "products": [
     {
       "name": "Roslyn.VisualStudio.Setup.vsix",
-      "tests": [
+      "tests": [        
         {
-          "container": "ManagedLangs",
-          "testCases": [
-            "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs"
+          "container": "WinForms",
+          "filteredTestCases": [
+            {
+              "filename": "/Microsoft.CodeAnalysis.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Features.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Remote.Workspaces.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.Features.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Features.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.Implementation.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            }
           ]
         },
         {
           "container": "TeamEng",
-          "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
+          "filteredTestCases": [
+            {
+              "filename": "/Microsoft.CodeAnalysis.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Remote.Workspaces.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.Features.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Features.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.Implementation.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            }
           ]
         },
         {
           "container": "VSPE",
-          "testCases": [
-            "VSPE.OptProfTests.vs_asl_cs_scenario",
-            "VSPE.OptProfTests.vs_asl_vb_scenario",
-            "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
-            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
-            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
-            "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
-            "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso",
-            "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment"
-          ]
-        },
-        {
-          "container": "WinForms",
-          "testCases": [
-            "WinForms.OptProfTests.winforms_largeform_vb"
-          ]
-        },
-        {
-          "container": "XamlOptProf",
-          "testCases": [
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_DesignerIsolated",
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated"
+          "filteredTestCases": [
+            {
+              "filename": "/Microsoft.CodeAnalysis.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Features.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.Features.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Features.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.Implementation.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+            },
+            {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            }
           ]
         }
       ]
@@ -48,8 +225,23 @@
       "tests": [
         {
           "container": "TeamEng",
-          "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
+          "filteredTestCases": [
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            }
           ]
         }
       ]
@@ -58,124 +250,50 @@
       "name": "Microsoft.CodeAnalysis.Compilers.vsix",
       "tests": [
         {
-          "container": "ManagedLangs",
-          "testCases": [
-            "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs"
-          ]
-        },
-        {
           "container": "TeamEng",
-          "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
+          "filteredTestCases": [
+            {
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/Microsoft.CodeAnalysis.CSharp.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/Microsoft.CodeAnalysis.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/Microsoft.CodeAnalysis.VisualBasic.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            }
           ]
         },
         {
           "container": "VSPE",
-          "testCases": [
-            "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment"
+          "filteredTestCases": [
+            {
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/Microsoft.CodeAnalysis.CSharp.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            },
+            {
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/Microsoft.CodeAnalysis.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            },
+            {
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/Microsoft.CodeAnalysis.VisualBasic.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            },
+            {
+              "filename": "/Contents/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
+              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            }
           ]
         }
       ]
     }
   ],
-  "assemblies": [
-    {
-      "assembly": "System.Collections.Immutable.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "Common7/IDE/PrivateAssemblies",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "ManagedLangs",
-          "testCases": [
-            "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs"
-          ]
-        },
-        {
-          "container": "TeamEng",
-          "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
-          ]
-        },
-        {
-          "container": "VSPE",
-          "testCases": [
-            "VSPE.OptProfTests.vs_asl_cs_scenario",
-            "VSPE.OptProfTests.vs_asl_vb_scenario",
-            "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
-            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
-            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
-            "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
-            "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso",
-            "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment"
-          ]
-        },
-        {
-          "container": "WinForms",
-          "testCases": [
-            "WinForms.OptProfTests.winforms_largeform_vb"
-          ]
-        },
-        {
-          "container": "XamlOptProf",
-          "testCases": [
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_DesignerIsolated",
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated"
-          ]
-        }
-      ]
-    },
-    {
-      "assembly": "System.Reflection.Metadata.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "Common7/IDE/PrivateAssemblies",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "ManagedLangs",
-          "testCases": [
-            "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs"
-          ]
-        },
-        {
-          "container": "TeamEng",
-          "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
-          ]
-        },
-        {
-          "container": "VSPE",
-          "testCases": [
-            "VSPE.OptProfTests.vs_asl_cs_scenario",
-            "VSPE.OptProfTests.vs_asl_vb_scenario",
-            "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
-            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
-            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
-            "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
-            "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso",
-            "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment"
-          ]
-        },
-        {
-          "container": "WinForms",
-          "testCases": [
-            "WinForms.OptProfTests.winforms_largeform_vb"
-          ]
-        },
-        {
-          "container": "XamlOptProf",
-          "testCases": [
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_DesignerIsolated",
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated"
-          ]
-        }
-      ]
-    }
+  "assemblies": [    
   ]
 }

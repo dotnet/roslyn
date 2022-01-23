@@ -1,13 +1,17 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -277,7 +281,7 @@ End Module
 
         <WorkItem(578074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578074")>
         <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")>
+        <Fact>
         Public Sub PreserveZeroDigitsInDecimal()
             CompileAndVerify(
 <compilation>
@@ -625,10 +629,10 @@ expectedOutput:=<![CDATA[
         <WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")>
         <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
         <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")>
+        <WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")>
+        <Fact>
         Public Sub DecimalLiteral_BreakingChange()
-
-            CompileAndVerify(
+            Dim source =
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System
@@ -649,7 +653,9 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>
+            If (ExecutionConditionUtil.IsDesktop) Then
+                CompileAndVerify(source, references:=XmlReferences, expectedOutput:=<![CDATA[
 0.0000000000000000000000000031
 0.0000000000000000000000000030
 
@@ -661,7 +667,20 @@ End Module
 
 0.1000000000000000000000000000
 ]]>)
+            ElseIf ExecutionConditionUtil.IsCoreClr Then
+                CompileAndVerify(source, references:=XmlReferences, expectedOutput:=<![CDATA[
+0.0000000000000000000000000031
+0.0000000000000000000000000031
 
+0.0000000000000000000000000001
+0.0000000000000000000000000001
+
+-0.0000000000000000000000000001
+-0.0000000000000000000000000001
+
+0.1000000000000000000000000001
+]]>)
+            End If
         End Sub
 
         <Fact()>
@@ -5170,7 +5189,7 @@ expectedOutput:="3b").VerifyIL("M1.Main",
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   IL_0012:  ldc.i4.2
@@ -5262,7 +5281,7 @@ End Class
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <Fact>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(529849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
         Public Sub ArrayWithTypeCharsWithStaticLocals()
@@ -5280,11 +5299,11 @@ Class MyArray
         Static B01#(3), B02!(idx), B03$(fidx)
         B01(0) = 1.1#
         B01#(2) = 2.2!
-        Console.WriteLine(B01(0).ToString(cul))
-        Console.WriteLine(B01(2).ToString(cul))
+        Console.WriteLine(B01(0).ToString("G15", cul))
+        Console.WriteLine(B01(2).ToString("G15", cul))
 
         B02!(idx - 1) = 0.123
-        Console.WriteLine(B02(idx - 1).ToString(cul))
+        Console.WriteLine(B02(idx - 1).ToString("G6", cul))
 
         B03$(fidx - 1) = "c c"
         Console.WriteLine(B03(1))
@@ -7122,25 +7141,25 @@ End Module
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     "Byte"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.9755240DD0C4C1AD226DEBD40C6D2EBD408250CB"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.5BD81897B38CE00BCF990B5AED9316FE43E7A3854DA09401C14DF4AF21B2F90D"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  pop
   IL_0012:  ldc.i4.5
   IL_0013:  newarr     "Double"
   IL_0018:  dup
-  IL_0019:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails>.11F3436B917FFBA0FAB0FAD5563AF18FA24AC16A"
+  IL_0019:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails>.F9D819AD50107F52959882DF3549DE08003AC644DCC12AFEA2B9BD936EE7D325"
   IL_001e:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0023:  pop
   IL_0024:  ldc.i4.5
   IL_0025:  newarr     "Boolean"
   IL_002a:  dup
-  IL_002b:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.4E724558F6B816715597A51663AD8F05247E2C4A"
+  IL_002b:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.A4E9167DC11A5B8BA7E09C85BAFDEA0B6E0B399CE50086545509017050B33097"
   IL_0030:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0035:  pop
   IL_0036:  ldc.i4.5
   IL_0037:  newarr     "Char"
   IL_003c:  dup
-  IL_003d:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.E313A2813013780396D58750DC5D62221C86F42F"
+  IL_003d:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.DC0F42A41F058686A364AF5B6BD49175C5B2CF3C4D5AE95417448BE3517B4008"
   IL_0042:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0047:  pop
   IL_0048:  ret
@@ -7223,7 +7242,7 @@ End Module
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     "System.TypeCode"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.3191FF614021ADF3122AC274EA5B6097C21BEB81"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.095C4722BB84316FEEE41ADFDAFED13FECA8836A520BDE3AB77C52F5C9F6B620"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  pop
   IL_0012:  ret
@@ -10320,7 +10339,7 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10337,7 +10356,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -10378,7 +10397,7 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10405,7 +10424,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 
@@ -11005,7 +11024,7 @@ True
   IL_0040:  ldc.i4.4
   IL_0041:  newarr     "Boolean"
   IL_0046:  dup
-  IL_0047:  ldtoken    "Integer <PrivateImplementationDetails>.35CCB1599F52363510686EF38B7DB5E7998DB108"
+  IL_0047:  ldtoken    "Integer <PrivateImplementationDetails>.52A5C4A10657220CAC05C63ADFA923C7771C55D868A58EE360EB3D1511985C3E"
   IL_004c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0051:  ldc.i4.2
   IL_0052:  ldelem.u1
@@ -11111,7 +11130,7 @@ True
   IL_0048:  ldc.i4.4
   IL_0049:  newarr     "Boolean"
   IL_004e:  dup
-  IL_004f:  ldtoken    "Integer <PrivateImplementationDetails>.35CCB1599F52363510686EF38B7DB5E7998DB108"
+  IL_004f:  ldtoken    "Integer <PrivateImplementationDetails>.52A5C4A10657220CAC05C63ADFA923C7771C55D868A58EE360EB3D1511985C3E"
   IL_0054:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0059:  stloc.s    V_4
   IL_005b:  ldloc.s    V_4
@@ -11621,7 +11640,7 @@ End Class
                                                                  Assert.True(typeB.IsComImport())
                                                                  Assert.Equal(1, typeB.GetAttributes().Length)
                                                                  Dim ctorB = typeB.InstanceConstructors.First()
-                                                                 Assert.True(DirectCast(ctorB, Cci.IMethodDefinition).IsExternal)
+                                                                 Assert.True(DirectCast(ctorB.GetCciAdapter(), Cci.IMethodDefinition).IsExternal)
                                                                  Assert.Equal(expectedMethodImplAttributes, ctorB.ImplementationAttributes)
                                                              End Sub
 
@@ -11974,7 +11993,7 @@ End Module
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.1456763F890A84558F99AFA687C36B9037697848"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   IL_0012:  ldloc.0
@@ -12076,7 +12095,7 @@ End Module
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.1456763F890A84558F99AFA687C36B9037697848"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.CF97ADEEDB59E05BFD73A2B4C2A8885708C4F4F70C84C64B27120E72AB733B72"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.1
   IL_0012:  ldloc.1
@@ -13486,7 +13505,7 @@ End Module
     </file>
 </compilation>
 
-            Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference()
+            Dim testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference()
             Dim compilation = CompileAndVerify(source, references:=New MetadataReference() {testReference})
             compilation.VerifyIL("C.Main",
             <![CDATA[
@@ -13821,7 +13840,7 @@ End Module
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
@@ -13867,7 +13886,7 @@ End Class
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -12,27 +14,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
 #Region "Helpers"
 
-        Private Sub TestSpan(markup As String)
+        Private Shared Sub TestSpan(markup As String)
             Test(markup, isMissing:=False, isLine:=False)
         End Sub
 
-        Private Sub TestSpan(markup As XElement)
+        Private Shared Sub TestSpan(markup As XElement)
             Test(markup.NormalizedValue, isMissing:=False, isLine:=False)
         End Sub
 
-        Private Sub TestMissing(markup As XElement)
+        Private Shared Sub TestMissing(markup As XElement)
             Test(markup.NormalizedValue, isMissing:=True, isLine:=False)
         End Sub
 
-        Private Sub TestLine(markup As XElement)
+        Private Shared Sub TestLine(markup As XElement)
             Test(markup.NormalizedValue, isMissing:=False, isLine:=True)
         End Sub
 
-        Private Sub TestAll(markup As XElement)
+        Private Shared Sub TestAll(markup As XElement)
             TestAll(markup.NormalizedValue)
         End Sub
 
-        Private Sub Test(markup As String, isMissing As Boolean, isLine As Boolean)
+        Private Shared Sub Test(markup As String, isMissing As Boolean, isLine As Boolean)
             Dim position As Integer? = Nothing
             Dim expectedSpan As TextSpan? = Nothing
             Dim source As String = Nothing
@@ -62,8 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             End If
         End Sub
 
-
-        Private Sub TestAll(markup As String)
+        Private Shared Sub TestAll(markup As String)
             Dim position As Integer = Nothing
             Dim expectedSpans As ImmutableArray(Of TextSpan) = Nothing
             Dim source As String = Nothing
@@ -85,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim lastSpanEnd = 0
             While position < endPosition
                 Dim span As TextSpan = Nothing
-                If BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, span) AndAlso span.End > lastSpanEnd Then
+                If BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, minLength:=0, span) AndAlso span.End > lastSpanEnd Then
                     position = span.End
                     lastSpanEnd = span.End
                     Yield span
@@ -2109,6 +2110,16 @@ End Class</text>)
 Class C
   Sub Goo()
     Console.WriteLine([|$$Async Function()|] x + x)
+  End Sub
+End Class</text>)
+        End Sub
+
+        <Fact>
+        Public Sub Lambda_SingleLine_Header_Nested()
+            TestSpan(<text>
+Class C
+  Sub Goo()
+    Dim x = Function(a) [|$$Function(b)|] a + b
   End Sub
 End Class</text>)
         End Sub

@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -14,7 +18,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddAsync), Shared]
     internal class CSharpMakeMethodAsynchronousCodeFixProvider : AbstractMakeMethodAsynchronousCodeFixProvider
     {
         private const string CS4032 = nameof(CS4032); // The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
@@ -24,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         private static readonly SyntaxToken s_asyncToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpMakeMethodAsynchronousCodeFixProvider()
         {
         }
@@ -32,14 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             ImmutableArray.Create(CS4032, CS4033, CS4034);
 
         protected override string GetMakeAsyncTaskFunctionResource()
-        {
-            return CSharpFeaturesResources.Make_method_async;
-        }
+            => CSharpFeaturesResources.Make_method_async;
 
         protected override string GetMakeAsyncVoidFunctionResource()
-        {
-            return CSharpFeaturesResources.Make_method_async_remain_void;
-        }
+            => CSharpFeaturesResources.Make_method_async_remain_void;
 
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
@@ -58,14 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             {
                 case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, knownTypes);
                 case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, knownTypes);
-                case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
-                case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
-                case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
+                case AnonymousFunctionExpressionSyntax anonymous: return FixAnonymousFunction(anonymous);
                 default: return node;
             }
         }
 
-        private SyntaxNode FixMethod(
+        private static SyntaxNode FixMethod(
             bool keepVoid, IMethodSymbol methodSymbol, MethodDeclarationSyntax method,
             KnownTypes knownTypes)
         {
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
-        private SyntaxNode FixLocalFunction(
+        private static SyntaxNode FixLocalFunction(
             bool keepVoid, IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction,
             KnownTypes knownTypes)
         {
@@ -123,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 }
             }
 
-            return newReturnType.WithTriviaFrom(returnTypeSyntax);
+            return newReturnType.WithTriviaFrom(returnTypeSyntax).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
 
-            TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
+            static TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
             {
                 var result = SyntaxFactory.GenericName(SyntaxFactory.Identifier(type),
                         SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             bool ContainsYield(SyntaxNode node)
                 => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(n => IsYield(n));
 
-            bool IsYield(SyntaxNode node)
+            static bool IsYield(SyntaxNode node)
                 => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);
         }
 
@@ -161,27 +160,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 return modifiers.Add(s_asyncToken);
 
             // Move the leading trivia from the return type to the new modifiers list.
-            SyntaxTokenList result = SyntaxFactory.TokenList(s_asyncToken.WithLeadingTrivia(newReturnType.GetLeadingTrivia()));
+            var result = SyntaxFactory.TokenList(s_asyncToken.WithLeadingTrivia(newReturnType.GetLeadingTrivia()));
             newReturnType = newReturnType.WithoutLeadingTrivia();
             return result;
         }
 
-        private SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
+        private static SyntaxNode FixAnonymousFunction(AnonymousFunctionExpressionSyntax anonymous)
         {
-            return lambda.WithoutLeadingTrivia()
-                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(lambda.GetLeadingTrivia()));
-        }
-
-        private SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
-        {
-            return lambda.WithoutLeadingTrivia()
-                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(lambda.GetLeadingTrivia()));
-        }
-
-        private SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
-        {
-            return method.WithoutLeadingTrivia()
-                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(method.GetLeadingTrivia()));
+            return anonymous.WithoutLeadingTrivia()
+                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
         }
     }
 }

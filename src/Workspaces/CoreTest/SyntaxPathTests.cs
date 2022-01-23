@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Hi"));
 
             var path = new SyntaxPath(node);
-            Assert.False(path.TryResolve(SyntaxFactory.ParseExpression("Goo()"), out SyntaxNode recovered));
+            Assert.False(path.TryResolve(SyntaxFactory.ParseExpression("Goo()"), out SyntaxNode _));
         }
 
         [Fact]
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var path = new SyntaxPath(((InvocationExpressionSyntax)root).ArgumentList.Arguments.Last());
 
             var root2 = SyntaxFactory.ParseExpression("Goo(a)");
-            Assert.False(path.TryResolve(root2, out SyntaxNode recovered));
+            Assert.False(path.TryResolve(root2, out SyntaxNode _));
         }
 
         [Fact]
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var path = new SyntaxPath(((InvocationExpressionSyntax)root).ArgumentList.Arguments.First().Expression);
 
             var root2 = SyntaxFactory.ParseExpression("Goo(3)");
-            Assert.False(path.TryResolve(root2, out SyntaxNode recovered));
+            Assert.False(path.TryResolve(root2, out SyntaxNode _));
         }
 
         [Fact]
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             tree = WithReplaceFirst(tree, "class", "struct");
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out SyntaxNode n1));
-            Assert.False(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode n2));
+            Assert.False(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode _));
 
             Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n1).Identifier.ValueText);
@@ -285,8 +286,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             tree = WithReplaceFirst(tree, "class", "struct");
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out SyntaxNode n1));
-            Assert.False(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode n2));
-            Assert.False(path3.TryResolve(tree, CancellationToken.None, out SyntaxNode n3));
+            Assert.False(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode _));
+            Assert.False(path3.TryResolve(tree, CancellationToken.None, out SyntaxNode _));
 
             Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n1).Identifier.ValueText);
@@ -408,8 +409,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static SourceText WithReplaceFirst(SourceText text, string oldText, string newText)
         {
             var oldFullText = text.ToString();
-            int offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
-            int length = oldText.Length;
+            var offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
+            var length = oldText.Length;
             var span = new TextSpan(offset, length);
             var newFullText = oldFullText.Substring(0, offset) + newText + oldFullText.Substring(span.End);
             return SourceText.From(newFullText);

@@ -1,51 +1,27 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplacePropertyWithMethodsService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicReplacePropertyWithMethods
-        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax)
+        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax, PropertyStatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Public Overrides Function GetPropertyDeclaration(token As SyntaxToken) As SyntaxNode
-            Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)
-            If containingProperty Is Nothing Then
-                Return Nothing
-            End If
-
-            ' a parameterized property cannot be trivially converted to a method.
-            If containingProperty.ParameterList IsNot Nothing Then
-                Return Nothing
-            End If
-
-            Dim start = If(containingProperty.AttributeLists.Count > 0,
-                containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
-                 containingProperty.SpanStart)
-
-            ' Offer this refactoring anywhere in the signature of the property.
-            Dim position = token.SpanStart
-            If position < start Then
-                Return Nothing
-            End If
-
-            If containingProperty.HasReturnType() AndAlso
-                position > containingProperty.GetReturnType().Span.End Then
-                Return Nothing
-            End If
-
-            Return containingProperty
-        End Function
 
         Public Overrides Function GetReplacementMembersAsync(
                 document As Document,
@@ -54,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyBackingField As IFieldSymbol,
                 desiredGetMethodName As String,
                 desiredSetMethodName As String,
-                cancellationToken As CancellationToken) As Task(Of IList(Of SyntaxNode))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxNode))
 
             Dim propertyStatement = TryCast(propertyDeclarationNode, PropertyStatementSyntax)
             If propertyStatement Is Nothing Then
-                Return Task.FromResult(SpecializedCollections.EmptyList(Of SyntaxNode))
+                Return SpecializedTasks.EmptyImmutableArray(Of SyntaxNode)
             End If
 
             Return Task.FromResult(ConvertPropertyToMembers(
@@ -68,17 +44,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 cancellationToken))
         End Function
 
-        Private Function ConvertPropertyToMembers(
+        Private Shared Function ConvertPropertyToMembers(
                 generator As SyntaxGenerator,
                 [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
                 propertyBackingField As IFieldSymbol,
                 desiredGetMethodName As String,
                 desiredSetMethodName As String,
-                cancellationToken As CancellationToken) As IList(Of SyntaxNode)
+                cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
 
-            Dim result = New List(Of SyntaxNode)()
-
+            Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
             If propertyBackingField IsNot Nothing Then
                 Dim initializer = propertyStatement.Initializer?.Value
                 result.Add(generator.FieldDeclaration(propertyBackingField, initializer))
@@ -98,10 +73,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                     setMethod, desiredSetMethodName, cancellationToken:=cancellationToken))
             End If
 
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
-        Private Function GetGetMethod(
+        Private Shared Function GetGetMethod(
                 generator As SyntaxGenerator,
                 [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
@@ -134,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return statement.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
-        Private Function GetSetMethod(
+        Private Shared Function GetSetMethod(
                 generator As SyntaxGenerator,
                 [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
@@ -164,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return methodDeclaration
         End Function
 
-        Private Function UpdateExplicitInterfaceImplementations(
+        Private Shared Function UpdateExplicitInterfaceImplementations(
                 [property] As IPropertySymbol,
                 method As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
@@ -181,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             ' To do this we make the new method using the information from the implicit getter 
             ' Function.  However, we need to update the 'explicit interface implementations' 
             ' of the implicit getter function so that they point to the updated interface method
-            ' and not hte old implicit interface method.
+            ' and not the old implicit interface method.
             Dim updatedImplementations = method.ExplicitInterfaceImplementations.SelectAsArray(
                 Function(i) UpdateExplicitInterfaceImplementation([property], i, desiredName))
 
@@ -191,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                         method, explicitInterfaceImplementations:=updatedImplementations))
         End Function
 
-        Private Function UpdateExplicitInterfaceImplementation(
+        Private Shared Function UpdateExplicitInterfaceImplementation(
                 [property] As IPropertySymbol,
                 explicitInterfaceImplMethod As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
@@ -207,14 +182,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return explicitInterfaceImplMethod
         End Function
 
-        Private Function CopyLeadingTriviaOver(propertyStatement As PropertyStatementSyntax,
+        Private Shared Function CopyLeadingTriviaOver(propertyStatement As PropertyStatementSyntax,
                                                methodDeclaration As SyntaxNode,
                                                documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxNode
             Return methodDeclaration.WithLeadingTrivia(
                 propertyStatement.GetLeadingTrivia().Select(Function(trivia) ConvertTrivia(trivia, documentationCommentRewriter)))
         End Function
 
-        Private Function ConvertTrivia(trivia As SyntaxTrivia, documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxTrivia
+        Private Shared Function ConvertTrivia(trivia As SyntaxTrivia, documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxTrivia
             If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
                 Dim converted = documentationCommentRewriter.Visit(trivia.GetStructure())
                 Return SyntaxFactory.Trivia(DirectCast(converted, StructuredTriviaSyntax))

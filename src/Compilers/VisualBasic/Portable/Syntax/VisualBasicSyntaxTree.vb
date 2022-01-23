@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel
@@ -129,6 +131,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
+            ' Diagnostic options are obsolete, but preserved for compat
+#Disable Warning BC40000
             Dim tree = New ParsedSyntaxTree(
                 newText,
                 newText.Encoding,
@@ -138,6 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 root,
                 isMyTemplate:=False,
                 DiagnosticOptions)
+#Enable Warning BC40000
 
             tree.VerifySource(changes)
             Return tree
@@ -152,6 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a new syntax tree from a syntax node.
         ''' </summary>
+        ''' <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
         Public Shared Function Create(root As VisualBasicSyntaxNode,
                                       Optional options As VisualBasicParseOptions = Nothing,
                                       Optional path As String = "",
@@ -195,6 +201,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cloneRoot:=False)
         End Function
 
+        Friend Shared Function ParseTextLazy(text As SourceText,
+                                         Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional path As String = "") As SyntaxTree
+            Return New LazySyntaxTree(text, If(options, VisualBasicParseOptions.Default), path, Nothing)
+        End Function
+
+        ''' <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
         Public Shared Function ParseText(text As String,
                                          Optional options As VisualBasicParseOptions = Nothing,
                                          Optional path As String = "",
@@ -374,6 +387,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return InDocumentationComment(CType(trivia.Token, SyntaxToken))
         End Function
 
+        Private Function GetDirectiveMap() As VisualBasicLineDirectiveMap
+            If _lineDirectiveMap Is Nothing Then
+                ' Create the line directive map on demand.
+                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
+            End If
+
+            Return _lineDirectiveMap
+        End Function
+
         ''' <summary>
         ''' Gets the location in terms of path, line and column for a given <paramref name="span"/>.
         ''' </summary>
@@ -400,39 +422,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the location path is not mapped the resulting path is <see cref="String.Empty"/>.
         ''' </returns>
         Public Overrides Function GetMappedLineSpan(span As TextSpan, Optional cancellationToken As CancellationToken = Nothing) As FileLinePositionSpan
-            If _lineDirectiveMap Is Nothing Then
-                ' Create the line directive map on demand.
-                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
-            End If
-
-            Return _lineDirectiveMap.TranslateSpan(Me.GetText(cancellationToken), Me.FilePath, span)
+            Return GetDirectiveMap().TranslateSpan(GetText(cancellationToken), FilePath, span)
         End Function
 
+        ''' <inheritdoc/>
         Public Overrides Function GetLineVisibility(position As Integer, Optional cancellationToken As CancellationToken = Nothing) As LineVisibility
-            If _lineDirectiveMap Is Nothing Then
-                ' Create the line directive map on demand.
-                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
-            End If
-
-            Return _lineDirectiveMap.GetLineVisibility(Me.GetText(cancellationToken), position)
+            Return GetDirectiveMap().GetLineVisibility(Me.GetText(cancellationToken), position)
         End Function
 
         Friend Overrides Function GetMappedLineSpanAndVisibility(span As TextSpan, ByRef isHiddenPosition As Boolean) As FileLinePositionSpan
-            If _lineDirectiveMap Is Nothing Then
-                ' Create the line directive map on demand.
-                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
-            End If
+            Return GetDirectiveMap().TranslateSpanAndVisibility(Me.GetText(), Me.FilePath, span, isHiddenPosition)
+        End Function
 
-            Return _lineDirectiveMap.TranslateSpanAndVisibility(Me.GetText(), Me.FilePath, span, isHiddenPosition)
+        ''' <inheritdoc/>
+        Public Overrides Function GetLineMappings(Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of LineMapping)
+            Dim map = GetDirectiveMap()
+            Debug.Assert(map.Entries.Length >= 1)
+            Return If(map.Entries.Length = 1, Array.Empty(Of LineMapping)(), map.GetLineMappings(GetText(cancellationToken).Lines))
         End Function
 
         Public Overrides Function HasHiddenRegions() As Boolean
-            If _lineDirectiveMap Is Nothing Then
-                ' Create the line directive map on demand.
-                Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
-            End If
-
-            Return _lineDirectiveMap.HasAnyHiddenRegions()
+            Return GetDirectiveMap().HasAnyHiddenRegions()
         End Function
 
         ' Gets the reporting state for a warning (diagnostic) at a given source location based on warning directives.

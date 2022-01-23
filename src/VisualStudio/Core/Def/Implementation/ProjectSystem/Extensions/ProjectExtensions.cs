@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using EnvDTE;
 using Roslyn.Utilities;
@@ -33,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
         private static ProjectItem CreateFolder(ProjectItems currentItems, string container)
         {
             var folderName = container;
-            int index = 1;
+            var index = 1;
 
             // Keep looking for a unique name as long as we collide with some item.
 
@@ -50,12 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
             return currentItems.AddFolder(folderName);
         }
 
-        public static ProjectItem FindItem(this EnvDTE.Project project, string itemName, StringComparer comparer)
-        {
-            return project.ProjectItems.FindItem(itemName, comparer);
-        }
-
-        public static ProjectItem FindItemByPath(this EnvDTE.Project project, string itemFilePath, StringComparer comparer)
+        public static ProjectItem? FindItemByPath(this EnvDTE.Project project, string itemFilePath, StringComparer comparer)
         {
             var stack = new Stack<ProjectItems>();
             stack.Push(project.ProjectItems);
@@ -81,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
             return null;
         }
 
-        public static bool TryGetFullPath(this EnvDTE.Project project, out string fullPath)
+        public static bool TryGetFullPath(this EnvDTE.Project project, [NotNullWhen(returnValue: true)] out string? fullPath)
         {
             fullPath = project.Properties.Item("FullPath").Value as string;
             return fullPath != null;

@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -326,9 +331,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null);
+        internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null);
 
-        internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
+        internal abstract ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
         public bool IsRef => RefKind != RefKind.None;
 
@@ -362,41 +367,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_VariableUsedBeforeDeclaration;
 
-        #region ILocalSymbol Members
-
-        ITypeSymbol ILocalSymbol.Type
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return this.Type;
-            }
+            return new PublicModel.LocalSymbol(this);
         }
-
-        CodeAnalysis.NullableAnnotation ILocalSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
-
-        bool ILocalSymbol.IsFunctionValue
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public sealed override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitLocal(this);
-        }
-
-        public sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitLocal(this);
-        }
-
-        #endregion
 
         #region ILocalSymbolInternal Members
 

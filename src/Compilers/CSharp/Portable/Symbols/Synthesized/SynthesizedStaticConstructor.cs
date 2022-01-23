@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -9,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedStaticConstructor : MethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
+        private ThreeState _lazyShouldEmit = ThreeState.Unknown;
 
         internal SynthesizedStaticConstructor(NamedTypeSymbol containingType)
         {
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = null;
             return true;
@@ -136,7 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -154,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -282,6 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         public sealed override bool IsImplicitlyDeclared
         {
             get
@@ -325,12 +335,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override DllImportData GetDllImportData()
+        public override DllImportData? GetDllImportData()
         {
             return null;
         }
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return ContainingType.AreLocalsZeroed; }
+        }
+
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
         {
             get { return null; }
         }
@@ -345,10 +360,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
+
+        internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
@@ -359,6 +376,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var containingType = (SourceMemberContainerTypeSymbol)this.ContainingType;
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: true);
+        }
+
+        internal sealed override bool IsNullableAnalysisEnabled() =>
+            (ContainingType as SourceMemberContainerTypeSymbol)?.IsNullableEnabledForConstructorsAndInitializers(useStatic: true) ?? false;
+
+        internal bool ShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
+        {
+            if (_lazyShouldEmit.HasValue())
+            {
+                return _lazyShouldEmit.Value();
+            }
+
+            var shouldEmit = CalculateShouldEmit(boundInitializersOpt);
+            _lazyShouldEmit = shouldEmit.ToThreeState();
+            return shouldEmit;
+        }
+
+        private bool CalculateShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
+        {
+            if (boundInitializersOpt.IsDefault)
+            {
+                if (!(ContainingType is SourceMemberContainerTypeSymbol sourceType))
+                {
+                    Debug.Assert(ContainingType is SynthesizedClosureEnvironment);
+                    return true;
+                }
+
+                boundInitializersOpt = Binder.BindFieldInitializers(
+                    DeclaringCompilation,
+                    sourceType.IsScriptClass ? sourceType.GetScriptInitializer() : null,
+                    sourceType.StaticInitializers,
+                    BindingDiagnosticBag.Discarded,
+                    out _);
+            }
+
+            foreach (var initializer in boundInitializersOpt)
+            {
+                if (!(initializer is BoundFieldEqualsValue { Value: { } value }))
+                {
+                    // this isn't a BoundFieldEqualsValue, so this initializer is doing
+                    // something we don't understand. Better just emit it.
+                    return true;
+                }
+
+                if (!value.IsDefaultValue())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

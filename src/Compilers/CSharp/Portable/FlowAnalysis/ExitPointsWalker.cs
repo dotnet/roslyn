@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+#nullable disable
+
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class ExitPointsWalker : AbstractRegionControlFlowPass
     {
         private readonly ArrayBuilder<LabelSymbol> _labelsInside;
-        private ArrayBuilder<StatementSyntax> _branchesOutOf;
+        private readonly ArrayBuilder<StatementSyntax> _branchesOutOf;
 
         private ExitPointsWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
@@ -37,16 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.Free();
         }
 
-        internal static IEnumerable<StatementSyntax> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
+        internal static ImmutableArray<StatementSyntax> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
         {
             var walker = new ExitPointsWalker(compilation, member, node, firstInRegion, lastInRegion);
             try
             {
-                bool badRegion = false;
-                walker.Analyze(ref badRegion);
-                var result = walker._branchesOutOf.ToImmutableAndFree();
-                walker._branchesOutOf = null;
-                return badRegion ? SpecializedCollections.EmptyEnumerable<StatementSyntax>() : result;
+                return walker.Analyze();
             }
             finally
             {
@@ -54,10 +51,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void Analyze(ref bool badRegion)
+        private ImmutableArray<StatementSyntax> Analyze()
         {
+            bool badRegion = false;
+
             // only one pass is needed.
             Scan(ref badRegion);
+
+            if (badRegion)
+            {
+                return ImmutableArray<StatementSyntax>.Empty;
+            }
+
+            _branchesOutOf.Sort((x, y) => x.SpanStart - y.SpanStart);
+            return _branchesOutOf.ToImmutable();
         }
 
         public override BoundNode VisitLabelStatement(BoundLabelStatement node)
@@ -105,14 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitWhileStatement(node);
         }
 
-        override protected void EnterRegion()
+        protected override void EnterRegion()
         {
             base.EnterRegion();
         }
 
-        override protected void LeaveRegion()
+        protected override void LeaveRegion()
         {
-            foreach (var pending in PendingBranches)
+            foreach (var pending in PendingBranches.AsEnumerable())
             {
                 if (pending.Branch == null || !RegionContains(pending.Branch.Syntax.Span)) continue;
                 switch (pending.Branch.Kind)

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,8 +23,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpReferenceHighlighting))
+        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpReferenceHighlighting))
         {
         }
 
@@ -77,8 +81,33 @@ class C
 }";
             VisualStudio.Editor.SetText(text);
             VisualStudio.Editor.PlaceCaret("x");
+            VisualStudio.Editor.InvokeNavigateToNextHighlightedReference();
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
-            VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
+            VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
+        }
+
+        [WorkItem(52041, "https://github.com/dotnet/roslyn/pull/52041")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public void HighlightBasedOnSelection()
+        {
+            var text = @"
+class C
+{
+   void M()
+    {
+        int x = 0;
+        x++;       
+        x = 3;
+    }
+}";
+            VisualStudio.Editor.SetText(text);
+            VisualStudio.Editor.PlaceCaret("x");
+
+            VisualStudio.Editor.InvokeNavigateToNextHighlightedReference();
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Editor.Verify.CurrentLineText("x$$++;", assertCaretPosition: true, trimWhitespace: true);
+
+            VisualStudio.Editor.InvokeNavigateToNextHighlightedReference();
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
             VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }

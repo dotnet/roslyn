@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.Binder;
@@ -36,6 +41,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.SequencePointWithSpan:
                     this.EmitSequencePointStatement((BoundSequencePointWithSpan)statement);
+                    break;
+
+                case BoundKind.SavePreviousSequencePoint:
+                    this.EmitSavePreviousSequencePoint((BoundSavePreviousSequencePoint)statement);
+                    break;
+
+                case BoundKind.RestorePreviousSequencePoint:
+                    this.EmitRestorePreviousSequencePoint((BoundRestorePreviousSequencePoint)statement);
+                    break;
+
+                case BoundKind.StepThroughSequencePoint:
+                    this.EmitStepThroughSequencePoint((BoundStepThroughSequencePoint)statement);
                     break;
 
                 case BoundKind.ExpressionStatement:
@@ -676,7 +693,10 @@ oneMoreTime:
             _builder.OpenLocalScope(ScopeType.StateMachineVariable);
             foreach (var field in scope.Fields)
             {
-                _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                if (field.SlotIndex >= 0)
+                {
+                    _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                }
             }
 
             EmitStatement(scope.Statement);
@@ -868,7 +888,7 @@ oneMoreTime:
         ///
         /// gets emitted as something like ===>
         ///
-        /// Try           
+        /// Try
         ///     TryBlock
         /// Filter 
         ///     var tmp = Pop() as {ExceptionType}
@@ -887,6 +907,9 @@ oneMoreTime:
         ///     variable ex can be used here
         ///     Handler
         /// EndCatch
+        /// 
+        /// When evaluating `Condition` requires additional statements be executed first, those
+        /// statements are stored in `catchBlock.ExceptionFilterPrologueOpt` and emitted before the condition.
         /// </remarks>
         private void EmitCatchBlock(BoundCatchBlock catchBlock)
         {
@@ -990,6 +1013,7 @@ oneMoreTime:
                 while (exceptionSource.Kind == BoundKind.Sequence)
                 {
                     var seq = (BoundSequence)exceptionSource;
+                    Debug.Assert(seq.Locals.IsDefaultOrEmpty);
                     EmitSideEffects(seq);
                     exceptionSource = seq.Value;
                 }
@@ -1038,6 +1062,12 @@ oneMoreTime:
             else
             {
                 _builder.EmitOpCode(ILOpCode.Pop);
+            }
+
+            if (catchBlock.ExceptionFilterPrologueOpt != null)
+            {
+                Debug.Assert(_builder.IsStackEmpty);
+                EmitStatements(catchBlock.ExceptionFilterPrologueOpt.Statements);
             }
 
             // Emit the actual filter expression, if we have one, and normalize
@@ -1155,7 +1185,7 @@ oneMoreTime:
             // Emit switch jump table
             if (expression.Type.SpecialType != SpecialType.System_String)
             {
-                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingType().PrimitiveTypeCode);
+                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode);
             }
             else
             {
@@ -1399,7 +1429,8 @@ oneMoreTime:
             // If named, add it to the local debug scope.
             if (localDef.Name != null &&
                 !(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)) // Visibility scope of such locals is represented by BoundScope node.
+                // Visibility scope of such locals is represented by BoundScope node.
+                (local.ScopeDesignatorOpt?.Kind() is SyntaxKind.SwitchSection or SyntaxKind.SwitchExpressionArm)))
             {
                 _builder.AddLocalToScope(localDef);
             }
@@ -1435,13 +1466,8 @@ oneMoreTime:
             if (_ilEmitStyle == ILEmitStyle.Debug)
             {
                 var syntax = local.GetDeclaratorSyntax();
-                int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
-
-                // Synthesized locals emitted for switch case patterns are all associated with the switch statement 
-                // and have distinct types. We use their types to match them, not the ordinal as the ordinal might
-                // change if switch cases are reordered.
-                int ordinal = (localKind != SynthesizedLocalKind.SwitchCasePatternMatching) ?
-                    _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset) : 0;
+                int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(syntax), syntax.SyntaxTree);
+                int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
 
                 // user-defined locals should have 0 ordinal:
                 Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);

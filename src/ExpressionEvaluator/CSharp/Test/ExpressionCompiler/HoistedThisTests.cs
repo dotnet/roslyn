@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -859,8 +863,8 @@ class C
                 foreach (var displayClassType in displayClassTypes)
                 {
                     var displayClassName = displayClassType.Name;
-                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
-                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNameParser.GetKind(displayClassName));
+                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNameParser.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
                     {
                         var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
                         var context = CreateMethodContext(runtime, lambdaMethodName);
@@ -922,8 +926,8 @@ class C
                 foreach (var displayClassType in displayClassTypes)
                 {
                     var displayClassName = displayClassType.Name;
-                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
-                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNameParser.GetKind(displayClassName));
+                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNameParser.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
                     {
                         var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
                         var context = CreateMethodContext(runtime, lambdaMethodName);
@@ -972,7 +976,7 @@ class C
             var testData = new CompilationTestData();
             var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
             Assert.NotNull(assembly);
-            Assert.NotEqual(assembly.Count, 0);
+            Assert.NotEqual(0, assembly.Count);
             var methods = testData.GetMethodsByName();
             var localAndMethod = locals.Single(l => l.LocalName == "this");
             if (expectedIL != null)
@@ -1439,7 +1443,7 @@ public class C
             var originalType = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var iteratorMethod = originalType.GetMembers("M").OfType<MethodSymbol>().Single(isDesiredOverload);
 
-            var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNames.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
+            var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNameParser.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
             var moveNextMethod = stateMachineType.GetMember<MethodSymbol>("MoveNext");
 
             var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(moveNextMethod, sourceMethodMustBeInstance: true);

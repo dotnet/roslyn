@@ -4,12 +4,37 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">Se creará un espacio de nombres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_type_and_name_must_be_provided">
+        <source>A type and name must be provided.</source>
+        <target state="translated">Se debe proporcionar un tipo y un nombre.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Action">
+        <source>Action</source>
+        <target state="translated">Acción</target>
+        <note>Action to perform on an unused reference, such as remove or keep</note>
+      </trans-unit>
+      <trans-unit id="Add">
+        <source>_Add</source>
+        <target state="translated">_Agregar</target>
+        <note>Adding an element to a list</note>
+      </trans-unit>
+      <trans-unit id="Add_Parameter">
+        <source>Add Parameter</source>
+        <target state="translated">Agregar parámetro</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">Agregar al archivo _actual</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Added_Parameter">
+        <source>Added parameter.</source>
+        <target state="translated">Se agregó el parámetro.</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
@@ -22,9 +47,29 @@
         <target state="translated">Todos los métodos</target>
         <note />
       </trans-unit>
+      <trans-unit id="All_sources">
+        <source>All sources</source>
+        <target state="translated">Todos los orígenes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_colon">
         <source>Allow:</source>
         <target state="translated">Permitir:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_multiple_blank_lines">
+        <source>Allow multiple blank lines</source>
+        <target state="translated">Permitir varias líneas en blanco</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_statement_immediately_after_block">
+        <source>Allow statement immediately after block</source>
+        <target state="translated">Permitir una instrucción inmediatamente después del bloque</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="translated">Siempre</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -32,10 +77,40 @@
         <target state="translated">Siempre por claridad</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="translated">Valores predeterminados del analizador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzers">
+        <source>Analyzers</source>
+        <target state="translated">Analizadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_project_references">
+        <source>Analyzing project references...</source>
+        <target state="translated">Analizando las referencias del proyecto...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply">
+        <source>Apply</source>
+        <target state="translated">Aplicar</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
         <source>Apply '{0}' keymapping scheme</source>
         <target state="translated">Aplicar esquema de asignaciones de teclado "{0}"</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Assemblies">
+        <source>Assemblies</source>
+        <target state="translated">Ensamblados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
+        <source>Automatically open Stack Trace Explorer on focus</source>
+        <target state="translated">Abrir automáticamente el Explorador de seguimiento de pila al centrarse</target>
+        <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
@@ -57,19 +132,114 @@
         <target state="translated">Atrás</target>
         <note />
       </trans-unit>
+      <trans-unit id="Background_analysis_scope_colon">
+        <source>Background analysis scope:</source>
+        <target state="translated">Ámbito de análisis en segundo plano:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Beginning_of_line">
+        <source>Beginning of line</source>
+        <target state="translated">Principio de línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness32">
+        <source>32-bit</source>
+        <target state="translated">32 bits</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness64">
+        <source>64-bit</source>
+        <target state="translated">64 bits</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Build_plus_live_analysis_NuGet_package">
+        <source>Build + live analysis (NuGet package)</source>
+        <target state="translated">Compilación y análisis en directo (paquete NuGet)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
+        <source>C#/Visual Basic Diagnostics Language Client</source>
+        <target state="translated">Cliente de lenguaje de diagnóstico de C#/Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calculating">
+        <source>Calculating...</source>
+        <target state="translated">Calculando...</target>
+        <note>Used in UI to represent progress in the context of loading items. </note>
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Calculando dependientes...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Classifications">
-        <source>Classifications</source>
-        <target state="translated">Clasificaciones</target>
+      <trans-unit id="Call_site_value">
+        <source>Call site value:</source>
+        <target state="translated">Valor del sitio de llamada:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Colorize_JSON_strings">
-        <source>Colorize JSON strings</source>
-        <target state="new">Colorize JSON strings</target>
+      <trans-unit id="Callsite">
+        <source>Call site</source>
+        <target state="translated">Sitio de llamada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Carriage_Return_Newline_rn">
+        <source>Carriage Return + Newline (\r\n)</source>
+        <target state="translated">CR + Nueva línea (\r\n)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Carriage_Return_r">
+        <source>Carriage Return (\r)</source>
+        <target state="translated">CR (\r)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Category">
+        <source>Category</source>
+        <target state="translated">Categoría</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Choose_which_action_you_would_like_to_perform_on_the_unused_references">
+        <source>Choose which action you would like to perform on the unused references.</source>
+        <target state="translated">Elija la acción que quiera realizar en las referencias sin usar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Clear">
+        <source>Clear</source>
+        <target state="translated">Borrar</target>
+        <note>Clear content action</note>
+      </trans-unit>
+      <trans-unit id="Close_tab">
+        <source>Close Tab</source>
+        <target state="translated">Cerrar pestaña</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Style">
+        <source>Code Style</source>
+        <target state="translated">Estilo de código</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_0">
+        <source>Code analysis completed for '{0}'.</source>
+        <target state="translated">El análisis de código se ha completado para "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_Solution">
+        <source>Code analysis completed for Solution.</source>
+        <target state="translated">El análisis de código se ha completado para la solución.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_0">
+        <source>Code analysis terminated before completion for '{0}'.</source>
+        <target state="translated">El análisis de código terminó antes de completarse para "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
+        <source>Code analysis terminated before completion for Solution.</source>
+        <target state="translated">El análisis de código terminó antes de completarse para la solución.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="translated">Sugerencias de color</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -77,9 +247,104 @@
         <target state="translated">Colorear expresiones regulares</target>
         <note />
       </trans-unit>
-      <trans-unit id="Detect_and_offer_editor_features_for_likely_JSON_strings">
-        <source>Detect and offer editor features for likely JSON strings</source>
-        <target state="new">Detect and offer editor features for likely JSON strings</target>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="translated">Combinar margen de herencia con margen de indicador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="translated">Comentarios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="translated">Procesar acciones rápidas de forma asincrónica (experimental, requiere reinicio)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_member">
+        <source>Containing Member</source>
+        <target state="translated">Miembro contenedor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_type">
+        <source>Containing Type</source>
+        <target state="translated">Tipo contenedor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_document">
+        <source>Current document</source>
+        <target state="translated">Documento actual</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_parameter">
+        <source>Current parameter</source>
+        <target state="translated">Parámetro actual</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default_Current_Document">
+        <source>Default (Current Document)</source>
+        <target state="translated">Predeterminado (Documento actual)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Entire_Solution">
+        <source>Default (Entire Solution)</source>
+        <target state="translated">Valor predeterminado (Toda la solución)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Open_Documents">
+        <source>Default (Open Documents)</source>
+        <target state="translated">Valor predeterminado (Abrir documentos)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="translated">Tipos derivados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabled">
+        <source>Disabled</source>
+        <target state="translated">Deshabilitado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
+        <source>Display all hints while pressing Alt+F1</source>
+        <target state="translated">Mostrar todas las sugerencias al presionar Alt+F1</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="translated">Mostrar diagnósticos incorporados (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="translated">_Mostrar sugerencias de nombre de parámetro insertadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_type_hints">
+        <source>Display inline type hints</source>
+        <target state="translated">Mostrar sugerencias de tipo insertado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit">
+        <source>_Edit</source>
+        <target state="translated">_Editar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_0">
+        <source>Edit {0}</source>
+        <target state="translated">Editar {0}</target>
+        <note>{0} is a parameter description</note>
+      </trans-unit>
+      <trans-unit id="Editor_Color_Scheme">
+        <source>Editor Color Scheme</source>
+        <target state="translated">Combinación de colores del editor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
+        <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
+        <target state="translated">Las opciones de combinación de colores del editor solo están disponibles cuando se usa un tema de color incluido con Visual Studio. Dicho tema se puede configurar desde la página de Entorno &gt; Opciones generales.</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -87,14 +352,84 @@
         <target state="translated">El elemento no es válido.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
-        <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
+        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">Habilitar diagnósticos "pull" de Razor (experimental, requiere reiniciar)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
+        <source>Enable all features in opened files from source generators (experimental)</source>
+        <target state="translated">Habilitar todas las características de los archivos abiertos de los generadores de origen (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_file_logging_for_diagnostics">
+        <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
+        <target state="translated">Habilitar registro de archivos para el diagnóstico (registrados en la carpeta "%Temp%\Roslyn")</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
+        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">Habilitar diagnósticos "pull" (experimental, requiere reiniciar)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enabled">
+        <source>Enabled</source>
+        <target state="translated">Habilitado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_of_line">
+        <source>End of line</source>
+        <target state="translated">Final de línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
+        <source>Enter a call site value or choose a different value injection kind</source>
+        <target state="translated">Escriba un valor de sitio de llamada o elija otro tipo de inserción de valor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_repository">
+        <source>Entire repository</source>
+        <target state="translated">Todo el repositorio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_solution">
+        <source>Entire solution</source>
+        <target state="translated">Toda la solución</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error">
+        <source>Error</source>
+        <target state="translated">Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_updating_suppressions_0">
+        <source>Error updating suppressions: {0}</source>
+        <target state="translated">Actualización de errores de forma periódica: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluating_0_tasks_in_queue">
+        <source>Evaluating ({0} tasks in queue)</source>
+        <target state="translated">Evaluando ({0} tareas en cola)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Base_Class">
+        <source>Extract Base Class</source>
+        <target state="translated">Extraer clase base</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Finalizar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="translated">Para miembros que no son de interfaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="translated">Dar formato al documento</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -107,9 +442,84 @@
         <target state="translated">Resaltar componentes relacionados bajo el cursor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Id">
+        <source>Id</source>
+        <target state="translated">Id.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="translated">Interfaces implementadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_members">
+        <source>Implemented members</source>
+        <target state="translated">Miembros implementados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_members">
+        <source>Implementing members</source>
+        <target state="translated">Implementando miembros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="translated">Tipos de implementación</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">En otros operadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Index">
+        <source>Index</source>
+        <target state="translated">Índice</target>
+        <note>Index of parameter in original signature</note>
+      </trans-unit>
+      <trans-unit id="Infer_from_context">
+        <source>Infer from context</source>
+        <target state="translated">Inferir del contexto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexed_in_organization">
+        <source>Indexed in organization</source>
+        <target state="translated">Indexado en la organización</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexed_in_repo">
+        <source>Indexed in repo</source>
+        <target state="translated">Indexado en el repositorio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="translated">Margen de herencia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="translated">Interfaces heredadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="translated">Diagnósticos incorporados (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">Sugerencias insertadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inserting_call_site_value_0">
+        <source>Inserting call site value '{0}'</source>
+        <target state="translated">Insertando el valor del sitio de llamada "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="translated">Instale los analizadores de Roslyn recomendados por Microsoft, que proporcionan diagnósticos y correcciones adicionales para problemas comunes de confiabilidad, rendimiento, seguridad y diseño de API.</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
@@ -117,9 +527,24 @@
         <target state="translated">La interfaz no puede tener campos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_strings">
-        <source>JSON strings</source>
-        <target state="new">JSON strings</target>
+      <trans-unit id="IntroduceUndefinedTodoVariables">
+        <source>Introduce undefined TODO variables</source>
+        <target state="translated">Introducir variables TODO sin definir</target>
+        <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
+      </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="translated">Nombre de tipo no válido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Item_origin">
+        <source>Item origin</source>
+        <target state="translated">Origen del elemento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keep">
+        <source>Keep</source>
+        <target state="translated">Mantener</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -132,9 +557,34 @@
         <target state="translated">Tipo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_analysis">
-        <source>Live analysis</source>
-        <target state="new">Live analysis</target>
+      <trans-unit id="Live_analysis_VSIX_extension">
+        <source>Live analysis (VSIX extension)</source>
+        <target state="translated">Análisis en directo (extensión VSIX)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_items">
+        <source>Loaded items</source>
+        <target state="translated">Elementos cargados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_solution">
+        <source>Loaded solution</source>
+        <target state="translated">Solución cargada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local">
+        <source>Local</source>
+        <target state="translated">Local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_metadata">
+        <source>Local metadata</source>
+        <target state="translated">Metadatos locales</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="translated">Ubicación</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -157,14 +607,39 @@
         <target state="translated">Preferencias de modificador:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="translated">Mover miembros estáticos a otro tipo:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">Mover a espacio de nombres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited">
+        <source>Multiple members are inherited</source>
+        <target state="translated">Varios miembros son heredados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited_on_line_0">
+        <source>Multiple members are inherited on line {0}</source>
+        <target state="translated">Varios miembros se heredan en la línea {0}</target>
+        <note>Line number info is needed for accessibility purpose.</note>
+      </trans-unit>
+      <trans-unit id="Name_conflicts_with_an_existing_type_name">
+        <source>Name conflicts with an existing type name.</source>
+        <target state="translated">El nombre está en conflicto con un nombre de tipo que ya existía.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_is_not_a_valid_0_identifier">
+        <source>Name is not a valid {0} identifier.</source>
+        <target state="translated">El nombre no es un identificador de {0} válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">Espacio de nombres</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -172,9 +647,204 @@
         <target state="translated">Espacio de nombres: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="translated">Declaraciones de espacio de nombres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="translated">Se han actualizado los espacios de nombres.</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Class">
+        <source>class</source>
+        <target state="new">class</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Delegate">
+        <source>delegate</source>
+        <target state="new">delegate</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Enum">
+        <source>enum</source>
+        <target state="new">enum</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Event">
+        <source>event</source>
+        <target state="new">event</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Field">
+        <source>field</source>
+        <target state="translated">campo</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Interface">
+        <source>interface</source>
+        <target state="new">interface</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Local">
+        <source>local</source>
+        <target state="translated">Local</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_LocalFunction">
+        <source>local function</source>
+        <target state="translated">función local</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Method">
+        <source>method</source>
+        <target state="translated">método</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Namespace">
+        <source>namespace</source>
+        <target state="new">namespace</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Parameter">
+        <source>parameter</source>
+        <target state="translated">parámetro</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Property">
+        <source>property</source>
+        <target state="translated">propiedad</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Struct">
+        <source>struct</source>
+        <target state="new">struct</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_TypeParameter">
+        <source>type parameter</source>
+        <target state="translated">parámetro de tipo</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Class">
+        <source>Class</source>
+        <target state="new">Class</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Delegate">
+        <source>Delegate</source>
+        <target state="new">Delegate</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Enum">
+        <source>Enum</source>
+        <target state="new">Enum</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Event">
+        <source>Event</source>
+        <target state="new">Event</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Field">
+        <source>Field</source>
+        <target state="translated">Campo</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Interface">
+        <source>Interface</source>
+        <target state="new">Interface</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Local">
+        <source>Local</source>
+        <target state="translated">Local</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Method">
+        <source>Method</source>
+        <target state="translated">método</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Module">
+        <source>Module</source>
+        <target state="new">Module</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Parameter">
+        <source>Parameter</source>
+        <target state="translated">Parámetro</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Property">
+        <source>Property</source>
+        <target state="new">Property</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Structure">
+        <source>Structure</source>
+        <target state="new">Structure</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_TypeParameter">
+        <source>Type Parameter</source>
+        <target state="translated">Parámetro de tipo</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
+      </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="translated">Reglas de nomenclatura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_to_0">
+        <source>Navigate to '{0}'</source>
+        <target state="translated">Navegar a "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="translated">Navegar a orígenes externos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">Nunca</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Nunca si es innecesario</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Type_Name_colon">
+        <source>New Type Name:</source>
+        <target state="translated">Nombre de tipo nuevo:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences_experimental_colon">
+        <source>New line preferences (experimental):</source>
+        <target state="translated">Nuevas preferencias de línea (experimental):</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Newline_n">
+        <source>Newline (\\n)</source>
+        <target state="translated">Nueva línea (\\n)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="translated">No es necesario actualizar ningún espacio de nombres.</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="No_unused_references_were_found">
+        <source>No unused references were found.</source>
+        <target state="translated">No se encontraron referencias sin usar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -182,14 +852,134 @@
         <target state="translated">Miembros no públicos</target>
         <note />
       </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="translated">NONE</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="translated">Omitir si es el valor predeterminado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Omit_only_for_optional_parameters">
+        <source>Omit (only for optional parameters)</source>
+        <target state="translated">Omitir (solo para parámetros opcionales)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Open_documents">
+        <source>Open documents</source>
+        <target state="translated">Documentos abiertos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="translated">Colocación del operador al ajustar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_parameters_must_provide_a_default_value">
+        <source>Optional parameters must provide a default value</source>
+        <target state="translated">Los parámetros opcionales deben proporcionar un valor predeterminado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_with_default_value_colon">
+        <source>Optional with default value:</source>
+        <target state="translated">Opcional con valor predeterminado:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other">
+        <source>Others</source>
+        <target state="translated">Otros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overridden_members">
+        <source>Overridden members</source>
+        <target state="translated">Miembros reemplazados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overriding_members">
+        <source>Overriding members</source>
+        <target state="translated">Reemplando miembros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_canceled">
+        <source>Package install canceled</source>
+        <target state="translated">Instalación del paquete cancelada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_canceled">
+        <source>Package uninstall canceled</source>
+        <target state="translated">Desinstalación del paquete cancelada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Packages">
+        <source>Packages</source>
+        <target state="translated">Paquetes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_Details">
+        <source>Parameter Details</source>
+        <target state="translated">Detalles de parámetros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_Name">
+        <source>Parameter name:</source>
+        <target state="translated">Nombre del parámetro:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_information">
+        <source>Parameter information</source>
+        <target state="translated">Información de parámetros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_kind">
+        <source>Parameter kind</source>
+        <target state="translated">Clase de parámetro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_name_contains_invalid_characters">
+        <source>Parameter name contains invalid character(s).</source>
+        <target state="translated">El nombre de parámetro contiene caracteres no válidos.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
         <source>Parameter preferences:</source>
         <target state="translated">Preferencias de parámetros:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_type_contains_invalid_characters">
+        <source>Parameter type contains invalid character(s).</source>
+        <target state="translated">El tipo de parámetro contiene caracteres no válidos.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="translated">Preferencias de paréntesis:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="translated">Pegar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_valid_stack_trace">
+        <source>Paste a valid stack trace to view and navigate it's values</source>
+        <target state="translated">Pegar un seguimiento de pila válido para ver y navegar sus valores</target>
+        <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
+      <trans-unit id="Paused_0_tasks_in_queue">
+        <source>Paused ({0} tasks in queue)</source>
+        <target state="translated">En pausa ({0} tareas en cola)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_enter_a_type_name">
+        <source>Please enter a type name</source>
+        <target state="translated">Escriba un nombre de tipo.</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="translated">Preferir "System.HashCode" en "GetHashCode"</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -200,6 +990,16 @@
       <trans-unit id="Prefer_index_operator">
         <source>Prefer index operator</source>
         <target state="translated">Preferir operador de índice</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="new">Prefer method group conversion</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_namespace_and_folder_match_structure">
+        <source>Prefer namespace and folder match structure</source>
+        <target state="translated">Preferir estructura de coincidencia de espacio de nombres y carpetas</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
@@ -214,7 +1014,17 @@
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="translated">Preferir instrucción "using" sencilla</target>
+        <target state="translated">Preferir la instrucción "using" sencilla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="translated">Preferir expresiones booleanas simplificadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_interpolation">
+        <source>Prefer simplified interpolation</source>
+        <target state="translated">Preferir interpolación simplificada</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -222,9 +1032,34 @@
         <target state="translated">Preferir funciones locales estáticas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_tuple_swap">
+        <source>Prefer tuple swap</source>
+        <target state="translated">Preferir el intercambio de tupla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Projects">
+        <source>Projects</source>
+        <target state="translated">Proyectos</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">Extraer miembros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="translated">Acciones rápidas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Solo refactorización</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reference">
+        <source>Reference</source>
+        <target state="translated">Referencia</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -232,19 +1067,54 @@
         <target state="translated">Expresiones regulares</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename {0} to {1}</source>
-        <target state="translated">Cambiar el nombre de {0} a {1}</target>
+      <trans-unit id="Remove_All">
+        <source>Remove All</source>
+        <target state="translated">Quitar todo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Report_invalid_JSON_strings">
-        <source>Report invalid JSON strings</source>
-        <target state="new">Report invalid JSON strings</target>
+      <trans-unit id="Remove_Unused_References">
+        <source>Remove Unused References</source>
+        <target state="translated">Quitar referencias sin usar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">Eliminar instrucciones Using innecesarias</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="translated">Cambiar nombre de {0} a {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">Notificar expresiones regulares no válidas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repository">
+        <source>Repository</source>
+        <target state="translated">Repositorio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_accessibility_modifiers">
+        <source>Require accessibility modifiers</source>
+        <target state="translated">Requerir modificadores de accesibilidad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_colon">
+        <source>Require:</source>
+        <target state="translated">Requerir:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>Required</source>
+        <target state="translated">Obligatorio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Requires_System_HashCode_be_present_in_project">
+        <source>Requires 'System.HashCode' be present in project</source>
+        <target state="translated">Requiere que "System.HashCode" esté presente en el proyecto</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
@@ -257,9 +1127,44 @@
         <target state="translated">Revisar cambios</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_Code_Analysis_on_0">
+        <source>Run Code Analysis on {0}</source>
+        <target state="translated">Ejecutar análisis de código en {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="translated">Ejecutar el análisis de código en un proceso independiente (requiere reiniciar)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_0">
+        <source>Running code analysis for '{0}'...</source>
+        <target state="translated">Ejecutando el análisis de código para "{0}"...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_Solution">
+        <source>Running code analysis for Solution...</source>
+        <target state="translated">Ejecutando el análisis de código para la solución...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_low_priority_background_processes">
+        <source>Running low priority background processes</source>
+        <target state="translated">Ejecutando procesos en segundo plano de baja prioridad</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
         <target state="translated">Guardar archivo .editorconfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_Settings">
+        <source>Search Settings</source>
+        <target state="translated">Buscar configuración</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
+        <source>Select an appropriate symbol to start value tracking</source>
+        <target state="translated">Seleccione un símbolo adecuado para iniciar el seguimiento de valores</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination">
@@ -274,7 +1179,7 @@
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>Select _Public</source>
-        <target state="translated">_Seleccionar público</target>
+        <target state="translated">Seleccionar _público</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -297,19 +1202,174 @@
         <target state="translated">Seleccionar miembros:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
+        <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
+        <target state="translated">Mostrar el comando "Quitar referencias sin usar" en el Explorador de soluciones (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Mostrar lista de finalización</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_everything_else">
+        <source>Show hints for everything else</source>
+        <target state="translated">Mostrar sugerencias para todo lo demás</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="translated">Mostrar sugerencias para la creación implícita de objetos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="translated">Mostrar sugerencias para indizadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_lambda_parameter_types">
+        <source>Show hints for lambda parameter types</source>
+        <target state="translated">Mostrar sugerencias para los tipos de parámetros lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_literals">
+        <source>Show hints for literals</source>
+        <target state="translated">Mostrar sugerencias para los literales</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_variables_with_inferred_types">
+        <source>Show hints for variables with inferred types</source>
+        <target state="translated">Mostrar sugerencias para las variables con tipos inferidos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_inheritance_margin">
+        <source>Show inheritance margin</source>
+        <target state="translated">Mostrar margen de herencia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
+        <source>Skip analyzers for implicitly triggered builds</source>
+        <target state="translated">Omitir analizadores para compilaciones desencadenadas implícitamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
+        <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
+        <target state="translated">Algunos de los colores de la combinación se reemplazan por los cambios realizados en la página de opciones de Entorno &gt; Fuentes y colores. Elija "Usar valores predeterminados" en la página Fuentes y colores para revertir todas las personalizaciones.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">Ordenar instrucciones Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace_Explorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Explorador de seguimiento de pila</target>
+        <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
+      </trans-unit>
+      <trans-unit id="Stack_trace_0">
+        <source>Stack Trace {0}</source>
+        <target state="translated">Seguimiento de la pila {0}</target>
+        <note>Header for numbered stack trace view tabs</note>
+      </trans-unit>
+      <trans-unit id="Suggestion">
+        <source>Suggestion</source>
+        <target state="translated">Sugerencia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="translated">Suprimir las sugerencias cuando el argumento coincide con el nombre del parámetro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="translated">Suprimir las sugerencias cuando el nombre del parámetro coincida con la intención del método</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="translated">Suprimir las sugerencias cuando los nombres de parámetro solo se diferencien por el sufijo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="translated">Símbolos sin referencias</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="translated">Sincronizar espacios de nombres</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments (experimental)</source>
+        <target state="translated">Presionar dos veces la tecla Tab para insertar argumentos (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">Espacio de nombres de destino:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_been_removed_from_the_project">
+        <source>The generator '{0}' that generated this file has been removed from the project; this file is no longer being included in your project.</source>
+        <target state="translated">El generador "{0}" que creó este archivo se ha quitado del proyecto; el archivo ya no se incluye en el proyecto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_stopped_generating_this_file">
+        <source>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</source>
+        <target state="translated">El generador "{0}" que creaba este archivo ha dejado de generarlo; el archivo ya no se incluye en el proyecto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
+        <source>This action cannot be undone. Do you wish to continue?</source>
+        <target state="translated">Esta acción no se puede deshacer. ¿Quiere continuar?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
+        <source>This file is auto-generated by the generator '{0}' and cannot be edited.</source>
+        <target state="translated">El generador "{0}" crea este archivo de forma automática y no se puede editar.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">Este espacio de nombres no es válido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_rule_is_not_configurable">
+        <source>This rule is not configurable</source>
+        <target state="translated">No se puede configurar esta regla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Title">
+        <source>Title</source>
+        <target state="translated">Título</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Name">
+        <source>Type name:</source>
+        <target state="translated">Nombre de tipo:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_name_has_a_syntax_error">
+        <source>Type name has a syntax error</source>
+        <target state="translated">El nombre de tipo tiene un error de sintaxis</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_not_recognized">
+        <source>Type name is not recognized</source>
+        <target state="translated">No se reconoce el nombre de tipo</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_recognized">
+        <source>Type name is recognized</source>
+        <target state="translated">Se reconoce el nombre de tipo</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Underline_reassigned_variables">
+        <source>Underline reassigned variables</source>
+        <target state="translated">Subrayar variables reasignadas</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -322,9 +1382,19 @@
         <target state="translated">El valor sin usar se asigna explícitamente para descartar</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
-        <source>Use enhanced colors for C# and Basic</source>
-        <target state="translated">Usar los colores mejorados para C# y Basic</target>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="translated">Actualizando espacios de nombres...</target>
+        <note>"namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Updating_project_references">
+        <source>Updating project references...</source>
+        <target state="translated">Actualizando las referencias del proyecto...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="translated">Actualizando la gravedad</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -337,14 +1407,69 @@
         <target state="translated">Usar cuerpo de expresión para funciones locales</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_named_argument">
+        <source>Use named argument</source>
+        <target state="translated">Usar argumento con nombre</target>
+        <note>"argument" is a programming term for a value passed to a function</note>
+      </trans-unit>
+      <trans-unit id="Value">
+        <source>Value</source>
+        <target state="translated">Valor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_Tracking">
+        <source>Value Tracking</source>
+        <target state="translated">Seguimiento de valores</target>
+        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
+      </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
         <target state="translated">El valor asignado aquí no se usa nunca</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="translated">Valor:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">El valor devuelto por la invocación se omite implícitamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_to_inject_at_call_sites">
+        <source>Value to inject at call sites</source>
+        <target state="translated">Valor que se va a insertar en los sitios de llamada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_2017">
+        <source>Visual Studio 2017</source>
+        <target state="translated">Visual Studio 2017</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_2019">
+        <source>Visual Studio 2019</source>
+        <target state="translated">Visual Studio 2019</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="translated">Configuración de Visual Studio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="translated">Advertencia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_duplicate_parameter_name">
+        <source>Warning: duplicate parameter name</source>
+        <target state="translated">Advertencia: Nombre de parámetro duplicado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_type_does_not_bind">
+        <source>Warning: type does not bind</source>
+        <target state="translated">Advertencia: El tipo no se enlaza</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
@@ -357,19 +1482,19 @@
         <target state="translated">Esta área de trabajo no admite la actualización de opciones de compilación de Visual Basic.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="translated">Espacio en blanco</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_change_the_signature">
+        <source>You must change the signature</source>
+        <target state="translated">Debe cambiar la firma</target>
+        <note>"signature" here means the definition of a method</note>
+      </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">Debe seleccionar al menos un miembro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
-        <source>Interface name conflicts with an existing type name.</source>
-        <target state="translated">El nombre de la interfaz entra en conflicto con un nombre de tipo existente.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
-        <source>Interface name is not a valid {0} identifier.</source>
-        <target state="translated">El nombre de la interfaz no es un identificador {0} válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_characters_in_path">
@@ -477,6 +1602,11 @@
         <target state="translated">No es un valor válido</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_is_inherited">
+        <source>'{0}' is inherited</source>
+        <target state="translated">"{0}" is heredado</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
         <source>'{0}' will be changed to abstract.</source>
         <target state="translated">"{0}" se cambiará a abstracto.</target>
@@ -490,6 +1620,21 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">"{0}" se cambiará a público.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="translated">al final de la línea de código</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generated_by_0_suffix">
+        <source>[generated by {0}]</source>
+        <target state="translated">[generado por {0}]</target>
+        <note>{0} is the name of a generator.</note>
+      </trans-unit>
+      <trans-unit id="generated_suffix">
+        <source>[generated]</source>
+        <target state="translated">[generado]</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -540,11 +1685,6 @@
       <trans-unit id="Base_Types">
         <source>Base Types</source>
         <target state="translated">Tipos base</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">Archivos varios</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_project_0">
@@ -629,7 +1769,7 @@
       </trans-unit>
       <trans-unit id="The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace">
         <source>The given DocumentId did not come from the Visual Studio workspace.</source>
-        <target state="translated">El DocumentID en cuestión no provenía del área de trabajo de Visual Studio.</target>
+        <target state="translated">El DocumentId en cuestión no provenía del área de trabajo de Visual Studio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_colon_0_1_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to">
@@ -657,16 +1797,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">Proyecto: {0}
 
 Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pertenecer este archivo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">Error al leer el archivo de conjunto de reglas {0}: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
@@ -942,31 +2072,6 @@ Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pe
       <trans-unit id="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well">
         <source>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</source>
         <target state="translated">El ensamblado del analizador "{0}" depende de "{1}", pero no se encontró. Es posible que los analizadores no se ejecuten correctamente, a menos que el ensamblado que falta se agregue también como referencia del analizador.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppression_State">
-        <source>Suppression State</source>
-        <target state="translated">Estado suprimido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Active">
-        <source>Active</source>
-        <target state="translated">Activo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppressed">
-        <source>Suppressed</source>
-        <target state="translated">Suprimido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NotApplicable">
-        <source>N/A</source>
-        <target state="translated">N/D</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SuppressionNotSupportedToolTip">
-        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="translated">El estado de supresión solo es compatible con los diagnósticos de IntelliSense, que corresponden a la instantánea de la solución actual. Cambie a los diagnósticos de "IntelliSense" para la supresión.</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_diagnostics">
@@ -1543,6 +2648,11 @@ Información adicional: {1}</target>
         <target state="translated">Al insertar propiedades, eventos y métodos, colóquelos:</target>
         <note />
       </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="translated">En el borde derecho de la ventana del editor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">
         <source>with other members of the same kind</source>
         <target state="translated">Con otros miembros de la misma clase</target>
@@ -1583,16 +2693,6 @@ Información adicional: {1}</target>
         <target state="translated">El tipo es aparente en la expresión de asignación</target>
         <note />
       </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">Obtener ayuda para "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Obtener ayuda para "{0}" en Bing</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_down">
         <source>Move down</source>
         <target state="translated">Bajar</target>
@@ -1611,11 +2711,6 @@ Información adicional: {1}</target>
       <trans-unit id="Pick_members">
         <source>Pick members</source>
         <target state="translated">Seleccionar miembros</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="translated">Lamentablemente, un proceso utilizado por Visual Studio ha encontrado un error irrecuperable. Recomendamos que guarde su trabajo y luego cierre y reinicie Visual Studio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_a_symbol_specification">
@@ -1673,11 +2768,6 @@ Información adicional: {1}</target>
         <target state="translated">Opciones</target>
         <note />
       </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">Pruebe la versión preliminar de nuestra extensión de análisis de código activo, que proporciona más correcciones para problemas comunes de diseño de API, nomenclatura, rendimiento y confiabilidad</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_show_this_again">
         <source>Never show this again</source>
         <target state="translated">No volver a mostrar</target>
@@ -1708,11 +2798,6 @@ Información adicional: {1}</target>
         <target state="translated">Análisis</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_full_solution_analysis">
-        <source>Enable full solution _analysis</source>
-        <target state="translated">Habilitar _análisis de la solución completa</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">Atenuar código inaccesible</target>
@@ -1721,30 +2806,6 @@ Información adicional: {1}</target>
       <trans-unit id="Fading">
         <source>Fading</source>
         <target state="translated">Atenuando</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">No se permiten cambios si no se ha cargado el ensamblado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">No se permiten cambios si el proyecto no se compiló al iniciar la depuración.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">No se permiten cambios si el proyecto no se cargó y compiló al iniciar la depuración.
-
-La opción "Carga de solución ligera" está habilitada para la solución actual. Deshabilítela para asegurarse de que todos los proyectos se cargan al iniciar la depuración.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">No se permiten cambios mientras se ejecuta código.</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
@@ -1782,65 +2843,24 @@ La opción "Carga de solución ligera" está habilitada para la solución actual
         <target state="translated">preferir propiedades automáticas</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">Error al leer el archivo "{0}": {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">El módulo se descargó.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">No se pueden aplicar cambios: el módulo "{0}" se ha descargado.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Habilitar la navegación a orígenes decompilados (experimental)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
- 
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">IMPORTANTE: Visual Studio incluye la funcionalidad de decompilación ("Decompilador") que permite la reproducción de código fuente a partir de código binario. Al acceder y utilizar el Decompilador, acepta los términos de licencia de Visual Studio y los términos del Decompilador que figuran a continuación. Si no acepta estos términos combinados, no acceda al Decompilador ni lo utilice.
- 
-Reconoce que el código binario y el código fuente pueden estar protegidos por leyes de propiedad intelectual y marcas comerciales. Antes de utilizar el Decompilador en cualquier código binario, primero tiene que hacer lo siguiente:  
-i) configurar que los términos de licencia que rigen el uso del código binario no contienen ninguna disposición que le prohíba decompilar el software; o
-ii) obtener permiso para decompilar el código fuente del propietario del software.
- 
-El uso del Decompilador es opcional. Microsoft no es responsable y se exime de toda responsabilidad por el uso que haga del Descompilador que infrinja las leyes o los términos de la licencia de software que prohíban la descompilación del software.
-
-Estoy de acuerdo con todo lo anterior:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Aviso legal del Descompilador</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="translated">Habilitar la navegación a orígenes decompilados</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
-        <target state="needs-review-translation">Los parámetros configurados aquí solo son aplicables a su equipo. Para configurar estos parámetros de manera que se desplacen con su solución, use los archivos .editorconfig.</target>
+        <target state="translated">El archivo .editorconfig puede invalidar la configuración local definida en esta página que solo se aplica a su máquina. Para configurar estos valores de manera que se desplacen con su solución, use los archivos EditorConfig. Mas información</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">Sincronizar vista de clases</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">No se pueden aplicar los cambios: error inesperado "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

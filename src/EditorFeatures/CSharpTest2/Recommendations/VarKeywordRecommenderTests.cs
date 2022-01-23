@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public VarKeywordRecommenderTests()
         {
             this.keywordText = "var";
-            this.RecommendKeywordsAsync = (position, context) => _recommender.RecommendKeywordsAsync(position, context, CancellationToken.None);
+            this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -55,6 +59,13 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -221,6 +232,70 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefLoop1()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref $$ x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefLoop2()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref v$$ x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefReadonlyLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref readonly $$ x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefLoop1()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref v$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefReadonlyLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref readonly $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefReadonlyLoop1()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref readonly v$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsing()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -293,9 +368,7 @@ $$"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestVarPatternInIs()
-        {
-            await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
-        }
+            => await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterRefInMemberContext()
@@ -351,6 +424,42 @@ $$"));
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"ref int x = ref $$"));
+        }
+
+        [WorkItem(10170, "https://github.com/dotnet/roslyn/issues/10170")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInPropertyPattern()
+        {
+            await VerifyKeywordAsync(
+@"
+using System;
+
+class Person { public string Name; }
+
+class Program
+{
+    void Goo(object o)
+    {
+        if (o is Person { Name: $$ })
+        {
+            Console.WriteLine(n);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInDeclarationDeconstruction()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"var (x, $$) = (0, 0);"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"(x, $$) = (0, 0);"));
         }
     }
 }

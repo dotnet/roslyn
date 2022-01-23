@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -27,9 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Function CheckAccessibility(sym As Symbol,
-                                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                     <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                      Optional accessThroughType As TypeSymbol = Nothing,
-                                                     Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
+                                                     Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -91,24 +93,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function CreateBoundWithBlock(node As WithBlockSyntax, boundBlockBinder As Binder, diagnostics As DiagnosticBag) As BoundStatement
+        Protected Overrides Function CreateBoundWithBlock(node As WithBlockSyntax, boundBlockBinder As Binder, diagnostics As BindingDiagnosticBag) As BoundStatement
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend Overrides Function BindInsideCrefAttributeValue(name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As DiagnosticBag, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Friend Overrides Function BindInsideCrefAttributeValue(name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As BindingDiagnosticBag, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
             Return ImmutableArray(Of Symbol).Empty
         End Function
 
-        Friend Overrides Function BindInsideCrefAttributeValue(reference As CrefReferenceSyntax, preserveAliases As Boolean, diagnosticBag As DiagnosticBag, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Friend Overrides Function BindInsideCrefAttributeValue(reference As CrefReferenceSyntax, preserveAliases As Boolean, diagnosticBag As BindingDiagnosticBag, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
             Return ImmutableArray(Of Symbol).Empty
         End Function
 
-        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
             Return ImmutableArray(Of Symbol).Empty
         End Function
 
         Protected Friend Overrides Function TryBindOmittedLeftForMemberAccess(node As MemberAccessExpressionSyntax,
-                                                                              diagnostics As DiagnosticBag,
+                                                                              diagnostics As BindingDiagnosticBag,
                                                                               accessingBinder As Binder,
                                                                               <Out> ByRef wholeMemberAccessExpressionBound As Boolean) As BoundExpression
             Return Nothing
@@ -116,16 +118,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function TryBindOmittedLeftForDictionaryAccess(node As MemberAccessExpressionSyntax,
                                                                            accessingBinder As Binder,
-                                                                           diagnostics As DiagnosticBag) As BoundExpression
+                                                                           diagnostics As BindingDiagnosticBag) As BoundExpression
             Return Nothing
         End Function
 
-        Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
+        Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As BindingDiagnosticBag) As BoundExpression
             Return Nothing
         End Function
 
         Protected Friend Overrides Function TryBindOmittedLeftForXmlMemberAccess(node As XmlMemberAccessExpressionSyntax,
-                                                                                 diagnostics As DiagnosticBag,
+                                                                                 diagnostics As BindingDiagnosticBag,
                                                                                  accessingBinder As Binder) As BoundExpression
             Return Nothing
         End Function
@@ -134,9 +136,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Overrides ReadOnly Property ConstantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
+        Friend Overrides ReadOnly Property ConstantFieldsInProgress As ConstantFieldsInProgress
             Get
-                Return SymbolsInProgress(Of FieldSymbol).Empty
+                Return ConstantFieldsInProgress.Empty
             End Get
         End Property
 
@@ -188,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides Function DeclareImplicitLocalVariable(nameSyntax As IdentifierNameSyntax, diagnostics As DiagnosticBag) As LocalSymbol
+        Public Overrides Function DeclareImplicitLocalVariable(nameSyntax As IdentifierNameSyntax, diagnostics As BindingDiagnosticBag) As LocalSymbol
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -198,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides Sub DisallowFurtherImplicitVariableDeclaration(diagnostics As DiagnosticBag)
+        Public Overrides Sub DisallowFurtherImplicitVariableDeclaration(diagnostics As BindingDiagnosticBag)
             ' No action needed.
         End Sub
 

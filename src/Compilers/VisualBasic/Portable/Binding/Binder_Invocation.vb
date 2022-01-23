@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -17,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As SyntaxNode,
             lookupResult As LookupResult,
             lookupOptionsUsed As LookupOptions,
+            withDependencies As Boolean,
             receiver As BoundExpression,
             typeArgumentsOpt As BoundTypeArguments,
             qualKind As QualificationKind,
@@ -31,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' method, we might need to look for extension methods later, on demand.
             Debug.Assert((lookupOptionsUsed And LookupOptions.EagerlyLookupExtensionMethods) = 0)
             If lookupResult.IsGood AndAlso Not lookupResult.Symbols(0).IsReducedExtensionMethod() Then
-                pendingExtensionMethods = New ExtensionMethodGroup(Me, lookupOptionsUsed)
+                pendingExtensionMethods = New ExtensionMethodGroup(Me, lookupOptionsUsed, withDependencies)
             End If
 
             Return New BoundMethodGroup(
@@ -99,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Bind a Me.New(...), MyBase.New (...), MyClass.New(...) constructor call. 
         ''' (NOT a normal constructor call like New Type(...)).
         ''' </summary>
-        Private Function BindDirectConstructorCall(node As InvocationExpressionSyntax, group As BoundMethodGroup, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindDirectConstructorCall(node As InvocationExpressionSyntax, group As BoundMethodGroup, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim boundArguments As ImmutableArray(Of BoundExpression) = Nothing
             Dim argumentNames As ImmutableArray(Of String) = Nothing
             Dim argumentNamesLocations As ImmutableArray(Of Location) = Nothing
@@ -130,11 +133,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 BindArgumentsAndNames(argumentList, boundArguments, argumentNames, argumentNamesLocations, diagnostics)
 
                 ' Bind constructor call, ignore errors by putting into discarded bag.
-                Dim discardedDiagnostics = DiagnosticBag.GetInstance()
                 Dim expr = BindInvocationExpression(node, node.Expression, ExtractTypeCharacter(node.Expression),
-                                                group, boundArguments, argumentNames, discardedDiagnostics,
+                                                group, boundArguments, argumentNames, BindingDiagnosticBag.Discarded,
                                                 allowConstructorCall:=True, callerInfoOpt:=group.Syntax)
-                discardedDiagnostics.Free()
                 If expr.Kind = BoundKind.Call Then
                     ' Set HasErrors to prevent cascading errors.
                     Dim callExpr = DirectCast(expr, BoundCall)
@@ -157,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Private Function BindInvocationExpression(node As InvocationExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindInvocationExpression(node As InvocationExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
 
             ' Set "IsInvocationsOrAddressOf" to prevent binding to return value variable.
             Dim target As BoundExpression
@@ -255,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             argumentNamesLocations As ImmutableArray(Of Location),
             allowBindingWithoutArguments As Boolean,
             <Out()> ByRef hasIndexableTarget As Boolean,
-            diagnostics As DiagnosticBag) As BoundExpression
+            diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Debug.Assert(target.Kind <> BoundKind.NamespaceExpression)
             Debug.Assert(target.Kind <> BoundKind.TypeExpression)
@@ -295,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ReportDiagnostic(diagnostics, target.Syntax, ERRID.ERR_DelegateNoInvoke1, target.Type)
                         End If
 
-                    ElseIf ReportDelegateInvokeUseSiteError(diagnostics, target.Syntax, targetType, delegateInvoke) Then
+                    ElseIf ReportDelegateInvokeUseSite(diagnostics, target.Syntax, targetType, delegateInvoke) Then
                         delegateInvoke = Nothing
                     End If
 
@@ -393,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             argumentNames As ImmutableArray(Of String),
             argumentNamesLocations As ImmutableArray(Of Location),
             allowBindingWithoutArguments As Boolean,
-            diagnostics As DiagnosticBag) As BoundExpression
+            diagnostics As BindingDiagnosticBag) As BoundExpression
 
             ' Spec §11.8 Invocation Expressions
             ' ...
@@ -406,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Not IsCallStatementContext(node) AndAlso
                 ShouldBindWithoutArguments(node, group, diagnostics) Then
 
-                Dim tmpDiagnostics = DiagnosticBag.GetInstance()
+                Dim tmpDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                 Dim result As BoundExpression = Nothing
 
                 Debug.Assert(node.Expression IsNot Nothing)
@@ -484,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 group,
                                 boundArguments,
                                 argumentNames,
-                                tmpDiagnostics,
+                                BindingDiagnosticBag.Discarded,
                                 callerInfoOpt:=group.Syntax)
                         End If
                     End If
@@ -516,12 +517,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' Note, that default Query Indexer may be a method, not a property.
         ''' </summary>
-        Private Function BindDefaultPropertyGroup(node As VisualBasicSyntaxNode, target As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindDefaultPropertyGroup(node As VisualBasicSyntaxNode, target As BoundExpression, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim result = LookupResult.GetInstance()
             Dim defaultMemberGroup As BoundExpression = Nothing
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
-            MemberLookup.LookupDefaultProperty(result, target.Type, Me, useSiteDiagnostics)
+            MemberLookup.LookupDefaultProperty(result, target.Type, Me, useSiteInfo)
 
             ' We're not reporting any diagnostic if there are no symbols.
             Debug.Assert(result.HasSymbol OrElse Not result.HasDiagnostic)
@@ -533,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 ' All queryable sources have default indexer, which maps to an ElementAtOrDefault method or property on the source.
-                Dim tempDiagnostics = DiagnosticBag.GetInstance()
+                Dim tempDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
 
                 target = MakeRValue(target, tempDiagnostics)
 
@@ -545,7 +546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Const options As LookupOptions = LookupOptions.AllMethodsOfAnyArity ' overload resolution filters methods by arity.
 
-                    LookupMember(result, target.Type, StringConstants.ElementAtMethod, 0, options, useSiteDiagnostics)
+                    LookupMember(result, target.Type, StringConstants.ElementAtMethod, 0, options, useSiteInfo)
 
                     If result.IsGood Then
                         Dim kind As SymbolKind = result.Symbols(0).Kind
@@ -560,7 +561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 tempDiagnostics.Free()
             End If
 
-            diagnostics.Add(node, useSiteDiagnostics)
+            diagnostics.Add(node, useSiteInfo)
             result.Free()
 
             ' We don't want the default property GROUP to override the meaning of the item it's being 
@@ -576,14 +577,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Tests whether or not the method or property group should be bound without arguments. 
         ''' In case of method group it may also update the group by filtering out all subs
         ''' </summary>
-        Private Function ShouldBindWithoutArguments(node As VisualBasicSyntaxNode, ByRef group As BoundMethodOrPropertyGroup, diagnostics As DiagnosticBag) As Boolean
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim result = ShouldBindWithoutArguments(group, useSiteDiagnostics)
-            diagnostics.Add(node, useSiteDiagnostics)
+        Private Function ShouldBindWithoutArguments(node As VisualBasicSyntaxNode, ByRef group As BoundMethodOrPropertyGroup, diagnostics As BindingDiagnosticBag) As Boolean
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+            Dim result = ShouldBindWithoutArguments(group, useSiteInfo)
+            diagnostics.Add(node, useSiteInfo)
             Return result
         End Function
 
-        Private Function ShouldBindWithoutArguments(ByRef group As BoundMethodOrPropertyGroup, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Private Function ShouldBindWithoutArguments(ByRef group As BoundMethodOrPropertyGroup, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
 
             If group.Kind = BoundKind.MethodGroup Then
 
@@ -643,7 +644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 If extensionMethod Is Nothing Then
-                    Dim additionalExtensionMethods As ImmutableArray(Of MethodSymbol) = methodGroup.AdditionalExtensionMethods(useSiteDiagnostics)
+                    Dim additionalExtensionMethods As ImmutableArray(Of MethodSymbol) = methodGroup.AdditionalExtensionMethods(useSiteInfo)
 
                     If additionalExtensionMethods.Length > 0 Then
                         Debug.Assert(methodGroup.Methods.Length > 0)
@@ -662,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            extensionMethod.ParameterCount = 0 AndAlso
                            extensionMethod.Arity = 0 AndAlso
                            Not extensionMethod.IsSub AndAlso
-                           methodGroup.AdditionalExtensionMethods(useSiteDiagnostics).Length = 0
+                           methodGroup.AdditionalExtensionMethods(useSiteInfo).Length = 0
                 End If
 
                 If Not atLeastOneFunction Then
@@ -725,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             group As BoundMethodOrPropertyGroup,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             callerInfoOpt As SyntaxNode,
             Optional allowConstructorCall As Boolean = False,
             Optional suppressAbstractCallDiagnostics As Boolean = False,
@@ -741,13 +742,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' It is possible to get here with method group with ResultKind = LookupResultKind.Inaccessible.
             ' When this happens, it is worth trying to do overload resolution on the "bad" set
             ' to report better errors.
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, callerInfoOpt, useSiteDiagnostics, forceExpandedForm:=forceExpandedForm)
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+            Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, callerInfoOpt, useSiteInfo, forceExpandedForm:=forceExpandedForm)
 
-            If diagnostics.Add(node, useSiteDiagnostics) Then
+            If diagnostics.Add(node, useSiteInfo) Then
                 If group.ResultKind <> LookupResultKind.Inaccessible Then
                     ' Suppress additional diagnostics
-                    diagnostics = New DiagnosticBag()
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
             End If
 
@@ -769,9 +770,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
 
                         If Not haveAnExtensionMethod Then
-                            useSiteDiagnostics = Nothing
-                            haveAnExtensionMethod = Not methodGroup.AdditionalExtensionMethods(useSiteDiagnostics).IsEmpty
-                            diagnostics.Add(node, useSiteDiagnostics)
+                            useSiteInfo = New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo)
+                            haveAnExtensionMethod = Not methodGroup.AdditionalExtensionMethods(useSiteInfo).IsEmpty
+                            diagnostics.Add(node, useSiteInfo)
                         End If
 
                         If haveAnExtensionMethod Then
@@ -797,7 +798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Create and report the diagnostic.
                 If results.Candidates.Length = 0 Then
                     results = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, includeEliminatedCandidates:=True, callerInfoOpt:=callerInfoOpt,
-                                                                                              useSiteDiagnostics:=Nothing, forceExpandedForm:=forceExpandedForm)
+                                                                                              useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded, forceExpandedForm:=forceExpandedForm)
                 End If
 
                 Return ReportOverloadResolutionFailureAndProduceBoundNode(node, group, boundArguments, argumentNames, results, diagnostics,
@@ -825,7 +826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundArguments As ImmutableArray(Of BoundExpression),
             bestResult As OverloadResolution.CandidateAnalysisResult,
             asyncLambdaSubToFunctionMismatch As ImmutableArray(Of BoundExpression),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional suppressAbstractCallDiagnostics As Boolean = False
         ) As BoundExpression
 
@@ -834,7 +835,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim returnType = candidate.ReturnType
 
             If group.ResultKind = LookupResultKind.Inaccessible Then
-                ReportDiagnostic(diagnostics, target, GetInaccessibleErrorInfo(bestResult.Candidate.UnderlyingSymbol, useSiteDiagnostics:=Nothing))
+                ReportDiagnostic(diagnostics, target, GetInaccessibleErrorInfo(bestResult.Candidate.UnderlyingSymbol))
             Else
                 Debug.Assert(group.ResultKind = LookupResultKind.Good)
                 CheckMemberTypeAccessibility(diagnostics, node, methodOrProperty)
@@ -856,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hasErrors = CheckSharedSymbolAccess(target, methodOrProperty.IsShared, receiver, group.QualificationKind, diagnostics)  ' give diagnostics if sharedness is wrong.
             End If
 
-            ReportDiagnosticsIfObsolete(diagnostics, methodOrProperty, node)
+            ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, methodOrProperty, node)
 
             hasErrors = hasErrors Or group.HasErrors
 
@@ -976,7 +977,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     [property],
                     propertyGroup,
                     PropertyAccessKind.Unknown,
-                    [property].IsWritable(receiver, Me),
+                    [property].IsWritable(receiver, Me, isKnownTargetOfObjectMemberInitializer:=False),
                     receiver,
                     boundArguments,
                     argumentInfo.DefaultArguments,
@@ -985,7 +986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Friend Sub WarnOnRecursiveAccess(propertyAccess As BoundPropertyAccess, accessKind As PropertyAccessKind, diagnostics As DiagnosticBag)
+        Friend Sub WarnOnRecursiveAccess(propertyAccess As BoundPropertyAccess, accessKind As PropertyAccessKind, diagnostics As BindingDiagnosticBag)
             Dim [property] As PropertySymbol = propertyAccess.PropertySymbol
 
             If [property].ReducedFromDefinition Is Nothing AndAlso [property].ParameterCount = 0 AndAlso
@@ -1009,7 +1010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Sub WarnOnRecursiveAccess(node As BoundExpression, accessKind As PropertyAccessKind, diagnostics As DiagnosticBag)
+        Friend Sub WarnOnRecursiveAccess(node As BoundExpression, accessKind As PropertyAccessKind, diagnostics As BindingDiagnosticBag)
             Select Case node.Kind
                 Case BoundKind.XmlMemberAccess
                     ' Nothing to do 
@@ -1027,7 +1028,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             receiver As BoundExpression,
             targetType As TypeSymbol,
             thisParameterDefinition As ParameterSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
 
             If receiver IsNot Nothing AndAlso
@@ -1036,16 +1037,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Not receiver.Type.IsErrorType() Then
 
                 Dim oldReceiver As BoundExpression = receiver
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 receiver = PassArgument(receiver,
-                                        Conversions.ClassifyConversion(receiver, targetType, Me, useSiteDiagnostics),
+                                        Conversions.ClassifyConversion(receiver, targetType, Me, useSiteInfo),
                                         False,
-                                        Conversions.ClassifyConversion(targetType, receiver.Type, useSiteDiagnostics),
+                                        Conversions.ClassifyConversion(targetType, receiver.Type, useSiteInfo),
                                         targetType,
                                         thisParameterDefinition,
                                         diagnostics)
 
-                diagnostics.Add(receiver, useSiteDiagnostics)
+                diagnostics.Add(receiver, useSiteInfo)
 
                 If oldReceiver.WasCompilerGenerated AndAlso receiver IsNot oldReceiver Then
                     Select Case oldReceiver.Kind
@@ -1083,7 +1084,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             arguments As ImmutableArray(Of BoundExpression),
             syntax As SyntaxNode,
             ByRef hasErrors As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As ConstantValue
 
             ' cheapest way to filter out methods that do not match
@@ -1191,7 +1192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             <[In]> ByRef results As OverloadResolution.OverloadResolutionResult,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             callerInfoOpt As SyntaxNode,
             Optional overrideCommonReturnType As TypeSymbol = Nothing,
             Optional queryMode As Boolean = False,
@@ -1221,7 +1222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             <[In]> ByRef results As OverloadResolution.OverloadResolutionResult,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             callerInfoOpt As SyntaxNode,
             Optional groupOpt As BoundMethodOrPropertyGroup = Nothing,
             Optional overrideCommonReturnType As TypeSymbol = Nothing,
@@ -1270,7 +1271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             commonReturnType As TypeSymbol,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             callerInfoOpt As SyntaxNode,
             Optional delegateSymbol As Symbol = Nothing,
             Optional queryMode As Boolean = False,
@@ -1345,7 +1346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             commonReturnType As TypeSymbol,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             callerInfoOpt As SyntaxNode,
             Optional groupOpt As BoundMethodOrPropertyGroup = Nothing,
             Optional delegateSymbol As Symbol = Nothing,
@@ -1391,7 +1392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If lookupResult = LookupResultKind.Inaccessible Then
                 If singleCandidate IsNot Nothing Then
-                    ReportDiagnostic(diagnostics, If(groupOpt IsNot Nothing, groupOpt.Syntax, node), GetInaccessibleErrorInfo(singleCandidate.UnderlyingSymbol, useSiteDiagnostics:=Nothing))
+                    ReportDiagnostic(diagnostics, If(groupOpt IsNot Nothing, groupOpt.Syntax, node), GetInaccessibleErrorInfo(singleCandidate.UnderlyingSymbol))
                 Else
                     If Not queryMode Then
                         ReportDiagnostic(diagnostics, If(groupOpt IsNot Nothing, groupOpt.Syntax, node), ERRID.ERR_NoViableOverloadCandidates1, bestSymbols(0).Name)
@@ -1765,7 +1766,7 @@ ProduceBoundNode:
         Private Shared Sub ReportUnspecificProcedures(
             diagnosticLocation As Location,
             bestSymbols As ImmutableArray(Of Symbol),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             isDelegateContext As Boolean
         )
             Dim diagnosticInfos = ArrayBuilder(Of DiagnosticInfo).GetInstance(bestSymbols.Length)
@@ -1832,12 +1833,12 @@ ProduceBoundNode:
             candidates As ArrayBuilder(Of OverloadResolution.CandidateAnalysisResult),
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             delegateSymbol As Symbol,
             queryMode As Boolean,
             callerInfoOpt As SyntaxNode
         )
-            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableArray(Of Diagnostic))).GetInstance(candidates.Count)
+            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableBindingDiagnostic(Of AssemblySymbol))).GetInstance(candidates.Count)
 
             If arguments.IsDefault Then
                 arguments = ImmutableArray(Of BoundExpression).Empty
@@ -1859,7 +1860,7 @@ ProduceBoundNode:
                     i += 1
                 End If
 
-                Dim candidateDiagnostics = DiagnosticBag.GetInstance()
+                Dim candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
 
                 ' Collect diagnostic for this candidate
                 ReportOverloadResolutionFailureForASingleCandidate(node, diagnosticLocation, lookupResult, candidates(i), arguments, argumentNames,
@@ -1885,7 +1886,7 @@ ProduceBoundNode:
                     Dim symbol = diagnosticPerSymbol(i).Key
                     Dim isExtension As Boolean = symbol.IsReducedExtensionMethod()
 
-                    Dim sealedCandidateDiagnostics = diagnosticPerSymbol(i).Value
+                    Dim sealedCandidateDiagnostics = diagnosticPerSymbol(i).Value.Diagnostics
 
                     ' When reporting errors for an AddressOf, Dev 10 shows different error messages depending on how many
                     ' errors there are per candidate.
@@ -1936,13 +1937,13 @@ ProduceBoundNode:
         End Sub
 
         Private Shared Function ReportCommonErrorsFromLambdas(
-            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableArray(Of Diagnostic))),
+            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableBindingDiagnostic(Of AssemblySymbol))),
             arguments As ImmutableArray(Of BoundExpression),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As Boolean
             Dim haveCommonErrors As Boolean = False
 
-            For Each diagnostic In diagnosticPerSymbol(0).Value
+            For Each diagnostic In diagnosticPerSymbol(0).Value.Diagnostics
                 If diagnostic.Severity <> DiagnosticSeverity.Error Then
                     Continue For
                 End If
@@ -1953,7 +1954,7 @@ ProduceBoundNode:
                         If argument.Syntax.Span.Contains(diagnostic.Location.SourceSpan) Then
                             Dim common As Boolean = True
                             For i As Integer = 1 To diagnosticPerSymbol.Count - 1
-                                If Not diagnosticPerSymbol(i).Value.Contains(diagnostic) Then
+                                If Not diagnosticPerSymbol(i).Value.Diagnostics.Contains(diagnostic) Then
                                     common = False
                                     Exit For
                                 End If
@@ -1989,7 +1990,7 @@ ProduceBoundNode:
             allowExpandedParamArrayForm As Boolean,
             includeMethodNameInErrorMessages As Boolean,
             reportNarrowingConversions As Boolean,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             delegateSymbol As Symbol,
             queryMode As Boolean,
             callerInfoOpt As SyntaxNode,
@@ -2008,7 +2009,7 @@ ProduceBoundNode:
                candidateAnalysisResult.State = VisualBasic.OverloadResolution.CandidateAnalysisResultState.HasUnsupportedMetadata Then
                 If lookupResult <> LookupResultKind.Inaccessible Then
                     Debug.Assert(lookupResult = LookupResultKind.Good)
-                    ReportDiagnostic(diagnostics, diagnosticLocation, candidate.UnderlyingSymbol.GetUseSiteErrorInfo())
+                    ReportUseSite(diagnostics, diagnosticLocation, candidate.UnderlyingSymbol.GetUseSiteInfo())
                 End If
 
                 Return
@@ -2281,7 +2282,7 @@ ProduceBoundNode:
                     Dim method = DirectCast(candidate.UnderlyingSymbol, MethodSymbol)
                     ' TODO: Dev10 uses the location of the type parameter or argument that
                     ' violated the constraint, rather than  the entire invocation expression.
-                    Dim succeeded = method.CheckConstraints(diagnosticLocation, diagnostics)
+                    Dim succeeded = method.CheckConstraints(diagnosticLocation, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
                     Debug.Assert(Not succeeded)
                     Return
                 End If
@@ -2331,7 +2332,7 @@ ProduceBoundNode:
                             Dim arrayConversion As KeyValuePair(Of ConversionKind, MethodSymbol) = Nothing
                             If allowUnexpandedParamArrayForm AndAlso
                                 Not (Not paramArrayArgument.HasErrors AndAlso
-                                    OverloadResolution.CanPassToParamArray(paramArrayArgument, targetType, arrayConversion, Me, Nothing)) Then
+                                    OverloadResolution.CanPassToParamArray(paramArrayArgument, targetType, arrayConversion, Me, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)) Then
                                 allowUnexpandedParamArrayForm = False
                             End If
 
@@ -2423,7 +2424,9 @@ ProduceBoundNode:
                         ' Deal with Optional arguments
                         ' Need to handle optional arguments here, there could be conversion errors, etc.
 
-                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt)
+                        ' reducedExtensionReceiverOpt is used to determine the default value of a CallerArgumentExpression when it refers to the first parameter of an extension method.
+                        ' Don't bother with correctly determining the correct value for this case since we're in an error case anyway.
+                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt, parameterToArgumentMap, arguments, reducedExtensionReceiverOpt:=Nothing)
 
                         If argument Is Nothing Then
                             If Not includeMethodNameInErrorMessages Then
@@ -2478,7 +2481,7 @@ ProduceBoundNode:
             argument As BoundExpression,
             targetType As TypeSymbol,
             reportNarrowingConversions As Boolean,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional diagnosticNode As SyntaxNode = Nothing,
             Optional delegateSymbol As Symbol = Nothing
         )
@@ -2500,7 +2503,7 @@ ProduceBoundNode:
                         ' Check copy back conversion
                         Dim boundTemp = New BoundRValuePlaceholder(argument.Syntax, targetType)
                         Dim copyBackType = argument.GetTypeOfAssignmentTarget()
-                        Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(boundTemp, copyBackType, Me, Nothing)
+                        Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(boundTemp, copyBackType, Me, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
                         If Conversions.NoConversion(conv.Key) Then
                             ' Possible only with user-defined conversions, I think.
@@ -2548,7 +2551,7 @@ ProduceBoundNode:
             argument As BoundExpression,
             targetType As TypeSymbol,
             reportNarrowingConversions As Boolean,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional diagnosticNode As SyntaxNode = Nothing,
             Optional delegateSymbol As Symbol = Nothing
         ) As Boolean
@@ -2559,7 +2562,7 @@ ProduceBoundNode:
                 Return True
             End If
 
-            Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(argument, targetType, Me, Nothing)
+            Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(argument, targetType, Me, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
             If Conversions.NoConversion(conv.Key) Then
                 If delegateSymbol Is Nothing Then
@@ -2634,7 +2637,7 @@ ProduceBoundNode:
             node As SyntaxNode,
             ByRef candidate As OverloadResolution.CandidateAnalysisResult,
             arguments As ImmutableArray(Of BoundExpression),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector)
 
             Debug.Assert(candidate.State = OverloadResolution.CandidateAnalysisResultState.Applicable)
@@ -2758,6 +2761,7 @@ ProduceBoundNode:
                     ' Deal with Optional arguments
                     Dim defaultArgument As OverloadResolution.OptionalArgument = candidate.OptionalArguments(paramIndex)
                     argument = defaultArgument.DefaultValue
+                    diagnostics.AddDependencies(defaultArgument.Dependencies)
                     argumentIsDefaultValue = True
                     defaultArguments(paramIndex) = True
                     Debug.Assert(argument IsNot Nothing)
@@ -2766,10 +2770,8 @@ ProduceBoundNode:
                     Dim argType = argument.Type
                     If argType IsNot Nothing Then
                         ' Report usesiteerror if it exists.
-                        Dim useSiteErrorInfo = argType.GetUseSiteErrorInfo
-                        If useSiteErrorInfo IsNot Nothing Then
-                            ReportDiagnostic(diagnostics, argument.Syntax, useSiteErrorInfo)
-                        End If
+                        Dim useSiteInfo = argType.GetUseSiteInfo
+                        ReportUseSite(diagnostics, argument.Syntax, useSiteInfo)
                     End If
                 End If
 
@@ -2807,7 +2809,7 @@ ProduceBoundNode:
             conversionFrom As KeyValuePair(Of ConversionKind, MethodSymbol),
             targetType As TypeSymbol,
             param As ParameterSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Debug.Assert(Not param.IsByRef OrElse param.IsExplicitByRef OrElse targetType.IsStringType())
 
@@ -2829,11 +2831,11 @@ ProduceBoundNode:
             conversionFrom As KeyValuePair(Of ConversionKind, MethodSymbol),
             targetType As TypeSymbol,
             parameterName As String,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
 
 #If DEBUG Then
-            Dim checkAgainst As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(argument, targetType, Me, Nothing)
+            Dim checkAgainst As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(argument, targetType, Me, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             Debug.Assert(conversionTo.Key = checkAgainst.Key)
             Debug.Assert(Equals(conversionTo.Value, checkAgainst.Value))
 #End If
@@ -2867,7 +2869,7 @@ ProduceBoundNode:
                 Dim copyBackType = argument.GetTypeOfAssignmentTarget()
 
 #If DEBUG Then
-                checkAgainst = Conversions.ClassifyConversion(outPlaceholder, copyBackType, Me, Nothing)
+                checkAgainst = Conversions.ClassifyConversion(outPlaceholder, copyBackType, Me, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                 Debug.Assert(conversionFrom.Key = checkAgainst.Key)
                 Debug.Assert(Equals(conversionFrom.Value, checkAgainst.Value))
 #End If
@@ -2903,6 +2905,18 @@ ProduceBoundNode:
                                                           outConversion, outPlaceholder,
                                                           targetType, copyBackExpression.HasErrors).MakeCompilerGenerated()
             Else
+                Dim propertyAccess = TryCast(argument, BoundPropertyAccess)
+
+                If propertyAccess IsNot Nothing AndAlso propertyAccess.AccessKind <> PropertyAccessKind.Get AndAlso
+                   propertyAccess.PropertySymbol.SetMethod?.IsInitOnly Then
+
+                    Debug.Assert(Not propertyAccess.IsWriteable) ' Used to be writable prior to VB 16.9, which caused a use-site error while binding an assignment above.
+                    InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                                   argument.Syntax.Location,
+                                                                   DirectCast(argument.Syntax.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                                   InternalSyntax.Feature.InitOnlySettersUsage)
+                End If
+
                 ' Need to allocate a temp of the target type,
                 ' init it with argument's value,
                 ' pass it ByRef. Code gen will do this.
@@ -2915,7 +2929,7 @@ ProduceBoundNode:
         ' are always treated as ByVal
         ' This method is used to force the arguments to be RValues
         Private Function MakeArgsRValues(ByVal invocation As BoundLateInvocation,
-                                                  diagnostics As DiagnosticBag) As BoundLateInvocation
+                                                  diagnostics As BindingDiagnosticBag) As BoundLateInvocation
 
             Dim args = invocation.ArgumentsOpt
 
@@ -2953,10 +2967,10 @@ ProduceBoundNode:
             argument As BoundExpression,
             conversion As KeyValuePair(Of ConversionKind, MethodSymbol),
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
 #If DEBUG Then
-            Dim checkAgainst As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(argument, targetType, Me, Nothing)
+            Dim checkAgainst As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(argument, targetType, Me, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             Debug.Assert(conversion.Key = checkAgainst.Key)
             Debug.Assert(Equals(conversion.Value, checkAgainst.Value))
 #End If
@@ -2973,7 +2987,7 @@ ProduceBoundNode:
             ByRef boundArguments As ImmutableArray(Of BoundExpression),
             ByRef argumentNames As ImmutableArray(Of String),
             ByRef argumentNamesLocations As ImmutableArray(Of Location),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             Dim args As ImmutableArray(Of ArgumentSyntax) = Nothing
 
@@ -3003,7 +3017,7 @@ ProduceBoundNode:
             ByRef boundArguments As ImmutableArray(Of BoundExpression),
             ByRef argumentNames As ImmutableArray(Of String),
             ByRef argumentNamesLocations As ImmutableArray(Of Location),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
 
             ' With SeparatedSyntaxList, it is most efficient to iterate with foreach and not to access Count.
@@ -3086,7 +3100,13 @@ ProduceBoundNode:
 
         End Sub
 
-        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As SyntaxNode) As BoundExpression
+        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol,
+                                                            syntax As SyntaxNode,
+                                                            diagnostics As BindingDiagnosticBag,
+                                                            callerInfoOpt As SyntaxNode,
+                                                            parameterToArgumentMap As ArrayBuilder(Of Integer),
+                                                            arguments As ImmutableArray(Of BoundExpression),
+                                                            reducedExtensionReceiverOpt As BoundExpression) As BoundExpression
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
@@ -3102,8 +3122,11 @@ ProduceBoundNode:
                     Dim isCallerLineNumber As Boolean = param.IsCallerLineNumber
                     Dim isCallerMemberName As Boolean = param.IsCallerMemberName
                     Dim isCallerFilePath As Boolean = param.IsCallerFilePath
+                    Dim callerArgumentExpressionParameterIndex As Integer = param.CallerArgumentExpressionParameterIndex
 
-                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath Then
+                    Dim isCallerArgumentExpression = callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2)
+
+                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath OrElse isCallerArgumentExpression Then
                         Dim callerInfoValue As ConstantValue = Nothing
 
                         If isCallerLineNumber Then
@@ -3137,14 +3160,30 @@ ProduceBoundNode:
                             If container IsNot Nothing AndAlso container.Name IsNot Nothing Then
                                 callerInfoValue = ConstantValue.Create(container.Name)
                             End If
-                        Else
-                            Debug.Assert(isCallerFilePath)
+                        ElseIf isCallerFilePath Then
                             callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
+                        Else
+                            Debug.Assert(callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2))
+
+                            Dim argumentSyntax As SyntaxNode = Nothing
+                            If callerArgumentExpressionParameterIndex = -1 Then
+                                argumentSyntax = reducedExtensionReceiverOpt.Syntax
+                            Else
+                                Dim argumentIndex = parameterToArgumentMap(callerArgumentExpressionParameterIndex)
+                                Debug.Assert(argumentIndex < arguments.Length)
+                                If argumentIndex > -1 Then
+                                    argumentSyntax = arguments(argumentIndex).Syntax
+                                End If
+                            End If
+
+                            If argumentSyntax IsNot Nothing Then
+                                callerInfoValue = ConstantValue.Create(argumentSyntax.ToString())
+                            End If
                         End If
 
                         If callerInfoValue IsNot Nothing Then
                             ' Use the value only if it will not cause errors.
-                            Dim ignoreDiagnostics = DiagnosticBag.GetInstance()
+                            Dim ignoreDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
                             Dim literal As BoundLiteral
 
                             If callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.Int32 Then

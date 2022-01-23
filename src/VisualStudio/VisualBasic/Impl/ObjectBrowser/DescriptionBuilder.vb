@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -112,15 +114,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
         Protected Overrides Sub BuildMethodDeclaration(methodSymbol As IMethodSymbol, options As _VSOBJDESCOPTIONS)
             Select Case methodSymbol.MethodKind
                 Case MethodKind.Conversion, MethodKind.UserDefinedOperator
-                    BuildOperatorDeclaration(methodSymbol, options)
+                    BuildOperatorDeclaration(methodSymbol)
                 Case MethodKind.DeclareMethod
-                    BuildDeclareMethodDeclaration(methodSymbol, options)
+                    BuildDeclareMethodDeclaration(methodSymbol)
                 Case Else
-                    BuildRegularMethodDeclaration(methodSymbol, options)
+                    BuildRegularMethodDeclaration(methodSymbol)
             End Select
         End Sub
 
-        Private Sub BuildOperatorDeclaration(methodSymbol As IMethodSymbol, options As _VSOBJDESCOPTIONS)
+        Private Sub BuildOperatorDeclaration(methodSymbol As IMethodSymbol)
             BuildMemberModifiers(methodSymbol)
 
             Select Case methodSymbol.Name
@@ -145,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             End If
         End Sub
 
-        Private Sub BuildDeclareMethodDeclaration(methodSymbol As IMethodSymbol, options As _VSOBJDESCOPTIONS)
+        Private Sub BuildDeclareMethodDeclaration(methodSymbol As IMethodSymbol)
             BuildMemberModifiers(methodSymbol)
 
             AddText("Declare ")
@@ -192,7 +194,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             End If
         End Sub
 
-        Private Sub BuildRegularMethodDeclaration(methodSymbol As IMethodSymbol, options As _VSOBJDESCOPTIONS)
+        Private Sub BuildRegularMethodDeclaration(methodSymbol As IMethodSymbol)
             BuildMemberModifiers(methodSymbol)
 
             If methodSymbol.ReturnsVoid Then
@@ -498,7 +500,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             AddName("}")
         End Sub
 
-        Private Function CountConstraints(typeParameter As ITypeParameterSymbol) As Integer
+        Private Shared Function CountConstraints(typeParameter As ITypeParameterSymbol) As Integer
             Dim result = typeParameter.ConstraintTypes.Length
 
             If typeParameter.HasReferenceTypeConstraint Then

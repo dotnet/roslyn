@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -107,11 +111,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 var baseType = typeSymbol.BaseType;
                 if (baseType != null)
                 {
-                    if (baseType.SpecialType != SpecialType.System_Object &&
-                        baseType.SpecialType != SpecialType.System_Delegate &&
-                        baseType.SpecialType != SpecialType.System_MulticastDelegate &&
-                        baseType.SpecialType != SpecialType.System_Enum &&
-                        baseType.SpecialType != SpecialType.System_ValueType)
+                    if (baseType.SpecialType is not SpecialType.System_Object and
+                        not SpecialType.System_Delegate and
+                        not SpecialType.System_MulticastDelegate and
+                        not SpecialType.System_Enum and
+                        not SpecialType.System_ValueType)
                     {
                         AddText(" : ");
                         AddTypeLink(baseType, LinkFlags.None);
@@ -187,10 +191,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
         {
             BuildMemberModifiers(methodSymbol);
 
-            if (methodSymbol.MethodKind != MethodKind.Constructor &&
-                methodSymbol.MethodKind != MethodKind.Destructor &&
-                methodSymbol.MethodKind != MethodKind.StaticConstructor &&
-                methodSymbol.MethodKind != MethodKind.Conversion)
+            if (methodSymbol.MethodKind is not MethodKind.Constructor and
+                not MethodKind.Destructor and
+                not MethodKind.StaticConstructor and
+                not MethodKind.Conversion)
             {
                 AddTypeLink(methodSymbol.ReturnType, LinkFlags.None);
                 AddText(" ");
@@ -266,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 BuildAccessibility(memberSymbol);
             }
 
-            if (memberSymbol.IsUnsafe())
+            if (memberSymbol.RequiresUnsafeModifier())
             {
                 AddText("unsafe ");
             }
@@ -392,7 +396,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 }
 
                 AddText("new()");
-                isFirst = false;
             }
         }
 
@@ -404,7 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 return;
             }
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (i > 0)
                 {

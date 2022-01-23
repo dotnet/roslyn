@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -78,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var diffService = diffSelector.GetTextDifferencingService(
                 left.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType());
 
-            diffService = diffService ?? diffSelector.DefaultTextDifferencingService;
+            diffService ??= diffSelector.DefaultTextDifferencingService;
 
             var diff = ComputeDiffSpans(diffService, left, right, cancellationToken);
             if (diff.Differences.Count == 0)
@@ -124,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return new ChangeList(new[] { entireSpanChild });
         }
 
-        private string GetDisplayText(string excerpt)
+        private static string GetDisplayText(string excerpt)
         {
             if (excerpt.Contains("\r\n"))
             {
@@ -176,28 +180,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public override void UpdatePreview()
-        {
-            engine.UpdatePreview(this.Id, (SpanChange)Children.Changes[0]);
-        }
+            => engine.UpdatePreview(this.Id, (SpanChange)Children.Changes[0]);
 
         private SourceText UpdateBufferText()
         {
             foreach (SpanChange child in Children.Changes)
             {
-                using (var edit = _buffer.CreateEdit())
-                {
-                    edit.Replace(child.GetSpan(), child.GetApplicableText());
-                    edit.ApplyAndLogExceptions();
-                }
+                using var edit = _buffer.CreateEdit();
+                edit.Replace(child.GetSpan(), child.GetApplicableText());
+                edit.ApplyAndLogExceptions();
             }
 
             return SourceText.From(_buffer.CurrentSnapshot.GetText(), _encoding);
         }
 
         public TextDocument GetOldDocument()
-        {
-            return _left;
-        }
+            => _left;
 
         public TextDocument GetUpdatedDocument()
         {
@@ -229,7 +227,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 }
             }
 
-            pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphLibrary;
+            pData[0].Image = pData[0].SelectedImage
+                = document.Project.Language == LanguageNames.CSharp ? (ushort)StandardGlyphGroup.GlyphCSharpFile :
+                                                                      (ushort)StandardGlyphGroup.GlyphGroupClass;
         }
 
         private static IHierarchicalDifferenceCollection ComputeDiffSpans(ITextDifferencingService diffService, TextDocument left, TextDocument right, CancellationToken cancellationToken)
@@ -248,21 +248,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             {
                 DifferenceType = StringDifferenceTypes.Line,
             });
-        }
-
-        private static bool ContainsBetterDiff(TextDocument left, TextDocument right, IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
-        {
-            var textDiffCount = diffResult.Differences.Count;
-
-            var leftDocument = left as Document;
-            var rightDocument = right as Document;
-            if (leftDocument == null || rightDocument == null)
-            {
-                return false;
-            }
-
-            var syntaxDiffCount = rightDocument.GetTextChangesAsync(leftDocument, cancellationToken).WaitAndGetResult(cancellationToken).Count();
-            return syntaxDiffCount > textDiffCount;
         }
     }
 }

@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -30,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         #endregion
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestUsings()
         {
             var text = @"
@@ -350,7 +355,7 @@ namespace X
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestExternAliases1()
         {
             CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
@@ -460,7 +465,7 @@ namespace X
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases2()
         {
@@ -512,7 +517,7 @@ class A { void M() {  } }
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases3()
         {
@@ -564,7 +569,7 @@ class A { void M() {  } }
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExternAliases4()
         {
             var src1 = @"
@@ -971,7 +976,7 @@ public class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
         public void ReferenceWithGlobalAndDuplicateAliases()
         {
@@ -1395,7 +1400,7 @@ namespace X
 </symbols>", options: PdbValidationOptions.SkipConversionValidation); // TODO: https://github.com/dotnet/roslyn/issues/18004
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestSynthesizedConstructors()
         {
             var text = @"
@@ -1456,10 +1461,10 @@ namespace X
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestFieldInitializerLambdas()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Linq;
 
 class C
@@ -1470,7 +1475,7 @@ class C
         return x % 2 == 0; 
     });
 }
-";
+");
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
@@ -1536,10 +1541,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestAccessors()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1550,7 +1555,7 @@ class C
     event System.Action E1;
     event System.Action E2 { add { } remove { } }
 }
-";
+");
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
@@ -1639,7 +1644,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestSynthesizedSealedAccessors()
         {
             var text = @"
@@ -1690,10 +1695,10 @@ class Derived : Base
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestSynthesizedExplicitImplementation()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Runtime.CompilerServices;
 
 interface I1
@@ -1712,7 +1717,7 @@ class C : I1, I2
 {
     public int this[int x] { get { return 0; } set { } }
 }
-";
+");
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
@@ -1752,7 +1757,7 @@ class C : I1, I2
         }
 
         [WorkItem(692496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/692496")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SequencePointOnUsingExpression()
         {
             var source = @"
@@ -1990,7 +1995,7 @@ class D
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingExpression()
         {
             TestSequencePoints(
@@ -2010,7 +2015,7 @@ public class Test : IDisposable
 }", TestOptions.ReleaseExe, methodName: "Test.Main");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingVariable()
         {
             TestSequencePoints(
@@ -2128,7 +2133,7 @@ namespace goo
         }
 
         [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StaticType()
         {
             var source = @"
@@ -2142,7 +2147,7 @@ class D
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40);
             comp.VerifyPdb("D.Main", @"
 <symbols>
     <files>
@@ -2167,7 +2172,7 @@ class D
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UnusedImports()
         {
             var source = @"
@@ -2213,7 +2218,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UnusedImports_Nonexisting()
         {
             var source = @"
@@ -2263,7 +2268,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void EmittingPdbVsNot()
         {
             string source = @"
@@ -2288,13 +2293,13 @@ class C
             var peStream2 = new MemoryStream();
             var pdbStream = new MemoryStream();
 
-            var emitResult1 = c.Emit(peStream: peStream1, pdbStream: pdbStream);
-            var emitResult2 = c.Emit(peStream: peStream2);
+            c.Emit(peStream: peStream1, pdbStream: pdbStream);
+            c.Emit(peStream: peStream2);
 
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void ImportedNoPiaTypes()
         {
             var sourceLib = @"
@@ -2472,7 +2477,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportScopeEquality()
         {
             var sources = new[] { @"
@@ -2533,29 +2538,28 @@ class C6 { void F() {} }
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
             var pdbImage = pdbStream.ToImmutable();
-            using (var metadata = new PinnedMetadata(pdbImage))
-            {
-                var mdReader = metadata.Reader;
-                var writer = new StringWriter();
-                var mdVisualizer = new MetadataVisualizer(mdReader, writer);
-                mdVisualizer.WriteImportScope();
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+            using var metadata = new PinnedMetadata(pdbImage);
+            var mdReader = metadata.Reader;
+            var writer = new StringWriter();
+            var mdVisualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
+            mdVisualizer.WriteImportScope();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 ImportScope (index: 0x35, size: 36): 
-=============================================================================================
-   Parent                    Imports                                                          
-=============================================================================================
-1: nil (ImportScope)         'A' (#1) = 0x23000002 (AssemblyRef)                              
-2: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7)                             
-3: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7), 'C' (#1d) = 'System' (#7)  
-4: 0x35000003 (ImportScope)  nil                                                              
-5: 0x35000004 (ImportScope)  'System.Collections' (#27)                                       
-6: 0x35000004 (ImportScope)  'System.Collections.Generic' (#4b)                               
-7: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7), 'D' (#69) = 'System' (#7)  
-8: 0x35000007 (ImportScope)  nil                                                              
-9: 0x35000008 (ImportScope)  'System.Collections' (#27)    
+========================================================================
+   Parent                    Imports                                      
+========================================================================
+1: nil (ImportScope)         'A' = 0x23000002 (AssemblyRef)                                 
+2: 0x35000001 (ImportScope)  Extern Alias 'A', 'System'                               
+3: 0x35000001 (ImportScope)  Extern Alias 'A', 'System', 'C' = 'System'  
+4: 0x35000003 (ImportScope)  nil                                                                 
+5: 0x35000004 (ImportScope)  'System.Collections'                                   
+6: 0x35000004 (ImportScope)  'System.Collections.Generic'                               
+7: 0x35000001 (ImportScope)  Extern Alias 'A', 'System', 'D' = 'System'
+8: 0x35000007 (ImportScope)  nil                                                                 
+9: 0x35000008 (ImportScope)  'System.Collections'
 ", writer.ToString());
-            }
         }
     }
 }

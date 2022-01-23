@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -18,11 +22,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ItemManagerProvider(RecentItemsManager recentItemsManager)
-        {
-            _instance = new ItemManager(recentItemsManager);
-        }
+        public ItemManagerProvider(RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
+            => _instance = new ItemManager(recentItemsManager, globalOptions);
 
-        public IAsyncCompletionItemManager GetOrCreate(ITextView textView) => _instance;
+        public IAsyncCompletionItemManager? GetOrCreate(ITextView textView)
+        {
+            if (textView.TextBuffer.IsInLspEditorContext())
+            {
+                // If we're in an LSP editing context, we want to avoid returning a completion item manager.
+                // Otherwise, we'll interfere with the LSP client manager and disrupt filtering.
+                return null;
+            }
+
+            return _instance;
+        }
     }
 }

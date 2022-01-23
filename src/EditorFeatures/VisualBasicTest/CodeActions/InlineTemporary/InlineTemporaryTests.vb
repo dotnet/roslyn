@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
@@ -9,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New InlineTemporaryCodeRefactoringProvider()
+            Return New VisualBasicInlineTemporaryCodeRefactoringProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2902,7 +2903,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         Dim y = From x In ""
- _
+                            _
         [Take]()
         Dim t = 1
     End Sub
@@ -2938,7 +2939,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         Dim y = From x In ""
- _ ' Test
+                            _ ' Test
         [Take]()
         Dim t = 1
     End Sub
@@ -4479,5 +4480,42 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function TestWithLinkedFile() As Task
+            Await TestInRegularAndScript1Async(
+"<Workspace>
+    <Project Language='Visual Basic' CommonReferences='true' AssemblyName='LinkedProj' Name='VBProj.1'>
+        <Document FilePath='C.vb'>
+imports System
+public class Goo
+    public sub Bar()
+        dim targets = new List(of object)()
+        dim [||]newItems as List(of Goo) = new List(of Goo)()
+        targets.Add(newItems)
+    end sub
+end class
+        </Document>
+    </Project>
+    <Project Language='Visual Basic' CommonReferences='true' AssemblyName='LinkedProj' Name='VBProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='VBProj.1' LinkFilePath='C.vb'/>
+    </Project>
+</Workspace>",
+"<Workspace>
+    <Project Language='Visual Basic' CommonReferences='true' AssemblyName='LinkedProj' Name='VBProj.1'>
+        <Document FilePath='C.vb'>
+imports System
+public class Goo
+    public sub Bar()
+        dim targets = new List(of object)()
+        targets.Add(new List(of Goo)())
+    end sub
+end class
+        </Document>
+    </Project>
+    <Project Language='Visual Basic' CommonReferences='true' AssemblyName='LinkedProj' Name='VBProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='VBProj.1' LinkFilePath='C.vb'/>
+    </Project>
+</Workspace>")
+        End Function
     End Class
 End Namespace

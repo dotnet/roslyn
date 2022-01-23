@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -680,7 +684,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
             };
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var options = TestOptions.DebugDll;
 
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
             options.VerifyErrors();
@@ -722,7 +726,7 @@ public class C
 ";
             var compilation0 = CreateCompilation(source);
 
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            options = TestOptions.DebugDll;
             var compilation = CreateCompilation("", options: options, references: new[] { compilation0.EmitToImageReference() });
             var c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
@@ -762,16 +766,16 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
             };
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal);
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.Internal);
             Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.All);
+            options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
             Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Public);
+            options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.Public);
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: (MetadataImportOptions)byte.MaxValue);
+            options = TestOptions.DebugDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue);
             Assert.Equal((MetadataImportOptions)byte.MaxValue, options.MetadataImportOptions);
             options.VerifyErrors(expectedDiagnostics);
 
@@ -785,21 +789,21 @@ public class C
 ";
             var compilation0 = CreateCompilation(source);
 
-            var compilation = CreateCompilation("", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
+            var compilation = CreateCompilation("", options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
             var c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.Empty(c.GetMembers("P3"));
             CompileAndVerify(compilation);
 
-            compilation = compilation.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.All));
+            compilation = compilation.WithOptions(TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.NotEmpty(c.GetMembers("P3"));
             CompileAndVerify(compilation);
 
-            compilation = compilation.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: (MetadataImportOptions)byte.MaxValue));
+            compilation = compilation.WithOptions(TestOptions.DebugDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));

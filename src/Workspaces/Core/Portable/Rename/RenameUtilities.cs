@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -32,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         internal static ImmutableArray<ISymbol> GetSymbolsTouchingPosition(
-            int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
+            int position, SemanticModel semanticModel, HostWorkspaceServices services, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-            var semanticInfo = semanticModel.GetSemanticInfo(bindableToken, workspace, cancellationToken);
+            var semanticInfo = semanticModel.GetSemanticInfo(bindableToken, services, cancellationToken);
             var symbols = semanticInfo.DeclaredSymbol != null
                 ? ImmutableArray.Create<ISymbol>(semanticInfo.DeclaredSymbol)
                 : semanticInfo.GetSymbols(includeType: false);
@@ -63,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Rename
         private static bool IsSymbolDefinedInsideMethod(ISymbol symbol)
         {
             return
-                symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.Label ||
-                symbol.Kind == SymbolKind.RangeVariable ||
-                symbol.Kind == SymbolKind.Parameter;
+                symbol.Kind is SymbolKind.Local or
+                SymbolKind.Label or
+                SymbolKind.RangeVariable or
+                SymbolKind.Parameter;
         }
 
         internal static IEnumerable<Document> GetDocumentsAffectedByRename(ISymbol symbol, Solution solution, IEnumerable<RenameLocation> renameLocations)

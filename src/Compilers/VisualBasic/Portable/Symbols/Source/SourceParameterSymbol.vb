@@ -1,16 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Binder
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SourceParameterSymbol
@@ -105,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If Me.ContainingSymbol.IsImplicitlyDeclared Then
 
-                    If TryCast(Me.ContainingSymbol, MethodSymbol)?.MethodKind = MethodKind.DelegateInvoke AndAlso
+                    If If(TryCast(Me.ContainingSymbol, MethodSymbol)?.MethodKind = MethodKind.DelegateInvoke, False) AndAlso
                        Not Me.ContainingType.AssociatedSymbol?.IsImplicitlyDeclared Then
                         Return False
                     End If
@@ -247,9 +242,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of ParameterEarlyWellKnownAttributeData).HasCallerFilePathAttribute = True
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerMemberNameAttribute) Then
                 arguments.GetOrCreateData(Of ParameterEarlyWellKnownAttributeData).HasCallerMemberNameAttribute = True
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute) Then
+                Dim index = -1
+                Dim attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, False)
+                If Not attribute.HasErrors Then
+                    Dim parameterName As String = Nothing
+                    If attribute.ConstructorArguments.Single().TryDecodeValue(SpecialType.System_String, parameterName) Then
+                        Dim parameters = containingSymbol.GetParameters()
+                        For i = 0 To parameters.Length - 1
+                            If IdentifierComparison.Equals(parameters(i).Name, parameterName) Then
+                                index = i
+                                Exit For
+                            End If
+                        Next
+                    End If
+                End If
+
+                arguments.GetOrCreateData(Of ParameterEarlyWellKnownAttributeData).CallerArgumentExpressionParameterIndex = index
             End If
 
             Return MyBase.EarlyDecodeWellKnownAttribute(arguments)
+        End Function
+
+        Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+            Dim attributes = MyBase.GetCustomAttributesToEmit(compilationState)
+
+            For Each attribute In attributes
+                If AttributeData.IsTargetEarlyAttribute(attributeType:=attribute.AttributeClass, attributeArgCount:=attribute.CommonConstructorArguments.Length, description:=AttributeDescription.CallerArgumentExpressionAttribute) Then
+                    Dim callerArgumentExpressionParameterIndex = Me.CallerArgumentExpressionParameterIndex
+                    If callerArgumentExpressionParameterIndex <> -1 AndAlso TypeOf attribute Is SourceAttributeData Then
+                        Debug.Assert(callerArgumentExpressionParameterIndex >= 0)
+                        Debug.Assert(attribute.CommonConstructorArguments.Length = 1)
+                        ' We allow CallerArgumentExpression to have case-insensitive parameter name, but we
+                        ' want to emit the parameter name with correct casing, so that it works with C#.
+                        Dim correctedParameterName = ContainingSymbol.GetParameters()(callerArgumentExpressionParameterIndex).Name
+                        Dim oldTypedConstant = attribute.CommonConstructorArguments.Single()
+                        If correctedParameterName.Equals(oldTypedConstant.Value.ToString(), StringComparison.Ordinal) Then
+                            Yield attribute
+                            Continue For
+                        End If
+                        Dim newArgs = ImmutableArray.Create(New TypedConstant(oldTypedConstant.TypeInternal, oldTypedConstant.Kind, correctedParameterName))
+                        Yield New SourceAttributeData(attribute.ApplicationSyntaxReference, attribute.AttributeClass, attribute.AttributeConstructor, newArgs, attribute.CommonNamedArguments, attribute.IsConditionallyOmitted, attribute.HasErrors)
+                        Continue For
+                    End If
+                End If
+                Yield attribute
+            Next
         End Function
 
         ' It is not strictly necessary to decode default value attributes early in VB,
@@ -282,6 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
+            Debug.Assert(TypeOf arguments.Diagnostics Is BindingDiagnosticBag)
 
             ' Differences from C#:
             '
@@ -301,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '     - metadata flag set, no diagnostics reported, don't influence language semantics
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultParameterValueAttribute) Then
@@ -319,6 +358,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonParameterWellKnownAttributeData)().HasOutAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonParameterWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Parameter, MessageProvider.Instance)
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CallerArgumentExpressionAttribute) Then
+                Dim index = GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex
+                If index = Ordinal Then
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, arguments.AttributeSyntaxOpt.Location, Me.Name)
+                ElseIf index = -1 Then
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, arguments.AttributeSyntaxOpt.Location, Me.Name)
+                End If
             End If
 
             MyBase.DecodeWellKnownAttribute(arguments)
@@ -326,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub DecodeDefaultParameterValueAttribute(description As AttributeDescription, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attribute = arguments.Attribute
-            Dim diagnostics = arguments.Diagnostics
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
             Debug.Assert(diagnostics IsNot Nothing)
@@ -342,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' (DefaultParameterValueAttribute, DateTimeConstantAttribute or DecimalConstantAttribute).
         ''' If not, report ERR_ParamDefaultValueDiffersFromAttribute.
         ''' </summary>
-        Protected Sub VerifyParamDefaultValueMatchesAttributeIfAny(value As ConstantValue, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Protected Sub VerifyParamDefaultValueMatchesAttributeIfAny(value As ConstantValue, syntax As VisualBasicSyntaxNode, diagnostics As BindingDiagnosticBag)
             Dim data = GetEarlyDecodedWellKnownAttributeData()
             If data IsNot Nothing Then
                 Dim attrValue = data.DefaultParameterValue
@@ -373,13 +419,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim arg = attribute.CommonConstructorArguments(0)
 
             Dim specialType = If(arg.Kind = TypedConstantKind.Enum,
-                                 DirectCast(arg.Type, INamedTypeSymbol).EnumUnderlyingType.SpecialType,
-                                 arg.Type.SpecialType)
+                                 DirectCast(arg.TypeInternal, NamedTypeSymbol).EnumUnderlyingType.SpecialType,
+                                 arg.TypeInternal.SpecialType)
             Dim constantValueDiscriminator = ConstantValue.GetDiscriminator(specialType)
 
             If constantValueDiscriminator = ConstantValueTypeDiscriminator.Bad Then
                 If arg.Kind <> TypedConstantKind.Array AndAlso
-                    arg.Value Is Nothing AndAlso
+                    arg.ValueInternal Is Nothing AndAlso
                     Type.IsReferenceType Then
                     Return ConstantValue.Null
                 End If
@@ -387,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ConstantValue.Bad
             End If
 
-            Return ConstantValue.Create(arg.Value, constantValueDiscriminator)
+            Return ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator)
         End Function
 
         Friend NotOverridable Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData

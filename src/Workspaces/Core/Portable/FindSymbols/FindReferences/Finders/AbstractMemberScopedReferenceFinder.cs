@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,14 +18,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         where TSymbol : ISymbol
     {
         protected sealed override bool CanFind(TSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             TSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -47,8 +48,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return Task.FromResult(ImmutableArray.Create(document));
         }
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
             {
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var tokens = root.DescendantTokens();
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ImmutableArray<FinderLocation>.Empty;
         }
 
-        private static ISymbol GetContainer(ISymbol symbol)
+        private static ISymbol? GetContainer(ISymbol symbol)
         {
             for (var current = symbol; current != null; current = current.ContainingSymbol)
             {
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected Task<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -117,20 +119,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             return FindReferencesInTokensWithSymbolNameAsync(
-                symbol, document, semanticModel, tokens,
-                findParentNode: null, cancellationToken: cancellationToken);
+                symbol, document, semanticModel, tokens, findParentNode: null, cancellationToken);
         }
 
-        protected Task<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
+        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
             IEnumerable<SyntaxToken> tokens,
-            Func<SyntaxToken, SyntaxNode> findParentNode,
+            Func<SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
             var name = symbol.Name;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
 
             return FindReferencesInTokensAsync(
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private Task<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
+        private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
             TSymbol symbol,
             ISymbol container,
             Document document,
@@ -150,24 +151,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             return FindReferencesInContainerAsync(
-                symbol, container, document, semanticModel,
-                findParentNode: null, cancellationToken: cancellationToken);
+                symbol, container, document, semanticModel, findParentNode: null, cancellationToken);
         }
 
-        private Task<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
+        private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
             TSymbol symbol,
             ISymbol container,
             Document document,
             SemanticModel semanticModel,
-            Func<SyntaxToken, SyntaxNode> findParentNode,
+            Func<SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
-            var service = document.GetLanguageService<ISymbolDeclarationService>();
+            var service = document.GetRequiredLanguageService<ISymbolDeclarationService>();
             var declarations = service.GetDeclarations(container);
             var tokens = declarations.SelectMany(r => r.GetSyntax(cancellationToken).DescendantTokens());
 
             var name = symbol.Name;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
             var tokensMatch = GetTokensMatchFunction(syntaxFacts, name);
 

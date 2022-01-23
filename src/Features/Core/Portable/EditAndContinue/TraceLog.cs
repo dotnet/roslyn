@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
-using Roslyn.Utilities;
 using System.Linq;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -20,40 +22,51 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         internal readonly struct Arg
         {
-            public readonly string String;
+            public readonly object? Object;
             public readonly int Int32;
 
-            public Arg(string value)
+            public Arg(object? value)
             {
-                Int32 = 0;
-                String = value ?? "<null>";
+                Int32 = -1;
+                Object = value ?? "<null>";
             }
 
-            public Arg(int value)
+            public Arg(int value, Type? type = null)
             {
                 Int32 = value;
-                String = null;
+                Object = type;
             }
 
-            public override string ToString() => String ?? Int32.ToString();
+            public override string? ToString()
+                => (Object is null) ? Int32.ToString() :
+                   (Object is Type { IsEnum: true } type && Int32 >= 0) ? Enum.GetName(type, Int32) :
+                    Object.ToString();
 
-            public static implicit operator Arg(string value) => new Arg(value);
-            public static implicit operator Arg(int value) => new Arg(value);
+            public static implicit operator Arg(string? value) => new(value);
+            public static implicit operator Arg(int value) => new(value);
+            public static implicit operator Arg(bool value) => new(value ? "true" : "false");
+            public static implicit operator Arg(ProjectId value) => new(value.DebugName);
+            public static implicit operator Arg(DocumentId value) => new(value.DebugName);
+            public static implicit operator Arg(Diagnostic value) => new(value);
+            public static implicit operator Arg(ProjectAnalysisSummary value) => new((int)value, typeof(ProjectAnalysisSummary));
+            public static implicit operator Arg(RudeEditKind value) => new((int)value, typeof(RudeEditKind));
+            public static implicit operator Arg((int enumValue, Type enumType) value) => new(value.enumValue, value.enumType);
         }
 
+        [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         internal readonly struct Entry
         {
             public readonly string MessageFormat;
-            public readonly Arg[] ArgsOpt;
+            public readonly Arg[]? Args;
 
-            public Entry(string format, Arg[] argsOpt)
+            public Entry(string format, Arg[]? args)
             {
                 MessageFormat = format;
-                ArgsOpt = argsOpt;
+                Args = args;
             }
 
-            public override string ToString() =>
-                string.Format(MessageFormat, ArgsOpt?.Select(a => (object)a).ToArray() ?? Array.Empty<object>());
+            internal string GetDebuggerDisplay() =>
+                (MessageFormat == null) ? "" : string.Format(MessageFormat, Args?.Select(a => (object)a).ToArray() ?? Array.Empty<object>());
         }
 
         private readonly Entry[] _log;
@@ -68,22 +81,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void Append(Entry entry)
         {
-            int index = Interlocked.Increment(ref _currentLine);
+            var index = Interlocked.Increment(ref _currentLine);
             _log[(index - 1) % _log.Length] = entry;
         }
 
-        public void Write(string str) => Write(str, null);
+        public void Write(string str)
+            => Write(str, args: null);
 
-        public void Write(string format, params Arg[] args)
-        {
-            Append(new Entry(format, args));
-        }
-
-        [Conditional("DEBUG")]
-        public void DebugWrite(string str) => DebugWrite(str, null);
+        public void Write(string format, params Arg[]? args)
+            => Append(new Entry(format, args));
 
         [Conditional("DEBUG")]
-        public void DebugWrite(string format, params Arg[] args)
+        public void DebugWrite(string str)
+            => DebugWrite(str, args: null);
+
+        [Conditional("DEBUG")]
+        public void DebugWrite(string format, params Arg[]? args)
         {
             var entry = new Entry(format, args);
             Append(entry);
@@ -91,16 +104,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
             private readonly TraceLog _traceLog;
 
             public TestAccessor(TraceLog traceLog)
-            {
-                _traceLog = traceLog;
-            }
+                => _traceLog = traceLog;
 
             internal Entry[] Entries => _traceLog._log;
         }

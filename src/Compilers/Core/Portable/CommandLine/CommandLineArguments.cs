@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,6 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         /// absolute. This is the directory that relative paths specified on
         /// command line were resolved against.
         /// </remarks>
-        public string BaseDirectory { get; internal set; }
+        public string? BaseDirectory { get; internal set; }
 
         /// <summary>
         /// A list of pairs of paths. This stores the value of the command-line compiler
@@ -74,38 +75,38 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Compilation name or null if not specified.
         /// </summary>
-        public string CompilationName { get; internal set; }
+        public string? CompilationName { get; internal set; }
 
         /// <summary>
         /// Gets the emit options.
         /// </summary>
-        public EmitOptions EmitOptions { get; internal set; }
+        public EmitOptions EmitOptions { get; internal set; } = null!; // initialized by Parse
 
         /// <summary>
         /// Name of the output file or null if not specified.
         /// </summary>
-        public string OutputFileName { get; internal set; }
+        public string? OutputFileName { get; internal set; }
 
         /// <summary>
         /// Path of the output ref assembly or null if not specified.
         /// </summary>
-        public string OutputRefFilePath { get; internal set; }
+        public string? OutputRefFilePath { get; internal set; }
 
         /// <summary>
         /// Path of the PDB file or null if same as output binary path with .pdb extension.
         /// </summary>
-        public string PdbPath { get; internal set; }
+        public string? PdbPath { get; internal set; }
 
         /// <summary>
         /// Path of the file containing information linking the compilation to source server that stores 
         /// a snapshot of the source code included in the compilation.
         /// </summary>
-        public string SourceLink { get; internal set; }
+        public string? SourceLink { get; internal set; }
 
         /// <summary>
         /// Absolute path of the .ruleset file or null if not specified.
         /// </summary>
-        public string RuleSetPath { get; internal set; }
+        public string? RuleSetPath { get; internal set; }
 
         /// <summary>
         /// True to emit PDB information (to a standalone PDB file or embedded into the PE file).
@@ -113,24 +114,36 @@ namespace Microsoft.CodeAnalysis
         public bool EmitPdb { get; internal set; }
 
         /// <summary>
-        /// Absolute path of the output directory.
+        /// Absolute path of the output directory (could only be null if there is an error reported).
         /// </summary>
-        public string OutputDirectory { get; internal set; }
+        public string OutputDirectory { get; internal set; } = null!; // initialized by Parse
 
         /// <summary>
         /// Absolute path of the documentation comment XML file or null if not specified.
         /// </summary>
-        public string DocumentationPath { get; internal set; }
+        public string? DocumentationPath { get; internal set; }
 
         /// <summary>
-        /// Absolute path of the error log file or null if not specified.
+        /// Absolute path of the directory to place generated files in, or <c>null</c> to not emit any generated files.
         /// </summary>
-        public string ErrorLogPath { get; internal set; }
+        public string? GeneratedFilesOutputDirectory { get; internal set; }
+
+        /// <summary>
+        /// Options controlling the generation of a SARIF log file containing compilation or
+        /// analysis diagnostics, or null if no log file is desired.
+        /// </summary>
+        public ErrorLogOptions? ErrorLogOptions { get; internal set; }
+
+        /// <summary>
+        /// Options controlling the generation of a SARIF log file containing compilation or
+        /// analysis diagnostics, or null if no log file is desired.
+        /// </summary>
+        public string? ErrorLogPath => ErrorLogOptions?.Path;
 
         /// <summary>
         /// An absolute path of the app.config file or null if not specified.
         /// </summary>
-        public string AppConfigPath { get; internal set; }
+        public string? AppConfigPath { get; internal set; }
 
         /// <summary>
         /// Errors while parsing the command line arguments.
@@ -168,6 +181,11 @@ namespace Microsoft.CodeAnalysis
         /// </value>
         public bool ReportAnalyzer { get; internal set; }
 
+        /// <value>
+        /// Skip execution of <see cref="DiagnosticAnalyzer"/>s.
+        /// </value>
+        public bool SkipAnalyzers { get; internal set; }
+
         /// <summary>
         /// If true, prepend the command line header logo during 
         /// <see cref="CommonCompiler.Run"/>.
@@ -195,18 +213,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The path to a Win32 resource.
         /// </summary>
-        public string Win32ResourceFile { get; internal set; }
+        public string? Win32ResourceFile { get; internal set; }
 
         /// <summary>
         /// The path to a .ico icon file.
         /// </summary>
-        public string Win32Icon { get; internal set; }
+        public string? Win32Icon { get; internal set; }
 
         /// <summary>
         /// The path to a Win32 manifest file to embed
         /// into the output portable executable (PE) file.
         /// </summary>
-        public string Win32Manifest { get; internal set; }
+        public string? Win32Manifest { get; internal set; }
 
         /// <summary>
         /// If true, do not embed any Win32 manifest, including
@@ -223,7 +241,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Encoding to be used for source files or 'null' for autodetect/default.
         /// </summary>
-        public Encoding Encoding { get; internal set; }
+        public Encoding? Encoding { get; internal set; }
 
         /// <summary>
         /// Hash algorithm to use to calculate source file debug checksums and PDB checksum.
@@ -252,7 +270,7 @@ namespace Microsoft.CodeAnalysis
         /// One with path <see cref="TouchedFilesPath"/> and extension ".read" logging the files read,
         /// and second with path <see cref="TouchedFilesPath"/> and extension ".write" logging the files written to during compilation.
         /// </remarks>
-        public string TouchedFilesPath { get; internal set; }
+        public string? TouchedFilesPath { get; internal set; }
 
         /// <summary>
         /// If true, prints the full path of the file containing errors or
@@ -283,7 +301,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Specify the preferred output language name.
         /// </summary>
-        public CultureInfo PreferredUILang { get; internal set; }
+        public CultureInfo? PreferredUILang { get; internal set; }
 
         internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
             => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
@@ -364,9 +382,9 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// called by CommonCompiler with diagnostics and message provider
         /// </remarks>
-        internal IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, List<DiagnosticInfo>? diagnosticsOpt, CommonMessageProvider? messageProviderOpt)
         {
-            Debug.Assert(metadataResolver != null);
+            RoslynDebug.Assert(metadataResolver != null);
 
             var resolved = new List<MetadataReference>();
             this.ResolveMetadataReferences(metadataResolver, diagnosticsOpt, messageProviderOpt, resolved);
@@ -374,7 +392,7 @@ namespace Microsoft.CodeAnalysis
             return resolved;
         }
 
-        internal virtual bool ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, List<MetadataReference> resolved)
+        internal virtual bool ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, List<DiagnosticInfo>? diagnosticsOpt, CommonMessageProvider? messageProviderOpt, List<MetadataReference> resolved)
         {
             bool result = true;
 
@@ -399,9 +417,9 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal static ImmutableArray<PortableExecutableReference> ResolveMetadataReference(CommandLineReference cmdReference, MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal static ImmutableArray<PortableExecutableReference> ResolveMetadataReference(CommandLineReference cmdReference, MetadataReferenceResolver metadataResolver, List<DiagnosticInfo>? diagnosticsOpt, CommonMessageProvider? messageProviderOpt)
         {
-            Debug.Assert(metadataResolver != null);
+            RoslynDebug.Assert(metadataResolver != null);
             Debug.Assert((diagnosticsOpt == null) == (messageProviderOpt == null));
 
             ImmutableArray<PortableExecutableReference> references;
@@ -411,13 +429,14 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (diagnosticsOpt != null && (e is BadImageFormatException || e is IOException))
             {
-                var diagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProviderOpt, Location.None, cmdReference.Reference, cmdReference.Properties.Kind);
+                var diagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProviderOpt!, Location.None, cmdReference.Reference, cmdReference.Properties.Kind);
                 diagnosticsOpt.Add(((DiagnosticWithInfo)diagnostic).Info);
                 return ImmutableArray<PortableExecutableReference>.Empty;
             }
 
             if (references.IsDefaultOrEmpty && diagnosticsOpt != null)
             {
+                RoslynDebug.AssertNotNull(messageProviderOpt);
                 diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.ERR_MetadataFileNotFound, cmdReference.Reference));
                 return ImmutableArray<PortableExecutableReference>.Empty;
             }
@@ -443,28 +462,36 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+        internal void ResolveAnalyzersFromArguments(
             string language,
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
-            IAnalyzerAssemblyLoader analyzerLoader)
+            IAnalyzerAssemblyLoader analyzerLoader,
+            bool skipAnalyzers,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<ISourceGenerator> generators)
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
                 var analyzerReference = o as AnalyzerFileReference;
-                DiagnosticInfo diagnostic;
+                RoslynDebug.Assert(analyzerReference is object);
+                DiagnosticInfo? diagnostic;
                 switch (e.ErrorCode)
                 {
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
                         diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_UnableToLoadAnalyzer, analyzerReference.FullPath, e.Message);
                         break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
-                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerCannotBeCreated, e.TypeName, analyzerReference.FullPath, e.Message);
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerCannotBeCreated, e.TypeName ?? "", analyzerReference.FullPath, e.Message);
                         break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                         diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_NoAnalyzerInAssembly, analyzerReference.FullPath);
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerReferencesFramework, analyzerReference.FullPath, e.TypeName!);
                         break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
                     default:
@@ -497,22 +524,27 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // All analyzer references are registered now, we can start loading them:
+            // All analyzer references are registered now, we can start loading them.
             foreach (var resolvedReference in resolvedReferences)
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
-                resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                resolvedReference.AddAnalyzers(analyzerBuilder, language, shouldIncludeAnalyzer);
+                resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
 
-            return analyzerBuilder.ToImmutable();
+            generators = generatorBuilder.ToImmutable();
+            analyzers = analyzerBuilder.ToImmutable();
+
+            // If we are skipping analyzers, ensure that we only add suppressors.
+            bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
         }
 
-        private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
+        private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
+            string? resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
             if (resolvedPath != null)
             {
                 resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
@@ -526,6 +558,5 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
         #endregion
-
     }
 }

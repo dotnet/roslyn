@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -54,29 +57,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private bool ShouldAddSpan(TextSpan span)
-        {
-            return span.Length > 0 && _textSpan.OverlapsWith(span);
-        }
+            => span.Length > 0 && _textSpan.OverlapsWith(span);
 
         private void AddClassification(SyntaxTrivia trivia, string type)
-        {
-            AddClassification(trivia.Span, type);
-        }
+            => AddClassification(trivia.Span, type);
 
         private void AddClassification(SyntaxToken token, string type)
-        {
-            AddClassification(token.Span, type);
-        }
+            => AddClassification(token.Span, type);
 
         private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
         {
+            Debug.Assert(nodeOrToken.IsNode || nodeOrToken.IsToken);
+
             if (nodeOrToken.IsToken)
             {
                 ClassifyToken(nodeOrToken.AsToken());
                 return;
             }
 
-            ClassifyNode(nodeOrToken.AsNode());
+            ClassifyNode(nodeOrToken.AsNode()!);
         }
 
         private void ClassifyNode(SyntaxNode node)
@@ -123,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             // comments out a file).  Try to skip as many as possible if they're not actually in the span
             // we care about classifying.
             var classificationSpanStart = _textSpan.Start;
-            var classificationSpanEnd = _textSpan.End;
 
             // First, skip all the trivia before the span we care about.
             var enumerator = list.GetEnumerator();
@@ -177,12 +175,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     return;
 
                 case SyntaxKind.SkippedTokensTrivia:
-                    ClassifySkippedTokens((SkippedTokensTriviaSyntax)trivia.GetStructure());
+                    ClassifySkippedTokens((SkippedTokensTriviaSyntax)trivia.GetStructure()!);
                     return;
 
                 case SyntaxKind.SingleLineDocumentationCommentTrivia:
                 case SyntaxKind.MultiLineDocumentationCommentTrivia:
-                    ClassifyDocumentationComment((DocumentationCommentTriviaSyntax)trivia.GetStructure());
+                    ClassifyDocumentationComment((DocumentationCommentTriviaSyntax)trivia.GetStructure()!);
                     return;
 
                 case SyntaxKind.DocumentationCommentExteriorTrivia:
@@ -204,13 +202,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.ErrorDirectiveTrivia:
                 case SyntaxKind.WarningDirectiveTrivia:
                 case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.LineSpanDirectiveTrivia:
                 case SyntaxKind.PragmaWarningDirectiveTrivia:
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:
                 case SyntaxKind.LoadDirectiveTrivia:
                 case SyntaxKind.NullableDirectiveTrivia:
                 case SyntaxKind.BadDirectiveTrivia:
-                    ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure());
+                    ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure()!);
                     return;
             }
         }
@@ -230,9 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private void ClassifyConflictMarker(SyntaxTrivia trivia)
-        {
-            AddClassification(trivia, ClassificationTypeNames.Comment);
-        }
+            => AddClassification(trivia, ClassificationTypeNames.Comment);
 
         private void ClassifyDisabledText(SyntaxTrivia trivia, SyntaxTriviaList triviaList)
         {

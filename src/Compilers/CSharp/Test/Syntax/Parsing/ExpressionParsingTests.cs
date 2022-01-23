@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -56,11 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAltInterpolatedVerbatimString_CSharp73()
         {
-            UsingExpression(@"@$""hello""", TestOptions.Regular7_3,
-                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version 'preview' or greater.
-                // @$"hello"
-                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("preview").WithLocation(1, 1)
-                );
+            var text = @"@$""hello""";
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (6,17): error CS8370: Feature 'alternative interpolated verbatim strings' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var v = @$"hello";
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(6, 17));
+
+            UsingExpression(text, TestOptions.Regular7_3);
 
             N(SyntaxKind.InterpolatedStringExpression);
             {
@@ -77,7 +90,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAltInterpolatedVerbatimString_CSharp8()
         {
-            UsingExpression(@"@$""hello""", TestOptions.Regular8);
+            var text = @"@$""hello""";
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics();
+
+            UsingExpression(text, TestOptions.Regular8);
             N(SyntaxKind.InterpolatedStringExpression);
             {
                 N(SyntaxKind.InterpolatedVerbatimStringStartToken);
@@ -88,6 +111,175 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.InterpolatedStringEndToken);
             }
             EOF();
+        }
+
+        [Fact]
+        public void TestNestedAltInterpolatedVerbatimString_CSharp73()
+        {
+            var text = "$@\"aaa{@$\"bbb\nccc\"}ddd\"";
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (6, 24): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
+                // $@"aaa{@$"bbb
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(6, 24));
+
+            UsingExpression(text, TestOptions.Regular7_3);
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "aaa");
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterpolatedStringExpression);
+                    {
+                        N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                        N(SyntaxKind.InterpolatedStringText);
+                        {
+                            N(SyntaxKind.InterpolatedStringTextToken, "bbb\nccc");
+                        }
+                        N(SyntaxKind.InterpolatedStringEndToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "ddd");
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNestedAltInterpolatedVerbatimString_CSharp8()
+        {
+            var text = "$@\"aaa{@$\"bbb\nccc\"}ddd\"";
+
+            CreateCompilation($@"
+class C
+{{
+    void M()
+    {{
+        var v = {text};
+    }}
+}}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics();
+
+            UsingExpression(text, TestOptions.Regular8);
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "aaa");
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterpolatedStringExpression);
+                    {
+                        N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                        N(SyntaxKind.InterpolatedStringText);
+                        {
+                            N(SyntaxKind.InterpolatedStringTextToken, "bbb\nccc");
+                        }
+                        N(SyntaxKind.InterpolatedStringEndToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken, "ddd");
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestInterpolatedStringWithNewLinesInExpression()
+        {
+            var text = @"$""Text with {
+    new[] {
+        1, 2, 3
+    }[2]
+} parts and new line expressions!""";
+
+            UsingExpression(text, TestOptions.RegularPreview);
+
+            var expr = (InterpolatedStringExpressionSyntax)N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ElementAccessExpression);
+                    {
+                        N(SyntaxKind.ImplicitArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.ArrayInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+
+            Assert.Equal("Text with ", expr.Contents[0].ToString());
+            Assert.Equal(" parts and new line expressions!", expr.Contents[2].ToString());
         }
 
         [Fact]
@@ -125,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(opKind, expr.Kind());
             Assert.Equal(0, expr.Errors().Length);
             var us = (LiteralExpressionSyntax)expr;
-            Assert.NotNull(us.Token);
+            Assert.NotEqual(default, us.Token);
             Assert.Equal(kind, us.Token.Kind());
         }
 
@@ -152,12 +344,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 case SyntaxKind.ThisExpression:
                     token = ((ThisExpressionSyntax)expr).Token;
-                    Assert.NotNull(token);
+                    Assert.NotEqual(default, token);
                     Assert.Equal(kind, token.Kind());
                     break;
                 case SyntaxKind.BaseExpression:
                     token = ((BaseExpressionSyntax)expr).Token;
-                    Assert.NotNull(token);
+                    Assert.NotEqual(default, token);
                     Assert.Equal(kind, token.Kind());
                     break;
             }
@@ -180,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.StringLiteralExpression, expr.Kind());
             Assert.Equal(0, expr.Errors().Length);
             var us = (LiteralExpressionSyntax)expr;
-            Assert.NotNull(us.Token);
+            Assert.NotEqual(default, us.Token);
             Assert.Equal(SyntaxKind.StringLiteralToken, us.Token.Kind());
         }
 
@@ -195,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.StringLiteralExpression, expr.Kind());
             Assert.Equal(0, expr.Errors().Length);
             var us = (LiteralExpressionSyntax)expr;
-            Assert.NotNull(us.Token);
+            Assert.NotEqual(default, us.Token);
             Assert.Equal(SyntaxKind.StringLiteralToken, us.Token.Kind());
             Assert.Equal("\"stuff\"", us.Token.ValueText);
         }
@@ -210,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CharacterLiteralExpression, expr.Kind());
             Assert.Equal(0, expr.Errors().Length);
             var us = (LiteralExpressionSyntax)expr;
-            Assert.NotNull(us.Token);
+            Assert.NotEqual(default, us.Token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, us.Token.Kind());
         }
 
@@ -224,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.NumericLiteralExpression, expr.Kind());
             Assert.Equal(0, expr.Errors().Length);
             var us = (LiteralExpressionSyntax)expr;
-            Assert.NotNull(us.Token);
+            Assert.NotEqual(default, us.Token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, us.Token.Kind());
         }
 
@@ -239,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var us = (PrefixUnaryExpressionSyntax)expr;
-            Assert.NotNull(us.OperatorToken);
+            Assert.NotEqual(default, us.OperatorToken);
             Assert.Equal(kind, us.OperatorToken.Kind());
             Assert.NotNull(us.Operand);
             Assert.Equal(SyntaxKind.IdentifierName, us.Operand.Kind());
@@ -270,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var us = (PostfixUnaryExpressionSyntax)expr;
-            Assert.NotNull(us.OperatorToken);
+            Assert.NotEqual(default, us.OperatorToken);
             Assert.Equal(kind, us.OperatorToken.Kind());
             Assert.NotNull(us.Operand);
             Assert.Equal(SyntaxKind.IdentifierName, us.Operand.Kind());
@@ -296,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var b = (BinaryExpressionSyntax)expr;
-            Assert.NotNull(b.OperatorToken);
+            Assert.NotEqual(default, b.OperatorToken);
             Assert.Equal(kind, b.OperatorToken.Kind());
             Assert.NotNull(b.Left);
             Assert.NotNull(b.Right);
@@ -341,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var a = (AssignmentExpressionSyntax)expr;
-            Assert.NotNull(a.OperatorToken);
+            Assert.NotEqual(default, a.OperatorToken);
             Assert.Equal(kind, a.OperatorToken.Kind());
             Assert.NotNull(a.Left);
             Assert.NotNull(a.Right);
@@ -375,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var e = (MemberAccessExpressionSyntax)expr;
-            Assert.NotNull(e.OperatorToken);
+            Assert.NotEqual(default, e.OperatorToken);
             Assert.Equal(kind, e.OperatorToken.Kind());
             Assert.NotNull(e.Expression);
             Assert.NotNull(e.Name);
@@ -419,38 +611,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a.b", e.Expression.ToString());
             var cons = e.WhenNotNull;
             Assert.Equal(".c.d?[1]?.e()?.f", cons.ToString());
-            Assert.Equal(cons.Kind(), SyntaxKind.ConditionalAccessExpression);
+            Assert.Equal(SyntaxKind.ConditionalAccessExpression, cons.Kind());
 
             e = e.WhenNotNull as ConditionalAccessExpressionSyntax;
             Assert.Equal(".c.d", e.Expression.ToString());
             cons = e.WhenNotNull;
             Assert.Equal("[1]?.e()?.f", cons.ToString());
-            Assert.Equal(cons.Kind(), SyntaxKind.ConditionalAccessExpression);
+            Assert.Equal(SyntaxKind.ConditionalAccessExpression, cons.Kind());
 
             e = e.WhenNotNull as ConditionalAccessExpressionSyntax;
             Assert.Equal("[1]", e.Expression.ToString());
             cons = e.WhenNotNull;
             Assert.Equal(".e()?.f", cons.ToString());
-            Assert.Equal(cons.Kind(), SyntaxKind.ConditionalAccessExpression);
+            Assert.Equal(SyntaxKind.ConditionalAccessExpression, cons.Kind());
 
             e = e.WhenNotNull as ConditionalAccessExpressionSyntax;
             Assert.Equal(".e()", e.Expression.ToString());
             cons = e.WhenNotNull;
             Assert.Equal(".f", cons.ToString());
-            Assert.Equal(cons.Kind(), SyntaxKind.MemberBindingExpression);
+            Assert.Equal(SyntaxKind.MemberBindingExpression, cons.Kind());
         }
 
         private void TestFunctionKeyword(SyntaxKind kind, SyntaxToken keyword)
         {
-            Assert.NotNull(keyword);
+            Assert.NotEqual(default, keyword);
             Assert.Equal(kind, keyword.Kind());
         }
 
         private void TestParenthesizedArgument(SyntaxToken openParen, CSharpSyntaxNode arg, SyntaxToken closeParen)
         {
-            Assert.NotNull(openParen);
+            Assert.NotEqual(default, openParen);
             Assert.False(openParen.IsMissing);
-            Assert.NotNull(closeParen);
+            Assert.NotEqual(default, closeParen);
             Assert.False(closeParen.IsMissing);
             Assert.Equal("a", arg.ToString());
         }
@@ -529,11 +721,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var fs = (RefValueExpressionSyntax)expr;
-            Assert.NotNull(fs.Keyword);
+            Assert.NotEqual(default, fs.Keyword);
             Assert.Equal(SyntaxKind.RefValueKeyword, fs.Keyword.Kind());
-            Assert.NotNull(fs.OpenParenToken);
+            Assert.NotEqual(default, fs.OpenParenToken);
             Assert.False(fs.OpenParenToken.IsMissing);
-            Assert.NotNull(fs.CloseParenToken);
+            Assert.NotEqual(default, fs.CloseParenToken);
             Assert.False(fs.CloseParenToken.IsMissing);
             Assert.Equal("a", fs.Expression.ToString());
             Assert.Equal("b", fs.Type.ToString());
@@ -550,8 +742,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var ts = (ConditionalExpressionSyntax)expr;
-            Assert.NotNull(ts.QuestionToken);
-            Assert.NotNull(ts.ColonToken);
+            Assert.NotEqual(default, ts.QuestionToken);
+            Assert.NotEqual(default, ts.ColonToken);
             Assert.Equal(SyntaxKind.QuestionToken, ts.QuestionToken.Kind());
             Assert.Equal(SyntaxKind.ColonToken, ts.ColonToken.Kind());
             Assert.Equal("a", ts.Condition.ToString());
@@ -580,8 +772,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var cs = (CastExpressionSyntax)expr;
-            Assert.NotNull(cs.OpenParenToken);
-            Assert.NotNull(cs.CloseParenToken);
+            Assert.NotEqual(default, cs.OpenParenToken);
+            Assert.NotEqual(default, cs.CloseParenToken);
             Assert.False(cs.OpenParenToken.IsMissing);
             Assert.False(cs.CloseParenToken.IsMissing);
             Assert.NotNull(cs.Type);
@@ -601,8 +793,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var cs = (InvocationExpressionSyntax)expr;
-            Assert.NotNull(cs.ArgumentList.OpenParenToken);
-            Assert.NotNull(cs.ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, cs.ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, cs.ArgumentList.CloseParenToken);
             Assert.False(cs.ArgumentList.OpenParenToken.IsMissing);
             Assert.False(cs.ArgumentList.CloseParenToken.IsMissing);
             Assert.NotNull(cs.Expression);
@@ -622,15 +814,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var cs = (InvocationExpressionSyntax)expr;
-            Assert.NotNull(cs.ArgumentList.OpenParenToken);
-            Assert.NotNull(cs.ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, cs.ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, cs.ArgumentList.CloseParenToken);
             Assert.False(cs.ArgumentList.OpenParenToken.IsMissing);
             Assert.False(cs.ArgumentList.CloseParenToken.IsMissing);
             Assert.NotNull(cs.Expression);
             Assert.Equal(1, cs.ArgumentList.Arguments.Count);
             Assert.Equal("a", cs.Expression.ToString());
             Assert.Equal("ref b", cs.ArgumentList.Arguments[0].ToString());
-            Assert.NotNull(cs.ArgumentList.Arguments[0].RefOrOutKeyword);
+            Assert.NotEqual(default, cs.ArgumentList.Arguments[0].RefOrOutKeyword);
             Assert.Equal(SyntaxKind.RefKeyword, cs.ArgumentList.Arguments[0].RefOrOutKeyword.Kind());
             Assert.NotNull(cs.ArgumentList.Arguments[0].Expression);
             Assert.Equal("b", cs.ArgumentList.Arguments[0].Expression.ToString());
@@ -647,15 +839,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var cs = (InvocationExpressionSyntax)expr;
-            Assert.NotNull(cs.ArgumentList.OpenParenToken);
-            Assert.NotNull(cs.ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, cs.ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, cs.ArgumentList.CloseParenToken);
             Assert.False(cs.ArgumentList.OpenParenToken.IsMissing);
             Assert.False(cs.ArgumentList.CloseParenToken.IsMissing);
             Assert.NotNull(cs.Expression);
             Assert.Equal(1, cs.ArgumentList.Arguments.Count);
             Assert.Equal("a", cs.Expression.ToString());
             Assert.Equal("out b", cs.ArgumentList.Arguments[0].ToString());
-            Assert.NotNull(cs.ArgumentList.Arguments[0].RefOrOutKeyword);
+            Assert.NotEqual(default, cs.ArgumentList.Arguments[0].RefOrOutKeyword);
             Assert.Equal(SyntaxKind.OutKeyword, cs.ArgumentList.Arguments[0].RefOrOutKeyword.Kind());
             Assert.NotNull(cs.ArgumentList.Arguments[0].Expression);
             Assert.Equal("b", cs.ArgumentList.Arguments[0].Expression.ToString());
@@ -672,8 +864,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var cs = (InvocationExpressionSyntax)expr;
-            Assert.NotNull(cs.ArgumentList.OpenParenToken);
-            Assert.NotNull(cs.ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, cs.ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, cs.ArgumentList.CloseParenToken);
             Assert.False(cs.ArgumentList.OpenParenToken.IsMissing);
             Assert.False(cs.ArgumentList.CloseParenToken.IsMissing);
             Assert.NotNull(cs.Expression);
@@ -682,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("B: b", cs.ArgumentList.Arguments[0].ToString());
             Assert.NotNull(cs.ArgumentList.Arguments[0].NameColon);
             Assert.Equal("B", cs.ArgumentList.Arguments[0].NameColon.Name.ToString());
-            Assert.NotNull(cs.ArgumentList.Arguments[0].NameColon.ColonToken);
+            Assert.NotEqual(default, cs.ArgumentList.Arguments[0].NameColon.ColonToken);
             Assert.Equal("b", cs.ArgumentList.Arguments[0].Expression.ToString());
         }
 
@@ -697,8 +889,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var ea = (ElementAccessExpressionSyntax)expr;
-            Assert.NotNull(ea.ArgumentList.OpenBracketToken);
-            Assert.NotNull(ea.ArgumentList.CloseBracketToken);
+            Assert.NotEqual(default, ea.ArgumentList.OpenBracketToken);
+            Assert.NotEqual(default, ea.ArgumentList.CloseBracketToken);
             Assert.False(ea.ArgumentList.OpenBracketToken.IsMissing);
             Assert.False(ea.ArgumentList.CloseBracketToken.IsMissing);
             Assert.NotNull(ea.Expression);
@@ -718,15 +910,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var ea = (ElementAccessExpressionSyntax)expr;
-            Assert.NotNull(ea.ArgumentList.OpenBracketToken);
-            Assert.NotNull(ea.ArgumentList.CloseBracketToken);
+            Assert.NotEqual(default, ea.ArgumentList.OpenBracketToken);
+            Assert.NotEqual(default, ea.ArgumentList.CloseBracketToken);
             Assert.False(ea.ArgumentList.OpenBracketToken.IsMissing);
             Assert.False(ea.ArgumentList.CloseBracketToken.IsMissing);
             Assert.NotNull(ea.Expression);
             Assert.Equal(1, ea.ArgumentList.Arguments.Count);
             Assert.Equal("a", ea.Expression.ToString());
             Assert.Equal("ref b", ea.ArgumentList.Arguments[0].ToString());
-            Assert.NotNull(ea.ArgumentList.Arguments[0].RefOrOutKeyword);
+            Assert.NotEqual(default, ea.ArgumentList.Arguments[0].RefOrOutKeyword);
             Assert.Equal(SyntaxKind.RefKeyword, ea.ArgumentList.Arguments[0].RefOrOutKeyword.Kind());
             Assert.NotNull(ea.ArgumentList.Arguments[0].Expression);
             Assert.Equal("b", ea.ArgumentList.Arguments[0].Expression.ToString());
@@ -743,15 +935,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var ea = (ElementAccessExpressionSyntax)expr;
-            Assert.NotNull(ea.ArgumentList.OpenBracketToken);
-            Assert.NotNull(ea.ArgumentList.CloseBracketToken);
+            Assert.NotEqual(default, ea.ArgumentList.OpenBracketToken);
+            Assert.NotEqual(default, ea.ArgumentList.CloseBracketToken);
             Assert.False(ea.ArgumentList.OpenBracketToken.IsMissing);
             Assert.False(ea.ArgumentList.CloseBracketToken.IsMissing);
             Assert.NotNull(ea.Expression);
             Assert.Equal(1, ea.ArgumentList.Arguments.Count);
             Assert.Equal("a", ea.Expression.ToString());
             Assert.Equal("out b", ea.ArgumentList.Arguments[0].ToString());
-            Assert.NotNull(ea.ArgumentList.Arguments[0].RefOrOutKeyword);
+            Assert.NotEqual(default, ea.ArgumentList.Arguments[0].RefOrOutKeyword);
             Assert.Equal(SyntaxKind.OutKeyword, ea.ArgumentList.Arguments[0].RefOrOutKeyword.Kind());
             Assert.NotNull(ea.ArgumentList.Arguments[0].Expression);
             Assert.Equal("b", ea.ArgumentList.Arguments[0].Expression.ToString());
@@ -768,8 +960,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var ea = (ElementAccessExpressionSyntax)expr;
-            Assert.NotNull(ea.ArgumentList.OpenBracketToken);
-            Assert.NotNull(ea.ArgumentList.CloseBracketToken);
+            Assert.NotEqual(default, ea.ArgumentList.OpenBracketToken);
+            Assert.NotEqual(default, ea.ArgumentList.CloseBracketToken);
             Assert.False(ea.ArgumentList.OpenBracketToken.IsMissing);
             Assert.False(ea.ArgumentList.CloseBracketToken.IsMissing);
             Assert.NotNull(ea.Expression);
@@ -790,8 +982,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
             var oc = (ObjectCreationExpressionSyntax)expr;
             Assert.NotNull(oc.ArgumentList);
-            Assert.NotNull(oc.ArgumentList.OpenParenToken);
-            Assert.NotNull(oc.ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, oc.ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, oc.ArgumentList.CloseParenToken);
             Assert.False(oc.ArgumentList.OpenParenToken.IsMissing);
             Assert.False(oc.ArgumentList.CloseParenToken.IsMissing);
             Assert.Equal(0, oc.ArgumentList.Arguments.Count);
@@ -812,8 +1004,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
             var oc = (ObjectCreationExpressionSyntax)expr;
             Assert.NotNull(oc.ArgumentList);
-            Assert.NotNull(oc.ArgumentList.OpenParenToken);
-            Assert.NotNull(oc.ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, oc.ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, oc.ArgumentList.CloseParenToken);
             Assert.False(oc.ArgumentList.OpenParenToken.IsMissing);
             Assert.False(oc.ArgumentList.CloseParenToken.IsMissing);
             Assert.Equal(1, oc.ArgumentList.Arguments.Count);
@@ -835,8 +1027,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
             var oc = (ObjectCreationExpressionSyntax)expr;
             Assert.NotNull(oc.ArgumentList);
-            Assert.NotNull(oc.ArgumentList.OpenParenToken);
-            Assert.NotNull(oc.ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, oc.ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, oc.ArgumentList.CloseParenToken);
             Assert.False(oc.ArgumentList.OpenParenToken.IsMissing);
             Assert.False(oc.ArgumentList.CloseParenToken.IsMissing);
             Assert.Equal(1, oc.ArgumentList.Arguments.Count);
@@ -858,8 +1050,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
             var oc = (ObjectCreationExpressionSyntax)expr;
             Assert.NotNull(oc.ArgumentList);
-            Assert.NotNull(oc.ArgumentList.OpenParenToken);
-            Assert.NotNull(oc.ArgumentList.CloseParenToken);
+            Assert.NotEqual(default, oc.ArgumentList.OpenParenToken);
+            Assert.NotEqual(default, oc.ArgumentList.CloseParenToken);
             Assert.False(oc.ArgumentList.OpenParenToken.IsMissing);
             Assert.False(oc.ArgumentList.CloseParenToken.IsMissing);
             Assert.Equal(0, oc.ArgumentList.Arguments.Count);
@@ -867,8 +1059,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", oc.Type.ToString());
 
             Assert.NotNull(oc.Initializer);
-            Assert.NotNull(oc.Initializer.OpenBraceToken);
-            Assert.NotNull(oc.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, oc.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, oc.Initializer.CloseBraceToken);
             Assert.False(oc.Initializer.OpenBraceToken.IsMissing);
             Assert.False(oc.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(0, oc.Initializer.Expressions.Count);
@@ -890,8 +1082,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", oc.Type.ToString());
 
             Assert.NotNull(oc.Initializer);
-            Assert.NotNull(oc.Initializer.OpenBraceToken);
-            Assert.NotNull(oc.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, oc.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, oc.Initializer.CloseBraceToken);
             Assert.False(oc.Initializer.OpenBraceToken.IsMissing);
             Assert.False(oc.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(0, oc.Initializer.Expressions.Count);
@@ -913,8 +1105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", oc.Type.ToString());
 
             Assert.NotNull(oc.Initializer);
-            Assert.NotNull(oc.Initializer.OpenBraceToken);
-            Assert.NotNull(oc.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, oc.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, oc.Initializer.CloseBraceToken);
             Assert.False(oc.Initializer.OpenBraceToken.IsMissing);
             Assert.False(oc.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(1, oc.Initializer.Expressions.Count);
@@ -937,8 +1129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", oc.Type.ToString());
 
             Assert.NotNull(oc.Initializer);
-            Assert.NotNull(oc.Initializer.OpenBraceToken);
-            Assert.NotNull(oc.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, oc.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, oc.Initializer.CloseBraceToken);
             Assert.False(oc.Initializer.OpenBraceToken.IsMissing);
             Assert.False(oc.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(3, oc.Initializer.Expressions.Count);
@@ -963,8 +1155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", oc.Type.ToString());
 
             Assert.NotNull(oc.Initializer);
-            Assert.NotNull(oc.Initializer.OpenBraceToken);
-            Assert.NotNull(oc.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, oc.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, oc.Initializer.CloseBraceToken);
             Assert.False(oc.Initializer.OpenBraceToken.IsMissing);
             Assert.False(oc.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(1, oc.Initializer.Expressions.Count);
@@ -987,8 +1179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", oc.Type.ToString());
 
             Assert.NotNull(oc.Initializer);
-            Assert.NotNull(oc.Initializer.OpenBraceToken);
-            Assert.NotNull(oc.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, oc.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, oc.Initializer.CloseBraceToken);
             Assert.False(oc.Initializer.OpenBraceToken.IsMissing);
             Assert.False(oc.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(1, oc.Initializer.Expressions.Count);
@@ -1029,8 +1221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ac.Type);
             Assert.Equal("a[]", ac.Type.ToString());
             Assert.NotNull(ac.Initializer);
-            Assert.NotNull(ac.Initializer.OpenBraceToken);
-            Assert.NotNull(ac.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, ac.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, ac.Initializer.CloseBraceToken);
             Assert.False(ac.Initializer.OpenBraceToken.IsMissing);
             Assert.False(ac.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(1, ac.Initializer.Expressions.Count);
@@ -1051,8 +1243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ac.Type);
             Assert.Equal("a[]", ac.Type.ToString());
             Assert.NotNull(ac.Initializer);
-            Assert.NotNull(ac.Initializer.OpenBraceToken);
-            Assert.NotNull(ac.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, ac.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, ac.Initializer.CloseBraceToken);
             Assert.False(ac.Initializer.OpenBraceToken.IsMissing);
             Assert.False(ac.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(3, ac.Initializer.Expressions.Count);
@@ -1075,8 +1267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ac.Type);
             Assert.Equal("a[][,][,,]", ac.Type.ToString());
             Assert.NotNull(ac.Initializer);
-            Assert.NotNull(ac.Initializer.OpenBraceToken);
-            Assert.NotNull(ac.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, ac.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, ac.Initializer.CloseBraceToken);
             Assert.False(ac.Initializer.OpenBraceToken.IsMissing);
             Assert.False(ac.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(1, ac.Initializer.Expressions.Count);
@@ -1095,8 +1287,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
             var ac = (ImplicitArrayCreationExpressionSyntax)expr;
             Assert.NotNull(ac.Initializer);
-            Assert.NotNull(ac.Initializer.OpenBraceToken);
-            Assert.NotNull(ac.Initializer.CloseBraceToken);
+            Assert.NotEqual(default, ac.Initializer.OpenBraceToken);
+            Assert.NotEqual(default, ac.Initializer.CloseBraceToken);
             Assert.False(ac.Initializer.OpenBraceToken.IsMissing);
             Assert.False(ac.Initializer.CloseBraceToken.IsMissing);
             Assert.Equal(1, ac.Initializer.Expressions.Count);
@@ -1114,9 +1306,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var ac = (AnonymousObjectCreationExpressionSyntax)expr;
-            Assert.NotNull(ac.NewKeyword);
-            Assert.NotNull(ac.OpenBraceToken);
-            Assert.NotNull(ac.CloseBraceToken);
+            Assert.NotEqual(default, ac.NewKeyword);
+            Assert.NotEqual(default, ac.OpenBraceToken);
+            Assert.NotEqual(default, ac.CloseBraceToken);
             Assert.False(ac.OpenBraceToken.IsMissing);
             Assert.False(ac.CloseBraceToken.IsMissing);
             Assert.Equal(2, ac.Initializers.Count);
@@ -1136,20 +1328,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
             var am = (AnonymousMethodExpressionSyntax)expr;
 
-            Assert.NotNull(am.DelegateKeyword);
+            Assert.NotEqual(default, am.DelegateKeyword);
             Assert.False(am.DelegateKeyword.IsMissing);
 
             Assert.NotNull(am.ParameterList);
-            Assert.NotNull(am.ParameterList.OpenParenToken);
-            Assert.NotNull(am.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, am.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, am.ParameterList.CloseParenToken);
             Assert.False(am.ParameterList.OpenParenToken.IsMissing);
             Assert.False(am.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(1, am.ParameterList.Parameters.Count);
             Assert.Equal("int a", am.ParameterList.Parameters[0].ToString());
 
             Assert.NotNull(am.Block);
-            Assert.NotNull(am.Block.OpenBraceToken);
-            Assert.NotNull(am.Block.CloseBraceToken);
+            Assert.NotEqual(default, am.Block.OpenBraceToken);
+            Assert.NotEqual(default, am.Block.CloseBraceToken);
             Assert.False(am.Block.OpenBraceToken.IsMissing);
             Assert.False(am.Block.CloseBraceToken.IsMissing);
             Assert.Equal(0, am.Block.Statements.Count);
@@ -1167,19 +1359,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
             var am = (AnonymousMethodExpressionSyntax)expr;
 
-            Assert.NotNull(am.DelegateKeyword);
+            Assert.NotEqual(default, am.DelegateKeyword);
             Assert.False(am.DelegateKeyword.IsMissing);
 
             Assert.NotNull(am.ParameterList);
-            Assert.NotNull(am.ParameterList.OpenParenToken);
-            Assert.NotNull(am.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, am.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, am.ParameterList.CloseParenToken);
             Assert.False(am.ParameterList.OpenParenToken.IsMissing);
             Assert.False(am.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, am.ParameterList.Parameters.Count);
 
             Assert.NotNull(am.Block);
-            Assert.NotNull(am.Block.OpenBraceToken);
-            Assert.NotNull(am.Block.CloseBraceToken);
+            Assert.NotEqual(default, am.Block.OpenBraceToken);
+            Assert.NotEqual(default, am.Block.CloseBraceToken);
             Assert.False(am.Block.OpenBraceToken.IsMissing);
             Assert.False(am.Block.CloseBraceToken.IsMissing);
             Assert.Equal(0, am.Block.Statements.Count);
@@ -1197,14 +1389,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
             var am = (AnonymousMethodExpressionSyntax)expr;
 
-            Assert.NotNull(am.DelegateKeyword);
+            Assert.NotEqual(default, am.DelegateKeyword);
             Assert.False(am.DelegateKeyword.IsMissing);
 
             Assert.Null(am.ParameterList);
 
             Assert.NotNull(am.Block);
-            Assert.NotNull(am.Block.OpenBraceToken);
-            Assert.NotNull(am.Block.CloseBraceToken);
+            Assert.NotEqual(default, am.Block.OpenBraceToken);
+            Assert.NotEqual(default, am.Block.CloseBraceToken);
             Assert.False(am.Block.OpenBraceToken.IsMissing);
             Assert.False(am.Block.CloseBraceToken.IsMissing);
             Assert.Equal(0, am.Block.Statements.Count);
@@ -1221,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (SimpleLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.Parameter.Identifier);
+            Assert.NotEqual(default, lambda.Parameter.Identifier);
             Assert.False(lambda.Parameter.Identifier.IsMissing);
             Assert.Equal("a", lambda.Parameter.Identifier.ToString());
             Assert.NotNull(lambda.Body);
@@ -1239,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (SimpleLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.Parameter.Identifier);
+            Assert.NotEqual(default, lambda.Parameter.Identifier);
             Assert.False(lambda.Parameter.Identifier.IsMissing);
             Assert.Equal("a", lambda.Parameter.Identifier.ToString());
             Assert.Equal(SyntaxKind.RefExpression, lambda.Body.Kind());
@@ -1257,7 +1449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (SimpleLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.Parameter.Identifier);
+            Assert.NotEqual(default, lambda.Parameter.Identifier);
             Assert.False(lambda.Parameter.Identifier.IsMissing);
             Assert.Equal("a", lambda.Parameter.Identifier.ToString());
             Assert.NotNull(lambda.Body);
@@ -1277,8 +1469,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (ParenthesizedLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.ParameterList.OpenParenToken);
-            Assert.NotNull(lambda.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.CloseParenToken);
             Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
             Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, lambda.ParameterList.Parameters.Count);
@@ -1297,8 +1489,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (ParenthesizedLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.ParameterList.OpenParenToken);
-            Assert.NotNull(lambda.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.CloseParenToken);
             Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
             Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, lambda.ParameterList.Parameters.Count);
@@ -1317,8 +1509,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (ParenthesizedLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.ParameterList.OpenParenToken);
-            Assert.NotNull(lambda.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.CloseParenToken);
             Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
             Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, lambda.ParameterList.Parameters.Count);
@@ -1339,8 +1531,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (ParenthesizedLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.ParameterList.OpenParenToken);
-            Assert.NotNull(lambda.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.CloseParenToken);
             Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
             Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(1, lambda.ParameterList.Parameters.Count);
@@ -1363,8 +1555,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (ParenthesizedLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.ParameterList.OpenParenToken);
-            Assert.NotNull(lambda.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.CloseParenToken);
             Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
             Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(2, lambda.ParameterList.Parameters.Count);
@@ -1390,8 +1582,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (ParenthesizedLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.ParameterList.OpenParenToken);
-            Assert.NotNull(lambda.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.CloseParenToken);
             Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
             Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(1, lambda.ParameterList.Parameters.Count);
@@ -1415,8 +1607,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var lambda = (ParenthesizedLambdaExpressionSyntax)expr;
-            Assert.NotNull(lambda.ParameterList.OpenParenToken);
-            Assert.NotNull(lambda.ParameterList.CloseParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, lambda.ParameterList.CloseParenToken);
             Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
             Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(1, lambda.ParameterList.Parameters.Count);
@@ -1442,8 +1634,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var tuple = (TupleExpressionSyntax)expr;
-            Assert.NotNull(tuple.OpenParenToken);
-            Assert.NotNull(tuple.CloseParenToken);
+            Assert.NotEqual(default, tuple.OpenParenToken);
+            Assert.NotEqual(default, tuple.CloseParenToken);
             Assert.False(tuple.OpenParenToken.IsMissing);
             Assert.False(tuple.CloseParenToken.IsMissing);
             Assert.Equal(2, tuple.Arguments.Count);
@@ -1462,8 +1654,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
             var tuple = (TupleExpressionSyntax)expr;
-            Assert.NotNull(tuple.OpenParenToken);
-            Assert.NotNull(tuple.CloseParenToken);
+            Assert.NotEqual(default, tuple.OpenParenToken);
+            Assert.NotEqual(default, tuple.CloseParenToken);
             Assert.False(tuple.OpenParenToken.IsMissing);
             Assert.False(tuple.CloseParenToken.IsMissing);
             Assert.Equal(2, tuple.Arguments.Count);
@@ -1487,18 +1679,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, qs.Body.Clauses.Count);
 
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.Equal(SyntaxKind.FromKeyword, fs.FromKeyword.Kind());
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.Equal(SyntaxKind.SelectKeyword, ss.SelectKeyword.Kind());
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("b", ss.Expression.ToString());
@@ -1521,18 +1713,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.NotNull(fs.Type);
             Assert.Equal("T", fs.Type.ToString());
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("b", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -1555,23 +1747,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
 
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("b", ss.Expression.ToString());
 
             Assert.NotNull(qs.Body.Continuation);
             Assert.Equal(SyntaxKind.QueryContinuation, qs.Body.Continuation.Kind());
-            Assert.NotNull(qs.Body.Continuation.IntoKeyword);
+            Assert.NotEqual(default, qs.Body.Continuation.IntoKeyword);
             Assert.Equal(SyntaxKind.IntoKeyword, qs.Body.Continuation.IntoKeyword.Kind());
             Assert.False(qs.Body.Continuation.IntoKeyword.IsMissing);
             Assert.Equal("c", qs.Body.Continuation.Identifier.ToString());
@@ -1582,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.Continuation.Body.SelectOrGroup.Kind());
             ss = (SelectClauseSyntax)qs.Body.Continuation.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("d", ss.Expression.ToString());
 
@@ -1605,17 +1797,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.WhereClause, qs.Body.Clauses[0].Kind());
             var ws = (WhereClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(ws.WhereKeyword);
+            Assert.NotEqual(default, ws.WhereKeyword);
             Assert.Equal(SyntaxKind.WhereKeyword, ws.WhereKeyword.Kind());
             Assert.False(ws.WhereKeyword.IsMissing);
             Assert.NotNull(ws.Condition);
@@ -1623,7 +1815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("c", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -1645,28 +1837,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
 
             Assert.Equal(SyntaxKind.FromClause, qs.Body.Clauses[0].Kind());
             fs = (FromClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("b", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("B", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("c", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -1688,30 +1880,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
 
             Assert.Equal(SyntaxKind.LetClause, qs.Body.Clauses[0].Kind());
             var ls = (LetClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(ls.LetKeyword);
+            Assert.NotEqual(default, ls.LetKeyword);
             Assert.Equal(SyntaxKind.LetKeyword, ls.LetKeyword.Kind());
             Assert.False(ls.LetKeyword.IsMissing);
-            Assert.NotNull(ls.Identifier);
+            Assert.NotEqual(default, ls.Identifier);
             Assert.Equal("b", ls.Identifier.ToString());
-            Assert.NotNull(ls.EqualsToken);
+            Assert.NotEqual(default, ls.EqualsToken);
             Assert.False(ls.EqualsToken.IsMissing);
             Assert.NotNull(ls.Expression);
             Assert.Equal("B", ls.Expression.ToString());
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("c", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -1733,18 +1925,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
 
             Assert.Equal(SyntaxKind.OrderByClause, qs.Body.Clauses[0].Kind());
             var obs = (OrderByClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(obs.OrderByKeyword);
+            Assert.NotEqual(default, obs.OrderByKeyword);
             Assert.Equal(SyntaxKind.OrderByKeyword, obs.OrderByKeyword.Kind());
             Assert.False(obs.OrderByKeyword.IsMissing);
             Assert.Equal(1, obs.Orderings.Count);
@@ -1756,7 +1948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("c", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -1778,18 +1970,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
 
             Assert.Equal(SyntaxKind.OrderByClause, qs.Body.Clauses[0].Kind());
             var obs = (OrderByClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(obs.OrderByKeyword);
+            Assert.NotEqual(default, obs.OrderByKeyword);
             Assert.False(obs.OrderByKeyword.IsMissing);
             Assert.Equal(2, obs.Orderings.Count);
 
@@ -1805,7 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("c", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -1827,23 +2019,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
 
             Assert.Equal(SyntaxKind.OrderByClause, qs.Body.Clauses[0].Kind());
             var obs = (OrderByClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(obs.OrderByKeyword);
+            Assert.NotEqual(default, obs.OrderByKeyword);
             Assert.False(obs.OrderByKeyword.IsMissing);
             Assert.Equal(1, obs.Orderings.Count);
 
             var os = (OrderingSyntax)obs.Orderings[0];
-            Assert.NotNull(os.AscendingOrDescendingKeyword);
+            Assert.NotEqual(default, os.AscendingOrDescendingKeyword);
             Assert.Equal(SyntaxKind.AscendingKeyword, os.AscendingOrDescendingKeyword.Kind());
             Assert.False(os.AscendingOrDescendingKeyword.IsMissing);
             Assert.Equal(SyntaxKind.AscendingKeyword, os.AscendingOrDescendingKeyword.ContextualKind());
@@ -1853,7 +2045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("c", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -1875,23 +2067,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
 
             Assert.Equal(SyntaxKind.OrderByClause, qs.Body.Clauses[0].Kind());
             var obs = (OrderByClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(obs.OrderByKeyword);
+            Assert.NotEqual(default, obs.OrderByKeyword);
             Assert.False(obs.OrderByKeyword.IsMissing);
             Assert.Equal(1, obs.Orderings.Count);
 
             var os = (OrderingSyntax)obs.Orderings[0];
-            Assert.NotNull(os.AscendingOrDescendingKeyword);
+            Assert.NotEqual(default, os.AscendingOrDescendingKeyword);
             Assert.Equal(SyntaxKind.DescendingKeyword, os.AscendingOrDescendingKeyword.Kind());
             Assert.False(os.AscendingOrDescendingKeyword.IsMissing);
             Assert.Equal(SyntaxKind.DescendingKeyword, os.AscendingOrDescendingKeyword.ContextualKind());
@@ -1901,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("c", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -1922,22 +2114,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, qs.Body.Clauses.Count);
 
             var fs = qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.GroupClause, qs.Body.SelectOrGroup.Kind());
             var gbs = (GroupClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(gbs.GroupKeyword);
+            Assert.NotEqual(default, gbs.GroupKeyword);
             Assert.Equal(SyntaxKind.GroupKeyword, gbs.GroupKeyword.Kind());
             Assert.False(gbs.GroupKeyword.IsMissing);
             Assert.NotNull(gbs.GroupExpression);
             Assert.Equal("b", gbs.GroupExpression.ToString());
-            Assert.NotNull(gbs.ByKeyword);
+            Assert.NotEqual(default, gbs.ByKeyword);
             Assert.Equal(SyntaxKind.ByKeyword, gbs.ByKeyword.Kind());
             Assert.False(gbs.ByKeyword.IsMissing);
             Assert.NotNull(gbs.ByExpression);
@@ -1961,28 +2153,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, qs.Body.Clauses.Count);
 
             var fs = qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.GroupClause, qs.Body.SelectOrGroup.Kind());
             var gbs = (GroupClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(gbs.GroupKeyword);
+            Assert.NotEqual(default, gbs.GroupKeyword);
             Assert.False(gbs.GroupKeyword.IsMissing);
             Assert.NotNull(gbs.GroupExpression);
             Assert.Equal("b", gbs.GroupExpression.ToString());
-            Assert.NotNull(gbs.ByKeyword);
+            Assert.NotEqual(default, gbs.ByKeyword);
             Assert.False(gbs.ByKeyword.IsMissing);
             Assert.NotNull(gbs.ByExpression);
             Assert.Equal("c", gbs.ByExpression.ToString());
 
             Assert.NotNull(qs.Body.Continuation);
             Assert.Equal(SyntaxKind.QueryContinuation, qs.Body.Continuation.Kind());
-            Assert.NotNull(qs.Body.Continuation.IntoKeyword);
+            Assert.NotEqual(default, qs.Body.Continuation.IntoKeyword);
             Assert.False(qs.Body.Continuation.IntoKeyword.IsMissing);
             Assert.Equal("d", qs.Body.Continuation.Identifier.ToString());
 
@@ -1992,7 +2184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.Continuation.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.Continuation.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("e", ss.Expression.ToString());
 
@@ -2015,32 +2207,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.JoinClause, qs.Body.Clauses[0].Kind());
             var js = (JoinClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(js.JoinKeyword);
+            Assert.NotEqual(default, js.JoinKeyword);
             Assert.Equal(SyntaxKind.JoinKeyword, js.JoinKeyword.Kind());
             Assert.False(js.JoinKeyword.IsMissing);
             Assert.Null(js.Type);
-            Assert.NotNull(js.Identifier);
+            Assert.NotEqual(default, js.Identifier);
             Assert.Equal("b", js.Identifier.ToString());
-            Assert.NotNull(js.InKeyword);
+            Assert.NotEqual(default, js.InKeyword);
             Assert.False(js.InKeyword.IsMissing);
             Assert.NotNull(js.InExpression);
             Assert.Equal("B", js.InExpression.ToString());
-            Assert.NotNull(js.OnKeyword);
+            Assert.NotEqual(default, js.OnKeyword);
             Assert.Equal(SyntaxKind.OnKeyword, js.OnKeyword.Kind());
             Assert.False(js.OnKeyword.IsMissing);
             Assert.NotNull(js.LeftExpression);
             Assert.Equal("a", js.LeftExpression.ToString());
-            Assert.NotNull(js.EqualsKeyword);
+            Assert.NotEqual(default, js.EqualsKeyword);
             Assert.Equal(SyntaxKind.EqualsKeyword, js.EqualsKeyword.Kind());
             Assert.False(js.EqualsKeyword.IsMissing);
             Assert.NotNull(js.RightExpression);
@@ -2049,7 +2241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("c", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -2071,32 +2263,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.NotNull(fs.Type);
             Assert.Equal("Ta", fs.Type.ToString());
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.JoinClause, qs.Body.Clauses[0].Kind());
             var js = (JoinClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(js.JoinKeyword);
+            Assert.NotEqual(default, js.JoinKeyword);
             Assert.False(js.JoinKeyword.IsMissing);
             Assert.NotNull(js.Type);
             Assert.Equal("Tb", js.Type.ToString());
-            Assert.NotNull(js.Identifier);
+            Assert.NotEqual(default, js.Identifier);
             Assert.Equal("b", js.Identifier.ToString());
-            Assert.NotNull(js.InKeyword);
+            Assert.NotEqual(default, js.InKeyword);
             Assert.False(js.InKeyword.IsMissing);
             Assert.NotNull(js.InExpression);
             Assert.Equal("B", js.InExpression.ToString());
-            Assert.NotNull(js.OnKeyword);
+            Assert.NotEqual(default, js.OnKeyword);
             Assert.False(js.OnKeyword.IsMissing);
             Assert.NotNull(js.LeftExpression);
             Assert.Equal("a", js.LeftExpression.ToString());
-            Assert.NotNull(js.EqualsKeyword);
+            Assert.NotEqual(default, js.EqualsKeyword);
             Assert.False(js.EqualsKeyword.IsMissing);
             Assert.NotNull(js.RightExpression);
             Assert.Equal("b", js.RightExpression.ToString());
@@ -2104,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("c", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -2126,42 +2318,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.FromClause, qs.FromClause.Kind());
             var fs = (FromClauseSyntax)qs.FromClause;
-            Assert.NotNull(fs.FromKeyword);
+            Assert.NotEqual(default, fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
             Assert.Equal("a", fs.Identifier.ToString());
-            Assert.NotNull(fs.InKeyword);
+            Assert.NotEqual(default, fs.InKeyword);
             Assert.False(fs.InKeyword.IsMissing);
             Assert.Equal("A", fs.Expression.ToString());
 
             Assert.Equal(SyntaxKind.JoinClause, qs.Body.Clauses[0].Kind());
             var js = (JoinClauseSyntax)qs.Body.Clauses[0];
-            Assert.NotNull(js.JoinKeyword);
+            Assert.NotEqual(default, js.JoinKeyword);
             Assert.False(js.JoinKeyword.IsMissing);
             Assert.Null(js.Type);
-            Assert.NotNull(js.Identifier);
+            Assert.NotEqual(default, js.Identifier);
             Assert.Equal("b", js.Identifier.ToString());
-            Assert.NotNull(js.InKeyword);
+            Assert.NotEqual(default, js.InKeyword);
             Assert.False(js.InKeyword.IsMissing);
             Assert.NotNull(js.InExpression);
             Assert.Equal("B", js.InExpression.ToString());
-            Assert.NotNull(js.OnKeyword);
+            Assert.NotEqual(default, js.OnKeyword);
             Assert.False(js.OnKeyword.IsMissing);
             Assert.NotNull(js.LeftExpression);
             Assert.Equal("a", js.LeftExpression.ToString());
-            Assert.NotNull(js.EqualsKeyword);
+            Assert.NotEqual(default, js.EqualsKeyword);
             Assert.False(js.EqualsKeyword.IsMissing);
             Assert.NotNull(js.RightExpression);
             Assert.Equal("b", js.RightExpression.ToString());
             Assert.NotNull(js.Into);
-            Assert.NotNull(js.Into.IntoKeyword);
+            Assert.NotEqual(default, js.Into.IntoKeyword);
             Assert.False(js.Into.IntoKeyword.IsMissing);
-            Assert.NotNull(js.Into.Identifier);
+            Assert.NotEqual(default, js.Into.Identifier);
             Assert.Equal("c", js.Into.Identifier.ToString());
 
             Assert.Equal(SyntaxKind.SelectClause, qs.Body.SelectOrGroup.Kind());
             var ss = (SelectClauseSyntax)qs.Body.SelectOrGroup;
-            Assert.NotNull(ss.SelectKeyword);
+            Assert.NotEqual(default, ss.SelectKeyword);
             Assert.False(ss.SelectKeyword.IsMissing);
             Assert.Equal("d", ss.Expression.ToString());
             Assert.Null(qs.Body.Continuation);
@@ -2180,7 +2372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var qs = (QueryExpressionSyntax)expr;
             Assert.NotNull(qs.Body.SelectOrGroup);
-            Assert.IsType(typeof(GroupClauseSyntax), qs.Body.SelectOrGroup);
+            Assert.IsType<GroupClauseSyntax>(qs.Body.SelectOrGroup);
 
             var gs = (GroupClauseSyntax)qs.Body.SelectOrGroup;
             Assert.NotNull(gs.GroupExpression);
@@ -3798,6 +3990,67 @@ select t";
             EOF();
         }
 
+        [Fact]
+        public void InterpolatedStringExpressionSurroundedByCurlyBraces()
+        {
+            UsingExpression("$\"{{{12}}}\"");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "12");
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+        }
+
+        [Fact]
+        public void InterpolatedStringExpressionWithFormatClauseSurroundedByCurlyBraces()
+        {
+            UsingExpression("$\"{{{12:X}}}\"");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "12");
+                    }
+                    N(SyntaxKind.InterpolationFormatClause);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.InterpolatedStringTextToken, "X");
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+        }
+
         [Fact, WorkItem(12214, "https://github.com/dotnet/roslyn/issues/12214")]
         public void ConditionalExpressionInInterpolation()
         {
@@ -4008,9 +4261,9 @@ select t";
         public void NullCoalescingAssignmentCSharp7_3()
         {
             UsingExpression("a ??= b", TestOptions.Regular7_3,
-                // (1,3): error CS8652: The feature 'coalescing assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,3): error CS8652: The feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // a ??= b
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "??=").WithArguments("coalescing assignment").WithLocation(1, 3));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
 
             N(SyntaxKind.CoalesceAssignmentExpression);
             {
@@ -4049,6 +4302,20 @@ select t";
                 // (1,2): error CS8401: Unexpected character sequence '...'
                 // 1...2
                 Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
+
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, ".2");
+                }
+            }
+            EOF();
         }
 
         [Fact]
@@ -4136,7 +4403,7 @@ select t";
         public void RangeExpression_Binary_WithAHigherPrecedenceOperator()
         {
             UsingExpression("1+2..3-4");
-            N(SyntaxKind.RangeExpression);
+            N(SyntaxKind.SubtractExpression);
             {
                 N(SyntaxKind.AddExpression);
                 {
@@ -4145,23 +4412,301 @@ select t";
                         N(SyntaxKind.NumericLiteralToken, "1");
                     }
                     N(SyntaxKind.PlusToken);
-                    N(SyntaxKind.NumericLiteralExpression);
+                    N(SyntaxKind.RangeExpression);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "2");
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
                     }
                 }
-                N(SyntaxKind.DotDotToken);
-                N(SyntaxKind.SubtractExpression);
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.NumericLiteralExpression);
                 {
-                    N(SyntaxKind.NumericLiteralExpression);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryBadLeft()
+        {
+            UsingExpression("a*..b");
+            N(SyntaxKind.MultiplyExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.AsteriskToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "3");
+                        N(SyntaxKind.IdentifierToken, "b");
                     }
-                    N(SyntaxKind.MinusToken);
-                    N(SyntaxKind.NumericLiteralExpression);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_BinaryLeftPlus()
+        {
+            UsingExpression("a + b..c");
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "4");
+                        N(SyntaxKind.IdentifierToken, "b");
                     }
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryLeftPlus()
+        {
+            UsingExpression("a + b..");
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryRightMult()
+        {
+            UsingExpression("a.. && b");
+            N(SyntaxKind.LogicalAndExpression);
+            {
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+                N(SyntaxKind.AmpersandAmpersandToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryRightMult2()
+        {
+            UsingExpression("..a && b");
+            N(SyntaxKind.LogicalAndExpression);
+            {
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                }
+                N(SyntaxKind.AmpersandAmpersandToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Ambiguity1()
+        {
+            UsingExpression(".. ..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Ambiguity2()
+        {
+            UsingExpression(".. .. e");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36514")]
+        public void RangeExpression_Ambiguity3()
+        {
+            UsingExpression(".. e ..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Ambiguity4()
+        {
+            UsingExpression("a .. .. b");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36514")]
+        public void RangeExpression_Ambiguity5()
+        {
+            UsingExpression("a .. b ..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36514")]
+        public void RangeExpression_Ambiguity6()
+        {
+            UsingExpression("a .. b .. c");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36122, "https://github.com/dotnet/roslyn/issues/36122")]
+        public void RangeExpression_NotCast()
+        {
+            UsingExpression("(Offset)..(Offset + Count)");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Offset");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Offset");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Count");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
             }
             EOF();
@@ -4283,6 +4828,20 @@ select t";
                 // (1,4): error CS1001: Identifier expected
                 // 1. .2
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ".2").WithLocation(1, 4));
+
+            N(SyntaxKind.SimpleMemberAccessExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
         }
 
         [Fact]
@@ -4292,6 +4851,12 @@ select t";
                 // (1,1): error CS1073: Unexpected token '.'
                 // .. .ToString()
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments(".").WithLocation(1, 1));
+
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -4301,6 +4866,16 @@ select t";
                 // (1,1): error CS1073: Unexpected token '.'
                 // 1.. .ToString()
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "1..").WithArguments(".").WithLocation(1, 1));
+
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -4379,6 +4954,29 @@ select t";
                 // (1,6): error CS1733: Expected expression
                 // c?..b
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
         }
 
         [Fact]
@@ -4390,6 +4988,617 @@ select t";
                 N(SyntaxKind.BaseKeyword);
             }
             EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadRef()
+        {
+            UsingExpression("new[] { ref }",
+                // (1,9): error CS1525: Invalid expression term 'ref'
+                // new[] { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 9),
+                // (1,13): error CS1525: Invalid expression term '}'
+                // new[] { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 13));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadRefExpression()
+        {
+            UsingExpression("new[] { ref obj }",
+                // (1,9): error CS1525: Invalid expression term 'ref'
+                // new[] { ref obj }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref obj").WithArguments("ref").WithLocation(1, 9));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "obj");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadRefElementAccess()
+        {
+            UsingExpression("new[] { ref[] }",
+                // (1,9): error CS1525: Invalid expression term 'ref'
+                // new[] { ref[] }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9),
+                // (1,12): error CS1525: Invalid expression term '['
+                // new[] { ref[] }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 12),
+                // (1,13): error CS0443: Syntax error; value expected
+                // new[] { ref[] }
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 13));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ElementAccessExpression);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.Argument);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void AnonymousObjectCreation_BadRef()
+        {
+            UsingExpression("new { ref }",
+                // (1,7): error CS1525: Invalid expression term 'ref'
+                // new { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 7),
+                // (1,11): error CS1525: Invalid expression term '}'
+                // new { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 11));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ObjectInitializer_BadRef()
+        {
+            UsingExpression("new C { P = ref }",
+                // (1,13): error CS1525: Invalid expression term 'ref'
+                // new C { P = ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 13),
+                // (1,17): error CS1525: Invalid expression term '}'
+                // new C { P = ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 17));
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "P");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void CollectionInitializer_BadRef_01()
+        {
+            UsingExpression("new C { ref }",
+                // (1,9): error CS1525: Invalid expression term 'ref'
+                // new C { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 9),
+                // (1,13): error CS1525: Invalid expression term '}'
+                // new C { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 13));
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.CollectionInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void CollectionInitializer_BadRef_02()
+        {
+            UsingExpression("new C { { 0, ref } }",
+                // (1,14): error CS1525: Invalid expression term 'ref'
+                // new C { { 0, ref } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 14),
+                // (1,18): error CS1525: Invalid expression term '}'
+                // new C { { 0, ref } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 18));
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.CollectionInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ComplexElementInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void AttributeArgument_BadRef()
+        {
+            UsingTree("class C { [Attr(ref)] void M() { } }").GetDiagnostics().Verify(
+                // (1,17): error CS1525: Invalid expression term 'ref'
+                // class C { [Attr(ref)] void M() { } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(1, 17),
+                // (1,20): error CS1525: Invalid expression term ')'
+                // class C { [Attr(ref)] void M() { } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 20));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Attr");
+                                }
+                                N(SyntaxKind.AttributeArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.RefExpression);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ForLoop_BadRefCondition()
+        {
+            UsingStatement("for (int i = 0; ref; i++) { }",
+                // (1,17): error CS1525: Invalid expression term 'ref'
+                // for (int i = 0; ref; i++) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(1, 17),
+                // (1,20): error CS1525: Invalid expression term ';'
+                // for (int i = 0; ref; i++) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 20));
+
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "i");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.PostIncrementExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                    N(SyntaxKind.PlusPlusToken);
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadInElementAccess()
+        {
+            UsingExpression("new[] { in[] }",
+                // (1,9): error CS1003: Syntax error, ',' expected
+                // new[] { in[] }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in").WithLocation(1, 9));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadOutElementAccess()
+        {
+            UsingExpression("new[] { out[] }",
+                    // (1,9): error CS1003: Syntax error, ',' expected
+                    // new[] { out[] }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(1, 9));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_ElementAccess()
+        {
+            UsingExpression("new[] { obj[] }",
+                // (1,13): error CS0443: Syntax error; value expected
+                // new[] { obj[] }
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 13));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ElementAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "obj");
+                        }
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Argument);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        public void MismatchedInterpolatedStringContents_01()
+        {
+            var text =
+@"class A
+{
+    void M()
+    {
+        if (b)
+        {
+            A B = new C($@""{D(.E}"");
+            N.O("""", P.Q);
+            R.S(T);
+            U.V(W.X, Y.Z);
+        }
+    }
+
+    string M() => """";
+}";
+            var tree = ParseTree(text, TestOptions.Regular);
+            // Note that the parser eventually syncs back up and stops producing diagnostics.
+            tree.GetDiagnostics().Verify(
+                // (7,31): error CS1001: Identifier expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
+                // (7,33): error CS1003: Syntax error, ')' expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
+                // (7,33): error CS1003: Syntax error, ',' expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 33),
+                // (7,34): error CS1026: ) expected
+                //             A B = new C($@"{D(.E}");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 34)
+                );
+        }
+
+        [Fact, WorkItem(44789, "https://github.com/dotnet/roslyn/issues/44789")]
+        public void MismatchedInterpolatedStringContents_02()
+        {
+            var text =
+@"class A
+{
+    void M()
+    {
+        if (b)
+        {
+            A B = new C($@""{D(.E}\F\G{H}_{I.J.K(""L"")}.M"");
+            N.O("""", P.Q);
+            R.S(T);
+            U.V(W.X, Y.Z);
+        }
+    }
+
+    string M() => """";
+}";
+            var tree = ParseTree(text, TestOptions.Regular);
+            // Note that the parser eventually syncs back up and stops producing diagnostics.
+            tree.GetDiagnostics().Verify(
+                    // (7,31): error CS1001: Identifier expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
+                    // (7,33): error CS1003: Syntax error, ')' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
+                    // (7,33): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 33),
+                    // (7,34): error CS1056: Unexpected character '\'
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 34),
+                    // (7,35): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments(",", "").WithLocation(7, 35),
+                    // (7,36): error CS1056: Unexpected character '\'
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 36),
+                    // (7,37): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "G").WithArguments(",", "").WithLocation(7, 37),
+                    // (7,38): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 38),
+                    // (7,39): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "H").WithArguments(",", "").WithLocation(7, 39),
+                    // (7,40): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 40),
+                    // (7,41): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",", "").WithLocation(7, 41),
+                    // (7,42): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 42),
+                    // (7,43): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "I").WithArguments(",", "").WithLocation(7, 43),
+                    // (7,49): error CS1026: ) expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
+                    // (7,49): error CS1026: ) expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
+                    // (7,50): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "L").WithArguments(",", "").WithLocation(7, 50),
+                    // (7,51): error CS1003: Syntax error, ',' expected
+                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
+                    Diagnostic(ErrorCode.ERR_SyntaxError, @""")}.M""").WithArguments(",", "").WithLocation(7, 51)
+                );
         }
     }
 }

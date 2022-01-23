@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -10,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PreferFrameworkType
 {
@@ -19,12 +23,15 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
     internal class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public PreferFrameworkTypeCodeFixProvider()
         {
         }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
             IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -33,7 +40,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             {
                 context.RegisterCodeFix(
                     new PreferFrameworkTypeCodeAction(
-                        c => this.FixAsync(context.Document, diagnostic, c)),
+                        c => FixAsync(context.Document, diagnostic, c)),
                     context.Diagnostics);
             }
 
@@ -52,8 +59,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
                 var node = diagnostic.Location.FindNode(
                     findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken);
 
-                var typeSymbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as ITypeSymbol;
-                if (typeSymbol != null)
+                if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is ITypeSymbol typeSymbol)
                 {
                     var replacementNode = generator.TypeExpression(typeSymbol).WithTriviaFrom(node);
                     editor.ReplaceNode(node, replacementNode);
@@ -61,7 +67,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             }
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => diagnostic.Properties.ContainsKey(PreferFrameworkTypeConstants.PreferFrameworkType);
 
         private class PreferFrameworkTypeCodeAction : CodeAction.DocumentChangeAction

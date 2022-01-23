@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -14,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool HasReferenceTypeConstraint { get; }
         public bool HasValueTypeConstraint { get; }
         public bool HasUnmanagedTypeConstraint { get; }
+        public bool HasNotNullConstraint { get; }
         public int Ordinal { get; }
 
         public CodeGenerationTypeParameterSymbol(
@@ -21,13 +24,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes,
             VarianceKind varianceKind,
             string name,
+            NullableAnnotation nullableAnnotation,
             ImmutableArray<ITypeSymbol> constraintTypes,
             bool hasConstructorConstraint,
             bool hasReferenceConstraint,
             bool hasValueConstraint,
             bool hasUnmanagedConstraint,
+            bool hasNotNullConstraint,
             int ordinal)
-            : base(containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None)
+            : base(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None, nullableAnnotation)
         {
             this.Variance = varianceKind;
             this.ConstraintTypes = constraintTypes;
@@ -36,14 +41,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.HasReferenceTypeConstraint = hasReferenceConstraint;
             this.HasValueTypeConstraint = hasValueConstraint;
             this.HasUnmanagedTypeConstraint = hasUnmanagedConstraint;
+            this.HasNotNullConstraint = hasNotNullConstraint;
         }
 
-        protected override CodeGenerationSymbol Clone()
+        protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {
             return new CodeGenerationTypeParameterSymbol(
-                this.ContainingType, this.GetAttributes(), this.Variance, this.Name,
+                this.ContainingType, this.GetAttributes(), this.Variance, this.Name, nullableAnnotation,
                 this.ConstraintTypes, this.HasConstructorConstraint, this.HasReferenceTypeConstraint,
-                this.HasValueTypeConstraint, this.HasUnmanagedTypeConstraint, this.Ordinal);
+                this.HasValueTypeConstraint, this.HasUnmanagedTypeConstraint, this.HasNotNullConstraint, this.Ordinal);
         }
 
         public new ITypeParameterSymbol OriginalDefinition => this;
@@ -53,14 +59,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override SymbolKind Kind => SymbolKind.TypeParameter;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitTypeParameter(this);
-        }
+            => visitor.VisitTypeParameter(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitTypeParameter(this);
-        }
+            => visitor.VisitTypeParameter(this);
 
         public override TypeKind TypeKind => TypeKind.TypeParameter;
 
@@ -92,6 +94,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public NullableAnnotation ReferenceTypeConstraintNullableAnnotation => throw new System.NotImplementedException();
 
-        public ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations => throw new System.NotImplementedException();
+        public ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations => ConstraintTypes.SelectAsArray(t => t.NullableAnnotation);
     }
 }

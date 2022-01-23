@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -19,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (NullableNeverHasValue(operand))
             {
-                operand = new BoundDefaultExpression(operand.Syntax, operand.Type.GetNullableUnderlyingType());
+                operand = new BoundDefaultExpression(operand.Syntax, operand.Type!.GetNullableUnderlyingType());
             }
 
             operand = NullableAlwaysHasValue(operand) ?? operand;
 
             if (!node.Type.IsNullableType())
             {
-                return new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, binderOpt: null, operand, fromEnd);
+                return new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, operand, fromEnd);
             }
 
             ArrayBuilder<BoundExpression> sideeffects = ArrayBuilder<BoundExpression>.GetInstance();
@@ -38,15 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // new Index(operand, fromEnd: true)
             BoundExpression boundOperandGetValueOrDefault = MakeOptimizedGetValueOrDefault(operand.Syntax, operand);
-            BoundExpression indexCreation = new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, binderOpt: null, boundOperandGetValueOrDefault, fromEnd);
-
-            if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
-            {
-                return BadExpression(node.Syntax, node.Type, operand);
-            }
+            BoundExpression indexCreation = new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, boundOperandGetValueOrDefault, fromEnd);
 
             // new Nullable(new Index(operand, fromEnd: true))
-            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, indexCreation);
+            BoundExpression consequence = ConvertToNullable(node.Syntax, node.Type, indexCreation);
 
             // default
             BoundExpression alternative = new BoundDefaultExpression(node.Syntax, node.Type);
@@ -67,6 +64,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects: sideeffects.ToImmutableAndFree(),
                 value: conditionalExpression,
                 type: node.Type);
+        }
+
+        private BoundExpression ConvertToNullable(SyntaxNode syntax, TypeSymbol targetNullableType, BoundExpression underlyingValue)
+        {
+            Debug.Assert(targetNullableType.IsNullableType());
+            Debug.Assert(TypeSymbol.Equals(targetNullableType.GetNullableUnderlyingType(), underlyingValue.Type, TypeCompareKind.AllIgnoreOptions));
+
+            if (!TryGetNullableMethod(syntax, targetNullableType, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
+            {
+                return BadExpression(syntax, targetNullableType, underlyingValue);
+            }
+
+            return new BoundObjectCreationExpression(syntax, nullableCtor, underlyingValue);
         }
     }
 }

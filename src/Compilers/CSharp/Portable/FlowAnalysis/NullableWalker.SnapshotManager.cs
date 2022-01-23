@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -11,63 +17,90 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class NullableWalker
     {
+#nullable enable
         internal sealed class SnapshotManager
         {
             /// <summary>
             /// The int key corresponds to <see cref="Snapshot.SharedStateIndex"/>.
             /// </summary>
-            private readonly ImmutableArray<SharedWalkerState> _walkerGlobalStates;
-            /// <summary>
-            /// The dictionary key corresponds to Syntax position. The dictionary should be sorted in descending order.
-            /// </summary>
-            private readonly ImmutableSortedDictionary<int, Snapshot> _incrementalSnapshots;
+            private readonly ImmutableArray<SharedWalkerState> _walkerSharedStates;
 
-            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerGlobalStates, ImmutableSortedDictionary<int, Snapshot> incrementalSnapshots)
+            /// <summary>
+            /// The snapshot array should be sorted in ascending order by the position tuple element in order for the binary search algorithm to
+            /// function correctly.
+            /// </summary>
+            private readonly ImmutableArray<(int position, Snapshot snapshot)> _incrementalSnapshots;
+
+            private readonly ImmutableDictionary<(BoundNode?, Symbol), Symbol> _updatedSymbolsMap;
+
+            private static readonly Func<(int position, Snapshot snapshot), int, int> BinarySearchComparer = (current, target) => current.position.CompareTo(target);
+
+            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerSharedStates, ImmutableArray<(int position, Snapshot snapshot)> incrementalSnapshots, ImmutableDictionary<(BoundNode?, Symbol), Symbol> updatedSymbolsMap)
             {
-                _walkerGlobalStates = walkerGlobalStates;
+                _walkerSharedStates = walkerSharedStates;
                 _incrementalSnapshots = incrementalSnapshots;
+                _updatedSymbolsMap = updatedSymbolsMap;
+
+#if DEBUG
+                Debug.Assert(!incrementalSnapshots.IsDefaultOrEmpty);
+                int previousPosition = incrementalSnapshots[0].position;
+                for (int i = 1; i < incrementalSnapshots.Length; i++)
+                {
+                    int currentPosition = incrementalSnapshots[i].position;
+                    Debug.Assert(currentPosition > previousPosition);
+                    previousPosition = currentPosition;
+                }
+#endif
             }
 
-            internal NullableWalker RestoreWalkerToAnalyzeNewNode(
-                int position,
-                BoundNode nodeToAnalyze,
-                Binder binder,
-                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap)
+            internal (VariablesSnapshot, LocalStateSnapshot) GetSnapshot(int position)
             {
-                // TODO: Use a more efficient storage and lookup mechanism like an AVL tree here.
-                // https://github.com/dotnet/roslyn/issues/35037
-                Snapshot incrementalSnapshot = default;
-                bool foundSnapshot = false;
-                foreach (var (currentPosition, currentSnapshot) in _incrementalSnapshots)
+                Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
+                var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
+                return (sharedState.Variables, incrementalSnapshot.VariableState);
+            }
+
+            internal TypeWithAnnotations? GetUpdatedTypeForLocalSymbol(SourceLocalSymbol symbol)
+            {
+                var snapshot = GetSnapshotForPosition(symbol.IdentifierToken.SpanStart);
+                var sharedState = _walkerSharedStates[snapshot.SharedStateIndex];
+                if (sharedState.Variables.TryGetType(symbol, out var updatedType))
                 {
-                    if (currentPosition <= position)
-                    {
-                        incrementalSnapshot = currentSnapshot;
-                        foundSnapshot = true;
-                        break;
-                    }
+                    return updatedType;
                 }
 
-                if (!foundSnapshot)
+                return null;
+            }
+
+            internal NamedTypeSymbol? GetUpdatedDelegateTypeForLambda(LambdaSymbol lambda)
+            {
+                if (_updatedSymbolsMap.TryGetValue((null, lambda), out var updatedDelegate))
                 {
-                    return null;
+                    return (NamedTypeSymbol)updatedDelegate;
                 }
 
-                var globalState = _walkerGlobalStates[incrementalSnapshot.SharedStateIndex];
-                var variableState = new VariableState(globalState.VariableSlot, globalState.VariableBySlot, globalState.VariableTypes, incrementalSnapshot.VariableState.Clone());
-                var method = globalState.Symbol as MethodSymbol;
-                return new NullableWalker(
-                    binder.Compilation,
-                    globalState.Symbol,
-                    useMethodSignatureParameterTypes: !(method is null),
-                    method,
-                    nodeToAnalyze,
-                    binder,
-                    binder.Conversions,
-                    variableState,
-                    returnTypesOpt: null,
-                    analyzedNullabilityMap,
-                    snapshotBuilderOpt: null);
+                return null;
+            }
+
+            internal bool TryGetUpdatedSymbol(BoundNode node, Symbol symbol, [NotNullWhen(true)] out Symbol? updatedSymbol)
+            {
+                return _updatedSymbolsMap.TryGetValue((node, symbol), out updatedSymbol);
+            }
+
+            private Snapshot GetSnapshotForPosition(int position)
+            {
+                var snapshotIndex = _incrementalSnapshots.BinarySearch(position, BinarySearchComparer);
+
+                if (snapshotIndex < 0)
+                {
+                    // BinarySearch returns the next higher position. Always take the one closest but behind the requested position
+                    snapshotIndex = (~snapshotIndex) - 1;
+
+                    // If there was none in the snapshots before the target position, just take index 0
+                    if (snapshotIndex < 0) snapshotIndex = 0;
+                }
+
+                return _incrementalSnapshots[snapshotIndex].snapshot;
             }
 
 #if DEBUG
@@ -78,32 +111,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                Debug.Assert(_incrementalSnapshots.ContainsKey(node.Syntax.SpanStart), $"Did not find a snapshot for {node} `{node.Syntax}.`");
-                Debug.Assert(_walkerGlobalStates.Length > _incrementalSnapshots[node.Syntax.SpanStart].SharedStateIndex, $"Did not find global state for {node} `{node.Syntax}`.");
+                int nodePosition = node.Syntax.SpanStart;
+                int position = _incrementalSnapshots.BinarySearch(nodePosition, BinarySearchComparer);
+
+                if (position < 0)
+                {
+                    Debug.Fail($"Did not find a snapshot for {node} `{node.Syntax}.`");
+                }
+                Debug.Assert(_walkerSharedStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find shared state for {node} `{node.Syntax}`.");
+            }
+
+            internal void VerifyUpdatedSymbols()
+            {
+                foreach (var ((expr, originalSymbol), updatedSymbol) in _updatedSymbolsMap)
+                {
+                    var debugText = expr?.Syntax.ToFullString() ?? originalSymbol.ToDisplayString();
+                    Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {debugText}");
+                    RoslynDebug.Assert(originalSymbol is object, $"Recorded null original symbol for {debugText}");
+                    RoslynDebug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {debugText}");
+                    Debug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), @$"Symbol for `{debugText}` changed:
+Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
+Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
+                }
             }
 #endif
 
-            /// <summary>
-            /// Simple int comparer that orders in descending order, so that searching for a snapshot will find the
-            /// closest position before a given position.
-            /// </summary>
-            private sealed class DescendingIntComparer : IComparer<int>
-            {
-                internal static readonly DescendingIntComparer Singleton = new DescendingIntComparer();
-                public int Compare(int x, int y) => y.CompareTo(x);
-            }
-
             internal sealed class Builder
             {
+                /// <summary>
+                /// Contains the map of expression and original symbol to reinferred symbols, used by the optional
+                /// rewriter phase of the compiler.
+                /// </summary>
+                /// <remarks>
+                /// Lambda symbols are mapped to the NameTypeSymbol of the delegate type they were reinferred to,
+                /// and are stored with a null node. The LambdaSymbol itself is position-independent, and does not
+                /// need any more information to serve as a key.
+                /// All other symbol types are stored mapped to exactly the same type as was provided.
+                /// </remarks>
+                private readonly ImmutableDictionary<(BoundNode?, Symbol), Symbol>.Builder _updatedSymbolMap = ImmutableDictionary.CreateBuilder<(BoundNode?, Symbol), Symbol>(ExpressionAndSymbolEqualityComparer.Instance, Symbols.SymbolEqualityComparer.ConsiderEverything);
 
+                /// <summary>
+                /// Shared walker states are the parts of the walker state that are not unique at a single position,
+                /// but are instead used by all snapshots. Each shared state corresponds to one invocation of Analyze,
+                /// so entering a lambda or local function will create a new state here. The indexes in this array
+                /// correspond to <see cref="Snapshot.SharedStateIndex"/>.
+                /// </summary>
                 private readonly ArrayBuilder<SharedWalkerState> _walkerStates = ArrayBuilder<SharedWalkerState>.GetInstance();
                 /// <summary>
                 /// Snapshots are kept in a dictionary of position -> snapshot at that position. These are stored in descending order.
                 /// </summary>
-                private readonly ImmutableSortedDictionary<int, Snapshot>.Builder _incrementalSnapshots = ImmutableSortedDictionary.CreateBuilder<int, Snapshot>(DescendingIntComparer.Singleton);
+                private readonly SortedDictionary<int, Snapshot> _incrementalSnapshots = new SortedDictionary<int, Snapshot>();
                 /// <summary>
                 /// Every walker is walking a specific symbol, and can potentially walk each symbol multiple times
-                /// to get to a stable state. Each of these symbols gets a single global state slot, which this
+                /// to get to a stable state. Each of these symbols gets a single shared state slot, which this
                 /// dictionary keeps track of. These slots correspond to indexes into <see cref="_walkerStates"/>.
                 /// </summary>
                 private readonly PooledDictionary<Symbol, int> _symbolToSlot = PooledDictionary<Symbol, int>.GetInstance();
@@ -115,14 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(_symbolToSlot.Count == _walkerStates.Count);
                     Debug.Assert(_symbolToSlot.Count > 0);
                     _symbolToSlot.Free();
-                    return new SnapshotManager(
-                        _walkerStates.ToImmutableAndFree(),
-                        _incrementalSnapshots.ToImmutable());
+                    var snapshotsArray = EnumerableExtensions.SelectAsArray<KeyValuePair<int, Snapshot>, (int, Snapshot)>(_incrementalSnapshots, (kvp) => (kvp.Key, kvp.Value));
+
+                    var updatedSymbols = _updatedSymbolMap.ToImmutable();
+                    return new SnapshotManager(_walkerStates.ToImmutableAndFree(), snapshotsArray, updatedSymbols);
                 }
 
                 internal int EnterNewWalker(Symbol symbol)
                 {
-                    Debug.Assert(symbol is object);
+                    RoslynDebug.Assert(symbol is object);
                     var previousSlot = _currentWalkerSlot;
 
                     // Because we potentially run multiple passes, we
@@ -147,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _currentWalkerSlot = previousSlot;
                 }
 
-                internal void TakeIncrementalSnapshot(BoundNode node, LocalState currentState)
+                internal void TakeIncrementalSnapshot(BoundNode? node, LocalState currentState)
                 {
                     if (node == null || node.WasCompilerGenerated)
                     {
@@ -156,7 +217,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Note that we can't use Add here, as this is potentially not the stable
                     // state of this node and we could get updated states later.
-                    _incrementalSnapshots[node.Syntax.SpanStart] = new Snapshot(currentState.Clone(), _currentWalkerSlot);
+                    _incrementalSnapshots[node.Syntax.SpanStart] = new Snapshot(currentState.CreateSnapshot(), _currentWalkerSlot);
+                }
+
+                internal void SetUpdatedSymbol(BoundNode node, Symbol originalSymbol, Symbol updatedSymbol)
+                {
+#if DEBUG
+                    Debug.Assert(AreCloseEnough(originalSymbol, updatedSymbol));
+#endif
+                    _updatedSymbolMap[GetKey(node, originalSymbol)] = updatedSymbol;
+                }
+
+                internal void RemoveSymbolIfPresent(BoundNode node, Symbol symbol)
+                {
+                    _updatedSymbolMap.Remove(GetKey(node, symbol));
+                }
+
+                private static (BoundNode?, Symbol) GetKey(BoundNode node, Symbol symbol)
+                {
+                    if (node is BoundLambda && symbol is LambdaSymbol)
+                    {
+                        return (null, symbol);
+                    }
+                    else
+                    {
+                        return (node, symbol);
+                    }
                 }
             }
         }
@@ -166,21 +252,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal struct SharedWalkerState
         {
-            internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
-            internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
-            internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations> VariableTypes;
-            internal readonly Symbol Symbol;
+            internal readonly VariablesSnapshot Variables;
 
-            internal SharedWalkerState(
-                ImmutableDictionary<VariableIdentifier, int> variableSlot,
-                ImmutableArray<VariableIdentifier> variableBySlot,
-                ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes,
-                Symbol symbol)
+            internal SharedWalkerState(VariablesSnapshot variables)
             {
-                VariableSlot = variableSlot;
-                VariableBySlot = variableBySlot;
-                VariableTypes = variableTypes;
-                Symbol = symbol;
+                Variables = variables;
             }
         }
 
@@ -190,13 +266,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly struct Snapshot
         {
-            internal readonly LocalState VariableState;
+            internal readonly LocalStateSnapshot VariableState;
             internal readonly int SharedStateIndex;
 
-            internal Snapshot(LocalState variableState, int globalStateIndex)
+            internal Snapshot(LocalStateSnapshot variableState, int sharedStateIndex)
             {
                 VariableState = variableState;
-                SharedStateIndex = globalStateIndex;
+                SharedStateIndex = sharedStateIndex;
             }
         }
     }

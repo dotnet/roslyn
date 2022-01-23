@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -6,6 +10,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -1647,19 +1652,22 @@ class Program
         }
 
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatInvalidCode_1()
         {
+            var expected = @"> Roslyn.Utilities.dll!   Basic";
             var content = @">	Roslyn.Utilities.dll! 	Basic";
-            await AssertFormatAsync(content, content);
+            await AssertFormatAsync(expected, content);
         }
 
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatInvalidCode_2()
         {
             var content = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic";
-            var expectedContent = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes Basic";
+            var expectedContent = @"> Roslyn.Utilities.dll! Line 43 + 0x5 bytes Basic";
             await AssertFormatAsync(expectedContent, content);
         }
 
@@ -1737,12 +1745,18 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NewLineOptions_LineFeedOnly()
         {
+            using var workspace = new AdhocWorkspace();
             var tree = SyntaxFactory.ParseCompilationUnit("class C\r\n{\r\n}");
 
             // replace all EOL trivia with elastic markers to force the formatter to add EOL back
             tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(tr => tr.IsKind(SyntaxKind.EndOfLineTrivia)), (o, r) => SyntaxFactory.ElasticMarker);
 
-            var formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\n"));
+            var options = SyntaxFormattingOptions.Create(
+                workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\n"),
+                workspace.Services,
+                tree.Language);
+
+            var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
 
             var actual = formatted.ToFullString();
             var expected = "class C\n{\n}";
@@ -1783,10 +1797,44 @@ class F
                                                                                                               .WithLeadingTrivia(SyntaxFactory.TriviaList())
                                                                                                               .WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation));
 
-            var formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, true));
+            using var workspace = new AdhocWorkspace();
+
+            var options = SyntaxFormattingOptions.Create(
+                workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, true),
+                workspace.Services,
+                tree.Language);
+
+            var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
 
             var actual = formatted.ToFullString();
             Assert.Equal(expected, actual);
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SingleLineComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+// Test");
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task MultiLineComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+/* Test */");
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task DocComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+/// Test");
         }
     }
 }

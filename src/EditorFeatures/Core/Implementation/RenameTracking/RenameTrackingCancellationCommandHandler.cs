@@ -1,30 +1,34 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [Name(PredefinedCommandHandlerNames.RenameTrackingCancellation)]
     [Order(After = PredefinedCommandHandlerNames.SignatureHelpBeforeCompletion)]
     [Order(After = PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
     [Order(After = PredefinedCommandHandlerNames.AutomaticCompletion)]
-    [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     [Order(After = PredefinedCommandHandlerNames.QuickInfo)]
     [Order(After = PredefinedCommandHandlerNames.EventHookup)]
-    internal class RenameTrackingCancellationCommandHandler : VSCommanding.ICommandHandler<EscapeKeyCommandArgs>
+    internal class RenameTrackingCancellationCommandHandler : ICommandHandler<EscapeKeyCommandArgs>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RenameTrackingCancellationCommandHandler()
         {
         }
@@ -39,9 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 RenameTrackingDismisser.DismissVisibleRenameTracking(document.Project.Solution.Workspace, document.Id);
         }
 
-        public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args)
-        {
-            return VSCommanding.CommandState.Unspecified;
-        }
+        public CommandState GetCommandState(EscapeKeyCommandArgs args)
+            => CommandState.Unspecified;
     }
 }

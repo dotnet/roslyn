@@ -1,11 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -13,10 +18,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
@@ -27,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// Keeps track of the rename tracking state for a given text buffer by tracking its
         /// changes over time.
         /// </summary>
-        private class StateMachine : ForegroundThreadAffinitizedObject
+        private sealed class StateMachine : ForegroundThreadAffinitizedObject
         {
             private readonly IInlineRenameService _inlineRenameService;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -41,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private int _refCount;
 
+            public readonly IGlobalOptionService GlobalOptions;
             public TrackingSession TrackingSession { get; private set; }
             public ITextBuffer Buffer => _buffer;
 
@@ -51,8 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IThreadingContext threadingContext,
                 ITextBuffer buffer,
                 IInlineRenameService inlineRenameService,
-                IAsynchronousOperationListener asyncListener,
-                IDiagnosticAnalyzerService diagnosticAnalyzerService)
+                IDiagnosticAnalyzerService diagnosticAnalyzerService,
+                IGlobalOptionService globalOptions,
+                IAsynchronousOperationListener asyncListener)
                 : base(threadingContext)
             {
                 _buffer = buffer;
@@ -60,13 +69,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _inlineRenameService = inlineRenameService;
                 _asyncListener = asyncListener;
                 _diagnosticAnalyzerService = diagnosticAnalyzerService;
+                GlobalOptions = globalOptions;
             }
 
             private void Buffer_Changed(object sender, TextContentChangedEventArgs e)
             {
                 AssertIsForeground();
 
-                if (!_buffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.RenameTracking))
+                if (!GlobalOptions.GetOption(InternalFeatureOnOffOptions.RenameTracking))
                 {
                     // When disabled, ignore all text buffer changes and do not trigger retagging
                     return;
@@ -103,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     // There's an existing session. Continue that session if the current change is
                     // contained inside the tracking span.
 
-                    SnapshotSpan trackingSpanInNewSnapshot = this.TrackingSession.TrackingSpan.GetSpan(e.After);
+                    var trackingSpanInNewSnapshot = this.TrackingSession.TrackingSpan.GetSpan(e.After);
                     if (trackingSpanInNewSnapshot.Contains(change.NewSpan))
                     {
                         // Continuing an existing tracking session. If there may have been a tag
@@ -166,8 +176,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     return;
                 }
 
-                int leftSidePosition = change.OldPosition;
-                int rightSidePosition = change.OldPosition + change.OldText.Length;
+                var leftSidePosition = change.OldPosition;
+                var rightSidePosition = change.OldPosition + change.OldText.Length;
 
                 while (leftSidePosition > 0 && IsTrackableCharacter(syntaxFactsService, beforeText[leftSidePosition - 1]))
                 {
@@ -183,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 this.TrackingSession = new TrackingSession(this, new SnapshotSpan(eventArgs.Before, originalSpan), _asyncListener);
             }
 
-            private bool IsTrackableCharacter(ISyntaxFactsService syntaxFactsService, char c)
+            private static bool IsTrackableCharacter(ISyntaxFactsService syntaxFactsService, char c)
             {
                 // Allow identifier part characters at the beginning of strings (even if they are
                 // not identifier start characters). If an intermediate name is not valid, the smart
@@ -262,21 +272,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return index;
             }
 
-            public bool CanInvokeRename(out TrackingSession trackingSession, bool isSmartTagCheck = false, bool waitForResult = false, CancellationToken cancellationToken = default)
+            public bool CanInvokeRename(
+                [NotNullWhen(true)] out TrackingSession trackingSession,
+                bool isSmartTagCheck = false, bool waitForResult = false, CancellationToken cancellationToken = default)
             {
                 // This needs to be able to run on a background thread for the diagnostic.
 
                 trackingSession = this.TrackingSession;
                 if (trackingSession == null)
-                {
                     return false;
-                }
 
                 return TryGetSyntaxFactsService(out var syntaxFactsService) && TryGetLanguageHeuristicsService(out var languageHeuristicsService) &&
                     trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
-            internal async Task<IEnumerable<Diagnostic>> GetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+            internal (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
+                Document document, SourceText text, TextSpan userSpan,
+                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+                ITextUndoHistoryRegistry undoHistoryRegistry,
+                CancellationToken cancellationToken)
             {
                 try
                 {
@@ -287,31 +301,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     // method. If it does, we may give an incorrect response, but the diagnostics 
                     // engine will know that the document changed and not display the lightbulb anyway.
 
-                    if (Buffer.AsTextContainer().CurrentText != await tree.GetTextAsync(cancellationToken).ConfigureAwait(false))
+                    if (Buffer.AsTextContainer().CurrentText == text &&
+                        CanInvokeRename(out var trackingSession, waitForResult: true, cancellationToken: cancellationToken))
                     {
-                        return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                        var snapshotSpan = trackingSession.TrackingSpan.GetSpan(Buffer.CurrentSnapshot);
+
+                        // user needs to be on the same line as the diagnostic location.
+                        if (text.AreOnSameLine(userSpan.Start, snapshotSpan.Start))
+                        {
+                            var title = string.Format(
+                                EditorFeaturesResources.Rename_0_to_1,
+                                trackingSession.OriginalName,
+                                snapshotSpan.GetText());
+
+                            return (new RenameTrackingCodeAction(document, title, refactorNotifyServices, undoHistoryRegistry, GlobalOptions),
+                                    snapshotSpan.Span.ToTextSpan());
+                        }
                     }
 
-                    if (CanInvokeRename(out var trackingSession, waitForResult: true, cancellationToken: cancellationToken))
-                    {
-                        SnapshotSpan snapshotSpan = trackingSession.TrackingSpan.GetSpan(Buffer.CurrentSnapshot);
-                        var textSpan = snapshotSpan.Span.ToTextSpan();
-
-                        var builder = ImmutableDictionary.CreateBuilder<string, string>();
-                        builder.Add(RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey, trackingSession.OriginalName);
-                        builder.Add(RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey, snapshotSpan.GetText());
-                        var properties = builder.ToImmutable();
-
-                        var diagnostic = Diagnostic.Create(diagnosticDescriptor,
-                            tree.GetLocation(textSpan),
-                            properties);
-
-                        return SpecializedCollections.SingletonEnumerable(diagnostic);
-                    }
-
-                    return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                    return default;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

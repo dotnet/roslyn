@@ -6,10 +6,10 @@ Reference types may be nullable, non-nullable, or null-oblivious (abbreviated he
 
 Project level nullable context can be set by using "nullable" command line switch:
 -nullable[+|-]                        Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}   Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+-nullable:{enable|disable|warnings|annotations}   Specify nullable context option enable|disable|warnings|annotations.
 
 Through msbuild the context could be set by supplying an argument for a "Nullable" parameter of Csc build task.
-Accepted values are "enable", "disable", "safeonly", "warnings", "safeonlywarnings", or null (for the default nullable context according to the compiler).
+Accepted values are "enable", "disable", "warnings", "annotations", or null (for the default nullable context according to the compiler).
 The Microsoft.CSharp.Core.targets passes value of msbuild property named "Nullable" for that parameter.
 
 Note that in previous preview releases of C# 8.0 this "Nullable" property was successively named "NullableReferenceTypes" then "NullableContextOptions".
@@ -22,70 +22,8 @@ Dictionary<string, object?>? OptDictionaryOptValues; // dictionary may be null, 
 ```
 A warning is reported when annotating a reference type with `?` outside a `#nullable` context.
 
-In metadata, nullable reference types are annotated with a `[Nullable]` attribute.
-```c#
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(
-        AttributeTargets.Class |
-        AttributeTargets.GenericParameter |
-        AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.Property |
-        AttributeTargets.Parameter | AttributeTargets.ReturnValue,
-        AllowMultiple = false)]
-    public sealed class NullableAttribute : Attribute
-    {
-        public readonly byte[] NullableFlags;
+[Metadata representation](nullable-metadata.md)
 
-        public NullableAttribute(byte b)
-        {
-            NullableFlags = new byte[] { b };
-        }
-
-        public NullableAttribute(byte[] b)
-        {
-            NullableFlags = b;
-        }
-    }
-}
-```
-
-Each type reference is accompanied by a NullableAttribute with an array of bytes, where 0 is Oblivious, 1 is NotAnnotated and 2 is Annotated.
-All value types are marked with flag 0 (oblivious).
-
-To optimize trivial cases the attribute can be omitted, or instead can be replaced with an attribute that takes a single byte value rather than an array.
-
-Trivial/optimized cases:
-1)	All parts are NotAnnotated – a NullableAttribute with a single value 1 (rather than an array of 1s)
-2)	All parts are Annotated - a NullableAttribute with a single value 2 (rather than an array of 2s)
-3)	All parts are Oblivious – the attribute is omitted, this matches how we interpret the lack of an attribute in legacy assemblies.
-    For completeness, we would also recognize a NullableAttribute with a single value 0 (rather than an array of 0s),
-    but compiler will never emit an attribute like this.
-
-NullableAttribute(1) should be placed on a type parameter definition that has a `notnull` constraint.
-NullableAttribute(1) should be placed on a type parameter definition that has a `class!` constraint.
-NullableAttribute(2) should be placed on a type parameter definition that has a `class?` constraint.
-NullableAttribute(2) should be placed on a type parameter definition that has no `notnull`, `class`, `struct`, `unmanaged` and type constraints and
-is declared in a context where nullable type annotations are allowed, that is equivalent to having an `object?` constraint.
-Other forms of NullableAttribute are not emitted on type parameter definitions and are not specially recognized on them.
-
-The `NullableAttribute` type declaration is synthesized by the compiler if it is not included in the compilation, but is needed to produce the output.
-
-```c#
-// C# representation of metadata
-[Nullable(2)]
-string OptString; // string?
-[Nullable(new[] { 2, 1, 2 })]
-Dictionary<string, object> OptDictionaryOptValues; // Dictionary<string!, object?>?
-string[] Oblivious1; // string~[]~
-[Nullable(0)] string[] Oblivious2; // string~[]~
-[Nullable(new[] { 0, 0 })] string[] Oblivious3; // string~[]~
-[Nullable(1)] string[] NotNull1; // string![]!
-[Nullable(new[] { 1, 1 })] string[] NotNull2; // string![]!
-[Nullable(new[] { 0, 2 })] string[] ObliviousMaybeNull; // string?[]~
-[Nullable(new[] { 1, 2 })] string[] NotNullMaybeNull; // string?[]!
-int Int; // int
-Nullable<int> NullableInt1; // Nullable<int>
-```
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._
 
@@ -101,13 +39,86 @@ If the analysis determines that a null check always (or never) passes, a hidden 
 A number of null checks affect the flow state when tested for:
 - comparisons to `null`: `x == null` and `x != null`
 - `is` operator: `x is null`, `x is K` (where `K` is a constant), `x is string`, `x is string s`
+- calls to well-known equality methods, including:
+  - `static bool object.Equals(object, object)`
+  - `static bool object.ReferenceEquals(object, object)`
+  - `bool object.Equals(object)` and overrides
+  - `bool IEquatable<T>.Equals(T)` and implementations
+  - `bool IEqualityComparer<T>.Equals(T, T)` and implementations
+
+Some null checks are "pure null tests", which means that they can cause a variable whose flow state was previously not-null to update to maybe-null. Pure null tests include:
+- `x == null`, `x != null` *whether using a built-in or user-defined operator*
+- `(Type)x == null`, `(Type)x != null`
+- `x is null`
+- `object.Equals(x, null)`, `object.ReferenceEquals(x, null)`
+- `IEqualityComparer<Type?>.Equals(x, null)`
+
+All of the above checks except for `x is null` are commutative. For example, `null == x` is also a valid pure null test.
+
+Some expressions which may not return `bool` are also considered pure null tests:
+- `x?.Member` will change the receiver's flow state to maybe-null unconditionally
+- `x ?? y` will change the LHS expression's flow state to maybe-null unconditionally
+
+Example of how a pure null test can affect flow analysis:
+```cs
+string s = "hello";
+if (s != null)
+{
+    _ = s.ToString(); // ok
+}
+else
+{
+    _ = s.ToString(); // warning
+}
+```
+
+Versus a "not pure" null test:
+```cs
+string s = "hello";
+if (s is string)
+{
+    _ = s.ToString(); // ok
+}
+else
+{
+    _ = s.ToString(); // ok
+}
+```
 
 Invocation of methods annotated with the following attributes will also affect flow analysis:
 - simple pre-conditions: `[AllowNull]` and `[DisallowNull]`
 - simple post-conditions: `[MaybeNull]` and `[NotNull]`
 - conditional post-conditions: `[MaybeNullWhen(bool)]` and `[NotNullWhen(bool)]`
-- `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
-See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
+- `[DoesNotReturnIf(bool)]` (e.g. `[DoesNotReturnIf(false)]` for `Debug.Assert`) and `[DoesNotReturn]`
+- `[NotNullIfNotNull(string)]`
+ - member post-conditions: `[MemberNotNull(params string[])]` and `[MemberNotNullWhen(bool, params string[])]`
+See https://github.com/dotnet/csharplang/blob/main/meetings/2019/LDM-2019-05-15.md
+
+The `Interlocked.CompareExchange` methods have special handling in flow analysis instead of being annotated due to the complexity of their nullability semantics. The affected overloads include:
+- `static object? System.Threading.Interlocked.CompareExchange(ref object? location, object? value, object? comparand)`
+- `static T System.Threading.Interlocked.CompareExchange<T>(ref T location, T value, T comparand) where T : class?`
+
+When simple pre- and post-condition attributes are applied to a property, and an allowed input state is assigned to the property, the property's state is updated to be an allowed output state. For instance an `[AllowNull] string` property can be assigned `null` and still return not-null values.
+
+
+Enforcing nullability attributes within method bodies:
+- An input parameter marked with `[AllowNull]` is initialized with a maybe-null (or maybe-default) state.
+- An input parameter marked with `[DisallowNull]` is initialized with a not-null state.
+- A parameter marked with `[MaybeNull]` or `[MaybeNullWhen]` can be assigned a maybe-null value, without warning. Same for return values. Same for a nullable parameter marked with `[NotNullWhen]` (the attribute is ignored).
+- A parameter marked with `[NotNull]` will produce a warning when assigned a maybe-null value. Same for return values.
+- The state of a parameter marked with `[MaybeNullWhen]`/`[NotNullWhen]` is checked upon exiting the method instead.
+- A method marked with `[DoesNotReturn]` will produce a warning if it returns or exits normally.
+
+Note: we don't validate the internal consistency of auto-properties, so it is possible to misuse attributes on auto-props as on fields. For example: `[AllowNull, NotNull] public TOpen P { get; set; }`.
+
+Enforcing nullability attributes when overriding and implementing:
+In addition to checking the types in overrides/implementations are compatible with overridden/implemented members, we also check that the nullability attributes are compatible.
+- For input parameters (by-value and `in`), we check that the widest allowed value by the overridden/implemented parameter can be assigned to the overriding/implementing parameter.
+- For output parameters (`out` and return values), we check that the widest produced value by the overriding/implementing parameter can be assigned to the overridden/implemented parameter.
+- For `ref` parameters and return values, we check both.
+- We check that the post-condition contract `[NotNull]`/`[MaybeNull]` on input parameters is enforced by overriding/implementing members.
+- We check that overrides/implementations have the `[DoesNotReturn]` attribute if the overridden/implemented member has it.
+- We check that members used in `[MemberNotNull(...)]` or `[MemberNotNullWhen(...)]` are not null upon exit, by assuming they had maybe-null state on entry.
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.
@@ -128,7 +139,6 @@ If `T` is an unconstrained type parameter, `default(T)` is a `T` that is maybe n
 ```c#
 T t = default; // warning
 ```
-_Is `default(T?)` an error?_
 
 ### Conversions
 Conversions can be calculated with ~ considered distinct from ? and !, or with ~ implicitly convertible to ? and !.
@@ -155,11 +165,11 @@ Nullablilty follows from assignment above. Assigning `?` to `!` is a W warning.
 ```c#
 string notNull = maybeNull; // assigns ?, warning
 ```
-Nullability of `var` declarations is determined from flow analysis.
+The nullability of `var` declarations is the nullable version of the inferred type.
 ```c#
 var s = maybeNull; // s is ?, no warning
 if (maybeNull == null) return;
-var t = maybeNull; // t is !
+var t = maybeNull; // t is ? too
 ```
 
 ### Suppression operator (`!`)
@@ -193,7 +203,7 @@ var z = (IEnumerable<object?>)x; // no warning
 
 ### Method type inference
 
-We modify the spec rule for [Fixing](https://github.com/dotnet/csharplang/blob/master/spec/expressions.md#fixing "Fixing") to take account of types that may be equivalent (i.e. have an identity conversion) yet may not be identical in the set of bounds. The existing spec says (third bullet)
+We modify the spec rule for [Fixing](https://github.com/dotnet/csharplang/blob/main/spec/expressions.md#fixing "Fixing") to take account of types that may be equivalent (i.e. have an identity conversion) yet may not be identical in the set of bounds. The existing spec says (third bullet)
 
 > If among the remaining candidate types `Uj` there is a unique type `V` from which there is an implicit conversion to all the other candidate types, then `Xi` is fixed to `V`.
 
@@ -287,24 +297,26 @@ This is not yet reflected in the language specification for nullable reference t
 ## Type parameters
 A `class?` constraint is allowed, which, like class, requires the type argument to be a reference type, but allows it to be nullable.
 [Nullable strawman](https://github.com/dotnet/csharplang/issues/790)
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 
-An explicit `object` (or `System.Object`) constraint is allowed, which requires the type to be non-nullable (value or reference type).
+Explicit `object` (or `System.Object`) constraints of any nullability are disallowed. However, type substitution can lead to
+`object!` or `object~` constraints to appear among the constraint types, when their nullability is significant by comparison to
+other constraints. An `object!` constraint requires the type to be non-nullable (value or reference type).
 However, an explicit `object?` constraint is not allowed.
 An unconstrained (here it means - no type constraints, and no `class`, `struct`, or `unmanaged` constraints) type parameter is essentially
 equivalent to one constrained by `object?` when it is declared in a context where nullable annotations are enabled. If annotations are disabled,
 the type parameter is essentially equivalent to one constrained by `object~`. The context is determined at the identifier that declares the type
 parameter within a type parameter list.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 Note, the `object`/`System.Object` constraint is represented in metadata as any other type constraint, the type is System.Object.
 
 An explicit `notnull` constraint is allowed, which requires the type to be non-nullable (value or reference type).
-[5/15/19](https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md)
+[5/15/19](https://github.com/dotnet/csharplang/blob/main/meetings/2019/LDM-2019-05-15.md)
 The rules to determine when it is a named type constraint or a special `notnull` constraint are similar to rules for `unmanaged`. Similarly, it is valid only
 at the first position in constraints list.
 
 A warning is reported for nullable type argument for type parameter with `class` constraint or non-nullable reference type or interface type constraint.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 ```c#
 static void F1<T>() where T : class { }
 static void F2<T>() where T : Stream { }
@@ -314,7 +326,7 @@ F2<Stream?>(); // warning
 F3<Stream?>(); // warning
 ```
 Type parameter constraints may include nullable reference type and interface types.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 ```c#
 static void F2<T> where T : Stream? { }
 static void F3<T>() where T : IDisposable? { }
@@ -322,7 +334,7 @@ F2<Stream?>(); // ok
 F3<Stream?>(); // ok
 ```
 A warning is reported for inconsistent top-level nullability of constraint types.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 ```c#
 static void F4<T> where T : class, Stream? { } // warning
 static void F5<T> where T : Stream?, IDisposable { } // warning
@@ -376,7 +388,7 @@ A syntax tree is determined to be generated if meets one or more of the followin
     - .g.i.cs
 - Contains a top level comment that contains
     - `<autogenerated`
-    - `<auto-generateed`
+    - `<auto-generated`
 
 Newer, nullable-aware generators may then opt-in to nullable analysis by including a generated `#nullable restore` at the beginning of the code, ensuring that the generated syntax tree will be analyzed according to the project-level nullable context.
 

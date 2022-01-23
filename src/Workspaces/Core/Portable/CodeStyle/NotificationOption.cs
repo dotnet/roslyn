@@ -1,30 +1,31 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if CODE_STYLE
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
-#endif
-
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    /// <summary>
-    /// Offers different notification styles for enforcing
-    /// a code style. Under the hood, it simply maps to <see cref="DiagnosticSeverity"/>
-    /// </summary>
-    /// <remarks>
-    /// This also supports various properties for databinding.
-    /// </remarks>
-    /// <completionlist cref="NotificationOption"/>
+    /// <inheritdoc cref="NotificationOption2"/>
     public class NotificationOption
     {
-        public string Name { get; set; }
+        private readonly NotificationOption2 _notificationOptionImpl;
 
+        /// <inheritdoc cref="NotificationOption2.Name"/>
+        public string Name
+        {
+            get => _notificationOptionImpl.Name;
+            set => _notificationOptionImpl.Name = value;
+        }
+
+        /// <inheritdoc cref="NotificationOption2.Severity"/>
         public ReportDiagnostic Severity
         {
-            get;
-            set;
+            get => _notificationOptionImpl.Severity;
+            set => _notificationOptionImpl.Severity = value;
         }
 
         [Obsolete("Use " + nameof(Severity) + " instead.")]
@@ -34,18 +35,24 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             set => Severity = value.ToReportDiagnostic();
         }
 
-        public static readonly NotificationOption None = new NotificationOption(WorkspacesResources.None, ReportDiagnostic.Suppress);
-        public static readonly NotificationOption Silent = new NotificationOption(WorkspacesResources.Refactoring_Only, ReportDiagnostic.Hidden);
-        public static readonly NotificationOption Suggestion = new NotificationOption(WorkspacesResources.Suggestion, ReportDiagnostic.Info);
-        public static readonly NotificationOption Warning = new NotificationOption(WorkspacesResources.Warning, ReportDiagnostic.Warn);
-        public static readonly NotificationOption Error = new NotificationOption(WorkspacesResources.Error, ReportDiagnostic.Error);
+        /// <inheritdoc cref="NotificationOption2.None"/>
+        public static readonly NotificationOption None = new(NotificationOption2.None);
 
-        private NotificationOption(string name, ReportDiagnostic severity)
-        {
-            Name = name;
-            Severity = severity;
-        }
+        /// <inheritdoc cref="NotificationOption2.Silent"/>
+        public static readonly NotificationOption Silent = new(NotificationOption2.Silent);
 
-        public override string ToString() => Name;
+        /// <inheritdoc cref="NotificationOption2.Suggestion"/>
+        public static readonly NotificationOption Suggestion = new(NotificationOption2.Suggestion);
+
+        /// <inheritdoc cref="NotificationOption2.Warning"/>
+        public static readonly NotificationOption Warning = new(NotificationOption2.Warning);
+
+        /// <inheritdoc cref="NotificationOption2.Error"/>
+        public static readonly NotificationOption Error = new(NotificationOption2.Error);
+
+        private NotificationOption(NotificationOption2 notificationOptionImpl)
+            => _notificationOptionImpl = notificationOptionImpl;
+
+        public override string ToString() => _notificationOptionImpl.ToString();
     }
 }

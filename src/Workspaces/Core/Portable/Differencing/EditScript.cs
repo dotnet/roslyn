@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -51,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             do
             {
-                IEnumerable<TNode> children = queue.Dequeue();
-                foreach (TNode child in children)
+                var children = queue.Dequeue();
+                foreach (var child in children)
                 {
                     ProcessNode(edits, child);
 
@@ -82,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             //
             // NOTE:
             // If we needed z then we would need to be updating M' as we encounter insertions.
-            bool hasPartner = _match.TryGetPartnerInTree1(x, out var w);
-            bool hasParent = Comparer.TryGetParent(x, out var y);
+            var hasPartner = _match.TryGetPartnerInTree1(x, out var w);
+            var hasParent = Comparer.TryGetParent(x, out var y);
 
             if (!hasPartner)
             {
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 // c) else if x is not a root
                 // i. Let w be the partner of x in M', and let v = parent(w) in T1.
-                TNode v = Comparer.GetParent(w);
+                var v = Comparer.GetParent(w);
 
                 // ii. if value(w) != value(x)
                 // A. Append UPD(w, value(x)) to E
@@ -244,8 +248,6 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         private static bool ContainsPair(Dictionary<TNode, TNode> dict, TNode a, TNode b)
-        {
-            return dict.TryGetValue(a, out var value) && value.Equals(b);
-        }
+            => dict.TryGetValue(a, out var value) && value.Equals(b);
     }
 }

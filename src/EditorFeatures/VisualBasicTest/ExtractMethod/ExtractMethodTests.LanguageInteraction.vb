@@ -1,9 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
@@ -69,7 +73,7 @@ End Class</text>
     End Sub
 End Class</text>
 
-                Await TestExtractMethodAsync(code, expected, allowMovingDeclaration:=False)
+                Await TestExtractMethodAsync(code, expected)
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -1182,7 +1186,7 @@ End Module</text>
     End Class
 End Module</text>
 
-                Await TestExtractMethodAsync(code, expected, allowMovingDeclaration:=False)
+                Await TestExtractMethodAsync(code, expected)
             End Function
 
             <WorkItem(6626, "DevDiv_Projects/Roslyn")>
@@ -1463,7 +1467,7 @@ Module Program
     End Function
 End Module</text>
 
-                Await TestExtractMethodAsync(code, expected, allowMovingDeclaration:=False)
+                Await TestExtractMethodAsync(code, expected)
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -1657,13 +1661,15 @@ End Module</text>
 
                 Dim expected = <text>Module M
     Sub Main()
-        NewMethod()
+        Dim x() As Integer
+        x = NewMethod()
     End Sub
 
-    Private Sub NewMethod()
+    Private Function NewMethod() As Integer()
         Dim x As Integer()
         ReDim x(0 To 5)
-    End Sub
+        Return x
+    End Function
 End Module</text>
 
                 Await TestExtractMethodAsync(code, expected)
@@ -3366,18 +3372,14 @@ End Namespace"
             <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <Trait(Traits.Feature, Traits.Features.Interactive)>
             Public Sub TestExtractMethodCommandDisabledInSubmission()
-                Dim exportProvider = ExportProviderCache _
-                    .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
-                    .CreateExportProvider()
-
                 Using workspace = TestWorkspace.Create(
-                <Workspace>
-                    <Submission Language="Visual Basic" CommonReferences="true">  
-                        GetType(String).$$Name
-                    </Submission>
-                </Workspace>,
-                workspaceKind:=WorkspaceKind.Interactive,
-                exportProvider:=exportProvider)
+                    <Workspace>
+                        <Submission Language="Visual Basic" CommonReferences="true">  
+                            GetType(String).$$Name
+                        </Submission>
+                    </Workspace>,
+                    workspaceKind:=WorkspaceKind.Interactive,
+                    composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                     ' Force initialization.
                     workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
@@ -3385,9 +3387,10 @@ End Namespace"
                     Dim textView = workspace.Documents.Single().GetTextView()
 
                     Dim handler = New ExtractMethodCommandHandler(
+                        workspace.GetService(Of IThreadingContext)(),
                         workspace.GetService(Of ITextBufferUndoManagerProvider)(),
-                        workspace.GetService(Of IEditorOperationsFactoryService)(),
-                        workspace.GetService(Of IInlineRenameService)())
+                        workspace.GetService(Of IInlineRenameService)(),
+                        workspace.GetService(Of IGlobalOptionService)())
 
                     Dim state = handler.GetCommandState(New ExtractMethodCommandArgs(textView, textView.TextBuffer))
                     Assert.True(state.IsUnspecified)

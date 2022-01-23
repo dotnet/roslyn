@@ -1,9 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text.Classification;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
+using System.Threading;
+using Microsoft.CodeAnalysis.Editor;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -20,31 +28,62 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     [Order(Before = Priority.Default)]
     internal class FindUsagesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
     {
+        private readonly IUIThreadOperationExecutor _operationExecutor;
+        private readonly IAsynchronousOperationListener _listener;
+
         [ImportingConstructor]
-        public FindUsagesTableControlEventProcessorProvider()
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindUsagesTableControlEventProcessorProvider(
+            IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListenerProvider asyncProvider)
         {
+            _operationExecutor = operationExecutor;
+            _listener = asyncProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
-        public ITableControlEventProcessor GetAssociatedEventProcessor(
-            IWpfTableControl tableControl)
-        {
-            return new TableControlEventProcessor();
-        }
+        public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
+            => new TableControlEventProcessor(_operationExecutor, _listener);
 
         private class TableControlEventProcessor : TableControlEventProcessorBase
         {
+            private readonly IUIThreadOperationExecutor _operationExecutor;
+            private readonly IAsynchronousOperationListener _listener;
+
+            public TableControlEventProcessor(IUIThreadOperationExecutor operationExecutor, IAsynchronousOperationListener listener)
+            {
+                _operationExecutor = operationExecutor;
+                _listener = listener;
+            }
+
             public override void PreprocessNavigate(ITableEntryHandle entry, TableEntryNavigateEventArgs e)
             {
-                if (entry.Identity is ISupportsNavigation supportsNavigation)
+                var supportsNavigation = entry.Identity as ISupportsNavigation ??
+                    (entry.TryGetValue(StreamingFindUsagesPresenter.SelfKeyName, out var item) ? item as ISupportsNavigation : null);
+                if (supportsNavigation != null &&
+                    supportsNavigation.CanNavigateTo())
                 {
-                    if (supportsNavigation.TryNavigateTo(e.IsPreview))
-                    {
-                        e.Handled = true;
-                        return;
-                    }
+                    // Fire and forget
+                    e.Handled = true;
+                    _ = ProcessNavigateAsync(supportsNavigation, e, _listener, _operationExecutor);
                 }
 
                 base.PreprocessNavigate(entry, e);
+                return;
+
+                async static Task ProcessNavigateAsync(
+                    ISupportsNavigation supportsNavigation, TableEntryNavigateEventArgs e,
+                    IAsynchronousOperationListener listener,
+                    IUIThreadOperationExecutor operationExecutor)
+                {
+                    using var token = listener.BeginAsyncOperation(nameof(ProcessNavigateAsync));
+                    using var context = operationExecutor.BeginExecute(
+                        ServicesVSResources.IntelliSense,
+                        EditorFeaturesResources.Navigating,
+                        allowCancellation: true,
+                        showProgress: false);
+
+                    await supportsNavigation.NavigateToAsync(e.IsPreview, e.ShouldActivate, context.UserCancellationToken).ConfigureAwait(false);
+                }
             }
         }
     }

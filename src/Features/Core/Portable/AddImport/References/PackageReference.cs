@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,10 +32,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(
-                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    document, node, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
 
                 return AddImportFixData.CreateForPackageSymbol(
                     textChanges, _source, _packageName, _versionOpt);

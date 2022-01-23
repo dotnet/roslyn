@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -212,7 +214,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 End Select
             End Function
 
-            Private Function GetAttributesStartPoint(text As SourceText, attributes As SyntaxList(Of AttributeListSyntax), part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetAttributesStartPoint(text As SourceText, attributes As SyntaxList(Of AttributeListSyntax), part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 ' VB has a Code Model bug that causes vsCMPartAttributes and vsCMPartAttributesWithDelimiters to return the same value.
                 ' You can see the issue clearly in vb\Language\VsPackage\CodeModelHelpers.cpp, CodeModelLocations::GetAttributeSpecifierListLocation.
                 ' Essentially, the old code tries to do the right thing for vsCMPartAttributes, but then deliberately falls through to the
@@ -246,7 +248,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(attributes.First().SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetAttributesEndPoint(text As SourceText, attributes As SyntaxList(Of AttributeListSyntax), part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetAttributesEndPoint(text As SourceText, attributes As SyntaxList(Of AttributeListSyntax), part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 ' VB has a Code Model bug that causes vsCMPartAttributes and vsCMPartAttributesWithDelimiters to return the same value.
                 ' See GetAttributesStartPoint for the details
 
@@ -278,7 +280,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(attributes.Last().SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetHeaderStartPosition(typeBlock As TypeBlockSyntax) As Integer
+            Private Shared Function GetHeaderStartPosition(typeBlock As TypeBlockSyntax) As Integer
                 If typeBlock.BlockStatement.Modifiers.Count > 0 Then
                     Return typeBlock.BlockStatement.Modifiers.First().SpanStart
                 Else
@@ -286,7 +288,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 End If
             End Function
 
-            Private Function GetHeaderStartPosition(enumBlock As EnumBlockSyntax) As Integer
+            Private Shared Function GetHeaderStartPosition(enumBlock As EnumBlockSyntax) As Integer
                 If enumBlock.EnumStatement.Modifiers.Count > 0 Then
                     Return enumBlock.EnumStatement.Modifiers.First().SpanStart
                 Else
@@ -344,7 +346,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         End If
 
                         If part = EnvDTE.vsCMPart.vsCMPartNavigate Then
-                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), typeBlock.BlockStatement, typeBlock.EndBlockStatement, statementLine.LineNumber + 1)
+                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), typeBlock.BlockStatement, statementLine.LineNumber + 1)
                         End If
 
                     Case Else
@@ -354,7 +356,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(typeBlock.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetTypeBlockEndPoint(text As SourceText, typeBlock As TypeBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetTypeBlockEndPoint(text As SourceText, typeBlock As TypeBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -415,7 +417,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         End If
 
                         If part = EnvDTE.vsCMPart.vsCMPartNavigate Then
-                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), enumBlock.EnumStatement, enumBlock.EndEnumStatement, statementLine.LineNumber + 1)
+                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), enumBlock.EnumStatement, statementLine.LineNumber + 1)
                         End If
 
                     Case Else
@@ -425,7 +427,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(enumBlock.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetEnumBlockEndPoint(text As SourceText, enumBlock As EnumBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetEnumBlockEndPoint(text As SourceText, enumBlock As EnumBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -510,7 +512,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(methodBlock.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetDeclareStatementStartPoint(text As SourceText, declareStatement As DeclareStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetDeclareStatementStartPoint(text As SourceText, declareStatement As DeclareStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -546,8 +548,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(declareStatement.SyntaxTree, text, startPosition)
             End Function
 
-
-            Private Function GetDeclareStatementEndPoint(text As SourceText, declareStatement As DeclareStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetDeclareStatementEndPoint(text As SourceText, declareStatement As DeclareStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -576,7 +577,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(declareStatement.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetMethodStatementStartPoint(text As SourceText, methodStatement As MethodStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetMethodStatementStartPoint(text As SourceText, methodStatement As MethodStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -612,7 +613,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(methodStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetMethodBlockEndPoint(text As SourceText, methodBlock As MethodBlockBaseSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetMethodBlockEndPoint(text As SourceText, methodBlock As MethodBlockBaseSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -667,7 +668,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(methodBlock.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetMethodStatementEndPoint(text As SourceText, methodStatement As MethodStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetMethodStatementEndPoint(text As SourceText, methodStatement As MethodStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -696,11 +697,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(methodStatement.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetPropertyBlockStartPoint(text As SourceText, propertyBlock As PropertyBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetPropertyBlockStartPoint(text As SourceText, propertyBlock As PropertyBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Return GetPropertyStatementStartPoint(text, propertyBlock.PropertyStatement, part)
             End Function
 
-            Private Function GetPropertyStatementStartPoint(text As SourceText, propertyStatement As PropertyStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetPropertyStatementStartPoint(text As SourceText, propertyStatement As PropertyStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -735,11 +736,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(propertyStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetPropertyBlockEndPoint(text As SourceText, propertyBlock As PropertyBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetPropertyBlockEndPoint(text As SourceText, propertyBlock As PropertyBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Return GetPropertyStatementEndPoint(text, propertyBlock.PropertyStatement, part)
             End Function
 
-            Private Function GetPropertyStatementEndPoint(text As SourceText, propertyStatement As PropertyStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetPropertyStatementEndPoint(text As SourceText, propertyStatement As PropertyStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -820,7 +821,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(eventBlock.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetEventStatementStartPoint(text As SourceText, eventStatement As EventStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetEventStatementStartPoint(text As SourceText, eventStatement As EventStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -857,11 +858,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(eventStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetEventBlockEndPoint(text As SourceText, eventBlock As EventBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetEventBlockEndPoint(text As SourceText, eventBlock As EventBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Return GetEventStatementEndPoint(text, eventBlock.EventStatement, part)
             End Function
 
-            Private Function GetEventStatementEndPoint(text As SourceText, eventStatement As EventStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetEventStatementEndPoint(text As SourceText, eventStatement As EventStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -902,7 +903,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(eventStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetDelegateStatementStartPoint(text As SourceText, delegateStatement As DelegateStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetDelegateStatementStartPoint(text As SourceText, delegateStatement As DelegateStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -938,7 +939,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(delegateStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetDelegateStatementEndPoint(text As SourceText, delegateStatement As DelegateStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetDelegateStatementEndPoint(text As SourceText, delegateStatement As DelegateStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -967,14 +968,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(delegateStatement.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetTrailingColonTrivia(statement As StatementSyntax) As SyntaxTrivia?
+            Private Shared Function GetTrailingColonTrivia(statement As StatementSyntax) As SyntaxTrivia?
                 If Not statement.HasTrailingTrivia Then
                     Return Nothing
                 End If
 
                 Return statement _
                     .GetTrailingTrivia() _
-                    .FirstOrNullable(Function(t) t.Kind = SyntaxKind.ColonTrivia)
+                    .FirstOrNull(Function(t) t.Kind = SyntaxKind.ColonTrivia)
             End Function
 
             Private Function GetNamespaceBlockStartPoint(text As SourceText, options As OptionSet, namespaceBlock As NamespaceBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
@@ -1006,7 +1007,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             lineNumber = text.Lines.IndexOf(colonTrivia.Value.SpanStart)
                         End If
 
-                        Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), namespaceBlock.NamespaceStatement, namespaceBlock.EndNamespaceStatement, lineNumber)
+                        Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), namespaceBlock.NamespaceStatement, lineNumber)
 
                     Case EnvDTE.vsCMPart.vsCMPartBody,
                          EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter
@@ -1033,7 +1034,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(namespaceBlock.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetNamespaceBlockEndPoint(text As SourceText, namespaceBlock As NamespaceBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetNamespaceBlockEndPoint(text As SourceText, namespaceBlock As NamespaceBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -1064,7 +1065,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(namespaceBlock.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetVariableStartPoint(text As SourceText, variable As ModifiedIdentifierSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetVariableStartPoint(text As SourceText, variable As ModifiedIdentifierSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim fieldDeclaration = variable.FirstAncestorOrSelf(Of FieldDeclarationSyntax)()
                 Debug.Assert(fieldDeclaration IsNot Nothing)
 
@@ -1096,7 +1097,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(variable.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetVariableStartPoint(text As SourceText, enumMember As EnumMemberDeclarationSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetVariableStartPoint(text As SourceText, enumMember As EnumMemberDeclarationSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -1121,7 +1122,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(enumMember.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetVariableEndPoint(text As SourceText, variable As ModifiedIdentifierSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetVariableEndPoint(text As SourceText, variable As ModifiedIdentifierSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim fieldDeclaration = variable.FirstAncestorOrSelf(Of FieldDeclarationSyntax)()
                 Debug.Assert(fieldDeclaration IsNot Nothing)
 
@@ -1148,7 +1149,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(variable.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetVariableEndPoint(text As SourceText, enumMember As EnumMemberDeclarationSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetVariableEndPoint(text As SourceText, enumMember As EnumMemberDeclarationSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -1172,7 +1173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(enumMember.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetParameterStartPoint(text As SourceText, parameter As ParameterSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetParameterStartPoint(text As SourceText, parameter As ParameterSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -1202,7 +1203,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(parameter.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetParameterEndPoint(text As SourceText, parameter As ParameterSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetParameterEndPoint(text As SourceText, parameter As ParameterSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -1226,7 +1227,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(parameter.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetImportsStatementStartPoint(text As SourceText, importsStatement As ImportsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetImportsStatementStartPoint(text As SourceText, importsStatement As ImportsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -1252,7 +1253,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(importsStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetImportsStatementEndPoint(text As SourceText, importsStatement As ImportsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetImportsStatementEndPoint(text As SourceText, importsStatement As ImportsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -1278,7 +1279,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(importsStatement.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetOptionStatementStartPoint(text As SourceText, optionStatement As OptionStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetOptionStatementStartPoint(text As SourceText, optionStatement As OptionStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -1304,7 +1305,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(optionStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetOptionStatementEndPoint(text As SourceText, optionStatement As OptionStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetOptionStatementEndPoint(text As SourceText, optionStatement As OptionStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -1330,7 +1331,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(optionStatement.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetInheritsStatementStartPoint(text As SourceText, inheritsStatement As InheritsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetInheritsStatementStartPoint(text As SourceText, inheritsStatement As InheritsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -1356,7 +1357,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(inheritsStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetInheritsStatementEndPoint(text As SourceText, inheritsStatement As InheritsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetInheritsStatementEndPoint(text As SourceText, inheritsStatement As InheritsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -1382,7 +1383,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(inheritsStatement.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetImplementsStatementStartPoint(text As SourceText, implementsStatement As ImplementsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetImplementsStatementStartPoint(text As SourceText, implementsStatement As ImplementsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -1408,7 +1409,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(implementsStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetImplementsStatementEndPoint(text As SourceText, implementsStatement As ImplementsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetImplementsStatementEndPoint(text As SourceText, implementsStatement As ImplementsStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -1434,7 +1435,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(implementsStatement.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetAttributeStartPoint(text As SourceText, attribute As AttributeSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetAttributeStartPoint(text As SourceText, attribute As AttributeSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -1463,7 +1464,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(attribute.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetAttributeEndPoint(text As SourceText, attribute As AttributeSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetAttributeEndPoint(text As SourceText, attribute As AttributeSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part
@@ -1491,7 +1492,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(attribute.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetAttributeArgumentStartPoint(text As SourceText, argument As ArgumentSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetAttributeArgumentStartPoint(text As SourceText, argument As ArgumentSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -1526,7 +1527,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(argument.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetAttributeArgumentEndPoint(text As SourceText, argument As ArgumentSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetAttributeArgumentEndPoint(text As SourceText, argument As ArgumentSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 
                 Select Case part

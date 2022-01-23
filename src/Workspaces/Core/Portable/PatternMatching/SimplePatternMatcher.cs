@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -9,7 +14,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     {
         private sealed partial class SimplePatternMatcher : PatternMatcher
         {
-            private readonly PatternSegment _fullPatternSegment;
+            private PatternSegment _fullPatternSegment;
 
             public SimplePatternMatcher(
                 string pattern,
@@ -36,15 +41,15 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// </summary>
             /// <returns>If this was a match, a set of match types that occurred while matching the
             /// patterns. If it was not a match, it returns null.</returns>
-            public override bool AddMatches(string candidate, ArrayBuilder<PatternMatch> matches)
+            public override bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches)
             {
                 if (SkipMatch(candidate))
                 {
                     return false;
                 }
 
-                return MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: false) ||
-                       MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: true);
+                return MatchPatternSegment(candidate, in _fullPatternSegment, ref matches, fuzzyMatch: false) ||
+                       MatchPatternSegment(candidate, in _fullPatternSegment, ref matches, fuzzyMatch: true);
             }
         }
     }

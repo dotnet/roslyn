@@ -27,7 +27,7 @@
       <Group guid="guidRoslynGrpId" id="grpAddSuppressions" priority="0x0001">
         <Parent guid="guidRoslynGrpId" id="cmdidAddSuppressionsContextMenu"/>
       </Group>
-      
+
       <Group guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJWIN_SCOPE" priority="0x001">
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu"/>
       </Group>
@@ -50,6 +50,14 @@
 
       <Group guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" priority="0x000">
         <Parent guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu"/>
+      </Group>
+
+      <Group guid="guidRoslynGrpId" id="grpAnalysisScopeItems" priority="0x000">
+        <Parent guid="guidRoslynGrpId" id="cmdidAnalysisScopeSubMenu"/>
+      </Group>
+
+      <Group guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" priority="0x000">
+        <Parent guid="guidRoslynGrpId" id="cmdidErrorListSetSeveritySubMenu"/>
       </Group>
 
       <Group guid="guidRoslynGrpId" id="grpDiagnosticProperties" priority="0x002">
@@ -100,7 +108,7 @@
           <LocCanonicalName>RemoveAndSort</LocCanonicalName>
         </Strings>
       </Button>
-      
+
       <!-- <project context menu> | Add | Analyzer... -->
       <Button guid="guidRoslynGrpId" id="cmdidProjectContextAddAnalyzer" priority="0x0400" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD_REFERENCES" />
@@ -163,7 +171,7 @@
           <CommandName>OpenActiveRuleSet</CommandName>
         </Strings>
       </Button>
-      <!-- Buttons to set severity of diagnostics -->
+      <!-- Buttons to set severity of diagnostics in analyzers node and error list -->
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityDefault" priority="100" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
@@ -171,6 +179,15 @@
           <CanonicalName>Default</CanonicalName>
           <LocCanonicalName>Default</LocCanonicalName>
           <CommandName>SetSeverityDefault</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityDefault" priority="100" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Default</ButtonText>
+          <CanonicalName>Default</CanonicalName>
+          <LocCanonicalName>Default</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityDefault</CommandName>
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityError" priority="200" type="Button">
@@ -182,6 +199,15 @@
           <CommandName>SetSeverityError</CommandName>
         </Strings>
       </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityError" priority="200" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Error</ButtonText>
+          <CanonicalName>Error</CanonicalName>
+          <LocCanonicalName>Error</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityError</CommandName>
+        </Strings>
+      </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityWarning" priority="300" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
@@ -191,22 +217,49 @@
           <CommandName>SetSeverityWarning</CommandName>
         </Strings>
       </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityWarning" priority="300" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Warning</ButtonText>
+          <CanonicalName>Warning</CanonicalName>
+          <LocCanonicalName>Warning</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityWarning</CommandName>
+        </Strings>
+      </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityInfo" priority="400" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
-          <ButtonText>&amp;Info</ButtonText>
-          <CanonicalName>Info</CanonicalName>
-          <LocCanonicalName>Info</LocCanonicalName>
+          <ButtonText>&amp;Suggestion</ButtonText>
+          <CanonicalName>Suggestion</CanonicalName>
+          <LocCanonicalName>Suggestion</LocCanonicalName>
           <CommandName>SetSeverityInfo</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityInfo" priority="400" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Suggestion</ButtonText>
+          <CanonicalName>Suggestion</CanonicalName>
+          <LocCanonicalName>Suggestion</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityInfo</CommandName>
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityHidden" priority="500" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
-          <ButtonText>&amp;Hidden</ButtonText>
-          <CanonicalName>Hidden</CanonicalName>
-          <LocCanonicalName>Hidden</LocCanonicalName>
+          <ButtonText>&amp;Silent</ButtonText>
+          <CanonicalName>Silent</CanonicalName>
+          <LocCanonicalName>Silent</LocCanonicalName>
           <CommandName>SetSeverityHidden</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityHidden" priority="500" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Silent</ButtonText>
+          <CanonicalName>Silent</CanonicalName>
+          <LocCanonicalName>Silent</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityHidden</CommandName>
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityNone" priority="600" type="Button">
@@ -216,6 +269,57 @@
           <CanonicalName>None</CanonicalName>
           <LocCanonicalName>None</LocCanonicalName>
           <CommandName>SetSeverityNone</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityNone" priority="600" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;None</ButtonText>
+          <CanonicalName>None</CanonicalName>
+          <LocCanonicalName>None</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityNone</CommandName>
+        </Strings>
+      </Button>
+      <!-- Buttons to set analysis scope for solution -->
+      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeDefault" priority="100" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Default</ButtonText>
+          <CanonicalName>Default</CanonicalName>
+          <LocCanonicalName>Default</LocCanonicalName>
+          <CommandName>AnalysisScopeDefault</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeCurrentFile" priority="200" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Current Document</ButtonText>
+          <CanonicalName>Current Document</CanonicalName>
+          <LocCanonicalName>Current Document</LocCanonicalName>
+          <CommandName>AnalysisScopeCurrentDocument</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeOpenFiles" priority="300" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Open Documents</ButtonText>
+          <CanonicalName>Open Documents</CanonicalName>
+          <LocCanonicalName>Open Documents</LocCanonicalName>
+          <CommandName>AnalysisScopeOpenDocuments</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeEntireSolution" priority="400" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Entire Solution</ButtonText>
+          <CanonicalName>Entire Solution</CanonicalName>
+          <LocCanonicalName>Entire Solution</LocCanonicalName>
+          <CommandName>AnalysisScopeEntireSolution</CommandName>
         </Strings>
       </Button>
       <!-- Button to open the diagnostic help link -->
@@ -288,7 +392,7 @@
           <ButtonText>Go To Implementation</ButtonText>
           <CanonicalName>GoToImplementation</CanonicalName>
           <LocCanonicalName>GoToImplementation</LocCanonicalName>
-          <CommandName>GoToImplementation</CommandName>
+          <CommandName>Go To Implementation</CommandName>
         </Strings>
       </Button>
 
@@ -311,6 +415,83 @@
           <ButtonText>Reset Visual Basic Interactive from Project</ButtonText>
           <CanonicalName>ResetVisualBasicInteractiveFromProject</CanonicalName>
           <LocCanonicalName>ResetVisualBasicInteractiveFromProject</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Run code analysis commands -->
+
+      <!-- "Run Code Analysis on <%ProjectName%>" command for Top level "Build" and "Analyze" menus.
+           "ECMD_RUNFXCOPSEL" is actually defined in stdidcmd.h, we're just referencing it here -->
+      <Button guid="guidVSStd2K" id="ECMD_RUNFXCOPSEL" priority="0x0000" type="Button">
+        <CommandFlag>TextChanges</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Run Code &amp;Analysis on Selection</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- "Run Code Analysis" command for Solution Explorer "Analyze and Code Cleanup" context menu for project node -->
+      <Button guid="guidRoslynGrpId" id="cmdidRunCodeAnalysisForProject" priority="0x0000" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ANALYZE_GENERAL"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Run C&amp;ode Analysis</ButtonText>
+          <CanonicalName>RunCodeAnalysisForProject</CanonicalName>
+          <LocCanonicalName>RunCodeAnalysisForProject</LocCanonicalName>
+          <CommandName>RunCodeAnalysisForProject</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0x0300" type="Button">
+        <Parent guid="guidReferenceContext" id="cmdAddReferenceGroup"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Remove Unused References...</ButtonText>
+          <CommandName>RemoveUnusedReferences</CommandName>
+          <CanonicalName>RemoveUnusedReferences</CanonicalName>
+          <LocCanonicalName>RemoveUnusedReferences</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidSyncNamespaces" priority="0x0301" type="Button">
+        <Parent guid="guidReferenceContext" id="cmdAddReferenceGroup"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Sync &amp;Namespaces</ButtonText>
+          <CommandName>SyncNamespaces</CommandName>
+          <CanonicalName>SyncNamespaces</CanonicalName>
+          <LocCanonicalName>SyncNamespaces</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0x0203" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_EDIT_GOTO"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>Track Value Source</ButtonText>
+          <CommandName>ShowValueTrackingCommandName</CommandName>
+          <CanonicalName>ShowValueTracking</CanonicalName>
+          <LocCanonicalName>ShowValueTracking</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidStackTraceExplorerCmdSet" id="cmdIdShowStackTraceExplorer" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Stack Trace Explorer</ButtonText>
+          <CommandName>ShowStackTraceExplorerCommandName</CommandName>
+          <CanonicalName>ShowStackTraceExplorer</CanonicalName>
+          <LocCanonicalName>ShowStackTraceExplorer</LocCanonicalName>
         </Strings>
       </Button>
     </Buttons>
@@ -346,13 +527,23 @@
       <Menu guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu" priority="50" type="Menu">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
         <Strings>
-          <ButtonText>Set Rule Set Severity</ButtonText>
-          <CommandName>Set Rule Set Severity</CommandName>
-          <CanonicalName>Set Rule Set Severity</CanonicalName>
-          <LocCanonicalName>Set Rule Set Severity</LocCanonicalName>
+          <ButtonText>Set severity</ButtonText>
+          <CommandName>Set severity</CommandName>
+          <CanonicalName>Set severity</CanonicalName>
+          <LocCanonicalName>Set severity</LocCanonicalName>
         </Strings>
       </Menu>
-      
+
+      <Menu guid="guidRoslynGrpId" id="cmdidAnalysisScopeSubMenu" priority="0x510" type="Menu">
+        <Parent guid="guidEditorCommands" id="IDG_CTX_CODECLEANUP_CONFIGURE_SOLUTION" />
+        <Strings>
+          <ButtonText>Set Analysis Scope</ButtonText>
+          <CommandName>Set Analysis Scope</CommandName>
+          <CanonicalName>Set Analysis Scope</CanonicalName>
+          <LocCanonicalName>SetAnalysisScope</LocCanonicalName>
+        </Strings>
+      </Menu>
+
       <!-- Error list context menu items for Suppressions. -->
       <Menu guid="guidRoslynGrpId" id="cmdidAddSuppressionsContextMenu" priority="0xf002" type="Menu">
         <Parent guid="guidRoslynGrpId" id="grpErrorListContextMenu"/>
@@ -364,6 +555,20 @@
           <CanonicalName>S&amp;uppress</CanonicalName>
           <LocCanonicalName>S&amp;uppress</LocCanonicalName>
           <CommandName>S&amp;uppress</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Error list context menu items for Set severity. -->
+      <Menu guid="guidRoslynGrpId" id="cmdidErrorListSetSeveritySubMenu" priority="0xf003" type="Menu">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListContextMenu"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Set severity</ButtonText>
+          <CommandName>Set severity</CommandName>
+          <CanonicalName>Set severity</CanonicalName>
+          <LocCanonicalName>Set severity</LocCanonicalName>
         </Strings>
       </Menu>
     </Menus>
@@ -396,6 +601,26 @@
     <CommandPlacement guid="guidRoslynGrpId" id="cmdidGoToImplementation" priority="0x0200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
     </CommandPlacement>
+
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0xF200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0xF200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_REFROOT_ADD" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidSyncNamespaces" priority="0xF200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidSyncNamespaces" priority="0xF200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_SOLUTION_ADD" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0xF200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
+    </CommandPlacement>
   </CommandPlacements>
 
   <KeyBindings>
@@ -406,10 +631,12 @@
 
     <KeyBinding guid="guidCSharpGrpId" id="cmdidCSharpOrganizeRemoveAndSort" mod1="Control" key1="R" key2="G" editor="guidVSStd97" />
     <KeyBinding guid="guidCSharpGrpId" id="cmdidCSharpOrganizeRemoveAndSort" mod1="Control" key1="R" mod2="Control" key2="G" editor="guidVSStd97" />
+    <KeyBinding guid="guidStackTraceExplorerCmdSet" id="cmdIdShowStackTraceExplorer" mod1="Control" key1="E" mod2="Control" key2="S" editor="guidVSStd97" />
   </KeyBindings>
 
   <UsedCommands>
     <UsedCommand guid="guidVSStd2K" id="ECMD_INSERTCOMMENT" />
+    <UsedCommand guid="guidVSStd2K" id="ECMD_RUNFXCOPSEL"/>
   </UsedCommands>
 
   <Symbols>
@@ -431,6 +658,7 @@
     <GuidSymbol name="guidRoslynGrpId" value="{b61e1a20-8c13-49a9-a727-a0ec091647dd}">
       <IDSymbol name="IDG_ROSLYN_HIDDEN_COMMANDS" value="0x3002" />
 
+      <!-- Analyzers node context menu IDs -->
       <IDSymbol name="cmdidAnalyzerContextMenu"       value="0x0103" />
       <IDSymbol name="grpAnalyzerProperties"          value="0x0104" />
       <IDSymbol name="grpAnalyzerRemove"              value="0x0105" />
@@ -456,14 +684,46 @@
       <IDSymbol name="cmdidSetSeveritySubMenu"        value="0x0119" />
       <IDSymbol name="grpDiagnosticSeverityItems"     value="0x011a" />
       <IDSymbol name="cmdidSetSeverityDefault"        value="0x011b" />
+
+      <!-- Error List context menu IDs -->
       <IDSymbol name="grpErrorListContextMenu"        value="0x011c" />
       <IDSymbol name="cmdidAddSuppressionsContextMenu"        value="0x011d" />
       <IDSymbol name="grpAddSuppressions"             value="0x011e" />
       <IDSymbol name="cmdidAddSuppressionsInSource"   value="0x011f" />
       <IDSymbol name="cmdidAddSuppressionsInSuppressionFile"  value="0x0120" />
       <IDSymbol name="cmdidRemoveSuppressions"        value="0x0121" />
+      <IDSymbol name="cmdidErrorListSetSeveritySubMenu"        value="0x0122" />
+      <IDSymbol name="grpErrorListDiagnosticSeverity"          value="0x0123" />
+      <IDSymbol name="cmdidErrorListSetSeverityError"          value="0x0124" />
+      <IDSymbol name="cmdidErrorListSetSeverityWarning"        value="0x0125" />
+      <IDSymbol name="cmdidErrorListSetSeverityInfo"           value="0x0126" />
+      <IDSymbol name="cmdidErrorListSetSeverityHidden"         value="0x0127" />
+      <IDSymbol name="cmdidErrorListSetSeverityNone"           value="0x0128" />
+      <IDSymbol name="cmdidErrorListSetSeverityDefault"        value="0x0129" />
+      <IDSymbol name="grpErrorListDiagnosticSeverityItems"     value="0x012a" />
+
+      <!-- Analyze and Code Cleanup menu IDs -->
+      <IDSymbol name="cmdidAnalysisScopeSubMenu" value="0x0130" />
+      <IDSymbol name="cmdidAnalysisScopeDefault" value="0x0131" />
+      <IDSymbol name="cmdidAnalysisScopeCurrentFile" value="0x0132" />
+      <IDSymbol name="cmdidAnalysisScopeOpenFiles" value="0x0133" />
+      <IDSymbol name="cmdidAnalysisScopeEntireSolution" value="0x0134" />
+      <IDSymbol name="grpAnalysisScope" value="0x0135" />
+      <IDSymbol name="grpAnalysisScopeItems" value="0x0136" />
 
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
+
+      <IDSymbol name="cmdidRunCodeAnalysisForProject"  value="0x0201" />
+
+      <IDSymbol name="cmdidRemoveUnusedReferences" value="0x202" />
+
+      <IDSymbol name="cmdidshowValueTracking"  value="0x0203" />
+
+      <IDSymbol name="cmdidSyncNamespaces" value="0x204" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidEditorCommands" value="{160961B3-909D-4B28-9353-A1BEF587B4A6}">
+      <IDSymbol name="IDG_CTX_CODECLEANUP_CONFIGURE_SOLUTION" value="0x0028" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">
@@ -478,6 +738,15 @@
 
       <IDSymbol name="cmdidVisualBasicInteractiveToolWindow" value="0x0001" />
       <IDSymbol name="cmdidResetInteractiveFromProject" value="0x0002"/>
+    </GuidSymbol>
+
+    <!--guidReferenceContext is aka: ShellMainMenu_guid -->
+    <GuidSymbol name="guidReferenceContext" value="{D309F791-903F-11D0-9EFC-00A0C911004F}">
+      <IDSymbol name="cmdAddReferenceGroup" value="0x450" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidStackTraceExplorerCmdSet" value="{FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA}">
+      <IDSymbol name="cmdIdShowStackTraceExplorer" value="0x0100" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

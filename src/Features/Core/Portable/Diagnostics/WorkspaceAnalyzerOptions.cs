@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,13 +19,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class WorkspaceAnalyzerOptions : AnalyzerOptions
     {
         private readonly Solution _solution;
-        private readonly OptionSet _optionSet;
 
-        public WorkspaceAnalyzerOptions(AnalyzerOptions options, OptionSet optionSet, Solution solution)
+        public WorkspaceAnalyzerOptions(AnalyzerOptions options, Solution solution)
             : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
         {
             _solution = solution;
-            _optionSet = optionSet;
         }
 
         public HostWorkspaceServices Services => _solution.Workspace.Services;
@@ -32,16 +34,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var documentId = _solution.GetDocumentId(syntaxTree);
             if (documentId == null)
             {
-                return _optionSet;
+                return _solution.Options;
             }
 
             var document = _solution.GetDocument(documentId);
             if (document == null)
             {
-                return _optionSet;
+                return _solution.Options;
             }
 
-            return await document.GetOptionsAsync(_optionSet, cancellationToken).ConfigureAwait(false);
+            return await document.GetOptionsAsync(_solution.Options, cancellationToken).ConfigureAwait(false);
         }
 
         public override bool Equals(object obj)
@@ -51,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            var other = obj as WorkspaceAnalyzerOptions;
-            return other != null &&
+            return obj is WorkspaceAnalyzerOptions other &&
                 _solution.WorkspaceVersion == other._solution.WorkspaceVersion &&
                 _solution.Workspace == other._solution.Workspace &&
                 base.Equals(other);

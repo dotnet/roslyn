@@ -96,7 +96,12 @@
       </trans-unit>
       <trans-unit id="General_UnableToReadFile">
         <source>File "{0}" could not be read: {1}</source>
-        <target state="new">File "{0}" could not be read: {1}</target>
+        <target state="translated">Не удалось считать файл "{0}": {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplicitlySkipAnalyzersMessage">
+        <source>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</source>
+        <target state="translated">Анализаторы пропускаются для ускорения сборки. Для запуска анализаторов можно выполнить команды "Собрать" или "Пересобрать".</target>
         <note />
       </trans-unit>
       <trans-unit id="SharedCompilationFallback">

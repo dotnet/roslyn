@@ -1,11 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Security;
-using System.Xml;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -46,15 +44,20 @@ namespace Microsoft.CodeAnalysis
         /// Gets the RuleSet associated with this ruleset include
         /// </summary>
         /// <param name="parent">The parent of this ruleset include</param>
-        public RuleSet LoadRuleSet(RuleSet parent)
+        public RuleSet? LoadRuleSet(RuleSet parent)
         {
             // Try to load the rule set
-            RuleSet ruleSet = null;
+            RuleSet? ruleSet = null;
 
-            string path = _includePath;
+            string? path = _includePath;
             try
             {
                 path = GetIncludePath(parent);
+                if (path == null)
+                {
+                    return null;
+                }
+
                 ruleSet = RuleSetProcessor.LoadFromFile(path);
             }
             catch (FileNotFoundException)
@@ -75,56 +78,54 @@ namespace Microsoft.CodeAnalysis
         /// Returns a full path to the include file. Relative paths are expanded relative to the current rule set file.
         /// </summary>
         /// <param name="parent">The parent of this rule set include</param>
-        private string GetIncludePath(RuleSet parent)
+        private string? GetIncludePath(RuleSet parent)
         {
-            var resolvedIncludePath = ResolveIncludePath(_includePath, parent?.FilePath);
-
-            // If we still couldn't find it then throw an exception;
+            var resolvedIncludePath = resolveIncludePath(_includePath, parent?.FilePath);
             if (resolvedIncludePath == null)
             {
-                throw new FileNotFoundException(string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, _includePath), _includePath);
+                return null;
             }
 
             // Return the canonical full path
             return Path.GetFullPath(resolvedIncludePath);
-        }
 
-        private static string ResolveIncludePath(string includePath, string parentRulesetPath)
-        {
-            var resolvedIncludePath = ResolveIncludePathCore(includePath, parentRulesetPath);
-            if (resolvedIncludePath == null && PathUtilities.IsUnixLikePlatform)
+            static string? resolveIncludePath(string includePath, string? parentRulesetPath)
             {
-                // Attempt to resolve legacy ruleset includes after replacing Windows style directory separator char with current plaform's directory separator char.
-                includePath = includePath.Replace('\\', Path.DirectorySeparatorChar);
-                resolvedIncludePath = ResolveIncludePathCore(includePath, parentRulesetPath);
-            }
-
-            return resolvedIncludePath;
-        }
-
-        private static string ResolveIncludePathCore(string includePath, string parentRulesetPath)
-        {
-            includePath = Environment.ExpandEnvironmentVariables(includePath);
-
-            // If a full path is specified then use it
-            if (Path.IsPathRooted(includePath))
-            {
-                if (File.Exists(includePath))
+                var resolvedIncludePath = resolveIncludePathCore(includePath, parentRulesetPath);
+                if (resolvedIncludePath == null && PathUtilities.IsUnixLikePlatform)
                 {
-                    return includePath;
+                    // Attempt to resolve legacy ruleset includes after replacing Windows style directory separator char with current plaform's directory separator char.
+                    includePath = includePath.Replace('\\', Path.DirectorySeparatorChar);
+                    resolvedIncludePath = resolveIncludePathCore(includePath, parentRulesetPath);
                 }
-            }
-            else if (!string.IsNullOrEmpty(parentRulesetPath))
-            {
-                // Otherwise, try to find the include file relative to the parent ruleset.
-                includePath = PathUtilities.CombinePathsUnchecked(Path.GetDirectoryName(parentRulesetPath), includePath);
-                if (File.Exists(includePath))
-                {
-                    return includePath;
-                }
+
+                return resolvedIncludePath;
             }
 
-            return null;
+            static string? resolveIncludePathCore(string includePath, string? parentRulesetPath)
+            {
+                includePath = Environment.ExpandEnvironmentVariables(includePath);
+
+                // If a full path is specified then use it
+                if (Path.IsPathRooted(includePath))
+                {
+                    if (File.Exists(includePath))
+                    {
+                        return includePath;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(parentRulesetPath))
+                {
+                    // Otherwise, try to find the include file relative to the parent ruleset.
+                    includePath = PathUtilities.CombinePathsUnchecked(Path.GetDirectoryName(parentRulesetPath) ?? "", includePath);
+                    if (File.Exists(includePath))
+                    {
+                        return includePath;
+                    }
+                }
+
+                return null;
+            }
         }
     }
 }

@@ -1,4 +1,10 @@
-﻿using System.Threading;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Formatting;
@@ -905,32 +911,30 @@ namespace N1
 
         private async Task TestNamespaceMove(string originalCode, string expectedCode, bool expectOperation = true)
         {
-            using (var workspace = CreateWorkspaceFromOptions(originalCode, default))
+            using var workspace = CreateWorkspaceFromOptions(originalCode, default);
+            var documentToModifyId = workspace.Documents[0].Id;
+            var textSpan = workspace.Documents[0].SelectedSpans[0];
+            var documentToModify = workspace.CurrentSolution.GetDocument(documentToModifyId);
+
+            var moveTypeService = documentToModify.GetLanguageService<IMoveTypeService>();
+            Assert.NotNull(moveTypeService);
+
+            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CancellationToken.None).ConfigureAwait(false);
+
+            if (expectOperation)
             {
-                var documentToModifyId = workspace.Documents[0].Id;
-                var textSpan = workspace.Documents[0].SelectedSpans[0];
-                var documentToModify = workspace.CurrentSolution.GetDocument(documentToModifyId);
-
-                var moveTypeService = documentToModify.GetLanguageService<IMoveTypeService>();
-                Assert.NotNull(moveTypeService);
-
-                var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CancellationToken.None).ConfigureAwait(false);
-
-                if (expectOperation)
-                {
-                    Assert.NotEqual(documentToModify.Project.Solution, modifiedSolution);
-                }
-                else
-                {
-                    Assert.Equal(documentToModify.Project.Solution, modifiedSolution);
-                }
-
-                var modifiedDocument = modifiedSolution.GetDocument(documentToModifyId);
-                var formattedDocument = await Formatter.FormatAsync(modifiedDocument).ConfigureAwait(false);
-
-                var formattedText = await formattedDocument.GetTextAsync().ConfigureAwait(false);
-                Assert.Equal(expectedCode, formattedText.ToString());
+                Assert.NotEqual(documentToModify.Project.Solution, modifiedSolution);
             }
+            else
+            {
+                Assert.Equal(documentToModify.Project.Solution, modifiedSolution);
+            }
+
+            var modifiedDocument = modifiedSolution.GetDocument(documentToModifyId);
+            var formattedDocument = await Formatter.FormatAsync(modifiedDocument).ConfigureAwait(false);
+
+            var formattedText = await formattedDocument.GetTextAsync().ConfigureAwait(false);
+            Assert.Equal(expectedCode, formattedText.ToString());
         }
     }
 }

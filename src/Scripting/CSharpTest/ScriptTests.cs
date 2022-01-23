@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -97,25 +101,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
-        public void TestCreateScriptDelegate()
+        public async Task TestCreateScriptDelegate()
         {
             // create a delegate for the entire script
             var script = CSharpScript.Create("1 + 2");
             var fn = script.CreateDelegate();
 
             Assert.Equal(3, fn().Result);
-            Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
         }
 
         [Fact]
-        public void TestCreateScriptDelegateWithGlobals()
+        public async Task TestCreateScriptDelegateWithGlobals()
         {
             // create a delegate for the entire script
             var script = CSharpScript.Create<int>("X + Y", globalsType: typeof(Globals));
             var fn = script.CreateDelegate();
 
-            Assert.ThrowsAsync<ArgumentException>("globals", () => fn());
-            Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => fn());
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
             Assert.Equal(4, fn(new Globals { X = 1, Y = 3 }).Result);
         }
 
@@ -178,9 +182,9 @@ F();");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/170")]
-        public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
+        public async Task TestRunDynamicVoidScriptWithTerminatingSemicolon()
         {
-            var result = CSharpScript.RunAsync(@"
+            await CSharpScript.RunAsync(@"
 class SomeClass
 {
     public void Do()
@@ -193,9 +197,9 @@ d.Do();"
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/170")]
-        public void TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
+        public async Task TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
         {
-            var result = CSharpScript.RunAsync(@"
+            await CSharpScript.RunAsync(@"
 class SomeClass
 {
     public void Do()
@@ -300,30 +304,30 @@ throw e;", globals: new ScriptTests());
         }
 
         [Fact]
-        public void TestRunCreatedScriptWithUnexpectedGlobals()
+        public async Task TestRunCreatedScriptWithUnexpectedGlobals()
         {
             var script = CSharpScript.Create("X + Y");
 
             // Global variables passed to a script without a global type
-            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new Globals { X = 1, Y = 2 }));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new Globals { X = 1, Y = 2 }));
         }
 
         [Fact]
-        public void TestRunCreatedScriptWithoutGlobals()
+        public async Task TestRunCreatedScriptWithoutGlobals()
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
             //  The script requires access to global variables but none were given
-            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync());
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync());
         }
 
         [Fact]
-        public void TestRunCreatedScriptWithMismatchedGlobals()
+        public async Task TestRunCreatedScriptWithMismatchedGlobals()
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
             //  The globals of type 'System.Object' is not assignable to 'Microsoft.CodeAnalysis.CSharp.Scripting.Test.ScriptTests+Globals'
-            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new object()));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new object()));
         }
 
         [Fact]
@@ -354,7 +358,7 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task TestRepl()
         {
-            string[] submissions = new[]
+            var submissions = new[]
             {
                 "int x = 100;",
                 "int y = x * x;",
@@ -407,7 +411,7 @@ throw e;", globals: new ScriptTests());
             Assert.Equal(5m, state.GetVariable("x").Value);
             Assert.Equal(20, state.GetVariable("X").Value);
 
-            Assert.Equal(null, state.GetVariable("A"));
+            Assert.Null(state.GetVariable("A"));
             Assert.Same(state.GetVariable("X"), state.GetVariable("X"));
         }
 
@@ -465,6 +469,31 @@ const int z = 3;
             // it should not see any declarations made by the second script.
             var state3 = await state1.ContinueWithAsync("M(5)");
             Assert.Equal(10, state3.ReturnValue);
+        }
+
+        [Fact]
+        public async Task StaticDelegate0()
+        {
+            var state0 = await CSharpScript.RunAsync("static int Add(int x, int y) => x + y;", options: ScriptOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var state1 = await state0.ContinueWithAsync("System.Func<int, int, int> adder = Add;");
+            var state2 = await state1.ContinueWithAsync("adder(1, 1)");
+            Assert.Equal(2, state2.ReturnValue);
+        }
+
+        [Fact]
+        public async Task StaticDelegate1()
+        {
+            var state0 = await CSharpScript.RunAsync("class Id<T> { static T Core(T t) => t; public static System.Func<T, T> Get => Core; }");
+            var state1 = await state0.ContinueWithAsync("Id<int>.Get(1)");
+            Assert.Equal(1, state1.ReturnValue);
+        }
+
+        [Fact]
+        public async Task StaticDelegate2()
+        {
+            var state0 = await CSharpScript.RunAsync("class Id { static T Core<T>(T t) => t; public static System.Func<T, T> Get<T>() => Core; }");
+            var state1 = await state0.ContinueWithAsync("Id.Get<int>()(1)");
+            Assert.Equal(1, state1.ReturnValue);
         }
 
         [Fact]
@@ -946,6 +975,102 @@ i", options);
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 28)
             );
+        }
+
+        [Fact, WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        public async Task SwitchPatternWithVar_WhenValidCode_ShouldReturnValidResult()
+        {
+            var code = @"
+using System;
+var data = ""data"";
+var reply = data switch {
+    null => ""data are null"",
+    """" => ""data are empty"",
+    _ => data
+};
+
+return reply;
+";
+            var script = CSharpScript.Create(code, ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            var compilation = script.GetCompilation();
+            compilation.VerifyDiagnostics();
+
+            var result = await script.EvaluateAsync();
+
+            Assert.Equal("data", result);
+        }
+
+        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        [Fact]
+        public async Task SwitchPatternWithVar_WhenNonExistentVariable_ShouldReturnNameNotInContextCompilationError()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = notExistentVariable switch { _ => null };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,12): error CS0103: The name 'notExistentVariable' does not exist in the current context
+                    // var data = notExistentVariable switch { _ => null };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "notExistentVariable").WithArguments("notExistentVariable").WithLocation(1, 12));
+            }
+
+            Assert.True(exceptionThrown);
+        }
+
+        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        [Fact]
+        public async Task SwitchPatternWithVar_WhenInvalidPattern_ShouldReturnUnsupportedTypeForRelationalPatternAndNoImplicitConvErrors()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = ""data"" switch { < 5 => null };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,28): error CS8781: Relational patterns may not be used for a value of type 'string'.
+                    // var data = "data" switch { < 5 => null };
+                    Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 5").WithArguments("string").WithLocation(1, 28),
+                    // (1,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                    // var data = "data" switch { < 5 => null };
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "5").WithArguments("int", "string").WithLocation(1, 30));
+            }
+
+            Assert.True(exceptionThrown);
+        }
+
+        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        [Fact]
+        public async Task SwitchPatternWithVar_WhenInvalidArm_ShouldReturnTheNameNotInContextError()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = ""test"" switch { _ => armError };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,33): error CS0103: The name 'armError' does not exist in the current context
+                    // var data = "test" switch { _ => armError };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "armError").WithArguments("armError")
+                        .WithLocation(1, 33));
+            }
+
+            Assert.True(exceptionThrown);
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver

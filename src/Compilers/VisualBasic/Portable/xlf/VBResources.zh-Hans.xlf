@@ -2,19 +2,89 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">Init only 属性 "{0}" 只能由对象成员初始值设定项分配，或在实例构造函数中的 "Me"、"MyClass" 或 "MyBase" 上分配。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">无法访问共享摘要接口成员。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">请使用语言版本 {0} 或更高版本，以在行继续符后使用注释。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">无法嵌入类型“{0}”，因为它有非抽象成员。请考虑将“嵌入互操作类型”属性设置为 false。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">多个分析器配置文件不能位于同一目录({0})中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">"{0}" 无法重写 init-only "{1}"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">无法实现 init-only "{0}"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">无法嵌入类型“{0}”，因为它有基本接口成员的重新抽象。请考虑将“嵌入互操作类型”属性设置为 false。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="translated">目标运行时不支持默认接口实现。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
+        <target state="translated">目标运行时不支持对接口的成员使用 "Protected"、"Protected Friend" 或 "Private Protected" 辅助功能。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">共享 WithEvents 变量的事件不能由其他类型的方法处理。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0}“{1}”无法实现接口“{3}”因为其包含共享摘要“{2}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">不支持 "UnmanagedCallersOnly" 属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">调用方参数表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">行继续符之后的注释</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">通过 init-only 资源库分配或传递 "ByRef" 属性</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -95,10 +165,14 @@
 -warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 -ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
--errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
-                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -255,10 +329,14 @@
 -warnaserror[+|-]:&lt;number_list&gt;   将警告列表视为错误。
 -ruleset:&lt;file&gt;                   指定禁用特定诊断的
                                   规则集文件。
--errorlog:&lt;file&gt;                  指定用于记录所有编译器和分析器诊断的
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  指定用于以 SARIF 格式记录所有编译器和分析器诊断的
                                   文件。
+                                  sarif_version:{1|2|2.1} 默认为 1. 2 和 2.1
+                                  两者均表示 SARIF 版本 2.1.0。
 -reportanalyzer                   报告其他分析器信息，如
                                   执行时间。
+-skipanalyzers[+|-]               跳过诊断分析器的执行。
                                   - 语言 -
 
 -define:&lt;symbol_list&gt;             声明全局条件编译
@@ -345,6 +423,16 @@
 </target>
         <note />
       </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">VB 中没有任何函数指针类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="translated">VB 中没有任何本机整数类型。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trees0">
         <source>trees({0})</source>
         <target state="translated">树({0})</target>
@@ -377,7 +465,7 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">未找到要删除的 SyntaxTree“{0}”。</target>
+        <target state="translated">未找到要删除的 SyntaxTree“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWithCompilationUnit">
@@ -420,6 +508,70 @@
         <target state="translated">类型参数不能是任何内容</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">包含类型“{1}”的程序集“{0}”引用了 .NET Framework，而此操作不受支持。</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">加载的程序集引用了 .NET Framework，而此操作不受支持。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">应用于参数“{0}”的 CallerArgumentExpressionAttribute 将不起任何作用。它采用了无效的参数名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">应用于参数的 CallerArgumentExpressionAttribute 将不起任何作用。它采用了无效的参数名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">应用于参数“{0}”的 CallerArgumentExpressionAttribute 将不起任何作用，因为它是自引用的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">应用于参数的 CallerArgumentExpressionAttribute 将不起任何作用，因为它是自引用的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">生成器“{0}”未能生成源。它不会影响输出，因此可能会造成编译错误。异常的类型为“{1}”，显示消息“{2}”</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">生成器引发以下异常:
+“{0}”。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">生成器无法生成源。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">生成器“{0}”未能初始化。它不会影响输出，因此可能会造成编译错误。异常的类型为“{1}”，显示消息“{2}”</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">生成器引发以下异常:
+“{0}”。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">生成器初始化失败。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
         <source>Wrong number of type arguments</source>
         <target state="translated">类型参数的数目不正确</target>
@@ -427,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_FileNotFound">
         <source>file '{0}' could not be found</source>
-        <target state="translated">找不到文件“{0}”。</target>
+        <target state="translated">找不到文件“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoResponseFile">
@@ -572,7 +724,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyName">
         <source>'{0}' is not a valid value for /moduleassemblyname</source>
-        <target state="translated">'“{0}”不是 /moduleassemblyname 的有效值。</target>
+        <target state="translated">“{0}”不是 /moduleassemblyname 的有效值</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingManifestSwitches">
@@ -745,6 +897,11 @@
         <target state="translated">字符无效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="translated">已指定 stdin 参数 "-"，但尚未从标准输入流重定向输入。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
         <source>Option Strict On prohibits operands of type Object for operator '{0}'.</source>
         <target state="translated">Option Strict On 禁止将 Object 类型的操作数用于运算符“{0}”。</target>
@@ -757,7 +914,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodBodyNotAtLineStart">
         <source>First statement of a method body cannot be on the same line as the method declaration.</source>
-        <target state="translated">方法体的第一条语句和方法声明不能位于同一行。</target>
+        <target state="translated">方法主体的第一条语句和方法声明不能位于同一行。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MaximumNumberOfErrors">
@@ -767,12 +924,12 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordNotInInstanceMethod1">
         <source>'{0}' is valid only within an instance method.</source>
-        <target state="translated">'“{0}”仅在实例方法中有效。</target>
+        <target state="translated">“{0}”仅在实例方法中有效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordFromStructure1">
         <source>'{0}' is not valid within a structure.</source>
-        <target state="translated">'“{0}”在结构中无效。</target>
+        <target state="translated">“{0}”在结构中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAttributeConstructor1">
@@ -787,7 +944,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedArray1">
         <source>'{0}' statement requires an array.</source>
-        <target state="translated">'“{0}”语句需要数组。</target>
+        <target state="translated">“{0}”语句需要数组。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamArrayNotArray">
@@ -1007,42 +1164,42 @@
       </trans-unit>
       <trans-unit id="ERR_EnumNotExpression1">
         <source>'{0}' is an Enum type and cannot be used as an expression.</source>
-        <target state="translated">'“{0}”是一个枚举类型，不能用作表达式。</target>
+        <target state="translated">“{0}”是一个枚举类型，不能用作表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeNotExpression1">
         <source>'{0}' is a type and cannot be used as an expression.</source>
-        <target state="translated">'“{0}”是一个类型，不能用作表达式。</target>
+        <target state="translated">“{0}”是一个类型，不能用作表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassNotExpression1">
         <source>'{0}' is a class type and cannot be used as an expression.</source>
-        <target state="translated">'“{0}”是一个类类型，不能用作表达式。</target>
+        <target state="translated">“{0}”是一个类类型，不能用作表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructureNotExpression1">
         <source>'{0}' is a structure type and cannot be used as an expression.</source>
-        <target state="translated">'“{0}”是一个结构类型，不能用作表达式。</target>
+        <target state="translated">“{0}”是一个结构类型，不能用作表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceNotExpression1">
         <source>'{0}' is an interface type and cannot be used as an expression.</source>
-        <target state="translated">'“{0}”是一个接口类型，不能用作表达式。</target>
+        <target state="translated">“{0}”是一个接口类型，不能用作表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceNotExpression1">
         <source>'{0}' is a namespace and cannot be used as an expression.</source>
-        <target state="translated">'“{0}”是一个命名空间，不能用作表达式。</target>
+        <target state="translated">“{0}”是一个命名空间，不能用作表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamespaceName1">
         <source>'{0}' is not a valid name and cannot be used as the root namespace name.</source>
-        <target state="translated">'“{0}”不是有效名称，不能用作根命名空间名称。</target>
+        <target state="translated">“{0}”不是有效名称，不能用作根命名空间名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_XmlPrefixNotExpression">
         <source>'{0}' is an XML prefix and cannot be used as an expression.  Use the GetXmlNamespace operator to create a namespace object.</source>
-        <target state="translated">'“{0}”是 XML 前缀，不能用作表达式。请使用 GetXmlNamespace 运算符创建命名空间对象。</target>
+        <target state="translated">“{0}”是 XML 前缀，不能用作表达式。请使用 GetXmlNamespace 运算符创建命名空间对象。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleExtends">
@@ -1302,17 +1459,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadConstFlags1">
         <source>'{0}' is not valid on a constant declaration.</source>
-        <target state="translated">'“{0}”在常量声明中无效。</target>
+        <target state="translated">“{0}”在常量声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadWithEventsFlags1">
         <source>'{0}' is not valid on a WithEvents declaration.</source>
-        <target state="translated">'“{0}”在 WithEvents 声明中无效。</target>
+        <target state="translated">“{0}”在 WithEvents 声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDimFlags1">
         <source>'{0}' is not valid on a member variable declaration.</source>
-        <target state="translated">'“{0}”在成员变量声明中无效。</target>
+        <target state="translated">“{0}”在成员变量声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateParamName1">
@@ -1352,27 +1509,27 @@
       </trans-unit>
       <trans-unit id="ERR_BadMethodFlags1">
         <source>'{0}' is not valid on a method declaration.</source>
-        <target state="translated">'“{0}”在方法声明中无效。</target>
+        <target state="translated">“{0}”在方法声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventFlags1">
         <source>'{0}' is not valid on an event declaration.</source>
-        <target state="translated">'“{0}”在事件声明中无效。</target>
+        <target state="translated">“{0}”在事件声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDeclareFlags1">
         <source>'{0}' is not valid on a Declare.</source>
-        <target state="translated">'“{0}”在 Declare 中无效。</target>
+        <target state="translated">“{0}”在 Declare 中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadLocalConstFlags1">
         <source>'{0}' is not valid on a local constant declaration.</source>
-        <target state="translated">'“{0}”在局部常量声明中无效。</target>
+        <target state="translated">“{0}”在局部常量声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadLocalDimFlags1">
         <source>'{0}' is not valid on a local variable declaration.</source>
-        <target state="translated">'“{0}”在局部变量声明中无效。</target>
+        <target state="translated">“{0}”在局部变量声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedConditionalDirective">
@@ -1426,42 +1583,42 @@
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedType3">
         <source>'{0}' is already declared as '{1}' in this {2}.</source>
-        <target state="translated">'“{0}”已在此 {2} 中声明为“{1}”。</target>
+        <target state="translated">“{0}”已在此 {2} 中声明为“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadOverrideAccess2">
         <source>'{0}' cannot override '{1}' because they have different access levels.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们具有不同的访问级别。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们具有不同的访问级别。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNotOverridable2">
         <source>'{0}' cannot override '{1}' because it is declared 'NotOverridable'.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为后者已声明为“NotOverridable”。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为后者已声明为“NotOverridable”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateProcDef1">
         <source>'{0}' has multiple definitions with identical signatures.</source>
-        <target state="translated">'“{0}”具有多个带相同签名的定义。</target>
+        <target state="translated">“{0}”具有多个带相同签名的定义。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateProcDefWithDifferentTupleNames2">
         <source>'{0}' has multiple definitions with identical signatures with different tuple element names, including '{1}'.</source>
-        <target state="translated">'“{0}”具有多个带不同元组元素名称却有相同签名的定义，包括“{1}”。</target>
+        <target state="translated">“{0}”具有多个带不同元组元素名称却有相同签名的定义，包括“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceMethodFlags1">
         <source>'{0}' is not valid on an interface method declaration.</source>
-        <target state="translated">'“{0}”在接口方法声明中无效。</target>
+        <target state="translated">“{0}”在接口方法声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound2">
         <source>'{0}' is not a parameter of '{1}'.</source>
-        <target state="translated">'“{0}”不是“{1}”的参数。</target>
+        <target state="translated">“{0}”不是“{1}”的参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfacePropertyFlags1">
         <source>'{0}' is not valid on an interface property declaration.</source>
-        <target state="translated">'“{0}”在接口属性声明中无效。</target>
+        <target state="translated">“{0}”在接口属性声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgUsedTwice2">
@@ -1471,7 +1628,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceCantUseEventSpecifier1">
         <source>'{0}' is not valid on an interface event declaration.</source>
-        <target state="translated">'“{0}”在接口事件声明中无效。</target>
+        <target state="translated">“{0}”在接口事件声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypecharNoMatch2">
@@ -1505,8 +1662,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">未能发出模块“{0}”。</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="translated">未能发出模块“{0}”: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -1531,7 +1688,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvInsideEndsProc">
         <source>Statement cannot appear within a method body. End of method assumed.</source>
-        <target state="translated">语句不能出现在方法体内。假定为方法末尾。</target>
+        <target state="translated">语句不能出现在方法主体内。假定为方法末尾。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameAsFunc">
@@ -1570,17 +1727,17 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsFromCantInherit3">
         <source>'{0}' cannot inherit from {2} '{1}' because '{1}' is declared 'NotInheritable'.</source>
-        <target state="translated">'“{1}”已声明为“NotInheritable”，因此“{0}”无法从 {2}“{1}”继承。</target>
+        <target state="translated">“{1}”已声明为“NotInheritable”，因此“{0}”无法从 {2}“{1}”继承。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithOptional2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by optional parameters.</source>
-        <target state="translated">'“{0}” 和“{1}”的差异仅在于可选参数，因此它们无法重载对方。</target>
+        <target state="translated">“{0}” 和“{1}”的差异仅在于可选参数，因此它们无法重载对方。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithReturnType2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by return types.</source>
-        <target state="translated">'“{0}”和“{1}”的差异仅在于返回类型，因此它们无法重载对方。</target>
+        <target state="translated">“{0}”和“{1}”的差异仅在于返回类型，因此它们无法重载对方。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeCharWithType1">
@@ -1595,7 +1752,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithDefault2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by the default values of optional parameters.</source>
-        <target state="translated">'“{0}”和“{1}”的差异仅在于可选参数的默认值，因此它们无法重载对方。</target>
+        <target state="translated">“{0}”和“{1}”的差异仅在于可选参数的默认值，因此它们无法重载对方。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingSubscript">
@@ -1605,12 +1762,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithDefault2">
         <source>'{0}' cannot override '{1}' because they differ by the default values of optional parameters.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们在可选参数的默认值上存在差异。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们在可选参数的默认值上存在差异。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithOptional2">
         <source>'{0}' cannot override '{1}' because they differ by optional parameters.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们在可选参数上存在差异。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们在可选参数上存在差异。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldOfValueFieldOfMarshalByRef3">
@@ -1645,7 +1802,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithByref2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.</source>
-        <target state="translated">'“{0}”和“{1}”的差异仅在于声明为“ByRef”或“ByVal”的参数，因此它们无法重载对方。</target>
+        <target state="translated">“{0}”和“{1}”的差异仅在于声明为“ByRef”或“ByVal”的参数，因此它们无法重载对方。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsFromNonInterface">
@@ -1665,12 +1822,12 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultMissingFromProperty2">
         <source>'{0}' and '{1}' cannot overload each other because only one is declared 'Default'.</source>
-        <target state="translated">'“{0}”和“{1}”中只有一个声明为“Default”，因此它们无法相互重载。</target>
+        <target state="translated">“{0}”和“{1}”中只有一个声明为“Default”，因此它们无法相互重载。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingPropertyKind2">
         <source>'{0}' cannot override '{1}' because they differ by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们在是“ReadOnly”还是“WriteOnly”上不同。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们在是“ReadOnly”还是“WriteOnly”上不同。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewInInterface">
@@ -1685,7 +1842,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadingPropertyKind2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'“{0}” 和“{1}”的差异仅在于“ReadOnly”和“WriteOnly”，因此它们无法重载对方。</target>
+        <target state="translated">“{0}” 和“{1}”的差异仅在于“ReadOnly”和“WriteOnly”，因此它们无法重载对方。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDefaultNotExtend1">
@@ -1695,7 +1852,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithArrayVsParamArray2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ParamArray'.</source>
-        <target state="translated">'“{0}”和“{1}”的差异仅在于声明为“ParamArray”的参数，因此它们无法重载对方。</target>
+        <target state="translated">“{0}”和“{1}”的差异仅在于声明为 "ParamArray" 的参数，因此它们无法重载对方。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInstanceMemberAccess">
@@ -1750,7 +1907,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadDelegateFlags1">
         <source>'{0}' is not valid on a Delegate declaration.</source>
-        <target state="translated">'“{0}”在委托声明中无效。</target>
+        <target state="translated">“{0}”在委托声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConstructorOnBase2">
@@ -1760,12 +1917,12 @@
       </trans-unit>
       <trans-unit id="ERR_InaccessibleSymbol2">
         <source>'{0}' is not accessible in this context because it is '{1}'.</source>
-        <target state="translated">'“{0}”是“{1}”,因此它在此上下文中不可访问。</target>
+        <target state="translated">“{0}”是“{1}”,因此它在此上下文中不可访问。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InaccessibleMember3">
         <source>'{0}.{1}' is not accessible in this context because it is '{2}'.</source>
-        <target state="translated">'“{0}.{1}”是“{2}” ,因此它在此上下文中不可访问。</target>
+        <target state="translated">“{0}.{1}”是“{2}” ,因此它在此上下文中不可访问。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CatchNotException1">
@@ -1780,22 +1937,22 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordFlags1">
         <source>'{0}' is not valid on a Structure declaration.</source>
-        <target state="translated">'“{0}”在结构声明中无效。</target>
+        <target state="translated">“{0}”在结构声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEnumFlags1">
         <source>'{0}' is not valid on an Enum declaration.</source>
-        <target state="translated">'“{0}”在枚举声明中无效。</target>
+        <target state="translated">“{0}”在枚举声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceFlags1">
         <source>'{0}' is not valid on an Interface declaration.</source>
-        <target state="translated">'“{0}”在接口声明中无效。</target>
+        <target state="translated">“{0}”在接口声明中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithByref2">
         <source>'{0}' cannot override '{1}' because they differ by a parameter that is marked as 'ByRef' versus 'ByVal'.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们在某个参数上存在差异，一个被标记为“ByRef”，而另一个被标记为“ByVal”。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们在某个参数上存在差异，一个被标记为“ByRef”，而另一个被标记为“ByVal”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MyBaseAbstractCall1">
@@ -1805,12 +1962,12 @@
       </trans-unit>
       <trans-unit id="ERR_IdentNotMemberOfInterface4">
         <source>'{0}' cannot implement '{1}' because there is no matching {2} on interface '{3}'.</source>
-        <target state="translated">'“{0}”无法实现“{1}”，因为接口“{3}”上不存在匹配的 {2}。</target>
+        <target state="translated">“{0}”无法实现“{1}”，因为接口“{3}”上不存在匹配的 {2}。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementingInterfaceWithDifferentTupleNames5">
         <source>'{0}' cannot implement {1} '{2}' on interface '{3}' because the tuple element names in '{4}' do not match those in '{5}'.</source>
-        <target state="translated">'“{0}”不能在接口“{3}”上实现{1}“{2}”，因为“{4}”中的元组元素名称与“{5}”中的名称不匹配。</target>
+        <target state="translated">“{0}”不能在接口“{3}”上实现{1}“{2}”，因为“{4}”中的元组元素名称与“{5}”中的名称不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WithEventsRequiresClass">
@@ -1835,7 +1992,7 @@
       </trans-unit>
       <trans-unit id="ERR_StartupCodeNotFound1">
         <source>'Sub Main' was not found in '{0}'.</source>
-        <target state="translated">'“{0}”中找不到“Sub Main”。</target>
+        <target state="translated">“{0}”中找不到“Sub Main”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstAsNonConstant">
@@ -1875,12 +2032,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidOverrideDueToReturn2">
         <source>'{0}' cannot override '{1}' because they differ by their return types.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们的返回类型不同。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们的返回类型不同。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidOverrideDueToTupleNames2">
         <source>'{0}' cannot override '{1}' because they differ by their tuple element names.</source>
-        <target state="translated">'“{0}”不能替代“{1}”，因为它们的元组元素名称不同。</target>
+        <target state="translated">“{0}”不能替代“{1}”，因为它们的元组元素名称不同。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidOverrideDueToTupleNames2_Title">
@@ -1930,7 +2087,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotMember2">
         <source>'{0}' is not a member of '{1}'.</source>
-        <target state="translated">'“{0}”不是“{1}”的成员。</target>
+        <target state="translated">“{0}”不是“{1}”的成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndClassNoClass">
@@ -2055,7 +2212,7 @@
       </trans-unit>
       <trans-unit id="ERR_InheritanceAccessMismatch5">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of the base {1} to {3} '{4}'.</source>
-        <target state="translated">'“{0}”将对基 {1} 的访问扩展到 {3}“{4}”，因此无法从 {1}“{2}”继承。</target>
+        <target state="translated">“{0}”将对基 {1} 的访问扩展到 {3}“{4}”，因此无法从 {1}“{2}”继承。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NarrowingConversionDisallowed2">
@@ -2090,7 +2247,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing3">
         <source>Argument matching parameter '{0}' narrows from '{1}' to '{2}'.</source>
-        <target state="translated">与参数“{0}”匹配的参数从“{1}”收缩到“{2}”。</target>
+        <target state="translated">与形参“{0}”匹配的实参从“{1}”收缩到“{2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMostSpecificOverload2">
@@ -2172,7 +2329,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInUnnamedNamespace1">
         <source>'{0}' is ambiguous.</source>
-        <target state="translated">'“{0}”不明确。</target>
+        <target state="translated">“{0}”不明确。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultMemberNotProperty1">
@@ -2182,22 +2339,22 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInNamespace2">
         <source>'{0}' is ambiguous in the namespace '{1}'.</source>
-        <target state="translated">'“{1}”在命名空间中“{0}”不明确。</target>
+        <target state="translated">“{1}”在命名空间中“{0}”不明确。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInImports2">
         <source>'{0}' is ambiguous, imported from the namespaces or types '{1}'.</source>
-        <target state="translated">'“{0}”不明确，从命名空间或类型“{1}”导入。</target>
+        <target state="translated">“{0}”不明确，从命名空间或类型“{1}”导入。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInModules2">
         <source>'{0}' is ambiguous between declarations in Modules '{1}'.</source>
-        <target state="translated">'“{0}”在模块“{1}”中的声明之间不明确。</target>
+        <target state="translated">“{0}”在模块“{1}”中的声明之间不明确。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInNamespaces2">
         <source>'{0}' is ambiguous between declarations in namespaces '{1}'.</source>
-        <target state="translated">'“{0}”在命名空间“{1}”中的声明之间不明确。</target>
+        <target state="translated">“{0}”在命名空间“{1}”中的声明之间不明确。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayInitializerTooFewDimensions">
@@ -2272,12 +2429,12 @@
       </trans-unit>
       <trans-unit id="ERR_MethodAlreadyImplemented2">
         <source>'{0}.{1}' cannot be implemented more than once.</source>
-        <target state="translated">'“{0}.{1}”不能多次实现。</target>
+        <target state="translated">“{0}.{1}”不能多次实现。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInInherits1">
         <source>'{0}' cannot be inherited more than once.</source>
-        <target state="translated">'“{0}”不能被继承多次。</target>
+        <target state="translated">“{0}”不能被继承多次。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedParamArrayArgument">
@@ -2342,7 +2499,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustInheritEventNotOverridden">
         <source>'{0}' is a MustOverride event in the base class '{1}'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class '{2}' MustInherit.</source>
-        <target state="translated">'“{0}”是基类“{1}” 中的 MustOverride 事件。Visual Basic 不支持事件替代。必须提供基类中事件的实现或让类“{2}“成为 MustInherit。</target>
+        <target state="translated">“{0}”是基类“{1}” 中的 MustOverride 事件。Visual Basic 不支持事件替代。必须提供基类中事件的实现或让类“{2}“成为 MustInherit。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NegativeArraySize">
@@ -2497,7 +2654,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleOptionalParameterSpecifiers">
         <source>'Optional' and 'ParamArray' cannot be combined.</source>
-        <target state="translated">'"Optional" 不能与 "ParamArray" 组合。</target>
+        <target state="translated">"Optional" 不能与 "ParamArray" 组合。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedProperty1">
@@ -2522,7 +2679,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedType1">
         <source>'{0}' is an unsupported type.</source>
-        <target state="translated">'“{0}”是不受支持的类型。</target>
+        <target state="translated">“{0}”是不受支持的类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidEnumBase">
@@ -2557,7 +2714,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedMethod1">
         <source>'{0}' has a return type that is not supported or parameter types that are not supported.</source>
-        <target state="translated">'“{0}”有不受支持的返回类型或不受支持的参数类型。</target>
+        <target state="translated">“{0}”有不受支持的返回类型或不受支持的参数类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNonIndexProperty1">
@@ -2639,12 +2796,12 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoleteSymbol2">
         <source>'{0}' is obsolete: '{1}'.</source>
-        <target state="translated">'“{0}”已过时:“{1}”。</target>
+        <target state="translated">“{0}”已过时:“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RedimNoSizes">
         <source>'ReDim' statements require a parenthesized list of the new bounds of each dimension of the array.</source>
-        <target state="translated">'"ReDim" 语句需要一个带括号的列表，该列表列出数组每个维度的新界限。</target>
+        <target state="translated">"ReDim" 语句需要一个带圆括号的列表，该列表列出数组每个维度的新界限。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitWithMultipleDeclarators">
@@ -2669,7 +2826,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotEvent2">
         <source>'{0}' is not an event of '{1}'.</source>
-        <target state="translated">'“{0}”不是“{1}”的事件。</target>
+        <target state="translated">“{0}”不是“{1}”的事件。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddOrRemoveHandlerEvent">
@@ -2704,7 +2861,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAcrossInterfaces3">
         <source>'{0}' is ambiguous across the inherited interfaces '{1}' and '{2}'.</source>
-        <target state="translated">'“{0}”在继承接口“{1}”和“{2}”之间不明确。</target>
+        <target state="translated">“{0}”在继承接口“{1}”和“{2}”之间不明确。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPropertyAmbiguousAcrossInterfaces4">
@@ -2719,7 +2876,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExecutableAsDeclaration">
         <source>Statement cannot appear outside of a method body.</source>
-        <target state="translated">语句不能出现在方法体外。</target>
+        <target state="translated">语句不能出现在方法主体外。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructureNoDefault1">
@@ -2734,7 +2891,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithOptionalTypes2">
         <source>'{0}' cannot override '{1}' because they differ by the types of optional parameters.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们在可选参数类型上存在差异。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们在可选参数类型上存在差异。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedEndOfExpression">
@@ -2754,7 +2911,7 @@
       </trans-unit>
       <trans-unit id="ERR_LocalNamedSameAsParam1">
         <source>'{0}' is already declared as a parameter of this method.</source>
-        <target state="translated">'“{0}”已声明为此方法的参数。</target>
+        <target state="translated">“{0}”已声明为此方法的参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalNamedSameAsParamInLambda1">
@@ -2894,7 +3051,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidTypeForAliasesImport2">
         <source>'{1}' for the Imports alias to '{0}' does not refer to a Namespace, Class, Structure, Interface, Enum or Module.</source>
-        <target state="translated">'“{0}”的 Imports 别名的“{1}”不引用命名空间、类、结构、接口、枚举或模块。</target>
+        <target state="translated">“{0}”的 Imports 别名的“{1}”不引用命名空间、类、结构、接口、枚举或模块。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedConstant2">
@@ -2979,7 +3136,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithArrayVsParamArray2">
         <source>'{0}' cannot override '{1}' because they differ by parameters declared 'ParamArray'.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们在声明为“ParamArray”的参数上存在差异。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们在声明为 "ParamArray" 的参数上存在差异。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBaseDependencies4">
@@ -2994,32 +3151,32 @@
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchOutsideAssembly4">
         <source>'{0}' cannot expose type '{1}' outside the project through {2} '{3}'.</source>
-        <target state="translated">'“{0}”不能通过 {2}“{3}”在项目外部公开类型“{1}”。</target>
+        <target state="translated">“{0}”不能通过 {2}“{3}”在项目外部公开类型“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritanceAccessMismatchOutside3">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of the base {1} outside the assembly.</source>
-        <target state="translated">'“{0}”将对基 {1} 的访问扩展到程序集之外，因此无法从 {1}“{2}”继承。</target>
+        <target state="translated">“{0}”将对基 {1} 的访问扩展到程序集之外，因此无法从 {1}“{2}”继承。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoletePropertyAccessor3">
         <source>'{0}' accessor of '{1}' is obsolete: '{2}'.</source>
-        <target state="translated">'“{1}”的“{0}”访问器已过时:“{2}”。</target>
+        <target state="translated">“{1}”的“{0}”访问器已过时:“{2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoletePropertyAccessor2">
         <source>'{0}' accessor of '{1}' is obsolete.</source>
-        <target state="translated">'“{1}”的“{0}”访问器已过时。</target>
+        <target state="translated">“{1}”的“{0}”访问器已过时。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchImplementedEvent6">
         <source>'{0}' cannot expose the underlying delegate type '{1}' of the event it is implementing to {2} '{3}' through {4} '{5}'.</source>
-        <target state="translated">'“{0}”不能通过 {4}“{5}”向 {2}“{3}”公开它正在实现的事件的基础委托类型“{1}”。</target>
+        <target state="translated">“{0}”不能通过 {4}“{5}”向 {2}“{3}”公开它正在实现的事件的基础委托类型“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchImplementedEvent4">
         <source>'{0}' cannot expose the underlying delegate type '{1}' of the event it is implementing outside the project through {2} '{3}'.</source>
-        <target state="translated">'“{0}”不能通过 {2}“{3}”公开它正在实现的事件的基础委托类型“{1}”。</target>
+        <target state="translated">“{0}”不能通过 {2}“{3}”公开它正在实现的事件的基础委托类型“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritanceCycleInImportedType1">
@@ -3049,12 +3206,12 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatch7">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' to {4} '{5}'.</source>
-        <target state="translated">'“{0}”将对类型“{3}”的访问扩展到{4}“{5}”，因此无法从 {1}“{2}”继承。</target>
+        <target state="translated">“{0}”将对类型“{3}”的访问扩展到{4}“{5}”，因此无法从 {1}“{2}”继承。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatchOutside5">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' outside the assembly.</source>
-        <target state="translated">'“{0}”将对类型“{3}”的访问扩展到程序集之外，因此无法从 {1}“{2}”继承。</target>
+        <target state="translated">“{0}”将对类型“{3}”的访问扩展到程序集之外，因此无法从 {1}“{2}”继承。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeAccessMismatch3">
@@ -3235,7 +3392,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">行继续符 "_" 的前面必须至少有一个空白字符，而且必须是所在行中的最后一个字符。</target>
+        <target state="translated">行继续符 "_" 前面必须至少有一个空格，且其后必须有注释或 "_" 必须是该行的最后一个字符。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -3310,7 +3467,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousImplementsMember3">
         <source>'{0}' exists in multiple base interfaces. Use the name of the interface that declares '{0}' in the 'Implements' clause instead of the name of the derived interface.</source>
-        <target state="translated">'“{0}”存在于多个基接口中。请使用在“Implements”子句中声明“{0}”的接口的名称，而不要使用派生接口的名称。</target>
+        <target state="translated">“{0}”存在于多个基接口中。请使用在“Implements”子句中声明“{0}”的接口的名称，而不要使用派生接口的名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementsOnNew">
@@ -3460,17 +3617,17 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoleteSymbolNoMessage1">
         <source>'{0}' is obsolete.</source>
-        <target state="translated">'“{0}”已过时。</target>
+        <target state="translated">“{0}”已过时。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MetaDataIsNotAssembly">
         <source>'{0}' is a module and cannot be referenced as an assembly.</source>
-        <target state="translated">'“{0}”是一个模块，不能作为程序集引用。</target>
+        <target state="translated">“{0}”是一个模块，不能作为程序集引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MetaDataIsNotModule">
         <source>'{0}' is an assembly and cannot be referenced as a module.</source>
-        <target state="translated">'“{0}”是一个程序集，不能作为模块引用。</target>
+        <target state="translated">“{0}”是一个程序集，不能作为模块引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReferenceComparison3">
@@ -3480,7 +3637,7 @@
       </trans-unit>
       <trans-unit id="ERR_CatchVariableNotLocal1">
         <source>'{0}' is not a local variable or parameter, and so cannot be used as a 'Catch' variable.</source>
-        <target state="translated">'“{0}”不是局部变量或参数，因此不能用作“Catch”变量。</target>
+        <target state="translated">“{0}”不是局部变量或参数，因此不能用作“Catch”变量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleMemberCantImplement">
@@ -3500,7 +3657,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverride4">
         <source>'{0}' cannot override '{1}' because it is not declared 'Overridable'.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为后者未声明为“Overridable”。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为后者未声明为“Overridable”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyArraysOnBoth">
@@ -3740,7 +3897,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantReferToMyGroupInsideGroupType1">
         <source>'{0}' cannot refer to itself through its default instance; use 'Me' instead.</source>
-        <target state="translated">'“{0}”不能通过其默认实例指代自身；请改用“Me”。</target>
+        <target state="translated">“{0}”不能通过其默认实例指代自身；请改用“Me”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidUseOfCustomModifier">
@@ -3755,7 +3912,7 @@
       </trans-unit>
       <trans-unit id="ERR_ObsoleteInvalidOnEventMember">
         <source>'{0}' cannot be applied to the 'AddHandler', 'RemoveHandler', or 'RaiseEvent' definitions. If required, apply the attribute directly to the event.</source>
-        <target state="translated">'“{0}”不能应用于“'AddHandler”、“RemoveHandler”或“'RaiseEvent”定义。如有必要，请将该属性直接应用于事件。</target>
+        <target state="translated">“{0}”不能应用于“'AddHandler”、“RemoveHandler”或“'RaiseEvent”定义。如有必要，请将该属性直接应用于事件。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingIncompatible2">
@@ -4035,7 +4192,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedType1">
         <source>'{0}' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.</source>
-        <target state="translated">'“{0}”不能设置为可以为 null，而且不能用作数组元素、字段、匿名类型成员、类型参数、“ByRef”参数或返回语句的数据类型。</target>
+        <target state="translated">“{0}”不能设置为可以为 null，而且不能用作数组元素、字段、匿名类型成员、类型参数、"ByRef" 参数或 return 语句的数据类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoTypecharInAlias">
@@ -4065,7 +4222,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantShadowAMustOverride1">
         <source>'{0}' cannot shadow a method declared 'MustOverride'.</source>
-        <target state="translated">'“{0}”不能隐藏声明为“MustOverride”的方法。</target>
+        <target state="translated">“{0}”不能隐藏声明为“MustOverride”的方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleEventImplMismatch3">
@@ -4075,7 +4232,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecifierCombo2">
         <source>'{0}' and '{1}' cannot be combined.</source>
-        <target state="translated">'“{0}”不能与“{1}”组合。</target>
+        <target state="translated">“{0}”不能与“{1}”组合。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustBeOverloads2">
@@ -4085,7 +4242,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustOverridesInClass1">
         <source>'{0}' must be declared 'MustInherit' because it contains methods declared 'MustOverride'.</source>
-        <target state="translated">'“{0}”包含声明为“MustOverride”的方法，因此它必须声明为“MustInherit”。</target>
+        <target state="translated">“{0}”包含声明为“MustOverride”的方法，因此它必须声明为“MustInherit”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HandlesSyntaxInClass">
@@ -4100,7 +4257,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotOverrideInAccessibleMember">
         <source>'{0}' cannot override '{1}' because it is not accessible in this context.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它在此上下文中是无法访问的。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它在此上下文中是无法访问的。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HandlesSyntaxInModule">
@@ -4115,7 +4272,7 @@
       </trans-unit>
       <trans-unit id="ERR_ClashWithReservedEnumMember1">
         <source>'{0}' conflicts with the reserved member by this name that is implicitly declared in all enums.</source>
-        <target state="translated">'“{0}”与在所有枚举中隐式声明的同名保留成员冲突。</target>
+        <target state="translated">“{0}”与在所有枚举中隐式声明的同名保留成员冲突。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedEnumMember2">
@@ -4160,7 +4317,7 @@
       </trans-unit>
       <trans-unit id="ERR_MetadataMembersAmbiguous3">
         <source>'{0}' is ambiguous because multiple kinds of members with this name exist in {1} '{2}'.</source>
-        <target state="translated">'“{0}”不明确，因为 {1}“{2}”中存在多种具有此名称的成员</target>
+        <target state="translated">“{0}”不明确，因为 {1}“{2}”中存在多种具有此名称的成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeOfExprAlwaysFalse2">
@@ -4195,7 +4352,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodsMustBeSub1">
         <source>'{0}' cannot be declared 'Partial' because partial methods must be Subs.</source>
-        <target state="translated">'“{0}”不能声明为“Partial”，因为分部方法必须为 Subs。</target>
+        <target state="translated">“{0}”不能声明为“Partial”，因为分部方法必须为 Subs。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodGenericConstraints2">
@@ -4250,17 +4407,17 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeMustBeClassNotStruct1">
         <source>'{0}' cannot be used as an attribute because it is not a class.</source>
-        <target state="translated">'“{0}”不是类，因此不能用作属性。</target>
+        <target state="translated">“{0}”不是类，因此不能用作属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeMustInheritSysAttr">
         <source>'{0}' cannot be used as an attribute because it does not inherit from 'System.Attribute'.</source>
-        <target state="translated">'“{0}”不从“System.Attribute”继承，因此不能用作属性。</target>
+        <target state="translated">“{0}”不从“System.Attribute”继承，因此不能用作属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAbstract">
         <source>'{0}' cannot be used as an attribute because it is declared 'MustInherit'.</source>
-        <target state="translated">'“{0}”已声明为“MustInherit”，因此不能用作属性。</target>
+        <target state="translated">“{0}”已声明为“MustInherit”，因此不能用作属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnableToOpenResourceFile1">
@@ -4360,7 +4517,7 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordFromModule1">
         <source>'{0}' is not valid within a Module.</source>
-        <target state="translated">'“{0}”在模块中无效。</target>
+        <target state="translated">“{0}”在模块中无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BogusWithinLineIf">
@@ -4375,7 +4532,7 @@
       </trans-unit>
       <trans-unit id="ERR_IntegralToCharTypeMismatch1">
         <source>'{0}' values cannot be converted to 'Char'. Use 'Microsoft.VisualBasic.ChrW' to interpret a numeric value as a Unicode character or first convert it to 'String' to produce a digit.</source>
-        <target state="translated">'“{0}”值不能转换为“Char”。使用“Microsoft.VisualBasic.ChrW”将数值解释为 Unicode 字符或先将其转换为“String”以产生数字。</target>
+        <target state="translated">“{0}”值不能转换为“Char”。使用“Microsoft.VisualBasic.ChrW”将数值解释为 Unicode 字符或先将其转换为“String”以产生数字。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDirectDelegateConstruction1">
@@ -4390,7 +4547,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttrAssignmentNotFieldOrProp1">
         <source>'{0}' cannot be named as a parameter in an attribute specifier because it is not a field or property.</source>
-        <target state="translated">'“{0}”不是字段或属性(Property)，因此不能命名为属性(Attribute)说明符中的参数。</target>
+        <target state="translated">“{0}”不是字段或属性(Property)，因此不能命名为属性(Attribute)说明符中的参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectComparison1">
@@ -4410,7 +4567,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionResultCannotBeIndexed1">
         <source>'{0}' has no parameters and its return type cannot be indexed.</source>
-        <target state="translated">'“{0}”没有任何参数，并且无法对它的返回类型进行索引。</target>
+        <target state="translated">“{0}”没有任何参数，并且无法对它的返回类型进行索引。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentSyntax">
@@ -4435,7 +4592,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotCallEvent1">
         <source>'{0}' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.</source>
-        <target state="translated">'“{0}”是事件，不能直接调用。请使用“RaiseEvent”语句引发事件。</target>
+        <target state="translated">“{0}”是事件，不能直接调用。请使用“RaiseEvent”语句引发事件。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachCollectionDesignPattern1">
@@ -4520,7 +4677,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeOrMemberNotGeneric1">
         <source>'{0}' has no type parameters and so cannot have type arguments.</source>
-        <target state="translated">'“{0}”没有类型形参，因此不能有类型实参。</target>
+        <target state="translated">“{0}”没有类型形参，因此不能有类型实参。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewIfNullOnGenericParam">
@@ -4560,7 +4717,7 @@
       </trans-unit>
       <trans-unit id="ERR_ShadowingGenericParamWithMember1">
         <source>'{0}' has the same name as a type parameter.</source>
-        <target state="translated">'“{0}”与一个类型参数同名。</target>
+        <target state="translated">“{0}”与一个类型参数同名。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericParamBase2">
@@ -4585,7 +4742,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstraintIsRestrictedType1">
         <source>'{0}' cannot be used as a type constraint.</source>
-        <target state="translated">'“{0}”不能用作类型约束。</target>
+        <target state="translated">“{0}”不能用作类型约束。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericParamsOnInvalidMember">
@@ -4640,12 +4797,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraintMismatch2">
         <source>'{0}' cannot override '{1}' because they differ by type parameter constraints.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们在类型参数约束上存在差异。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们在类型参数约束上存在差异。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementsWithConstraintMismatch3">
         <source>'{0}' cannot implement '{1}.{2}' because they differ by type parameter constraints.</source>
-        <target state="translated">'“{0}”无法实现“{1}.{2}”，因为它们在类型参数约束上存在差异。</target>
+        <target state="translated">“{0}”无法实现“{1}.{2}”，因为它们在类型参数约束上存在差异。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OpenTypeDisallowed">
@@ -4700,7 +4857,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameSameAsMethodTypeParam1">
         <source>'{0}' is already declared as a type parameter of this method.</source>
-        <target state="translated">'“{0}”已声明为此方法的类型参数。</target>
+        <target state="translated">“{0}”已声明为此方法的类型参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeParamNameFunctionNameCollision">
@@ -4887,7 +5044,7 @@
       </trans-unit>
       <trans-unit id="ERR_ShadowingTypeOutsideClass1">
         <source>'{0}' cannot be declared 'Shadows' outside of a class, structure, or interface.</source>
-        <target state="translated">'“{0}”不能在类、结构或接口外声明为“Shadows”。</target>
+        <target state="translated">“{0}”不能在类、结构或接口外声明为“Shadows”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertySetParamCollisionWithValue">
@@ -4947,7 +5104,7 @@
       </trans-unit>
       <trans-unit id="ERR_ComClassDuplicateGuids1">
         <source>'InterfaceId' and 'EventsId' parameters for 'Microsoft.VisualBasic.ComClassAttribute' on '{0}' cannot have the same value.</source>
-        <target state="translated">'“{0}”上“Microsoft.VisualBasic.ComClassAttribute”的“InterfaceId”和“EventsId”参数的值不能相同。</target>
+        <target state="translated">“{0}”上“Microsoft.VisualBasic.ComClassAttribute”的“InterfaceId”和“EventsId”参数的值不能相同。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ComClassCantBeAbstract0">
@@ -5007,12 +5164,12 @@
       </trans-unit>
       <trans-unit id="ERR_ParamArrayIllegal1">
         <source>'{0}' parameters cannot be declared 'ParamArray'.</source>
-        <target state="translated">'“{0}”参数不能声明为“ParamArray”。</target>
+        <target state="translated">“{0}”参数不能声明为 "ParamArray"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OptionalIllegal1">
         <source>'{0}' parameters cannot be declared 'Optional'.</source>
-        <target state="translated">'“{0}”参数不能声明为“Optional”。</target>
+        <target state="translated">“{0}”参数不能声明为“Optional”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMustBePublic">
@@ -5272,7 +5429,7 @@
       </trans-unit>
       <trans-unit id="ERR_UsingRequiresDisposePattern">
         <source>'Using' operand of type '{0}' must implement 'System.IDisposable'.</source>
-        <target state="translated">'“{0}”类型的“Using”操作数必须实现“System.IDisposable”。</target>
+        <target state="translated">“{0}”类型的“Using”操作数必须实现“System.IDisposable”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingResourceVarNeedsInitializer">
@@ -5292,7 +5449,7 @@
       </trans-unit>
       <trans-unit id="ERR_PropertyNameConflictInMyCollection">
         <source>'{0}' has the same name as a member used for type '{1}' exposed in a 'My' group. Rename the type or its enclosing namespace.</source>
-        <target state="translated">'“{0}”与“My”组中公开的类型“{1}”所使用的成员同名。请重命名该类型或其封闭命名空间。</target>
+        <target state="translated">“{0}”与“My”组中公开的类型“{1}”所使用的成员同名。请重命名该类型或其封闭命名空间。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidImplicitVar">
@@ -5382,7 +5539,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExtensionMethodParamArrayFirstArg">
         <source>'ParamArray' cannot be applied to the first parameter of an extension method. The first parameter specifies which type to extend.</source>
-        <target state="translated">'“ParamArray”无法应用于扩展方法的第一个参数。第一个参数指定要扩展哪个类型。</target>
+        <target state="translated">"ParamArray" 无法应用于扩展方法的第一个参数。第一个参数指定要扩展哪个类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypeFieldNameInference">
@@ -5392,7 +5549,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotMemberOfAnonymousType2">
         <source>'{0}' is not a member of '{1}'; it does not exist in the current context.</source>
-        <target state="translated">'“{0}”不是“{1}”的成员；它不存在于当前上下文。</target>
+        <target state="translated">“{0}”不是“{1}”的成员；它不存在于当前上下文。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttributeInvalid">
@@ -5417,7 +5574,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewWithTupleTypeSyntax">
         <source>'New' cannot be used with tuple type. Use a tuple literal expression instead.</source>
-        <target state="translated">'"New" 不能用于元组类型。请改用元组文本表达式。</target>
+        <target state="translated">"New" 不能与元组类型共同使用。请改用元组字面量表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PredefinedValueTupleTypeMustBeStruct">
@@ -5464,7 +5621,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound1">
         <source>'{0}' is not a method parameter.</source>
-        <target state="translated">'“{0}”不是方法参数。</target>
+        <target state="translated">“{0}”不是方法参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument1">
@@ -5516,7 +5673,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound3">
         <source>'{0}' is not a parameter of extension method '{1}' defined in '{2}'.</source>
-        <target state="translated">'“{0}”不是“{2}”中定义的扩展方法“{1}”的参数。</target>
+        <target state="translated">“{0}”不是“{2}”中定义的扩展方法“{1}”的参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument3">
@@ -5561,7 +5718,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotGotoNonScopeBlocksWithClosure">
         <source>'{0}{1}' is not valid because '{2}' is inside a scope that defines a variable that is used in a lambda or query expression.</source>
-        <target state="translated">'“{0}{1}”无效，因为“{2}”所在的范围定义一个用在 lambda 表达式或查询表达式中的变量。</target>
+        <target state="translated">“{0}{1}”无效，因为“{2}”所在的范围定义一个用在 lambda 表达式或查询表达式中的变量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotLiftRestrictedTypeQuery">
@@ -5851,7 +6008,7 @@
       </trans-unit>
       <trans-unit id="ERR_InaccessibleReturnTypeOfMember2">
         <source>'{0}' is not accessible in this context because the return type is not accessible.</source>
-        <target state="translated">'“{0}”是不可访问的返回类型，因此它在此上下文中不可访问。</target>
+        <target state="translated">“{0}”是不可访问的返回类型，因此它在此上下文中不可访问。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedIdentifierOrGroup">
@@ -5938,7 +6095,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbol2">
         <source>'{0}' is obsolete: '{1}'.</source>
-        <target state="translated">'“{0}”已过时:“{1}”。</target>
+        <target state="translated">“{0}”已过时:“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbol2_Title">
@@ -5988,7 +6145,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbolNoMessage1">
         <source>'{0}' is obsolete.</source>
-        <target state="translated">'“{0}”已过时。</target>
+        <target state="translated">“{0}”已过时。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbolNoMessage1_Title">
@@ -6058,7 +6215,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor3">
         <source>'{0}' accessor of '{1}' is obsolete: '{2}'.</source>
-        <target state="translated">'“{1}”的“{0}”访问器已过时:“{2}”。</target>
+        <target state="translated">“{1}”的“{0}”访问器已过时:“{2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor3_Title">
@@ -6068,7 +6225,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor2">
         <source>'{0}' accessor of '{1}' is obsolete.</source>
-        <target state="translated">'“{1}”的“{0}”访问器已过时。</target>
+        <target state="translated">“{1}”的“{0}”访问器已过时。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor2_Title">
@@ -6088,7 +6245,7 @@
       </trans-unit>
       <trans-unit id="WRN_BaseClassNotCLSCompliant2">
         <source>'{0}' is not CLS-compliant because it derives from '{1}', which is not CLS-compliant.</source>
-        <target state="translated">'“{0}”不符合 CLS，因为它是从不符合 CLS 的“{1}”派生的。</target>
+        <target state="translated">“{0}”不符合 CLS，因为它是从不符合 CLS 的“{1}”派生的。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BaseClassNotCLSCompliant2_Title">
@@ -6118,7 +6275,7 @@
       </trans-unit>
       <trans-unit id="WRN_InheritedInterfaceNotCLSCompliant2">
         <source>'{0}' is not CLS-compliant because the interface '{1}' it inherits from is not CLS-compliant.</source>
-        <target state="translated">'“{0}”不符合 CLS，因为它所继承的接口“{1}”不符合 CLS。</target>
+        <target state="translated">“{0}”不符合 CLS，因为它所继承的接口“{1}”不符合 CLS。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InheritedInterfaceNotCLSCompliant2_Title">
@@ -6178,7 +6335,7 @@
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2">
         <source>'{0}' is not CLS-compliant because it overloads '{1}' which differs from it only by array of array parameter types or by the rank of the array parameter types.</source>
-        <target state="translated">'“{0}”不符合 CLS，因为它重载仅在数组参数类型的数组或数组参数类型的秩方面与它不同的“{1}”。</target>
+        <target state="translated">“{0}”不符合 CLS，因为它重载仅在数组参数类型的数组或数组参数类型的秩方面与它不同的“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2_Title">
@@ -6658,12 +6815,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime.</source>
-        <target state="translated">变量“{0}”在赋值前按引用传递。可能会在运行时导致 null 引用异常。</target>
+        <target state="translated">变量“{0}”在赋值前通过引用传递。可能会在运行时导致 null 引用异常。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">在为变量赋值之前，变量已被引用传递</target>
+        <target state="translated">在为变量赋值之前，变量已通过引用传递</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateCatch">
@@ -6768,7 +6925,7 @@
       </trans-unit>
       <trans-unit id="WRN_ComClassPropertySetObject1">
         <source>'{0}' cannot be exposed to COM as a property 'Let'. You will not be able to assign non-object values (such as numbers or strings) to this property from Visual Basic 6.0 using a 'Let' statement.</source>
-        <target state="translated">'“{0}”无法作为属性“Let”向 COM 公开。将无法使用“Let”语句从 Visual Basic 6.0 向该属性分配非对象值(如数字或字符串)。</target>
+        <target state="translated">“{0}”无法作为属性“Let”向 COM 公开。将无法使用“Let”语句从 Visual Basic 6.0 向该属性分配非对象值(如数字或字符串)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ComClassPropertySetObject1_Title">
@@ -6818,12 +6975,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use</source>
-        <target state="translated">变量“{0}”在赋值前按引用传递。可能会在运行时导致 null 引用异常。请确保结构或所有引用成员在使用前已经初始化</target>
+        <target state="translated">变量“{0}”在赋值前通过引用传递。可能会在运行时导致 null 引用异常。请确保结构或所有引用成员在使用前已经初始化</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">在为变量赋值之前，变量已被引用传递</target>
+        <target state="translated">在为变量赋值之前，变量已通过引用传递</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefStr">
@@ -7063,7 +7220,7 @@
       </trans-unit>
       <trans-unit id="WRN_XMLDocInvalidXMLFragment_Title">
         <source>Unable to include XML fragment</source>
-        <target state="translated">无法包括 XML 段落。</target>
+        <target state="translated">无法包括 XML 段落</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_XMLDocBadFormedXML">
@@ -7073,7 +7230,7 @@
       </trans-unit>
       <trans-unit id="WRN_XMLDocBadFormedXML_Title">
         <source>Unable to include XML fragment</source>
-        <target state="translated">无法包括 XML 段落。</target>
+        <target state="translated">无法包括 XML 段落</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterfaceConversion2">
@@ -7313,17 +7470,17 @@
       </trans-unit>
       <trans-unit id="ERR_AccessMismatch6">
         <source>'{0}' cannot expose type '{1}' in {2} '{3}' through {4} '{5}'.</source>
-        <target state="translated">'“{0}”不能通过 {4}“{5}”在 {2}“{3}”中公开类型“{1}”。</target>
+        <target state="translated">“{0}”不能通过 {4}“{5}”在 {2}“{3}”中公开类型“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadMetaDataReference1">
         <source>'{0}' cannot be referenced because it is not a valid assembly.</source>
-        <target state="translated">'“{0}”不是有效程序集，因此无法引用它。</target>
+        <target state="translated">“{0}”不是有效程序集，因此无法引用它。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyDoesntImplementAllAccessors">
         <source>'{0}' cannot be implemented by a {1} property.</source>
-        <target state="translated">'“{0}”无法由 {1} 属性实现。</target>
+        <target state="translated">“{0}”无法由 {1} 属性实现。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedMustOverride">
@@ -7615,12 +7772,12 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceIEnumerableSuggestion3">
         <source>'{0}' cannot be converted to '{1}'. Consider using '{2}' instead.</source>
-        <target state="translated">'“{0}”不能转换为“{1}”。考虑改用“{2}”。</target>
+        <target state="translated">“{0}”不能转换为“{1}”。考虑改用“{2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceIEnumerableSuggestion3">
         <source>'{0}' cannot be converted to '{1}'. Consider using '{2}' instead.</source>
-        <target state="translated">'“{0}”不能转换为“{1}”。考虑改用“{2}”。</target>
+        <target state="translated">“{0}”不能转换为“{1}”。考虑改用“{2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceIEnumerableSuggestion3_Title">
@@ -7630,12 +7787,12 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedIn6">
         <source>'{4}' cannot be converted to '{5}' because '{0}' is not derived from '{1}', as required for the 'In' generic parameter '{2}' in '{3}'.</source>
-        <target state="translated">'“{4}”不能转换为“{5}”，因为根据“{3}”中“In”泛型形参“{2}”的需要，“{0}”不是从“{1}”派生的。</target>
+        <target state="translated">“{4}”不能转换为“{5}”，因为根据“{3}”中“In”泛型形参“{2}”的需要，“{0}”不是从“{1}”派生的。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedOut6">
         <source>'{4}' cannot be converted to '{5}' because '{0}' is not derived from '{1}', as required for the 'Out' generic parameter '{2}' in '{3}'.</source>
-        <target state="translated">'“{4}”不能转换为“{5}”，因为根据“{3}”中“Out”泛型形参“{2}”的需要，“{0}”不是从“{1}”派生的。</target>
+        <target state="translated">“{4}”不能转换为“{5}”，因为根据“{3}”中“Out”泛型形参“{2}”的需要，“{0}”不是从“{1}”派生的。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedIn6">
@@ -7660,17 +7817,17 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedTryIn4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an In type parameter, 'In {2}'.</source>
-        <target state="translated">'“{0}”不能转换为“{1}”。考虑在“{3}”的定义中将“{2}”改为 In 类型参数“In {2}”。</target>
+        <target state="translated">“{0}”不能转换为“{1}”。考虑在“{3}”的定义中将“{2}”改为 In 类型参数“In {2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedTryOut4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an Out type parameter, 'Out {2}'.</source>
-        <target state="translated">'“{0}”不能转换为“{1}”。考虑在“{3}”的定义中将“{2}”改为 Out 类型参数“Out {2}”。</target>
+        <target state="translated">“{0}”不能转换为“{1}”。考虑在“{3}”的定义中将“{2}”改为 Out 类型参数“Out {2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryIn4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an In type parameter, 'In {2}'.</source>
-        <target state="translated">'“{0}”不能转换为“{1}”。考虑在“{3}”的定义中将“{2}”改为 In 类型参数“In {2}”。</target>
+        <target state="translated">“{0}”不能转换为“{1}”。考虑在“{3}”的定义中将“{2}”改为 In 类型参数“In {2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryIn4_Title">
@@ -7680,7 +7837,7 @@
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryOut4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an Out type parameter, 'Out {2}'.</source>
-        <target state="translated">'“{0}”不能转换为“{1}”。考虑在“{3}”的定义中将“{2}”改为 Out 类型参数“Out {2}”。</target>
+        <target state="translated">“{0}”不能转换为“{1}”。考虑在“{3}”的定义中将“{2}”改为 Out 类型参数“Out {2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryOut4_Title">
@@ -7800,7 +7957,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceOutWriteOnlyPropertyDisallowed1">
         <source>Type '{0}' cannot be used as a WriteOnly property type because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">类型“{0}”不能用作 ReadOnly 属性类型，因为“{0}”是“Out”类型参数。</target>
+        <target state="translated">类型“{0}”不能用作 WriteOnly 属性类型，因为“{0}”是“Out”类型参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceTypeDisallowed2">
@@ -7950,7 +8107,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoesntImplementAwaitInterface2">
         <source>'{0}' does not implement '{1}'.</source>
-        <target state="translated">'“{0}”未实现“{1}”。</target>
+        <target state="translated">“{0}”未实现“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitNothing">
@@ -7990,7 +8147,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantAwaitAsyncSub1">
         <source>'{0}' does not return a Task and cannot be awaited. Consider changing it to an Async Function.</source>
-        <target state="translated">'“{0}”不返回 Task 且无法等待。请考虑将它更改为 Async Function。</target>
+        <target state="translated">“{0}”不返回 Task 且无法等待。请考虑将它更改为 Async Function。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidLambdaModifier">
@@ -8045,7 +8202,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedResumableType1">
         <source>'{0}' cannot be used as a parameter type for an Iterator or Async method.</source>
-        <target state="translated">'“{0}”不能用作 Iterator 或 Async 方法的参数类型。</target>
+        <target state="translated">“{0}”不能用作 Iterator 或 Async 方法的参数类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorAsync">
@@ -8055,7 +8212,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodsMustNotBeAsync1">
         <source>'{0}' cannot be declared 'Partial' because it has the 'Async' modifier.</source>
-        <target state="translated">'“{0}”不能声明为“Partial”，因为它具有“Async”修饰符。</target>
+        <target state="translated">“{0}”不能声明为“Partial”，因为它具有“Async”修饰符。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ResumablesCannotContainOnError">
@@ -8175,7 +8332,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface4">
         <source>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed</source>
-        <target state="translated">'“{0}.{1}”已由基类“{2}”实现。不允许重新实现 Windows Runtime 接口“{3}”</target>
+        <target state="translated">“{0}.{1}”已由基类“{2}”实现。不允许重新实现 Windows Runtime 接口“{3}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorByRefParam">
@@ -8400,12 +8557,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedModule1">
         <source>'{0}' is an unsupported .NET module.</source>
-        <target state="translated">'“{0}”是不受支持的 .NET 模块。</target>
+        <target state="translated">“{0}”是不受支持的 .NET 模块。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedEvent1">
         <source>'{0}' is an unsupported event.</source>
-        <target state="translated">'“{0}”是不受支持的事件。</target>
+        <target state="translated">“{0}”是不受支持的事件。</target>
         <note />
       </trans-unit>
       <trans-unit id="PropertiesCanNotHaveTypeArguments">
@@ -8670,7 +8827,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidFormatSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'“{0}”不是有效的格式说明符</target>
+        <target state="translated">“{0}”不是有效的格式说明符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPreprocessorConstantType">
@@ -8685,7 +8842,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable1">
         <source>'{0}' cannot be made nullable.</source>
-        <target state="translated">'“{0}”不可以为 Null。</target>
+        <target state="translated">“{0}”不可以为 Null。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConditionalWithRef">
@@ -8759,8 +8916,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">字符串常量的长度超出了当前内存限制。请尝试将字符串拆分成多个常量。</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="translated">由串联所得的字符串常量长度超过了 System.Int32.MaxValue。请尝试将字符串拆分为多个常量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -8795,7 +8952,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_CoContraVariance">
         <source>variance</source>
-        <target state="translated">方差</target>
+        <target state="translated">变型</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CollectionInitializers">
@@ -9055,7 +9212,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'“{0}”仅用于评估，在将来的更新中可能会被更改或删除。</target>
+        <target state="translated">“{0}”仅用于评估，在将来的更新中可能会被更改或删除。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
@@ -9085,7 +9242,7 @@
       </trans-unit>
       <trans-unit id="ERR_ValueTupleResolutionAmbiguous3">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">已在多个引用的程序集(“{1}”和“{2}”)中声明了预定义类型“{0}”。</target>
+        <target state="translated">已在多个引用的程序集(“{1}”和“{2}”)中声明了预定义类型“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
@@ -9100,12 +9257,22 @@
       </trans-unit>
       <trans-unit id="FEATURE_InterpolatedStrings">
         <source>interpolated strings</source>
-        <target state="translated">插补的字符串</target>
+        <target state="translated">内插字符串</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB">
+        <source>'{0}' is not supported in VB.</source>
+        <target state="translated">VB 中不支持“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
+        <source>Attribute is not supported in VB</source>
+        <target state="translated">VB 中不支持属性</target>
         <note />
       </trans-unit>
     </body>

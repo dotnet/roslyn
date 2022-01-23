@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
-using INavigateToSearchService = Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchService;
-using INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate = Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
@@ -18,44 +19,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     {
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IDocumentTrackingService _documentTrackingService;
         private readonly INavigateToItemDisplayFactory _displayFactory;
+        private readonly IThreadingContext _threadingContext;
 
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = new();
 
         public NavigateToItemProvider(
             Workspace workspace,
             IAsynchronousOperationListener asyncListener,
-            IDocumentTrackingService documentTrackingService)
+            IThreadingContext threadingContext)
         {
             Contract.ThrowIfNull(workspace);
             Contract.ThrowIfNull(asyncListener);
 
             _workspace = workspace;
             _asyncListener = asyncListener;
-            _documentTrackingService = documentTrackingService;
             _displayFactory = new NavigateToItemDisplayFactory();
+            _threadingContext = threadingContext;
         }
 
         ISet<string> INavigateToItemProvider2.KindsProvided => KindsProvided;
 
         public ImmutableHashSet<string> KindsProvided
-        {
-            get
-            {
-                var result = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
-                foreach (var project in _workspace.CurrentSolution.Projects)
-                {
-                    var navigateToSearchService = TryGetNavigateToSearchService(project);
-                    if (navigateToSearchService != null)
-                    {
-                        result = result.Union(navigateToSearchService.KindsProvided);
-                    }
-                }
-
-                return result;
-            }
-        }
+            => NavigateToUtilities.GetKindsProvided(_workspace.CurrentSolution);
 
         public bool CanFilter
         {
@@ -63,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 foreach (var project in _workspace.CurrentSolution.Projects)
                 {
-                    var navigateToSearchService = TryGetNavigateToSearchService(project);
+                    var navigateToSearchService = project.GetLanguageService<INavigateToSearchService>();
                     if (navigateToSearchService is null)
                     {
                         // If we reach here, it means the current project does not support Navigate To, which is
@@ -95,14 +81,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         }
 
         public void StartSearch(INavigateToCallback callback, string searchValue)
-        {
-            StartSearch(callback, searchValue, KindsProvided);
-        }
+            => StartSearch(callback, searchValue, KindsProvided);
 
         public void StartSearch(INavigateToCallback callback, string searchValue, INavigateToFilterParameters filter)
-        {
-            StartSearch(callback, searchValue, filter.Kinds.ToImmutableHashSet(StringComparer.Ordinal));
-        }
+            => StartSearch(callback, searchValue, filter.Kinds.ToImmutableHashSet(StringComparer.Ordinal));
 
         private void StartSearch(INavigateToCallback callback, string searchValue, IImmutableSet<string> kinds)
         {
@@ -120,60 +102,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
 
             var searchCurrentDocument = (callback.Options as INavigateToOptions2)?.SearchCurrentDocument ?? false;
-            var searcher = new Searcher(
+
+            var roslynCallback = new NavigateToItemProviderCallback(_displayFactory, callback);
+            var searcher = NavigateToSearcher.Create(
                 _workspace.CurrentSolution,
                 _asyncListener,
-                _documentTrackingService,
-                _displayFactory,
-                callback,
+                roslynCallback,
                 searchValue,
-                searchCurrentDocument,
                 kinds,
-                _cancellationTokenSource.Token);
+                _threadingContext.DisposalToken);
 
-            _ = searcher.SearchAsync();
-        }
-
-        private static INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate TryGetNavigateToSearchService(Project project)
-        {
-            var service = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
-            if (service != null)
-            {
-                return service;
-            }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-#pragma warning disable CS0612 // Type or member is obsolete
-            var legacyService = project.LanguageServices.GetService<INavigateToSearchService>();
-            if (legacyService != null)
-            {
-                return new ShimNavigateToSearchService(legacyService);
-            }
-#pragma warning restore CS0612 // Type or member is obsolete
-#pragma warning restore CS0618 // Type or member is obsolete
-
-            return null;
-        }
-
-        [Obsolete("https://github.com/dotnet/roslyn/issues/28343")]
-        private class ShimNavigateToSearchService : INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate
-        {
-            private readonly INavigateToSearchService _navigateToSearchService;
-
-            public ShimNavigateToSearchService(INavigateToSearchService navigateToSearchService)
-            {
-                _navigateToSearchService = navigateToSearchService;
-            }
-
-            public IImmutableSet<string> KindsProvided => ImmutableHashSet.Create<string>(StringComparer.Ordinal);
-
-            public bool CanFilter => false;
-
-            public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                => _navigateToSearchService.SearchDocumentAsync(document, searchPattern, cancellationToken);
-
-            public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                => _navigateToSearchService.SearchProjectAsync(project, searchPattern, cancellationToken);
+            _ = searcher.SearchAsync(searchCurrentDocument, _cancellationTokenSource.Token);
         }
     }
 }

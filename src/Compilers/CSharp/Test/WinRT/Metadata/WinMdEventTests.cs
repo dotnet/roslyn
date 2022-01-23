@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -215,7 +219,7 @@ public partial class B : I
 
         public WinMdEventTests()
         {
-            // The following two libraries are shrinked code pulled from
+            // The following two libraries are shrunk code pulled from
             // corresponding files in the csharp5 legacy tests
             const string eventLibSrc =
 @"namespace EventLibrary
@@ -234,10 +238,7 @@ public partial class B : I
             _eventLibRef = CreateEmptyCompilation(
                 eventLibSrc,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929 },
-                options:
-                    new CSharpCompilationOptions(
-                        OutputKind.WindowsRuntimeMetadata,
-                        allowUnsafe: true),
+                options: TestOptions.DebugWinMD.WithAllowUnsafe(true),
                 assemblyName: "EventLibrary").EmitToImageReference();
         }
 
@@ -309,7 +310,7 @@ class C
                     MscorlibRef_v4_0_30316_17626,
                     _eventLibRef,
                 },
-                options: new CSharpCompilationOptions(OutputKind.NetModule, allowUnsafe: true));
+                options: TestOptions.DebugModule.WithAllowUnsafe(true));
 
             var dynamicCommonRef = dynamicCommon.EmitToImageReference(expectedWarnings: new[]
             {
@@ -2910,7 +2911,7 @@ interface I
 
             foreach (OutputKind kind in Enum.GetValues(typeof(OutputKind)))
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs, new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -2954,7 +2955,7 @@ class C : Interface
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { ilRef }), new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { ilRef }), TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -3023,7 +3024,7 @@ class OverrideAndImplIncorrectly : ReversedBase, Interface
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }), new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }), TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics(
                     // (40,41): error CS1991: 'OverrideAndImplIncorrectly.WinRT' cannot implement 'Interface.WinRT' because 'Interface.WinRT' is a Windows Runtime event and 'OverrideAndImplIncorrectly.WinRT' is a regular .NET event.
                     //     public override event System.Action WinRT
@@ -3089,7 +3090,7 @@ class C : Interface
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { ilRef }), new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { ilRef }), TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -3284,7 +3285,7 @@ class C
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs, new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics(
                     // (10,25): warning CS0067: The event 'C.F' is never used
                     //     event System.Action F;

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -28,12 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// </remarks>
     internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService
     {
-        private static readonly Guid s_IID_IMetaDataImport = new Guid("7DAC8207-D3AE-4c75-9B67-92801A497D44");
-        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
+        private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
+        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
         private readonly MetadataCache _metadataCache;
         private readonly ImmutableArray<string> _runtimeDirectories;
-
         private readonly ITemporaryStorageService _temporaryStorageService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
@@ -43,13 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// use of this field or derived types should be synchronized with <see cref="_readerWriterLock"/> to ensure
         /// you don't grab the field and then use it while shutdown continues.
         /// </summary>
-        private IVsSmartOpenScope SmartOpenScopeServiceOpt { get; set; }
+        private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
 
         internal IVsFileChangeEx FileChangeService { get; }
 
-        private readonly ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
-        internal VisualStudioMetadataReferenceManager(IServiceProvider serviceProvider, ITemporaryStorageService temporaryStorageService)
+        internal VisualStudioMetadataReferenceManager(
+            IServiceProvider serviceProvider,
+            ITemporaryStorageService temporaryStorageService)
         {
             _metadataCache = new MetadataCache();
             _runtimeDirectories = GetRuntimeDirectories();
@@ -62,12 +66,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
             Assumes.Present(FileChangeService);
-
             _temporaryStorageService = temporaryStorageService;
             Assumes.Present(_temporaryStorageService);
         }
 
-        internal IEnumerable<ITemporaryStreamStorage> GetStorages(string fullPath, DateTime snapshotTimestamp)
+        internal IEnumerable<ITemporaryStreamStorage>? GetStorages(string fullPath, DateTime snapshotTimestamp)
         {
             var key = new FileKey(fullPath, snapshotTimestamp);
             // check existing metadata
@@ -83,19 +86,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
-        {
-            return new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
-        }
+            => new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
 
         public void ClearCache()
-        {
-            _metadataCache.ClearCache();
-        }
+            => _metadataCache.ClearCache();
 
         private bool VsSmartScopeCandidate(string fullPath)
-        {
-            return _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
-        }
+            => _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
 
         internal static IEnumerable<string> GetReferencePaths()
         {
@@ -130,7 +127,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (VsSmartScopeCandidate(key.FullPath) && TryCreateAssemblyMetadataFromMetadataImporter(key, out var newMetadata))
             {
-                if (!_metadataCache.TryGetOrAddMetadata(key, new WeakConstantValueSource<AssemblyMetadata>(newMetadata), out metadata))
+                var metadataValueSource = new ConstantValueSource<Optional<AssemblyMetadata>>(newMetadata);
+                if (!_metadataCache.GetOrAddMetadata(key, metadataValueSource, out metadata))
                 {
                     newMetadata.Dispose();
                 }
@@ -143,10 +141,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             newMetadata = CreateAssemblyMetadataFromTemporaryStorage(key, storages);
 
             // don't dispose assembly metadata since it shares module metadata
-            if (!_metadataCache.TryGetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages, s_lifetimeMap), out metadata))
+            if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages, s_lifetimeMap), out metadata))
             {
                 newMetadata.Dispose();
             }
+
+            // guarantee that the metadata is alive while we add the source to the cache
+            GC.KeepAlive(newMetadata);
 
             return metadata;
         }
@@ -159,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return CreateAssemblyMetadata(fileKey, moduleMetadata, storages, CreateModuleMetadataFromTemporaryStorage);
         }
 
-        private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(FileKey moduleFileKey, List<ITemporaryStreamStorage> storages)
+        private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(FileKey moduleFileKey, List<ITemporaryStreamStorage>? storages)
         {
             GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream, out var pImage);
 
@@ -169,10 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             s_lifetimeMap.Add(metadata, stream);
 
             // hold onto storage if requested
-            if (storages != null)
-            {
-                storages.Add(storage);
-            }
+            storages?.Add(storage);
 
             return metadata;
         }
@@ -218,13 +216,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             pImage = directAccess.GetPointer();
         }
 
-        private void StreamCopy(Stream source, Stream destination, int start, int length)
+        private static void StreamCopy(Stream source, Stream destination, int start, int length)
         {
             source.Position = start;
 
             var buffer = SharedPools.ByteArray.Allocate();
 
-            var read = 0;
+            int read;
             var left = length;
             while ((read = source.Read(buffer, 0, Math.Min(left, buffer.Length))) != 0)
             {
@@ -237,9 +235,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, out AssemblyMetadata metadata)
+        private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out AssemblyMetadata? metadata)
         {
-            metadata = default;
+            metadata = null;
 
             var manifestModule = TryCreateModuleMetadataFromMetadataImporter(fileKey);
             if (manifestModule == null)
@@ -247,11 +245,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return false;
             }
 
-            metadata = CreateAssemblyMetadata(fileKey, manifestModule, null, CreateModuleMetadata);
+            metadata = CreateAssemblyMetadata(fileKey, manifestModule, storages: null, CreateModuleMetadata);
             return true;
         }
 
-        private ModuleMetadata TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
+        private ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
         {
             if (!TryGetFileMappingFromMetadataImporter(moduleFileKey, out var info, out var pImage, out var length))
             {
@@ -266,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<ITemporaryStreamStorage> storages)
+        private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<ITemporaryStreamStorage>? storages)
         {
             var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
             if (metadata == null)
@@ -278,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        private bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, out IMetaDataInfo info, out IntPtr pImage, out long length)
+        private bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out IMetaDataInfo? info, out IntPtr pImage, out long length)
         {
             // We might not be able to use COM services to get this if VS is shutting down. We'll synchronize to make sure this
             // doesn't race against 
@@ -288,7 +286,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // it won't be changed in the middle of VS running.
                 var fullPath = fileKey.FullPath;
 
-                info = default;
+                info = null;
                 pImage = default;
                 length = default;
 
@@ -314,22 +312,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private AssemblyMetadata CreateAssemblyMetadata(
-            FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage> storages,
-            Func<FileKey, List<ITemporaryStreamStorage>, ModuleMetadata> moduleMetadataFactory)
+        private static AssemblyMetadata CreateAssemblyMetadata(
+            FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage>? storages,
+            Func<FileKey, List<ITemporaryStreamStorage>?, ModuleMetadata> moduleMetadataFactory)
         {
             var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
 
-            string assemblyDir = null;
-            foreach (string moduleName in manifestModule.GetModuleNames())
+            string? assemblyDir = null;
+            foreach (var moduleName in manifestModule.GetModuleNames())
             {
-                if (moduleBuilder.Count == 0)
+                if (assemblyDir is null)
                 {
                     moduleBuilder.Add(manifestModule);
                     assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
                 }
 
-                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
+                // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!);
                 var metadata = moduleMetadataFactory(moduleFileKey, storages);
 
                 moduleBuilder.Add(metadata);

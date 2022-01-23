@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -13,6 +15,7 @@ Imports Xunit
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.Emit
 Imports System.Collections.Immutable
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -1739,7 +1742,7 @@ End Structure
                                                        End Sub
             Dim compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={Net40.mscorlib, Net40.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[
@@ -1759,7 +1762,7 @@ End Structure
 ]]>)
             compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef_v4_0_30316_17626, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={Net451.mscorlib, Net451.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[

@@ -1,9 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
+<<<<<<< HEAD
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
+=======
+>>>>>>> jsonTests
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
@@ -12,14 +19,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// </summary>
     internal abstract class AbstractEmbeddedLanguagesProvider : IEmbeddedLanguagesProvider
     {
-        public ImmutableArray<IEmbeddedLanguage> Languages { get; }
+        public virtual ImmutableArray<IEmbeddedLanguage> Languages { get; }
 
         protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
         {
+<<<<<<< HEAD
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new RegexEmbeddedLanguage(info),
                 new JsonEmbeddedLanguage(info),
                 new FallbackEmbeddedLanguage(info));
+=======
+            Languages = ImmutableArray.Create<IEmbeddedLanguage>(new FallbackEmbeddedLanguage(info));
+>>>>>>> jsonTests
         }
     }
 }

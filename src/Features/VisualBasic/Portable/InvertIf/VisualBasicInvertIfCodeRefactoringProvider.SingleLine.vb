@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -11,14 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of SingleLineIfStatementSyntax)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
-
-        Protected Overrides Function GetHeaderSpan(ifNode As SingleLineIfStatementSyntax) As TextSpan
-            Return TextSpan.FromBounds(
-                    ifNode.IfKeyword.SpanStart,
-                    ifNode.Condition.Span.End)
-        End Function
 
         Protected Overrides Function IsElseless(ifNode As SingleLineIfStatementSyntax) As Boolean
             Return ifNode.ElseClause Is Nothing
@@ -56,14 +54,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                 ' That way the trailing comments/newlines at the end of the 'if' stay there,
                 ' And the spaces after the true-part stay where they are.
 
-                Dim lastTrue = trueStatements.Last()
-                Dim lastFalse = falseStatements.Last()
+                Dim lastTrue = trueStatements.LastOrDefault()
+                Dim lastFalse = falseStatements.LastOrDefault()
 
-                Dim newLastTrue = lastTrue.WithTrailingTrivia(lastFalse.GetTrailingTrivia())
-                Dim newLastFalse = lastFalse.WithTrailingTrivia(lastTrue.GetTrailingTrivia())
+                If lastTrue IsNot Nothing AndAlso lastFalse IsNot Nothing Then
+                    Dim newLastTrue = lastTrue.WithTrailingTrivia(lastFalse.GetTrailingTrivia())
+                    Dim newLastFalse = lastFalse.WithTrailingTrivia(lastTrue.GetTrailingTrivia())
 
-                trueStatements = trueStatements.Replace(lastTrue, newLastTrue)
-                falseStatements = falseStatements.Replace(lastFalse, newLastFalse)
+                    trueStatements = trueStatements.Replace(lastTrue, newLastTrue)
+                    falseStatements = falseStatements.Replace(lastFalse, newLastFalse)
+                End If
             End If
 
             Dim updatedIf = ifNode _

@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Shared
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -15,15 +18,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Friend Class EncapsulateFieldTestState
         Implements IDisposable
 
-        Private _testDocument As TestHostDocument
+        Private ReadOnly _testDocument As TestHostDocument
         Public Workspace As TestWorkspace
         Public TargetDocument As Document
-
-        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                    GetType(VisualBasicEncapsulateFieldService),
-                    GetType(DefaultTextBufferSupportsFeatureService)))
 
         Private Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace
@@ -32,14 +29,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
         End Sub
 
         Public Shared Function Create(markup As String) As EncapsulateFieldTestState
-            Dim workspace = TestWorkspace.CreateVisualBasic(markup, exportProvider:=s_exportProviderFactory.CreateExportProvider())
+            Dim workspace = TestWorkspace.CreateVisualBasic(markup, composition:=EditorTestCompositions.EditorFeatures)
             Return New EncapsulateFieldTestState(workspace)
         End Function
 
         Public Sub Encapsulate()
             Dim args = New EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer())
-            Dim commandHandler = New EncapsulateFieldCommandHandler(Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
-                                                                    Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
+            Dim commandHandler = New EncapsulateFieldCommandHandler(
+                Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
+                Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
+                Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
         End Sub
 

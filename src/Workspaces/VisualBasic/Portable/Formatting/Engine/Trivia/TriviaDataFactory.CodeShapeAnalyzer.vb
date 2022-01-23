@@ -1,23 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
         Private Structure CodeShapeAnalyzer
 
             Private ReadOnly _context As FormattingContext
-            Private ReadOnly _optionSet As OptionSet
+            Private ReadOnly _options As SyntaxFormattingOptions
             Private ReadOnly _list As TriviaList
 
             Private _indentation As Integer
@@ -86,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                             beginningOfNewLine As Boolean,
                             list As TriviaList)
                 Me._context = context
-                Me._optionSet = context.OptionSet
+                Me._options = context.Options
                 Me._list = list
 
                 Me._indentation = 0
@@ -102,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End Get
             End Property
 
-            Private Function OnElastic(trivia As SyntaxTrivia) As Boolean
+            Private Shared Function OnElastic(trivia As SyntaxTrivia) As Boolean
                 ' if it contains elastic trivia. always format
                 Return trivia.IsElastic()
             End Function
@@ -121,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return True
                 End If
 
-                Dim currentSpaces = text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), Me._currentColumn, text.Length)
+                Dim currentSpaces = text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), Me._currentColumn, text.Length)
 
                 If currentIndex + 1 < Me._list.Count AndAlso Me._list(currentIndex + 1).RawKind = SyntaxKind.LineContinuationTrivia Then
                     If currentSpaces <> 1 Then
@@ -196,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return False
             End Function
 
-            Private Function OnColon(trivia As SyntaxTrivia) As Boolean
+            Private Shared Function OnColon(trivia As SyntaxTrivia) As Boolean
                 If trivia.Kind <> SyntaxKind.ColonTrivia Then
                     Return False
                 End If
@@ -223,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
 
                 If trivia.Kind = SyntaxKind.DocumentationCommentTrivia AndAlso
-                   ShouldFormatDocumentationComment(_indentation, _optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), trivia) Then
+                   ShouldFormatDocumentationComment(_indentation, _options.GetOption(FormattingOptions2.TabSize), trivia) Then
                     Return True
                 End If
 
@@ -231,12 +226,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return False
             End Function
 
-            Private Function OnSkippedTokensOrText(trivia As SyntaxTrivia) As Boolean
+            Private Shared Function OnSkippedTokensOrText(trivia As SyntaxTrivia) As Boolean
                 If trivia.Kind <> SyntaxKind.SkippedTokensTrivia Then
                     Return False
                 End If
 
-                Return Contract.FailWithReturn(Of Boolean)("This can't happen")
+                throw ExceptionUtilities.UnexpectedValue(trivia.Kind)
             End Function
 
             Private Function OnRegion(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
@@ -257,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return False
             End Function
 
-            Private Function OnPreprocessor(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
+            Private Shared Function OnPreprocessor(trivia As SyntaxTrivia) As Boolean
                 If Not SyntaxFacts.IsPreprocessorDirective(trivia.Kind) Then
                     Return False
                 End If
@@ -278,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                        OnComment(trivia, index) OrElse
                        OnSkippedTokensOrText(trivia) OrElse
                        OnRegion(trivia, index) OrElse
-                       OnPreprocessor(trivia, index) Then
+                       OnPreprocessor(trivia) Then
                         Return True
                     End If
                 Next

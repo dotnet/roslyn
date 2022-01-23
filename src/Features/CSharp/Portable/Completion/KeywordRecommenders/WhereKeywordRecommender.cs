@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsTypeParameterConstraintContext(context);
         }
 
-        private bool IsTypeParameterConstraintContext(CSharpSyntaxContext context)
+        private static bool IsTypeParameterConstraintContext(CSharpSyntaxContext context)
         {
             // cases:
             //   class C<T> |
@@ -79,9 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // class C<T> : IGoo |
             var baseList = token.GetAncestor<BaseListSyntax>();
-            if (baseList.GetParent() is TypeDeclarationSyntax)
+            if (baseList?.Parent is TypeDeclarationSyntax typeDecl)
             {
-                var typeDecl = baseList.GetParent() as TypeDeclarationSyntax;
                 if (typeDecl.TypeParameterList != null &&
                     typeDecl.BaseList.Types.Any(t => token == t.GetLastToken(includeSkipped: true)))
                 {

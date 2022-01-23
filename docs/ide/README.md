@@ -2,6 +2,13 @@
 
 ## TOC
  * [Dev16](#prod-16)
+   * [Dev 16.9](#prod-16-9)
+   * [Dev 16.8](#prod-16-8) 
+   * [Dev 16.7](#prod-16-7)
+   * [Dev 16.6](#prod-16-6)
+   * [Dev 16.5](#prod-16-5)
+   * [Dev 16.4](#prod-16-4)
+   * [Dev 16.3](#prod-16-3)
    * [Dev 16.2](#prod-16-2)
    * [Dev 16.1](#prod-16-1)
    * [Dev16.0](#prod-16-0)
@@ -15,10 +22,106 @@
 
 ## <a id="prod-16"></a> dev16
 
-### <a id="prod-16-2"></a> 16.2 Preview ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-preview) )
-* [Test Explorer improvements](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-preview#test-explorer-162P1)
+### <a id="prod-16-7"></a> 16.9 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.9))
+* There is now IntelliSense completion for preprocessor symbols.
+* Solution Explorer now displays the new .NET 5.0 Source Generators.
+* Go To All won't display duplicate results across netcoreapp3.1 and netcoreapp2.0.
+* Quick Info now displays compiler warning IDs or numbers for suppressions.
+* Using directives will now automatically get added when copying and pasting types to a new file.
+* When pressing `;` to accept a method from a completion list, IntelliSense will now automatically insert the parentheses along with a semicolon for object creation and method calls.
+* Semantic colorization for C# 9.0 [records](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-9#record-types&preserve-view=true).
+* Refactoring that removes unnecessary discards.
+* Refactoring that converts a verbatim and regular string to an interpolated string preserving curly braces that were intended to go in the output.
+* Code fix in Visual Basic that removes the shared keyword when you convert methods that are shared to a module.
+* A refactoring that suggests using `new(…)` in non-contentious scenarios
+* A code fix that removes redundant equality expressions for both C# and Visual Basic
+* The .NET Code Style (IDE) analyzers can now be enforced on build
+* The Syntax Visualizer shows the current foreground color for enhanced colors
+* A new tooltip when hovering over the diagnostic ID for pragma warnings
+* When you type the return key from within a comment the new line is now automatically commented out
+* Inline parameter name hints enhancements
+* .NET Core Debugging with WSL 2
 
-### <a id="prod-16-1"></a> 16.1 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes))
+### <a id="prod-16-7"></a> 16.8 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.8))
+* Roslyn analyzers are now included in the .NET 5.0 SDK
+* Refactoring that introduces the new C# 9 `not` pattern matching syntax when a suppression operator is present
+* Inline method refactoring to help replace usages of static, instance, and extension method within a single statement body
+* Code fix to convert instances of `typeof` to `nameof` in C# and `GetType` to `NameOf` in Visual Basic
+* C# and Visual Basic support for inline parameter name hints that inserts adornments for literals, casted literals, and object instantiations prior to each argument in function calls
+* Refactoring that extracts members from a selected class to a new base class in both C# and Visual Basic
+* Code cleanup has new configuration options that can apply formatting and file header preferences set in your EditorConfig file across a single file or an entire solution
+* Code fix to remove the `in` keyword where the argument should not be passed by reference
+* Refactoring that introduces the new C#9 pattern combinators and pattern matching suggestions such as converting `==` to use `is` where applicable
+* Code fix to make a class abstract when you are trying to write an abstract method in a class that is not abstract
+* IntelliSense completion in `DateTime` and `TimeSpan` string literals automatically appear when the first quote is typed
+* Code fix to remove unnecessary `pragma suppressions` and unnecessary `SuppressMessageAttributes`
+* `Rename` and `Find All` References understands references to symbols within the target string of global `SuppressMessageAttributes`
+* _ByVal_ fades to say it's not necessary along with a code fix to remove the unnecessary _ByVal_ in Visual Basic
+* Interactive window support for multiple runtimes, such as .NET Framework and .NET Core.
+* Added a new _RegisterAdditionalFileAction_ API that allows analyzer authors to create an analyzer for additional files.
+
+### <a id="prod-16-7"></a> 16.7 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.7))
+* There is now a warning and code fix when a suppression operator is present but has no effect
+* A second code fix suggesting the correct negating expression is also available
+* You can now generate properties when generating a constructor in a type
+* Quick Info now displays the diagnostic ID along with a help link
+* There is now a quick action to add a debugger display attribute to a class
+* There is now a code fix for accidental assignments or comparisons to the same variable
+* You can now generate comparison operators for types that implement IComparable
+* You can now generate IEquatable operators when generating .Equals for structs
+* You can now create and assign properties or fields for all unused constructor parameters
+* There is now IntelliSense completion in DateTime and TimeSpan string literals
+* You can now add a parameter within the Change Signature dialog
+* Analyzer authors can now use CompletionProviders for IntelliSense completions when shipping their analyzers with NuGet
+
+### <a id="prod-16-6"></a> 16.6 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.6))
+* Add explicit cast code fix
+* Simplify conditional expressions refactoring
+* Convert regular string literals to verbatim string literals (and back) refactoring
+* Bulk configure the severity level of analyzer categories directly through the editor
+* Quick Info style support for XML comments that contain returns and value tags
+* Add file headers to existing files, projects, and solutions with EditorConfig
+* [Microsoft Fakes support for .NET Core](https://docs.microsoft.com/visualstudio/releases/2019/release-notes#microsoft-fakes-for-net-core-and-sdk-style-projects) and SDK-style projects
+
+### <a id="prod-16-5"></a> 16.5 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.5))
+* You can now use System.HashCode to implement the GetHashCode method when System.HashCode is available.
+* Refactoring to convert if statements to switch statements or switch expressions.
+* IntelliSense completion for unimported extension methods. You will first need to turn this option on in **Tools > Options > Text Editor > C# > Intellisense > and select Show items from unimported namespaces**.
+
+### <a id="prod-16-4"></a> 16.4 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.4))
+* You can now configure the severity level of a code style rule directly through the editor (through the **Ctrl+.** menu) or the error list (right-click on the error, warning, or message). This will also update EditorConfig and works for 3rd party analyzers.
+* Find All References now allows you to group by type and member.
+* Refactoring make local function static
+* Code fix to pass variable explicitly in local static function.
+* The Go To Base command can navigate up the inheritance chain. Available in the context (right-click) menu or you can type (Alt+Home).
+* Refactoring to add null checks for all parameters.
+* Methods that have no XML documentation can now automatically inherit XML documentation from the method it is overriding. Place your cursor over the undocumented method that implements a documented interface method. Quick Info will then display the XML documentation from the interface method.
+
+### <a id="prod-16-3"></a> 16.3 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.3))
+* Wrap chains of fluent calls with a refactoring
+* Introduce a local variable immediately after writing its initializer
+* Code Analysis page now in project properties. Right click on the project name within the solution explorer and select properties. Select Code Analysis to install analyzer packages and configure when to run code analysis.
+* Now, for users who turn off the completion for unimported types, it's much easier to get it back in the completion list with the new imported type filter added to the IntelliSense toggles.
+* There is now Quick Info style support for XML comments. Place the cursor over the method name. Quick Info will then display the supported styles from the XML comments above the code.
+* Rename a file when renaming an interface, enum, or class. Place the cursor in the class name and type (Ctrl + R,R) to open the Rename dialogue and check the ‘Rename file’ box.
+* There is now Edit and Continue support for multi-targeted projects which includes modules loaded multiple times in the same process on different domains or load contexts. In addition, developers can edit source files even when the containing project is not loaded or the application is running.
+
+### <a id="prod-16-2"></a> 16.2 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.2))
+* Bring back Sort Usings as a separate command from Remove Usings. Available under Edit > IntelliSense.
+* Convert a switch statement to a [switch expression](https://docs.microsoft.com/dotnet/csharp/whats-new/csharp-8#switch-expressions) (verify you are using C# 8 to get the switch expression feature)
+* Generate a parameter 
+* [Test Explorer improvements](https://docs.microsoft.com/visualstudio/releases/2019/release-notes#test-explorer)
+  * Significant reduction in memory consumed by the Visual Studio process and faster test discovery for solutions with large numbers of tests
+  * Filter buttoms for passed, failed, not run tests
+  * Additional buttons for the 'Run Failed Tests' and 'Run Previous Test Run'
+  * Customize what columns are displayed in the Test Explorer
+  * Specify what is displayed in each tier of the test hierarchy. The default tiers are Project, Namespace, and then Class, but additional options include Outcome or Duration groupings.
+  * The test status window (the pane below the test list that displays the messages, output, etc.) is much more usable. Users can copy substrings of text, and the font-width is fixed for more readable output.
+  * Playlists can be displayed in multiple tabs and are much easier to create and discard as needed.
+  * Live Unit Testing now has its own view in the Test Explorer. It displays all tests currently included in Live Unit Testing (aka. the live test set), so testers can easily keep track of Live Unit Testing results separate from the manually run test results.
+  * There is a target framework column that can display multi-targeted test results.
+
+### <a id="prod-16-1"></a> 16.1 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.1))
 * There is now experimental intellisense completion for unimported types! You now receive intellisense suggestions for types in dependencies in your project even if you have not yet added the import statement to your file. You must turn this option on in Tools > Options > Text Editor > C# > Intellisense.
 * Toggle Single Line Comment/Uncomment is now available through the keyboard shortcut (Ctrl+K,/). This command will add or remove a single line comment depending on whether your selection is already commented.
 * You can now export naming styles with the “Generate editorconfig” button located in Tools > Options > Text Editor > C# > Code Style.
@@ -35,7 +138,7 @@
 * There is now a codefix for making readonly struct fields writable. Place your cursor in the struct name, type (Ctrl+.) to open the quick actions and refactorings menu, and select ‘Make readonly fields writable.’
 * The codefix to add a private field from a constructor and vice versa is easier to discover and will show when any portion of the field name is selected. This refactoring now also offers all possible constructors.
 
-### <a id="prod-16-0"></a> 16.0 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.0))
+### <a id="prod-16-0"></a> 16.0 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.0))
 
 * .NET refactorings and codefixes:
   * Sync Namespace and Folder Name
@@ -62,8 +165,8 @@
 * Categorize references by Read/Write in Find All References window.
 * Add Editorconfig when_multiline option for csharp_prefer_braces.
 * New classification colors are available from the .NET Compiler Platform SDK (aka Roslyn). New default colors, similar to the Visual Studio Code colors, are gradually being rolled out. You can adjust these colors in Tools > Options > Environment > Fonts and Colors or turn them off in Environment > Preview Features by unchecking the Use enhanced colors check box. We’d appreciate hearing feedback on how this change affects your workflow.
-* Configure [code cleanup](https://docs.microsoft.com/en-us/visualstudio/ide/code-styles-and-code-cleanup) (settings formally a part of Format Document)
-* [Format document global tool](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes#-apply-code-style-preferences) can be run from the command-line
+* Configure [code cleanup](https://docs.microsoft.com/visualstudio/ide/code-styles-and-code-cleanup) (settings formally a part of Format Document)
+* [Format document global tool](https://docs.microsoft.com/visualstudio/releases/2019/release-notes#-apply-code-style-preferences) can be run from the command-line
  * Use [code metrics](https://docs.microsoft.com/visualstudio/code-quality/code-metrics-values) with .NET Core projects with our added compatibility.
  * Export editor settings to an Editorconfig file through **Tools > Options > Text Editor > C# > Code Style** with the button "Generate .editorconfig file from settings".
  * Use C# and Visual Basic's new Regex parser support. Regular expressions are now recognized, and language features are enabled on them. Regex strings are either recognized when a string is passed to the Regex constructor or when a string is immediately preceded with a comment containing the string language=regex. The language features included in this release are classification, brace matching, highlight references, and diagnostics.
@@ -85,7 +188,7 @@
 ### <a id="prod-15-9"></a>15.9
 None
 
-### <a id="prod-15-8"></a>15.8 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releasenotes/vs2017-relnotes-v15.8#productivity))
+### <a id="prod-15-8"></a>15.8 ([release notes](https://docs.microsoft.com/visualstudio/releasenotes/vs2017-relnotes-v15.8#productivity))
  * Format Document (Ctrl + K, D or Ctrl + E, D) for C# development. 
  * .NET refactorings and codefixes:
    * Invert If 
@@ -100,7 +203,7 @@ None
  * Access a contextual navigation menu with Alt + `.
  * Visual Studio Code and ReSharper (Visual Studio) keybindings
 
-### <a id="prod-15-7"></a>15.7 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releasenotes/vs2017-relnotes-v15.7#dotnet_productivity))
+### <a id="prod-15-7"></a>15.7 ([release notes](https://docs.microsoft.com/visualstudio/releasenotes/vs2017-relnotes-v15.7#dotnet_productivity))
 * .NET refactorings and codefixes:
    * For-to-foreach, and vice versa.
    * Make private fields readonly.
@@ -110,7 +213,7 @@ None
  * Change Signature refactoring (Ctrl+. on signature) works on local functions.
  * You can edit .NET Core project files in-place, so opening containing folder, restoring tabs, and other Editor features are fully supported. IDE changes, such as adding a linked file, will be merged with unsaved changes in the editor.
 
-### <a id="prod-15-6"></a>15.6 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releasenotes/vs2017-relnotes-v15.6#productivity))
+### <a id="prod-15-6"></a>15.6 ([release notes](https://docs.microsoft.com/visualstudio/releasenotes/vs2017-relnotes-v15.6#productivity))
  * Navigate to decompiled sources (must enable in Tools > Options > Text Editor > C# > Advanced > Enable navigation to decompiled sources)
  * .NET EditorConfig options: dotnet_prefer_inferred_tuple_names
  * .NET EditorConfig options: dotnet_prefer_inferred_anonymous_type_member_names
@@ -120,5 +223,5 @@ None
 ### <a id="prod-15-5"></a>15.5
 None
 
-### <a id="prod-15-4"></a>15.4 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releasenotes/vs2017-relnotes-v15.4#editor))
+### <a id="prod-15-4"></a>15.4 ([release notes](https://docs.microsoft.com/visualstudio/releasenotes/vs2017-relnotes-v15.4#editor))
  * Editor: Control Click Go To Definition

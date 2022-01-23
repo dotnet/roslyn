@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -95,10 +97,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me._underlyingField.GetAttributes()
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Dim useSiteDiagnostic As DiagnosticInfo = MyBase.GetUseSiteErrorInfo
-            MyBase.MergeUseSiteErrorInfo(useSiteDiagnostic, Me._underlyingField.GetUseSiteErrorInfo())
-            Return useSiteDiagnostic
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MyBase.GetUseSiteInfo
+            MyBase.MergeUseSiteInfo(useSiteInfo, Me._underlyingField.GetUseSiteInfo())
+            Return useSiteInfo
         End Function
 
         Public Overrides Function GetHashCode() As Integer
@@ -231,13 +233,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._cannotUse = cannotUse
         End Sub
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If _cannotUse Then
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_TupleInferredNamesNotAvailable, _name,
-                                              New VisualBasicRequiredLanguageVersion(LanguageVersion.VisualBasic15_3))
+                Return New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_TupleInferredNamesNotAvailable, _name,
+                                                                                 New VisualBasicRequiredLanguageVersion(LanguageVersion.VisualBasic15_3)))
             End If
 
-            Return MyBase.GetUseSiteErrorInfo()
+            Return MyBase.GetUseSiteInfo()
         End Function
 
         Public Overrides ReadOnly Property Name As String

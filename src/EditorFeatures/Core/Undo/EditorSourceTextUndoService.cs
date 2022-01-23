@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Composition;
@@ -7,21 +11,21 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Undo
 {
     [ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Editor), Shared]
     internal sealed class EditorSourceTextUndoService : ISourceTextUndoService
     {
-        private Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new Dictionary<SourceText, SourceTextUndoTransaction>();
+        private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new();
 
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorSourceTextUndoService(ITextUndoHistoryRegistry undoHistoryRegistry)
-        {
-            _undoHistoryRegistry = undoHistoryRegistry;
-        }
+            => _undoHistoryRegistry = undoHistoryRegistry;
 
         public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
         {
@@ -37,11 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
 
         public bool BeginUndoTransaction(ITextSnapshot snapshot)
         {
-            SourceTextUndoTransaction transaction = null;
             var sourceText = snapshot?.AsText();
             if (sourceText != null)
             {
-                _transactions.TryGetValue(sourceText, out transaction);
+                _transactions.TryGetValue(sourceText, out var transaction);
                 if (transaction != null)
                 {
                     return transaction.Begin(_undoHistoryRegistry?.GetHistory(snapshot.TextBuffer));

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Threading;
@@ -18,10 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles ||
                 document.IsGeneratedCode(cancellationToken))
             {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 // These code actions try to move file to a new location based on declared namespace
                 // and the default namespace of the project. The new location is a list of folders
-                // determined by the relateive part of the declared namespace compare to the default namespace.
+                // determined by the relative part of the declared namespace compare to the default namespace.
                 // 
                 // For example, if he default namespace is `A.B.C`, file path is 
                 // "[project root dir]\Class1.cs" and declared namespace in the file is
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                         : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace),
                     token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, token));
 
-                context.RegisterRefactoring(solutionChangeAction);
+                context.RegisterRefactoring(solutionChangeAction, textSpan);
             }
         }
 
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// Try to get the node that can be used to trigger the refactoring based on current cursor position. 
         /// </summary>
         /// <returns>
-        /// (1) a node of type <typeparamref name="TNamespaceDeclarationSyntax"/> node, if curosr in the name and it's the 
+        /// (1) a node of type <typeparamref name="TNamespaceDeclarationSyntax"/> node, if cursor in the name and it's the 
         /// only namespace declaration in the document.
         /// (2) a node of type <typeparamref name="TCompilationUnitSyntax"/> node, if the cursor is in the name of first 
         /// declaration in global namespace and there's no namespace declaration in this document.
@@ -96,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
         private class ChangeNamespaceCodeAction : SolutionChangeAction
         {
-            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
-                base(title, createChangedSolution)
+            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

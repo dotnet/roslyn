@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -51,9 +56,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var project = CreateProject();
 
+            var projectWithUserConfiguredGeneratedCodeTrue = project.AddAnalyzerConfigDocument(".editorconfig",
+                SourceText.From(@"
+[*.{cs,vb}]
+generated_code = true
+"), filePath: @"z:\.editorconfig").Project;
+
+            var projectWithUserConfiguredGeneratedCodeFalse = project.AddAnalyzerConfigDocument(".editorconfig",
+                SourceText.From(@"
+[*.{cs,vb}]
+generated_code = false
+"), filePath: @"z:\.editorconfig").Project;
+
             foreach (var fileName in fileNames)
             {
-                var document = project.AddDocument(fileName, "");
+                TestCore(fileName, project, assertGenerated);
+
+                // Verify user configuration always overrides generated code heuristic.
+                if (fileName.EndsWith(".cs") || fileName.EndsWith(".vb"))
+                {
+                    TestCore(fileName, projectWithUserConfiguredGeneratedCodeTrue, assertGenerated: true);
+                    TestCore(fileName, projectWithUserConfiguredGeneratedCodeFalse, assertGenerated: false);
+                }
+            }
+
+            static void TestCore(string fileName, Project project, bool assertGenerated)
+            {
+                var document = project.AddDocument(fileName, "", filePath: $"z:\\{fileName}");
                 if (assertGenerated)
                 {
                     Assert.True(document.IsGeneratedCode(CancellationToken.None), string.Format("Expected file '{0}' to be interpreted as generated code", fileName));
@@ -65,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static Project CreateProject(string language = LanguageNames.CSharp)
+        private static Project CreateProject()
         {
             var projectName = "TestProject";
             var projectId = ProjectId.CreateNewId(projectName);

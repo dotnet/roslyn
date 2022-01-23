@@ -1,7 +1,7 @@
-﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
 
     <IsPackable>true</IsPackable>
     <NuspecPackageId>Microsoft.Net.Compilers.Toolset</NuspecPackageId>
@@ -9,16 +9,22 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>
       .NET Compilers Toolset Package.
-      Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
+      Referencing this package will cause the project to be built using the C# and Visual Basic compilers contained in the package, as opposed to the version installed with MSBuild.
 
-      This package requires MSBuild 15.0 and either .NET Destkop 4.7.2 or .NET Core 2.1
+      This package is primarily intended as a method for rapidly shipping hotfixes to customers. Using it as a long term solution for providing newer compilers on older MSBuild installations is explicitly not supported. That can and will break on a regular basis.
+
+      The supported mechanism for providing new compilers in a build enviroment is updating to the newer .NET SDK or Visual Studio Build Tools SKU.
+
+      This package requires either MSBuild 16.3 and .NET Desktop 4.7.2+ or .NET Core 2.1+
+
       $(RoslynPackageDescriptionDetails)
     </PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
-    <NoWarn>$(NoWarn);NU5100</NoWarn>
+    <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
+    <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
     <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
-    <_DependsOn Condition="'$(TargetFramework)' == 'netcoreapp2.1'">InitializeCoreClrCompilerArtifacts</_DependsOn>
+    <_DependsOn Condition="'$(TargetFramework)' == 'net6.0'">InitializeCoreClrCompilerArtifacts</_DependsOn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,25 +38,26 @@
                       Targets="Publish"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
-                      Condition="'$(TargetFramework)' == 'netcoreapp2.1'"
-                      SetTargetFramework="TargetFramework=netcoreapp2.1" />
+                      Condition="'$(TargetFramework)' == 'net6.0'"
+                      SetTargetFramework="TargetFramework=net6.0" />
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
-      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcoreapp2.1"/>
-      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcoreapp2.1"/>
-      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcoreapp2.1/bincore"/>
-      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp2.1/bincore/runtimes"/>
+      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/net6.0"/>
+      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/net6.0"/>
+      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/net6.0/bincore"/>
+      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/net6.0/bincore/runtimes"/>
      
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
+      <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
      
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
   </Target>
 
   <Import Project="DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
-  <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+  <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net6.0'" />
 </Project>

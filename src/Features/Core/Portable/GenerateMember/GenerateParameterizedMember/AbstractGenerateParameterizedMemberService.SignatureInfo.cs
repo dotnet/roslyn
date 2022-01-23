@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -30,8 +35,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 SemanticDocument document,
                 State state)
             {
-                this.Document = document;
-                this.State = state;
+                Document = document;
+                State = state;
             }
 
             public ImmutableArray<ITypeParameterSymbol> DetermineTypeParameters(CancellationToken cancellationToken)
@@ -44,7 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             protected abstract ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken);
             protected abstract RefKind DetermineRefKind(CancellationToken cancellationToken);
 
-            public ITypeSymbol DetermineReturnType(CancellationToken cancellationToken)
+            public ValueTask<ITypeSymbol> DetermineReturnTypeAsync(CancellationToken cancellationToken)
             {
                 var type = DetermineReturnTypeWorker(cancellationToken);
                 if (State.IsInConditionalAccessExpression)
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     type = type.RemoveNullableIfPresent();
                 }
 
-                return FixType(type, cancellationToken);
+                return FixTypeAsync(type, cancellationToken);
             }
 
             protected abstract ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken);
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             protected abstract ImmutableArray<bool> DetermineParameterOptionality(CancellationToken cancellationToken);
             protected abstract ImmutableArray<ParameterName> DetermineParameterNames(CancellationToken cancellationToken);
 
-            internal IPropertySymbol GenerateProperty(
+            internal async ValueTask<IPropertySymbol> GeneratePropertyAsync(
                 SyntaxGenerator factory,
                 bool isAbstract, bool includeSetter,
                 CancellationToken cancellationToken)
@@ -71,7 +76,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     attributes: default,
                     accessibility: accessibility,
-                    statements: GenerateStatements(factory, isAbstract, cancellationToken));
+                    statements: GenerateStatements(factory, isAbstract));
 
                 var setMethod = includeSetter ? getMethod : null;
 
@@ -79,26 +84,26 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     attributes: default,
                     accessibility: accessibility,
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
-                    type: DetermineReturnType(cancellationToken),
+                    type: await DetermineReturnTypeAsync(cancellationToken).ConfigureAwait(false),
                     refKind: DetermineRefKind(cancellationToken),
                     explicitInterfaceImplementations: default,
-                    name: this.State.IdentifierToken.ValueText,
-                    parameters: DetermineParameters(cancellationToken),
+                    name: State.IdentifierToken.ValueText,
+                    parameters: await DetermineParametersAsync(cancellationToken).ConfigureAwait(false),
                     getMethod: getMethod,
                     setMethod: setMethod);
             }
 
-            public IMethodSymbol GenerateMethod(
+            public async ValueTask<IMethodSymbol> GenerateMethodAsync(
                 SyntaxGenerator factory,
                 bool isAbstract,
                 CancellationToken cancellationToken)
             {
-                var parameters = DetermineParameters(cancellationToken);
-                var returnType = DetermineReturnType(cancellationToken);
+                var parameters = await DetermineParametersAsync(cancellationToken).ConfigureAwait(false);
+                var returnType = await DetermineReturnTypeAsync(cancellationToken).ConfigureAwait(false);
                 var isUnsafe = false;
                 if (!State.IsContainedInUnsafeType)
                 {
-                    isUnsafe = returnType.IsUnsafe() || parameters.Any(p => p.Type.IsUnsafe());
+                    isUnsafe = returnType.RequiresUnsafeModifier() || parameters.Any(p => p.Type.RequiresUnsafeModifier());
                 }
 
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
@@ -108,45 +113,49 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     returnType: returnType,
                     refKind: DetermineRefKind(cancellationToken),
                     explicitInterfaceImplementations: default,
-                    name: this.State.IdentifierToken.ValueText,
+                    name: State.IdentifierToken.ValueText,
                     typeParameters: DetermineTypeParameters(cancellationToken),
                     parameters: parameters,
-                    statements: GenerateStatements(factory, isAbstract, cancellationToken),
+                    statements: GenerateStatements(factory, isAbstract),
                     handlesExpressions: default,
                     returnTypeAttributes: default,
                     methodKind: State.MethodKind);
 
                 // Ensure no conflicts between type parameter names and parameter names.
-                var languageServiceProvider = this.Document.Project.Solution.Workspace.Services.GetLanguageServices(this.State.TypeToGenerateIn.Language);
+                var languageServiceProvider = Document.Project.Solution.Workspace.Services.GetLanguageServices(State.TypeToGenerateIn.Language);
                 var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
 
                 var equalityComparer = syntaxFacts.StringComparer;
-                var reservedParameterNames = this.DetermineParameterNames(cancellationToken)
+                var reservedParameterNames = DetermineParameterNames(cancellationToken)
                                                  .Select(p => p.BestNameForParameter)
                                                  .ToSet(equalityComparer);
+
                 var newTypeParameterNames = NameGenerator.EnsureUniqueness(
-                    method.TypeParameters.Select(t => t.Name).ToList(), n => !reservedParameterNames.Contains(n));
+                    method.TypeParameters.SelectAsArray(t => t.Name),
+                    n => !reservedParameterNames.Contains(n));
 
                 return method.RenameTypeParameters(newTypeParameterNames);
             }
 
-            private ITypeSymbol FixType(
+            private async ValueTask<ITypeSymbol> FixTypeAsync(
                 ITypeSymbol typeSymbol,
                 CancellationToken cancellationToken)
             {
                 // A type can't refer to a type parameter that isn't available in the type we're
                 // eventually generating into.
-                var availableMethodTypeParameters = this.DetermineTypeParameters(cancellationToken);
-                var availableTypeParameters = this.State.TypeToGenerateIn.GetAllTypeParameters();
+                var availableMethodTypeParameters = DetermineTypeParameters(cancellationToken);
+                var availableTypeParameters = State.TypeToGenerateIn.GetAllTypeParameters();
 
-                var compilation = this.Document.SemanticModel.Compilation;
+                var compilation = Document.SemanticModel.Compilation;
                 var allTypeParameters = availableMethodTypeParameters.Concat(availableTypeParameters);
+                var availableTypeParameterNames = allTypeParameters.Select(t => t.Name).ToSet();
 
-                var typeArgumentToTypeParameterMap = this.GetTypeArgumentToTypeParameterMap(cancellationToken);
+                var typeArgumentToTypeParameterMap = GetTypeArgumentToTypeParameterMap(cancellationToken);
 
-                return typeSymbol.RemoveAnonymousTypes(compilation)
-                                 .ReplaceTypeParametersBasedOnTypeConstraints(compilation, allTypeParameters, this.Document.Document.Project.Solution, cancellationToken)
-                                 .RemoveUnavailableTypeParameters(compilation, allTypeParameters)
+                typeSymbol = typeSymbol.RemoveAnonymousTypes(compilation);
+                typeSymbol = await ReplaceTypeParametersBasedOnTypeConstraintsAsync(
+                    Document.Project, typeSymbol, compilation, availableTypeParameterNames, cancellationToken).ConfigureAwait(false);
+                return typeSymbol.RemoveUnavailableTypeParameters(compilation, allTypeParameters)
                                  .RemoveUnnamedErrorTypes(compilation)
                                  .SubstituteTypes(typeArgumentToTypeParameterMap, new TypeGenerator());
             }
@@ -160,14 +169,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private IDictionary<ITypeSymbol, ITypeParameterSymbol> CreateTypeArgumentToTypeParameterMap(
                 CancellationToken cancellationToken)
             {
-                var typeArguments = this.DetermineTypeArguments(cancellationToken);
-                var typeParameters = this.DetermineTypeParameters(cancellationToken);
+                var typeArguments = DetermineTypeArguments(cancellationToken);
+                var typeParameters = DetermineTypeParameters(cancellationToken);
 
                 // We use a nullability-ignoring comparer because top-level and nested nullability won't matter. If we are looking to replace
                 // IEnumerable<string> with T, we want to replace IEnumerable<string?> whenever it appears in an argument or return type, partly because
                 // there's no way to represent something like T-with-only-the-inner-thing-nullable. We could leave the entire argument as is, but we're suspecting
                 // this is closer to the user's desire, even if it might require some tweaking after the fact.
-                var result = new Dictionary<ITypeSymbol, ITypeParameterSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
+                var result = new Dictionary<ITypeSymbol, ITypeParameterSymbol>(SymbolEqualityComparer.Default);
 
                 for (var i = 0; i < typeArguments.Length; i++)
                 {
@@ -182,24 +191,23 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
             private ImmutableArray<SyntaxNode> GenerateStatements(
                 SyntaxGenerator factory,
-                bool isAbstract,
-                CancellationToken cancellationToken)
+                bool isAbstract)
             {
-                var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(factory, this.Document, "System.NotImplementedException", cancellationToken);
+                var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(factory, Document, "System.NotImplementedException");
 
                 return isAbstract || State.TypeToGenerateIn.TypeKind == TypeKind.Interface || throwStatement == null
                     ? default
                     : ImmutableArray.Create(throwStatement);
             }
 
-            private ImmutableArray<IParameterSymbol> DetermineParameters(CancellationToken cancellationToken)
+            private async ValueTask<ImmutableArray<IParameterSymbol>> DetermineParametersAsync(CancellationToken cancellationToken)
             {
                 var modifiers = DetermineParameterModifiers(cancellationToken);
-                var types = DetermineParameterTypes(cancellationToken).Select(t => FixType(t, cancellationToken)).ToList();
+                var types = await SpecializedTasks.WhenAll(DetermineParameterTypes(cancellationToken).Select(t => FixTypeAsync(t, cancellationToken))).ConfigureAwait(false);
                 var optionality = DetermineParameterOptionality(cancellationToken);
                 var names = DetermineParameterNames(cancellationToken);
 
-                var result = ArrayBuilder<IParameterSymbol>.GetInstance();
+                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
                 for (var i = 0; i < modifiers.Length; i++)
                 {
                     result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -211,21 +219,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         name: names[i].BestNameForParameter));
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private Accessibility DetermineAccessibility(bool isAbstract)
             {
-                var containingType = this.State.ContainingType;
+                var containingType = State.ContainingType;
 
                 // If we're generating into an interface, then we don't use any modifiers.
                 if (State.TypeToGenerateIn.TypeKind != TypeKind.Interface)
                 {
                     // Otherwise, figure out what accessibility modifier to use and optionally
                     // mark it as static.
-                    if (containingType.IsContainedWithin(State.TypeToGenerateIn) && !isAbstract)
+                    if (containingType.IsContainedWithin(State.TypeToGenerateIn))
                     {
-                        return Accessibility.Private;
+                        return isAbstract ? Accessibility.Protected : Accessibility.Private;
                     }
                     else if (DerivesFrom(containingType) && State.IsStatic)
                     {

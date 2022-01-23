@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -11,12 +14,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 {
@@ -25,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     {
         protected abstract char DocumentationCommentCharacter { get; }
 
-        internal abstract VSCommanding.ICommandHandler CreateCommandHandler(IWaitIndicator waitIndicator, ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService);
+        internal abstract ICommandHandler CreateCommandHandler(TestWorkspace workspace);
 
         protected abstract TestWorkspace CreateTestWorkspace(string code);
 
         protected void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true, string newLine = "\r\n")
         {
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments, newLine: newLine,
-                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                execute: (workspace, view, editorOperationsFactoryService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService);
+                    var commandHandler = CreateCommandHandler(workspace);
 
                     var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, DocumentationCommentCharacter);
                     var nextHandler = CreateInsertTextHandler(view, DocumentationCommentCharacter.ToString());
@@ -48,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         {
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 setOptionsOpt: setOptionsOpt,
-                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                execute: (workspace, view, editorOperationsFactoryService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService);
+                    var commandHandler = CreateCommandHandler(workspace);
 
                     var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
                     var nextHandler = CreateInsertTextHandler(view, "\r\n");
@@ -61,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         protected void VerifyInsertCommentCommand(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
         {
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
-                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                execute: (workspace, view, editorOperationsFactoryService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService);
+                    var commandHandler = CreateCommandHandler(workspace);
 
                     var commandArgs = new InsertCommentCommandArgs(view, view.TextBuffer);
                     Action nextHandler = delegate { };
@@ -75,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         protected void VerifyOpenLineAbove(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
         {
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
-                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                execute: (workspace, view, editorOperationsFactoryService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService);
+                    var commandHandler = CreateCommandHandler(workspace);
 
                     var commandArgs = new OpenLineAboveCommandArgs(view, view.TextBuffer);
                     void nextHandler()
@@ -93,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         protected void VerifyOpenLineBelow(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
         {
             Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
-                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                execute: (workspace, view, editorOperationsFactoryService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService);
+                    var commandHandler = CreateCommandHandler(workspace);
 
                     var commandArgs = new OpenLineBelowCommandArgs(view, view.TextBuffer);
                     void nextHandler()
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 });
         }
 
-        private Action CreateInsertTextHandler(ITextView textView, string text)
+        private static Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>
             {
@@ -119,12 +120,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         }
 
         private void Verify(string initialMarkup, string expectedMarkup, bool useTabs, bool autoGenerateXmlDocComments,
-            Action<IWpfTextView, ITextUndoHistoryRegistry, IEditorOperationsFactoryService, IAsyncCompletionService> execute,
+            Action<TestWorkspace, IWpfTextView, IEditorOperationsFactoryService> execute,
             Action<TestWorkspace> setOptionsOpt = null, string newLine = "\r\n")
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
+
+                var options = workspace.Options;
+
+                options = options.WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTabs);
+                options = options.WithChangedOption(DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, testDocument.Project.Language, autoGenerateXmlDocComments);
+                options = options.WithChangedOption(FormattingOptions.NewLine, testDocument.Project.Language, newLine);
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
+
+                setOptionsOpt?.Invoke(workspace);
 
                 Assert.True(testDocument.CursorPosition.HasValue, "No caret position set!");
                 var startCaretPosition = testDocument.CursorPosition.Value;
@@ -144,21 +155,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
 
-                var options = workspace.Options;
-
-                options = options.WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTabs);
-                options = options.WithChangedOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, testDocument.Project.Language, autoGenerateXmlDocComments);
-                options = options.WithChangedOption(FormattingOptions.NewLine, testDocument.Project.Language, newLine);
-
-                workspace.Options = options;
-
-                setOptionsOpt?.Invoke(workspace);
-
                 execute(
+                    workspace,
                     view,
-                    workspace.GetService<ITextUndoHistoryRegistry>(),
-                    workspace.GetService<IEditorOperationsFactoryService>(),
-                    workspace.GetService<IAsyncCompletionService>());
+                    workspace.GetService<IEditorOperationsFactoryService>());
                 MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
                 Assert.Equal(expectedCode, view.TextSnapshot.GetText());

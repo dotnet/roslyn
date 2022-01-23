@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,32 +17,36 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     {
         private static readonly Func<BaseArgumentListSyntax, SyntaxToken> s_getBaseArgumentListOpenToken = list => list.GetOpenToken();
         private static readonly Func<TypeArgumentListSyntax, SyntaxToken> s_getTypeArgumentListOpenToken = list => list.LessThanToken;
+        private static readonly Func<InitializerExpressionSyntax, SyntaxToken> s_getInitializerExpressionOpenToken = e => e.OpenBraceToken;
         private static readonly Func<AttributeArgumentListSyntax, SyntaxToken> s_getAttributeArgumentListOpenToken = list => list.OpenParenToken;
 
         private static readonly Func<BaseArgumentListSyntax, SyntaxToken> s_getBaseArgumentListCloseToken = list => list.GetCloseToken();
         private static readonly Func<TypeArgumentListSyntax, SyntaxToken> s_getTypeArgumentListCloseToken = list => list.GreaterThanToken;
+        private static readonly Func<InitializerExpressionSyntax, SyntaxToken> s_getInitializerExpressionCloseToken = e => e.CloseBraceToken;
         private static readonly Func<AttributeArgumentListSyntax, SyntaxToken> s_getAttributeArgumentListCloseToken = list => list.CloseParenToken;
 
         private static readonly Func<BaseArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getBaseArgumentListArgumentsWithSeparators =
             list => list.Arguments.GetWithSeparators();
         private static readonly Func<TypeArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getTypeArgumentListArgumentsWithSeparators =
             list => list.Arguments.GetWithSeparators();
+        private static readonly Func<InitializerExpressionSyntax, IEnumerable<SyntaxNodeOrToken>> s_getInitializerExpressionArgumentsWithSeparators =
+            e => e.Expressions.GetWithSeparators();
         private static readonly Func<AttributeArgumentListSyntax, IEnumerable<SyntaxNodeOrToken>> s_getAttributeArgumentListArgumentsWithSeparators =
                     list => list.Arguments.GetWithSeparators();
 
-        private static readonly Func<BaseArgumentListSyntax, IEnumerable<string>> s_getBaseArgumentListNames =
-            list => list.Arguments.Select(argument => argument.NameColon == null ? null : argument.NameColon.Name.Identifier.ValueText);
-        private static readonly Func<TypeArgumentListSyntax, IEnumerable<string>> s_getTypeArgumentListNames =
-            list => list.Arguments.Select(a => (string)null);
-        private static readonly Func<AttributeArgumentListSyntax, IEnumerable<string>> s_getAttributeArgumentListNames =
+        private static readonly Func<BaseArgumentListSyntax, IEnumerable<string?>> s_getBaseArgumentListNames =
+            list => list.Arguments.Select(argument => argument.NameColon?.Name.Identifier.ValueText);
+        private static readonly Func<TypeArgumentListSyntax, IEnumerable<string?>> s_getTypeArgumentListNames =
+            list => list.Arguments.Select(a => (string?)null);
+        private static readonly Func<InitializerExpressionSyntax, IEnumerable<string?>> s_getInitializerExpressionNames =
+            e => e.Expressions.Select(a => (string?)null);
+        private static readonly Func<AttributeArgumentListSyntax, IEnumerable<string?>> s_getAttributeArgumentListNames =
             list => list.Arguments.Select(
                 argument => argument.NameColon != null
                     ? argument.NameColon.Name.Identifier.ValueText
-                    : argument.NameEquals != null
-                        ? argument.NameEquals.Name.Identifier.ValueText
-                        : null);
+                    : argument.NameEquals?.Name.Identifier.ValueText);
 
-        internal static SignatureHelpState GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position)
+        internal static SignatureHelpState? GetSignatureHelpState(BaseArgumentListSyntax argumentList, int position)
         {
             return CommonSignatureHelpUtilities.GetSignatureHelpState(
                 argumentList, position,
@@ -50,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 s_getBaseArgumentListNames);
         }
 
-        internal static SignatureHelpState GetSignatureHelpState(TypeArgumentListSyntax argumentList, int position)
+        internal static SignatureHelpState? GetSignatureHelpState(TypeArgumentListSyntax argumentList, int position)
         {
             return CommonSignatureHelpUtilities.GetSignatureHelpState(
                 argumentList, position,
@@ -60,7 +66,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 s_getTypeArgumentListNames);
         }
 
-        internal static SignatureHelpState GetSignatureHelpState(AttributeArgumentListSyntax argumentList, int position)
+        internal static SignatureHelpState? GetSignatureHelpState(InitializerExpressionSyntax argumentList, int position)
+        {
+            return CommonSignatureHelpUtilities.GetSignatureHelpState(
+                argumentList, position,
+                s_getInitializerExpressionOpenToken,
+                s_getInitializerExpressionCloseToken,
+                s_getInitializerExpressionArgumentsWithSeparators,
+                s_getInitializerExpressionNames);
+        }
+
+        internal static SignatureHelpState? GetSignatureHelpState(AttributeArgumentListSyntax argumentList, int position)
         {
             return CommonSignatureHelpUtilities.GetSignatureHelpState(
                 argumentList, position,
@@ -71,27 +87,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         internal static TextSpan GetSignatureHelpSpan(BaseArgumentListSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getBaseArgumentListCloseToken);
-        }
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getBaseArgumentListCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(TypeArgumentListSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken);
-        }
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken);
+
+        internal static TextSpan GetSignatureHelpSpan(InitializerExpressionSyntax initializer)
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(initializer, initializer.SpanStart, s_getInitializerExpressionCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(AttributeArgumentListSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getAttributeArgumentListCloseToken);
-        }
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getAttributeArgumentListCloseToken);
 
         internal static bool IsTriggerParenOrComma<TSyntaxNode>(SyntaxToken token, Func<char, bool> isTriggerCharacter) where TSyntaxNode : SyntaxNode
         {
             // Don't dismiss if the user types ( to start a parenthesized expression or tuple
             // Note that the tuple initially parses as a parenthesized expression 
-            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax? parenExpr))
             {
-                var parenthesizedExpr = ((ParenthesizedExpressionSyntax)token.Parent).WalkUpParentheses();
+                var parenthesizedExpr = parenExpr.WalkUpParentheses();
                 if (parenthesizedExpr.Parent is ArgumentSyntax)
                 {
                     var parent = parenthesizedExpr.Parent;

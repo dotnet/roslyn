@@ -2,9 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_imports_on_paste">
+        <source>Add missing imports on paste</source>
+        <target state="translated">Добавить недостающие директивы import при вставке</target>
+        <note>'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">В реляционных операторах: =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
+        <source>Insert ' at the start of new lines when writing ' comments</source>
+        <target state="translated">Вставлять "'" в начале новых строк при написании комментариев "'"</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -22,11 +32,6 @@
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">Пере_местить локальное объявление в извлеченный метод, если оно больше нигде не используется</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">Автоматическая в_ставка членов Interface и MustOverride</target>
@@ -37,14 +42,34 @@
         <target state="translated">Никогда </target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_IsNot_expression">
+        <source>Prefer 'IsNot' expression</source>
+        <target state="translated">Предпочтительно использовать выражение IsNot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">Предпочитать Is Nothing для проверок равенства ссылок</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_object_creation">
+        <source>Prefer simplified object creation</source>
+        <target state="translated">Предпочтение упрощенному созданию объектов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_Imports">
+        <source>Remove unnecessary Imports</source>
+        <target state="translated">Удалить ненужные импорты (Import)</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Show_hints_for_New_expressions">
+        <source>Show hints for 'New' expressions</source>
+        <target state="translated">Отображать подсказки для выражений "New"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="translated">Отображать элементы из неимпортированных пространств имен</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -94,8 +119,8 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">_Создавать комментарии XML-документации для """</target>
-        <note />
+        <target state="translated">_Создавать комментарии XML-документации для '''</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
@@ -115,6 +140,11 @@
       <trans-unit id="Regular">
         <source>Regular</source>
         <target state="translated">обычный</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">Показать заметки в кратких сведениях</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -146,6 +176,11 @@
         <source>Import Directives</source>
         <target state="translated">Директивы Import</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sort_imports">
+        <source>Sort imports</source>
+        <target state="translated">Сортировать импорты</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>

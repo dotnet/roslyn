@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -22,6 +22,12 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\WellKnownMemberNames.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
+      <Link>Compiler\NullableAttributes.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs">
+      <Link>Compiler\RoslynString.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>Compiler\UnicodeCharacterUtilities.cs</Link>
     </Compile>
@@ -30,6 +36,15 @@
     </Compile>
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs">
       <Link>CSharp\Compiler\SyntaxKindFacts.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameKind.cs">
+      <Link>CSharp\Compiler\GeneratedNameKind.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameParser.cs">
+      <Link>CSharp\Compiler\GeneratedNameParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameConstants.cs">
+      <Link>CSharp\Compiler\GeneratedNameConstants.cs</Link>
     </Compile>
     <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
       <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
@@ -48,6 +63,8 @@
       <Version>$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)</Version>
       <ExcludeAssets>compile</ExcludeAssets>
     </PackageReference>
+    <!-- Remove once https://github.com/dotnet/sdk/issues/19506 is resolved -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesVersion)" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

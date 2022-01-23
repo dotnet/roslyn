@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -18,11 +23,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
                    syntaxRef: null,
-                   defaultSyntaxValue: ConstantValue.Unset, // the default value can be set via [param: DefaultParameterValue] applied on the accessor
                    isParams: false,
                    isExtensionMethodThis: false)
         {
         }
+
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                var result = FlowAnalysisAnnotations.None;
+                if (ContainingSymbol is SourcePropertyAccessorSymbol propertyAccessor && propertyAccessor.AssociatedSymbol is SourcePropertySymbolBase property)
+                {
+                    if (property.HasDisallowNull)
+                    {
+                        result |= FlowAnalysisAnnotations.DisallowNull;
+                    }
+                    if (property.HasAllowNull)
+                    {
+                        result |= FlowAnalysisAnnotations.AllowNull;
+                    }
+                }
+                return result;
+            }
+        }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -37,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-
         protected override IAttributeTargetSymbol AttributeOwner
         {
             get { return (SourceMemberMethodSymbol)this.ContainingSymbol; }
@@ -48,6 +73,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Bind the attributes on the accessor's attribute syntax list with "param" target specifier.
             var accessor = (SourceMemberMethodSymbol)this.ContainingSymbol;
             return accessor.GetAttributeDeclarations();
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            if (ContainingSymbol is SourcePropertyAccessorSymbol propertyAccessor && propertyAccessor.AssociatedSymbol is SourcePropertySymbolBase property)
+            {
+                var annotations = FlowAnalysisAnnotations;
+                if ((annotations & FlowAnalysisAnnotations.DisallowNull) != 0)
+                {
+                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.DisallowNullAttributeIfExists));
+                }
+                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
+                {
+                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.AllowNullAttributeIfExists));
+                }
+            }
         }
     }
 }

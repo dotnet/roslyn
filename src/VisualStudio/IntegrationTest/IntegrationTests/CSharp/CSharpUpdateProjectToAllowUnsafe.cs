@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpUpdateProjectToAllowUnsafe : AbstractUpdateProjectTest
     {
-        public CSharpUpdateProjectToAllowUnsafe(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpUpdateProjectToAllowUnsafe(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
@@ -31,7 +35,7 @@ unsafe class C
             VisualStudio.Editor.Verify.CodeAction("Allow unsafe code in this project", applyFix: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/44301"), Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
         public void CPSProject_GeneralPropertyGroupUpdated()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -73,7 +77,7 @@ unsafe class C
     <OutputType>Library</OutputType>
     <RootNamespace>{ProjectName}</RootNamespace>
     <AssemblyName>{ProjectName}</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Debug|x86'"">
     <OutputPath>bin\x86\Debug\</OutputPath>

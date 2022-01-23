@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -19,22 +23,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, out bool generatedDiagnostics)
+        internal (CSharpAttributeData, BoundAttribute) GetAttribute(
+            AttributeSyntax node, NamedTypeSymbol boundAttributeType,
+            Action<AttributeSyntax> beforeAttributePartBound,
+            Action<AttributeSyntax> afterAttributePartBound,
+            out bool generatedDiagnostics)
         {
-            var dummyDiagnosticBag = DiagnosticBag.GetInstance();
-            var boundAttribute = base.GetAttribute(node, boundAttributeType, dummyDiagnosticBag);
-            generatedDiagnostics = !dummyDiagnosticBag.IsEmptyWithoutResolution;
+            var dummyDiagnosticBag = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+            var result = base.GetAttribute(node, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, dummyDiagnosticBag);
+            generatedDiagnostics = !dummyDiagnosticBag.DiagnosticBag.IsEmptyWithoutResolution;
             dummyDiagnosticBag.Free();
-            return boundAttribute;
+            return result;
         }
 
         // Hide the GetAttribute overload which takes a diagnostic bag.
         // This ensures that diagnostics from the early bound attributes are never preserved.
         [Obsolete("EarlyWellKnownAttributeBinder has a better overload - GetAttribute(AttributeSyntax, NamedTypeSymbol, out bool)", true)]
-        internal new CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, DiagnosticBag diagnostics)
+        internal new (CSharpAttributeData, BoundAttribute) GetAttribute(
+            AttributeSyntax node, NamedTypeSymbol boundAttributeType,
+            Action<AttributeSyntax> beforeAttributePartBound,
+            Action<AttributeSyntax> afterAttributePartBound,
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(false, "Don't call this overload.");
-            return base.GetAttribute(node, boundAttributeType, diagnostics);
+            diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
+            return base.GetAttribute(node, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, diagnostics);
         }
 
         /// <remarks>
@@ -48,32 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // ObjectCreationExpression for primitive types, such as "new int()", are treated as constants and allowed in attribute arguments.
                 case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
                     {
-                        var objectCreation = (ObjectCreationExpressionSyntax)node;
-                        if (objectCreation.Initializer == null)
-                        {
-                            var unusedDiagnostics = DiagnosticBag.GetInstance();
-                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics).Type;
-                            unusedDiagnostics.Free();
-
-                            var kind = TypedConstant.GetTypedConstantKind(type, typeBinder.Compilation);
-                            switch (kind)
-                            {
-                                case TypedConstantKind.Primitive:
-                                case TypedConstantKind.Enum:
-                                    switch (type.TypeKind)
-                                    {
-                                        case TypeKind.Struct:
-                                        case TypeKind.Class:
-                                        case TypeKind.Enum:
-                                            return true;
-                                        default:
-                                            return false;
-                                    }
-                            }
-                        }
-
-                        return false;
+                        var objectCreation = (BaseObjectCreationExpressionSyntax)node;
+                        return objectCreation.Initializer == null && (objectCreation.ArgumentList?.Arguments.Count ?? 0) == 0;
                     }
 
                 // sizeof(int)

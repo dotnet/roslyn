@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.  
+
+#nullable disable
 
 using System.Linq;
 using System.Threading;
@@ -11,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         public static bool IsDestinationValid(Solution solution, INamedTypeSymbol destination, CancellationToken cancellationToken)
         {
             // Make sure destination is class or interface since it could be ErrorTypeSymbol
-            if (destination.TypeKind != TypeKind.Interface && destination.TypeKind != TypeKind.Class)
+            if (destination.TypeKind is not TypeKind.Interface and not TypeKind.Class)
             {
                 return false;
             }
@@ -29,15 +33,12 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             // two refactoring options provided for pull members up,
             // 1. Quick Action (Only allow members that don't cause error)
             // 2. Dialog box (Allow modifers may cause error and will provide fixing)
-            switch (member)
+            return member switch
             {
-                case IMethodSymbol methodSymbol:
-                    return methodSymbol.MethodKind == MethodKind.Ordinary;
-                case IFieldSymbol fieldSymbol:
-                    return !fieldSymbol.IsImplicitlyDeclared;
-                default:
-                    return member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event);
-            }
+                IMethodSymbol methodSymbol => methodSymbol.MethodKind == MethodKind.Ordinary,
+                IFieldSymbol fieldSymbol => !fieldSymbol.IsImplicitlyDeclared,
+                _ => member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event),
+            };
         }
     }
 }

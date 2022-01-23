@@ -1,59 +1,63 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.WinForms.Interfaces;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     /// <summary>
     /// The base class of both the Roslyn editor factories.
     /// </summary>
-    internal abstract partial class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
+    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
     {
         private readonly IComponentModel _componentModel;
-        private Microsoft.VisualStudio.OLE.Interop.IServiceProvider _oleServiceProvider;
+        private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
         private bool _encoding;
 
         protected AbstractEditorFactory(IComponentModel componentModel)
-        {
-            _componentModel = componentModel;
-        }
+            => _componentModel = componentModel;
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
 
+        /// <summary>
+        /// The project that is used to format newly added documents is in an unknown state - it might be
+        /// fully realized, we might have only recieved part of the data about it, or it could be a temporary
+        /// one that we create solely for the purpose of new document formatting. Since the language version
+        /// informs what types of formatting changes might be possible, this method exists to ensure that we
+        /// at least provide that piece of information regardless of anything else.
+        /// </summary>
+        protected abstract Project GetProjectWithCorrectParseOptionsForProject(Project project, IVsHierarchy hierarchy);
+
         public void SetEncoding(bool value)
-        {
-            _encoding = value;
-        }
+            => _encoding = value;
 
         int IVsEditorFactory.Close()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int CreateEditorInstance(
             uint grfCreateDoc,
             string pszMkDocument,
-            string pszPhysicalView,
+            string? pszPhysicalView,
             IVsHierarchy vsHierarchy,
             uint itemid,
             IntPtr punkDocDataExisting,
@@ -63,17 +67,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             out Guid pguidCmdUI,
             out int pgrfCDW)
         {
+            Contract.ThrowIfNull(_oleServiceProvider);
+
             ppunkDocView = IntPtr.Zero;
             ppunkDocData = IntPtr.Zero;
             pbstrEditorCaption = string.Empty;
             pguidCmdUI = Guid.Empty;
             pgrfCDW = 0;
 
-            var physicalView = pszPhysicalView == null
-                ? "Code"
-                : pszPhysicalView;
-
-            IVsTextBuffer textBuffer = null;
+            var physicalView = pszPhysicalView ?? "Code";
+            IVsTextBuffer? textBuffer = null;
 
             // Is this document already open? If so, let's see if it's a IVsTextBuffer we should re-use. This allows us
             // to properly handle multiple windows open for the same document.
@@ -95,25 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Do we need to create a text buffer?
             if (textBuffer == null)
             {
-                var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
-                var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
-                textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
-
-                if (_encoding)
-                {
-                    if (textBuffer is IVsUserData userData)
-                    {
-                        // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
-                        var hresult = userData.SetData(
-                            VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
-                            (uint)__PROMPTONLOADFLAGS.codepagePrompt);
-
-                        if (ErrorHandler.Failed(hresult))
-                        {
-                            return hresult;
-                        }
-                    }
-                }
+                textBuffer = (IVsTextBuffer)GetDocumentData(grfCreateDoc, pszMkDocument, vsHierarchy, itemid);
+                Contract.ThrowIfNull(textBuffer, $"Failed to get document data for {pszMkDocument}");
             }
 
             // If the text buffer is marked as read-only, ensure that the padlock icon is displayed
@@ -129,25 +115,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 case "Form":
 
-                    // We must create the WinForms designer here
-                    var loaderName = GetWinFormsLoaderName(vsHierarchy);
-
-                    var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
-                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
-
-                    try
+                    if (CreateWinFormsEditorInstance(
+                        vsHierarchy,
+                        itemid,
+                        textBuffer,
+                        readOnlyStatus,
+                        out ppunkDocView,
+                        out pbstrEditorCaption,
+                        out pguidCmdUI) == VSConstants.E_FAIL)
                     {
-                        designerLoader.Initialize(_oleServiceProvider, vsHierarchy, (int)itemid, (IVsTextLines)textBuffer);
-                        pbstrEditorCaption = designerLoader.GetEditorCaption((int)readOnlyStatus);
-
-                        var designer = designerService.CreateDesigner(_oleServiceProvider, designerLoader);
-                        ppunkDocView = Marshal.GetIUnknownForObject(designer.View);
-                        pguidCmdUI = designer.CommandGuid;
-                    }
-                    catch
-                    {
-                        designerLoader.Dispose();
-                        throw;
+                        goto case "Code";
                     }
 
                     break;
@@ -174,39 +151,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private static string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
+        public object GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
         {
-            const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
-            const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
+            Contract.ThrowIfNull(_oleServiceProvider);
+            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
+            var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
+            var textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
 
-            // If this is a netcoreapp3.0 (or newer), we must create the newer WinForms designer.
-            // TODO: This check will eventually move into the WinForms designer itself.
-            if (!vsHierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker) ||
-                string.IsNullOrWhiteSpace(targetFrameworkMoniker))
+            if (_encoding)
             {
-                return LoaderName;
-            }
-
-            try
-            {
-                var frameworkName = new FrameworkName(targetFrameworkMoniker);
-
-                if (frameworkName.Identifier == ".NETCoreApp" &&
-                    frameworkName.Version?.Major >= 3)
+                if (textBuffer is IVsUserData userData)
                 {
-                    return NewLoaderName;
+                    // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
+                    var hresult = userData.SetData(
+                        VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
+                        (uint)__PROMPTONLOADFLAGS.codepagePrompt);
+
+                    Marshal.ThrowExceptionForHR(hresult);
                 }
             }
-            catch
-            {
-                // Fall back to the old loader name if there are any failures 
-                // while parsing the TFM.
-            }
 
-            return LoaderName;
+            return textBuffer;
         }
 
-        public int MapLogicalView(ref Guid rguidLogicalView, out string pbstrPhysicalView)
+        public object GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
+        {
+            // There is no scenario need currently to implement this method.
+            throw new NotImplementedException();
+        }
+
+        public string GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
+        {
+            // It is not possible to get this information without initializing the designer.
+            // There is no other scenario need currently to implement this method.
+            throw new NotImplementedException();
+        }
+
+        public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView)
+        {
+            return "Form".Equals(pszPhysicalView, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public int MapLogicalView(ref Guid rguidLogicalView, out string? pbstrPhysicalView)
         {
             pbstrPhysicalView = null;
 
@@ -235,77 +222,121 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         int IVsEditorFactoryNotify.NotifyDependentItemSaved(IVsHierarchy pHier, uint itemidParent, string pszMkDocumentParent, uint itemidDpendent, string pszMkDocumentDependent)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         int IVsEditorFactoryNotify.NotifyItemAdded(uint grfEFN, IVsHierarchy pHier, uint itemid, string pszMkDocument)
         {
             // Is this being added from a template?
-            if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0 &&
-                pHier.TryGetProjectGuid(out var projectGuid))
+            if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
             {
-                var waitIndicator = _componentModel.GetService<IWaitIndicator>();
+                var uiThreadOperationExecutor = _componentModel.GetService<IUIThreadOperationExecutor>();
                 // TODO(cyrusn): Can this be cancellable?
-                waitIndicator.Wait(
+                uiThreadOperationExecutor.Execute(
                     "Intellisense",
-                    allowCancel: false,
-                    action: c => FormatDocumentCreatedFromTemplate(projectGuid, pszMkDocument, c.CancellationToken));
+                    defaultDescription: "",
+                    allowCancellation: false,
+                    showProgress: false,
+                    action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.UserCancellationToken));
             }
 
             return VSConstants.S_OK;
         }
 
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
+            => VSConstants.S_OK;
+
+        private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
-            return VSConstants.S_OK;
+            Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, itemid, filePath, cancellationToken));
         }
 
-        private void FormatDocumentCreatedFromTemplate(Guid projectGuid, string filePath, CancellationToken cancellationToken)
+        // NOTE: This function has been created to hide IWinFormsEditorFactory type in non-WinForms scenarios (e.g. editing .cs or .vb file)
+        // so that its corresponding dll doesn't get loaded. Due to this reason, function inlining has been disabled.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int CreateWinFormsEditorInstance(
+            IVsHierarchy vsHierarchy,
+            uint itemid,
+            IVsTextBuffer textBuffer,
+            READONLYSTATUS readOnlyStatus,
+            out IntPtr ppunkDocView,
+            out string pbstrEditorCaption,
+            out Guid pguidCmdUI)
         {
-            Debug.Assert(projectGuid != Guid.Empty);
+            ppunkDocView = IntPtr.Zero;
+            pbstrEditorCaption = string.Empty;
+            pguidCmdUI = Guid.Empty;
 
+            var winFormsEditorFactory = (IWinFormsEditorFactory)PackageUtilities.QueryService<IWinFormsEditorFactory>(_oleServiceProvider);
+
+            return winFormsEditorFactory is null
+                ? VSConstants.E_FAIL
+                : winFormsEditorFactory.CreateEditorInstance(
+                    vsHierarchy,
+                    itemid,
+                    _oleServiceProvider,
+                    textBuffer,
+                    readOnlyStatus,
+                    out ppunkDocView,
+                    out pbstrEditorCaption,
+                    out pguidCmdUI);
+        }
+
+        private async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
+        {
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
             // to include this in a workspace to figure out the right options it should be formatted with.
             // This requires us to place it in the correct project.
             var workspace = _componentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
-            ProjectId projectIdToAddTo = null;
+            Project? projectToAddTo = null;
 
             foreach (var projectId in solution.ProjectIds)
             {
-                if (workspace.GetProjectGuid(projectId) == projectGuid)
+                if (workspace.GetHierarchy(projectId) == hierarchy)
                 {
-                    projectIdToAddTo = projectId;
+                    projectToAddTo = solution.GetRequiredProject(projectId);
                     break;
                 }
             }
 
-            if (projectIdToAddTo == null)
+            if (projectToAddTo == null)
             {
                 // We don't have a project for this, so we'll just make up a fake project altogether
-                var temporaryProject = solution.AddProject(
+                projectToAddTo = solution.AddProject(
                     name: nameof(FormatDocumentCreatedFromTemplate),
                     assemblyName: nameof(FormatDocumentCreatedFromTemplate),
                     language: LanguageName);
-
-                solution = temporaryProject.Solution;
-                projectIdToAddTo = temporaryProject.Id;
             }
 
-            var documentId = DocumentId.CreateNewId(projectIdToAddTo);
-            var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
-            var addedDocument = forkedSolution.GetDocument(documentId);
+            // We need to ensure that decisions made during new document formatting are based on the right language
+            // version from the project system, but the NotifyItemAdded event happens before a design time build,
+            // and sometimes before we have even been told about the projects existence, so we have to ask the hierarchy
+            // for the language version to use.
+            projectToAddTo = GetProjectWithCorrectParseOptionsForProject(projectToAddTo, hierarchy);
 
-            var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
-            var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
+            var documentId = DocumentId.CreateNewId(projectToAddTo.Id);
 
-            var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, documentOptions, cancellationToken);
-            var formattedText = addedDocument.GetTextSynchronously(cancellationToken).WithChanges(formattedTextChanges);
+            var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
+            var addedDocument = forkedSolution.GetDocument(documentId)!;
+
+            // Call out to various new document formatters to tweak what they want
+            var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingService is not null)
+            {
+                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cancellationToken).ConfigureAwait(true);
+            }
+
+            var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(addedDocument, cancellationToken).ConfigureAwait(true);
+
+            // Format document
+            var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
+            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services, formattingOptions, cancellationToken);
+            var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine);
+            var targetLineEnding = formattingOptions.GetOption(FormattingOptions2.NewLine)!;
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)
@@ -323,11 +354,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             IOUtilities.PerformIO(() =>
             {
-                using (var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding))
-                {
-                    // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
-                    formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
-                }
+                using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding);
+                // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
+                formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
             });
         }
     }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Console.WriteLine(e);
             }
-            if (unexpected || expected.Count != 0)
+            if (unexpected || expected.Count != 0 || expectedEvents.Length != actual.Count)
             {
                 bool first = true;
                 Console.WriteLine("ACTUAL EVENTS:");
@@ -90,8 +94,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var q = new AsyncQueue<CompilationEvent>();
             CreateCompilationWithMscorlib45(source)
                 .WithEventQueue(q)
-                .VerifyDiagnostics()  // force diagnostics twice
-                .VerifyDiagnostics();
+                .VerifyDiagnostics(
+                    // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
+                    //     partial void M(int x2) {}
+                    Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C<T1>.M(int x1)", "void C<T1>.M(int x2)").WithLocation(12, 18)
+
+                )  // force diagnostics twice
+                .VerifyDiagnostics(
+                    // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
+                    //     partial void M(int x2) {}
+                    Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C<T1>.M(int x1)", "void C<T1>.M(int x2)").WithLocation(12, 18)
+                );
+            VerifyEvents(q);
+        }
+
+        private static void VerifyEvents(AsyncQueue<CompilationEvent> q)
+        {
             VerifyEvents(q,
                 "CompilationStartedEvent",
                 "SymbolDeclaredCompilationEvent(P int C<T1>.P @ : (5,4)-(5,40))",
@@ -107,6 +125,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "CompilationUnitCompletedEvent()",
                 "CompilationCompletedEvent"
                 );
+        }
+
+        [Fact]
+        public void TestQueuedSymbolsAndGetUsedAssemblyReferences()
+        {
+            var source =
+@"namespace N
+{
+  partial class C<T1>
+  {
+    partial void M(int x1);
+    internal int P { get; private set; }
+    int F = 12;
+    void N<T2>(int y = 12) { F = F + 1; }
+  }
+  partial class C<T1>
+  {
+    partial void M(int x2) {}
+  }
+}";
+            var q = new AsyncQueue<CompilationEvent>();
+            var comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.GetUsedAssemblyReferences();
+            VerifyEvents(q);
+
+            q = new AsyncQueue<CompilationEvent>();
+            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.VerifyDiagnostics(
+                // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
+                //     partial void M(int x2) {}
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C<T1>.M(int x1)", "void C<T1>.M(int x2)").WithLocation(12, 18)
+                );
+            comp.GetUsedAssemblyReferences();
+            VerifyEvents(q);
+
+            q = new AsyncQueue<CompilationEvent>();
+            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.GetUsedAssemblyReferences();
+            comp.VerifyDiagnostics(
+                // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
+                //     partial void M(int x2) {}
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C<T1>.M(int x1)", "void C<T1>.M(int x2)").WithLocation(12, 18)
+                );
+            VerifyEvents(q);
+
+            q = new AsyncQueue<CompilationEvent>();
+            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.GetUsedAssemblyReferences();
+            comp.GetUsedAssemblyReferences();
+            VerifyEvents(q);
         }
     }
 }

@@ -1,17 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface INavigationBarItemService : ILanguageService
     {
-        Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
+        Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken);
         bool ShowItemGrayedIfNear(NavigationBarItem item);
-        void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns <see langword="true"/> if navigation (or generation) happened.  <see langword="false"/> otherwise.
+        /// </summary>
+        Task<bool> TryNavigateToItemAsync(
+            Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken);
     }
 }

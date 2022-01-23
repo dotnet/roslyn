@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var queue = new AsyncQueue<int>();
             queue.Complete();
-            Assert.Throws(typeof(InvalidOperationException), () => queue.Enqueue(42));
+            Assert.Throws<InvalidOperationException>(() => queue.Enqueue(42));
         }
 
         [Fact]
@@ -49,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int>();
             Assert.True(queue.TryEnqueue(42));
             queue.PromiseNotToEnqueue();
-            Assert.Throws(typeof(InvalidOperationException), () =>
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 queue.TryEnqueue(42);
             });
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var task = queue.DequeueAsync();
             Assert.False(task.IsCompleted);
             queue.Enqueue(13);
-            Assert.Equal(13, await task.ConfigureAwait(false));
+            Assert.Equal(13, await task);
         }
 
         [Fact]
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var task = list[i];
                 Assert.False(task.IsCompleted);
                 queue.Enqueue(i);
-                Assert.Equal(i, await task.ConfigureAwait(false));
+                Assert.Equal(i, await task);
             }
         }
 
@@ -97,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var threw = false;
             try
             {
-                await task.ConfigureAwait(false);
+                await task;
             }
             catch (OperationCanceledException)
             {
@@ -123,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var threw = false;
                 try
                 {
-                    await task.ConfigureAwait(false);
+                    await task;
                 }
                 catch (OperationCanceledException)
                 {
@@ -140,13 +144,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int>();
             queue.Enqueue(42);
             queue.Complete();
-            await queue.WhenCompletedTask.ConfigureAwait(false);
-            Assert.Equal(42, await queue.DequeueAsync().ConfigureAwait(false));
+            await queue.WhenCompletedTask;
+            Assert.Equal(42, await queue.DequeueAsync());
 
             var threw = false;
             try
             {
-                await queue.DequeueAsync().ConfigureAwait(false);
+                await queue.DequeueAsync();
             }
             catch (OperationCanceledException)
             {
@@ -156,14 +160,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void DequeueAsyncWithCancellation()
+        public async Task DequeueAsyncWithCancellation()
         {
             var queue = new AsyncQueue<int>();
             var cts = new CancellationTokenSource();
             var task = queue.DequeueAsync(cts.Token);
             Assert.False(task.IsCanceled);
             cts.Cancel();
+            await Assert.ThrowsAsync<TaskCanceledException>(() => task);
             Assert.Equal(TaskStatus.Canceled, task.Status);
+        }
+
+        [Fact]
+        public async Task EnqueueAfterDequeueAsyncWithCancellation()
+        {
+            var queue = new AsyncQueue<int>();
+            var cts = new CancellationTokenSource();
+            var task = queue.DequeueAsync(cts.Token);
+            Assert.False(task.IsCanceled);
+            cts.Cancel();
+            await Assert.ThrowsAsync<TaskCanceledException>(() => task);
+            Assert.Equal(TaskStatus.Canceled, task.Status);
+
+            queue.Enqueue(1);
+            Assert.True(queue.TryDequeue(out var value));
+            Assert.Equal(1, value);
+            Assert.False(queue.IsCompleted);
         }
 
         [Fact]
@@ -174,34 +196,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var task = queue.DequeueAsync(cts.Token);
             Assert.False(task.IsCompleted);
             queue.Enqueue(42);
-            await task.ConfigureAwait(false);
+            await task;
             cts.Cancel();
-        }
-
-        [Fact]
-        public async Task TaskCompletesAsyncWithComplete()
-        {
-            var queue = new AsyncQueue<int>();
-
-            var tcs = new TaskCompletionSource<bool>();
-            var task = queue.DequeueAsync().ContinueWith(
-                t =>
-                {
-                    tcs.Task.Wait();
-                    return 0;
-                },
-                default(CancellationToken),
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-
-            queue.Complete();
-            Assert.False(queue.WhenCompletedTask.IsCompleted);
-            tcs.SetResult(true);
-            await queue.WhenCompletedTask.ConfigureAwait(false);
-
-            // The AsyncQueue<T>.Task property won't complete until all of the 
-            // existing DequeueAsync values have also completed.
-            Assert.True(task.IsCompleted);
         }
 
         [Fact]
@@ -225,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int>();
             queue.Enqueue(13);
             queue.Complete();
-            await queue.WhenCompletedTask.ConfigureAwait(false);
+            await queue.WhenCompletedTask;
 
             int value;
             Assert.True(queue.TryDequeue(out value));

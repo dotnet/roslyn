@@ -1,14 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Binder
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -134,9 +132,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ExplicitDefaultConstantValue(inProgress As SymbolsInProgress(Of ParameterSymbol)) As ConstantValue
             Get
                 If _lazyDefaultValue Is ConstantValue.Unset Then
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     If Interlocked.CompareExchange(_lazyDefaultValue, BindDefaultValue(inProgress, diagnostics), ConstantValue.Unset) Is ConstantValue.Unset Then
-                        DirectCast(ContainingModule, SourceModuleSymbol).AddDiagnostics(diagnostics, CompilationStage.Declare)
+                        DirectCast(ContainingModule, SourceModuleSymbol).AddDeclarationDiagnostics(diagnostics)
                     End If
                     diagnostics.Free()
                 End If
@@ -145,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function BindDefaultValue(inProgress As SymbolsInProgress(Of ParameterSymbol), diagnostics As DiagnosticBag) As ConstantValue
+        Private Function BindDefaultValue(inProgress As SymbolsInProgress(Of ParameterSymbol), diagnostics As BindingDiagnosticBag) As ConstantValue
 
             Dim parameterSyntax = SyntaxNode
             If parameterSyntax Is Nothing Then
@@ -249,6 +247,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Dim attributeSource As SourceParameterSymbol = If(Me.BoundAttributesSource, Me)
+
+                Dim data = attributeSource.GetEarlyDecodedWellKnownAttributeData()
+                If data Is Nothing Then
+                    Return -1
+                End If
+
+                Return data.CallerArgumentExpressionParameterIndex
+            End Get
+        End Property
+
         ''' <summary>
         ''' Is parameter explicitly declared ByRef. Can be different from IsByRef only for
         ''' String parameters of Declare methods.
@@ -316,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 ordinal As Integer,
                                                 binder As Binder,
                                                 checkModifier As CheckParameterModifierDelegate,
-                                                diagnostics As DiagnosticBag) As ParameterSymbol
+                                                diagnostics As BindingDiagnosticBag) As ParameterSymbol
             Dim getErrorInfo As Func(Of DiagnosticInfo) = Nothing
 
             If binder.OptionStrict = OptionStrict.On Then
@@ -339,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                     ' 'touch' the constructor in order to generate proper diagnostics
-                    binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_ParamArrayAttribute__ctor,
+                    binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_ParamArrayAttribute__ctor,
                                                                      syntax,
                                                                      diagnostics)
                 End If
@@ -365,12 +376,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Report diagnostic if constructors for datetime and decimal default values are not available
                 Select Case paramType.SpecialType
                     Case SpecialType.System_DateTime
-                        binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                        binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
                                                                          syntax.Default,
                                                                          diagnostics)
 
                     Case SpecialType.System_Decimal
-                        binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                        binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                                                                         syntax.Default,
                                                                         diagnostics)
                 End Select

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.ComponentModel;
@@ -21,21 +25,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {
-    /// <summary>
-    /// This is the class that implements the package exposed by this assembly.
-    ///
-    /// The minimum requirement for a class to be considered a valid package for Visual Studio
-    /// is to implement the IVsPackage interface and register itself with the shell.
-    /// This package uses the helper classes defined inside the Managed Package Framework (MPF)
-    /// to do it: it derives from the Package class that provides the implementation of the 
-    /// IVsPackage interface and uses the registration attributes defined in the framework to 
-    /// register itself and its components with the shell.
-    /// </summary>
-    // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is
-    // a package.
-    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    // This attribute is needed to let the shell know that this package exposes some menus.
-    [ProvideMenuResource("Menus.ctmenu", version: 1)]
+    // The option page configuration is duplicated in PackageRegistration.pkgdef.
     // These attributes specify the menu structure to be used in Tools | Options. These are not
     // localized because they are for internal use only.
     [ProvideOptionPage(typeof(InternalFeaturesOnOffPage), @"Roslyn\FeatureManager", @"Features", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
@@ -44,15 +34,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     [ProvideOptionPage(typeof(PerformanceLoggersPage), @"Roslyn\Performance", @"Loggers", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
     [ProvideOptionPage(typeof(InternalDiagnosticsPage), @"Roslyn\Diagnostics", @"Internal", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
     [ProvideOptionPage(typeof(InternalSolutionCrawlerPage), @"Roslyn\SolutionCrawler", @"Internal", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
-    [ProvideOptionPage(typeof(ExperimentationPage), @"Roslyn\Experimentation", @"Internal", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
-    // This attribute registers a tool window exposed by this package.
-    [ProvideToolWindow(typeof(DiagnosticsWindow))]
     [Guid(GuidList.guidVisualStudioDiagnosticsWindowPkgString)]
     [Description("Roslyn Diagnostics Window")]
-    [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class VisualStudioDiagnosticsWindowPackage : AsyncPackage
     {
-        private ForceLowMemoryMode _forceLowMemoryMode;
         private IThreadingContext _threadingContext;
 
         /// <summary>
@@ -95,22 +80,20 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             _threadingContext = componentModel.GetService<IThreadingContext>();
 
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
-            _forceLowMemoryMode = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
+            _ = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             if (menuCommandService is OleMenuCommandService mcs)
             {
                 // Create the command for the tool window
-                CommandID toolwndCommandID = new CommandID(GuidList.guidVisualStudioDiagnosticsWindowCmdSet, (int)PkgCmdIDList.CmdIDRoslynDiagnosticWindow);
-                MenuCommand menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
+                var toolwndCommandID = new CommandID(GuidList.guidVisualStudioDiagnosticsWindowCmdSet, (int)PkgCmdIDList.CmdIDRoslynDiagnosticWindow);
+                var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
             }
 
             // set logger at start up
-            var optionService = componentModel.GetService<IGlobalOptionService>();
-            var remoteService = workspace.Services.GetService<IRemoteHostClientService>();
-
-            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteService);
+            var globalOptions = componentModel.GetService<IGlobalOptionService>();
+            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, workspace.Services);
         }
         #endregion
 

@@ -2,9 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_using_directives_on_paste">
+        <source>Add missing using directives on paste</source>
+        <target state="translated">Ajouter les directives using manquantes au moment du collage</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="translated">Autoriser une ligne vide après le signe des deux-points dans l'initialiseur du constructeur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="translated">Autoriser les lignes vides entre les accolades consécutives</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="translated">Autoriser les instructions imbriquées sur la même ligne</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Appliquer toutes les règles de mise en forme de C# (indentation, retour à la ligne, espacement)</target>
+        <target state="translated">Appliquer toutes les règles de mise en forme de C# (indentation, enveloppement, espacement)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="translated">Effectuer la complétion automatique de l'instruction après l'entrée d'un point-virgule</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_show_completion_list_in_argument_lists">
+        <source>Automatically show completion list in argument lists</source>
+        <target state="translated">Afficher automatiquement la liste de complétion dans les listes d'arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">Bloc inclus dans l'étendue</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -22,9 +57,24 @@
         <target state="translated">Règles de formatage C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">Complétion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">Annuler</target>
+        <target state="translated">Discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_color_scheme">
+        <source>Edit color scheme</source>
+        <target state="translated">Modifier le modèle de couleurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">Fichier inclus dans l'étendue</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -37,29 +87,49 @@
         <target state="translated">Général</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Générer un abonnement à des événements</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">Dans les opérateurs relationnels :  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
+        <source>Insert // at the start of new lines when writing // comments</source>
+        <target state="translated">Insérer // au début des nouvelles lignes pour l'écriture de commentaires //</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
-        <target state="new">Inside namespace</target>
+        <target state="translated">Dans le namespace</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
-        <target state="new">Outside namespace</target>
+        <target state="translated">Hors du namespace</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Pattern_matching_preferences_colon">
+        <source>Pattern matching preferences:</source>
+        <target state="translated">Préférences relatives aux critères spéciaux :</target>
+        <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">Effectuer un nettoyage supplémentaire du code pendant la mise en forme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="translated">Placer une accolade ouvrante sur une nouvelle ligne pour les initialiseurs d'objets, de collections, de tableaux et with</target>
+        <note>{Locked="with"}</note>
+      </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">Préférer le modèle de propriété étendue</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
+        <source>Prefer implicit object creation when type is apparent</source>
+        <target state="translated">Préférer la création d'objets implicites quand le type est apparent</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
@@ -67,14 +137,34 @@
         <target state="translated">Préférer 'is nul' pour les vérifications d'égalité de référence</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">Préférer la vérification « null » à la vérification de type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="translated">Préférer les critères spéciaux</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
+        <source>Prefer pattern matching over mixed type check</source>
+        <target state="translated">Préférer les critères spéciaux à la vérification de type mixte</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
+        <target state="translated">Préférer l'expression switch</target>
         <note />
       </trans-unit>
       <trans-unit id="Preferred_using_directive_placement">
         <source>Preferred 'using' directive placement</source>
-        <target state="new">Preferred 'using' directive placement</target>
+        <target state="translated">Emplacement par défaut de la directive 'using'</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
@@ -82,9 +172,19 @@
         <target state="translated">Supprimer les Usings inutiles</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_new_expressions">
+        <source>Show hints for 'new' expressions</source>
+        <target state="translated">Afficher les indicateurs pour les expressions 'new'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="translated">Afficher les éléments des espaces de noms qui ne sont pas importés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">Afficher les notes dans Info express</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -94,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
-        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
+        <target state="translated">Suggérer des using pour les types dans les assemblys .NET Framework</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -215,11 +315,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">Placer une accolade ouvrante sur une nouvelle ligne pour les méthodes et les fonctions locales</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">Placer une accolade ouvrante sur une nouvelle ligne pour des initialiseurs d'objet, de collection et de tableau</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">
@@ -422,11 +517,6 @@
         <target state="translated">Utiliser 'var' lors de la génération de variables locales</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">_Déplacer la déclaration locale vers la méthode extraite si elle n'est pas utilisée ailleurs</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">_Afficher les séparateurs de ligne de procédure</target>
@@ -527,11 +617,6 @@
         <target state="translated">Placer les extraits de _code dans les listes de saisie semi-automatique</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">Listes de saisie semi-automatique</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Selection_In_Completion_List">
         <source>Selection In Completion List</source>
         <target state="translated">Sélection dans la liste de saisie semi-automatique</target>
@@ -624,7 +709,7 @@
       </trans-unit>
       <trans-unit id="using_preferences_colon">
         <source>'using' preferences:</source>
-        <target state="new">'using' preferences:</target>
+        <target state="translated">Préférences pour 'using' :</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">
@@ -793,9 +878,9 @@
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">Dans d'autres opérateurs binaires :  &amp;&amp;   ||   ??</target>
-        <note />
+        <source>In other binary operators:  &amp;&amp;   ||   ??   and   or</source>
+        <target state="translated">Dans d'autres opérateurs binaires :  &amp;&amp;   ||   ??    and    or</target>
+        <note>'and' and 'or' are C# keywords and should not be localized</note>
       </trans-unit>
     </body>
   </file>

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -77,11 +81,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             e.AssertReleased();
 
             Assert.Equal(5, list.WeakCount);
-            Assert.Same(null, list.GetWeakReference(0).GetTarget());
+            Assert.Null(list.GetWeakReference(0).GetTarget());
             Assert.Same(b.GetReference(), list.GetWeakReference(1).GetTarget());
-            Assert.Same(null, list.GetWeakReference(2).GetTarget());
-            Assert.Same(null, list.GetWeakReference(3).GetTarget());
-            Assert.Same(null, list.GetWeakReference(4).GetTarget());
+            Assert.Null(list.GetWeakReference(2).GetTarget());
+            Assert.Null(list.GetWeakReference(3).GetTarget());
+            Assert.Null(list.GetWeakReference(4).GetTarget());
 
             var array = list.ToArray();
 

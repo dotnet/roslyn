@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGoToImplementation(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-                    : base(instanceFactory, testOutputHelper, nameof(BasicGoToImplementation))
+        public BasicGoToImplementation(VisualStudioInstanceFactory instanceFactory)
+                    : base(instanceFactory, nameof(BasicGoToImplementation))
         {
         }
 
@@ -36,7 +38,7 @@ End Class");
 @"Interface IGoo 
 End Interface");
             VisualStudio.Editor.PlaceCaret("Interface IGoo");
-            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.GoToImplementation("FileImplementation.vb");
             VisualStudio.Editor.Verify.TextContains(@"Class Implementation$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }

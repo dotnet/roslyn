@@ -1,13 +1,14 @@
-﻿namespace Microsoft.CodeAnalysis.Options
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+namespace Microsoft.CodeAnalysis.Options
 {
-    /// <remarks>
-    /// This interface exists so the Visual Studio workspace can create the .editorconfig provider,
-    /// despite that the provider code currently lives in a Dev15-targeting assembly but
-    /// the workspace itself is still in a Dev14-targeting assembly. Once those have merged,
-    /// this can go away.
-    /// </remarks>
-    interface IDocumentOptionsProviderFactory
+    /// <summary>
+    /// A MEF-exported factory which produces <see cref="IDocumentOptionsProvider"/>s for <see cref="Workspace"/>s.
+    /// </summary>
+    internal interface IDocumentOptionsProviderFactory
     {
-        IDocumentOptionsProvider TryCreate(Workspace workspace);
+        IDocumentOptionsProvider? TryCreate(Workspace workspace);
     }
 }

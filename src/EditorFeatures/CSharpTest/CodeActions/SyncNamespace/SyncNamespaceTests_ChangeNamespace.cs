@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Threading.Tasks;
@@ -17,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
             var declaredNamespace = "Foo.Bar";
 
             // No change namespace action because the folder name is not valid identifier
-            var documentPath = CreateDocumentFilePath(new[] { "3B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "3B", "C" }, "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
     class Class1
@@ -42,12 +46,12 @@ namespace [||]{declaredNamespace}
             var declaredNamespace = "Foo.Bar";
 
             // No change namespace action because the folder name is not valid identifier
-            var documentPath = CreateDocumentFilePath(new[] { "B.3C", "D" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B.3C", "D" }, "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
     class Class1
@@ -66,12 +70,12 @@ namespace [||]{declaredNamespace}
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar";
 
-            var documentPath = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1
@@ -92,17 +96,48 @@ namespace [||]{declaredNamespace}
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_SingleDocumentNoReference_FileScopedNamespace()
+        {
+            var defaultNamespace = "A";
+            var declaredNamespace = "Foo.Bar";
+
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+namespace [||]{declaredNamespace};
+
+class Class1
+{{
+}}
+</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C;
+
+class Class1
+{
+}
+";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeNamespace_SingleDocumentLocalReference()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar";
 
-            var documentPath = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     delegate void D1;
@@ -148,13 +183,13 @@ namespace [||]{declaredNamespace}
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     /// &lt;summary&gt;
@@ -225,12 +260,12 @@ namespace Foo
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     /// &lt;summary&gt;
@@ -287,13 +322,13 @@ End Class";
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1 
@@ -344,13 +379,13 @@ namespace A.B.C
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1 
@@ -401,13 +436,13 @@ namespace A.B.C
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1 
@@ -472,13 +507,13 @@ namespace Foo
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     interface Interface1 
@@ -527,13 +562,13 @@ namespace Foo
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1
@@ -598,13 +633,13 @@ namespace NS1
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1 
@@ -672,12 +707,12 @@ namespace Foo
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar";
 
-            var documentPath = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 using System;
 
 // Comments before declaration.
@@ -712,12 +747,12 @@ class Class1
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar";
 
-            var documentPath = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     delegate void D1;
@@ -761,13 +796,13 @@ class Class2 : Class1
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1 
@@ -827,13 +862,13 @@ class Class2
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     interface Interface1 
@@ -878,13 +913,13 @@ namespace Foo
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class MyClass 
@@ -935,13 +970,13 @@ namespace Foo
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1 
@@ -990,13 +1025,13 @@ class Class1
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1
@@ -1057,13 +1092,13 @@ namespace NS1
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     class Class1 
@@ -1125,12 +1160,12 @@ namespace Foo
         public async Task ChangeFromGlobalNamespace_SingleDocumentNoRef()
         {
             var defaultNamespace = "A";
-            var documentPath = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 using System;
 
 class [||]Class1
@@ -1156,12 +1191,12 @@ namespace A.B.C
         public async Task ChangeFromGlobalNamespace_SingleDocumentLocalRef()
         {
             var defaultNamespace = "A";
-            var documentPath = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 delegate void [||]D1;
 
 interface Class1
@@ -1203,13 +1238,13 @@ class Class2 : Class1
         {
             var defaultNamespace = "A";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 class [||]Class1 
 {{ 
 }}
@@ -1267,13 +1302,13 @@ namespace Foo
         public async Task ChangeFromGlobalNamespace_WithQualifiedReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 interface [||]Interface1 
 {{
     void M1(Interface1 c1);   
@@ -1315,13 +1350,13 @@ namespace Foo
         public async Task ChangeFromGlobalNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "A";
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 class [||]Class1 
 {{ 
     private A.Class2 c2;
@@ -1365,13 +1400,13 @@ namespace A
         {
             var defaultNamespace = "A";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 class [||]Class1
 {{
 }}</Document>
@@ -1435,13 +1470,13 @@ namespace NS1
         {
             var defaultNamespace = "A";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 class [||]Class1 
 {{ 
 }}
@@ -1508,12 +1543,12 @@ namespace Foo
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     public class Class1
@@ -1554,12 +1589,12 @@ End Class";
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     public class Class1
@@ -1594,12 +1629,12 @@ End Class";
         {
             var defaultNamespace = "A";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 public class [||]Class1
 {{ 
 }}
@@ -1634,13 +1669,13 @@ End Class";
         public async Task ChangeFromGlobalNamespace_WithCredReferences()
         {
             var defaultNamespace = "A";
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 /// &lt;summary&gt;
 /// See &lt;see cref=""Class1""/&gt;
 /// &lt;/summary&gt;
@@ -1692,12 +1727,12 @@ namespace Foo
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     public class Class1
@@ -1733,12 +1768,12 @@ End Class";
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{declaredNamespace}
 {{
     public class MyClass
@@ -1782,13 +1817,13 @@ End Namespace";
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}"">
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">
 namespace [||]{declaredNamespace}
 {{
     /// &lt;summary&gt;
@@ -1845,13 +1880,13 @@ namespace Foo
         {
             var defaultNamespace = "A";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]{defaultNamespace}
 {{
     public static class Extensions
@@ -1901,13 +1936,13 @@ namespace {defaultNamespace}
         {
             var defaultNamespace = "A";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]A
 {{
     public static class Extensions
@@ -1957,13 +1992,13 @@ namespace A
         {
             var defaultNamespace = "A";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
             var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
 namespace [||]A
 {{
     public static class Extensions
@@ -2020,12 +2055,12 @@ namespace A
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}"">
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">
 using System;
 
 namespace [||]{declaredNamespace}
@@ -2067,6 +2102,231 @@ Public Class VBClass
     Public Function Foo(s As string) As Boolean
         Return s.Foo()
     End Function
+End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_WithMemberAccessReferencesInOtherDocument()
+        {
+            var defaultNamespace = "A";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    enum Enum1 
+    {{
+        A,
+        B,
+        C
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+namespace Foo
+{{
+    class RefClass
+    {{
+        Enum1 M1()
+        {{
+            return {declaredNamespace}.Enum1.A;
+        }}
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    enum Enum1
+    {
+        A,
+        B,
+        C
+    }
+}";
+            var expectedSourceReference =
+@"
+using A.B.C;
+
+namespace Foo
+{
+    class RefClass
+    {
+        Enum1 M1()
+        {
+            return Enum1.A;
+        }
+    }
+}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInOtherDocument()
+        {
+            var defaultNamespace = "";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    enum Enum1 
+    {{
+        A,
+        B,
+        C
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+namespace Foo
+{{
+    class RefClass
+    {{
+        Enum1 M1()
+        {{
+            return {declaredNamespace}.Enum1.A;
+        }}
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"enum Enum1
+{
+    A,
+    B,
+    C
+}
+";
+            var expectedSourceReference =
+@"namespace Foo
+{
+    class RefClass
+    {
+        Enum1 M1()
+        {
+            return Enum1.A;
+        }
+    }
+}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_WithMemberAccessReferencesInVBDocument()
+        {
+            var defaultNamespace = "A.B.C";
+            var declaredNamespace = "A.B.C.D";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    public enum Enum1
+    {{
+        A,
+        B,
+        C
+    }}
+}}</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+Public Class VBClass
+    Sub M()
+        Dim x = A.B.C.D.Enum1.A
+    End Sub
+End Class</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    public enum Enum1
+    {
+        A,
+        B,
+        C
+    }
+}";
+            var expectedSourceReference =
+@"Public Class VBClass
+    Sub M()
+        Dim x = A.B.C.Enum1.A
+    End Sub
+End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInVBDocument()
+        {
+            var defaultNamespace = "";
+            var declaredNamespace = "A.B.C.D";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    public enum Enum1
+    {{
+        A,
+        B,
+        C
+    }}
+}}</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+Public Class VBClass
+    Sub M()
+        Dim x = A.B.C.D.Enum1.A
+    End Sub
+End Class</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"public enum Enum1
+{
+    A,
+    B,
+    C
+}
+";
+            var expectedSourceReference =
+@"Public Class VBClass
+    Sub M()
+        Dim x = Enum1.A
+    End Sub
 End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }

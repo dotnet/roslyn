@@ -1,11 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Threading
+Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Indentation
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,39 +17,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend NotInheritable Class VisualBasicIndentationService
         Inherits AbstractIndentationService(Of CompilationUnitSyntax)
 
-        Public Shared ReadOnly DefaultInstance As New VisualBasicIndentationService()
         Public Shared ReadOnly WithoutParameterAlignmentInstance As New VisualBasicIndentationService(NoOpFormattingRule.Instance)
 
         Private ReadOnly _specializedIndentationRule As AbstractFormattingRule
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
-            Me.New(New SpecialFormattingRule())
+            Me.New(Nothing)
         End Sub
 
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Intentionally used for creating multiple instances")>
         Private Sub New(specializedIndentationRule As AbstractFormattingRule)
             _specializedIndentationRule = specializedIndentationRule
         End Sub
 
-        Protected Overrides Function GetSpecializedIndentationFormattingRule() As AbstractFormattingRule
-            Return _specializedIndentationRule
-        End Function
-
-        Protected Overrides Function GetIndenter(syntaxFacts As ISyntaxFactsService,
-                                                 syntaxTree As SyntaxTree,
-                                                 lineToBeIndented As TextLine,
-                                                 formattingRules As IEnumerable(Of AbstractFormattingRule),
-                                                 optionSet As OptionSet,
-                                                 cancellationToken As CancellationToken) As AbstractIndenter
-            Return New Indenter(syntaxFacts, syntaxTree, formattingRules, optionSet, lineToBeIndented, cancellationToken)
+        Protected Overrides Function GetSpecializedIndentationFormattingRule(indentStyle As FormattingOptions.IndentStyle) As AbstractFormattingRule
+            Return If(_specializedIndentationRule, New SpecialFormattingRule(indentStyle))
         End Function
 
         Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 formattingRules As IEnumerable(Of AbstractFormattingRule),
                 root As CompilationUnitSyntax,
                 line As TextLine,
-                optionSet As OptionSet,
-                CancellationToken As CancellationToken,
+                options As SyntaxFormattingOptions,
+                ByRef token As SyntaxToken,
                 Optional neverUseWhenHavingMissingToken As Boolean = True) As Boolean
 
             ' find first text on line
@@ -57,7 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             End If
 
             ' enter on token only works when first token on line is first text on line
-            Dim token = root.FindToken(firstNonWhitespacePosition.Value)
+            token = root.FindToken(firstNonWhitespacePosition.Value)
+            If IsInvalidToken(token) Then
+                Return False
+            End If
+
             If token.Kind = SyntaxKind.None OrElse token.SpanStart <> firstNonWhitespacePosition Then
                 Return False
             End If
@@ -89,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             End If
 
             ' now, regular case. ask formatting rule to see whether we should use token formatter or not
-            Dim lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet)
+            Dim lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, options)
             If lineOperation IsNot Nothing AndAlso lineOperation.Option <> AdjustNewLinesOption.ForceLinesIfOnSingleLine Then
                 Return True
             End If
@@ -98,9 +96,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Dim startNode = token.Parent
 
             Dim currentNode = startNode
+            Dim localToken = token
             Do While currentNode IsNot Nothing
                 Dim operations = FormattingOperations.GetAlignTokensOperations(
-                    formattingRules, currentNode, optionSet:=optionSet)
+                    formattingRules, currentNode, options)
 
                 If Not operations.Any() Then
                     currentNode = currentNode.Parent
@@ -108,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 End If
 
                 ' make sure we have the given token as one of tokens to be aligned to the base token
-                Dim match = operations.FirstOrDefault(Function(o) o.Tokens.Contains(token))
+                Dim match = operations.FirstOrDefault(Function(o) o.Tokens.Contains(localToken))
                 If match IsNot Nothing Then
                     Return True
                 End If
@@ -118,6 +117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
             ' no indentation operation, nothing to do for smart token formatter
             Return False
+        End Function
+
+        Private Shared Function IsInvalidToken(token As SyntaxToken) As Boolean
+            ' invalid token to be formatted
+            Return token.Kind = SyntaxKind.None OrElse
+                   token.Kind = SyntaxKind.EndOfFileToken
         End Function
     End Class
 End Namespace

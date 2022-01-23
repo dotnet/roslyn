@@ -1,35 +1,34 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 {
-    internal abstract class AbstractExtractInterfaceCommandHandler : VSCommanding.ICommandHandler<ExtractInterfaceCommandArgs>
+    internal abstract class AbstractExtractInterfaceCommandHandler : ICommandHandler<ExtractInterfaceCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractExtractInterfaceCommandHandler(IThreadingContext threadingContext)
-        {
-            this._threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
-        public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
-            => IsAvailable(args.SubjectBuffer, out _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        public CommandState GetCommandState(ExtractInterfaceCommandArgs args)
+            => IsAvailable(args.SubjectBuffer, out _) ? CommandState.Available : CommandState.Unspecified;
 
         public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {
@@ -47,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                     return false;
                 }
 
-                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                    context.OperationContext, _threadingContext);
                 if (document == null)
                 {
                     return false;
@@ -77,8 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                     return true;
                 }
 
+                // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0);
+                navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0, CancellationToken.None);
 
                 return true;
             }

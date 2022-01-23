@@ -1,7 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -15,14 +22,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public partial class SerializationTests : TestBase
     {
-        private Document CreateSolutionDocument(string sourceText)
+        private static Document CreateSolutionDocument(string sourceText)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
             var solution = new AdhocWorkspace().CurrentSolution
                     .AddProject(pid, "test", "test", LanguageNames.CSharp)
-                    .AddMetadataReference(pid, TestReferences.NetFx.v4_0_30319.mscorlib)
+                    .AddMetadataReference(pid, TestMetadata.Net451.mscorlib)
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
 
             return solution.GetDocument(did);
@@ -39,23 +46,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void VersionStamp_RoundTripText()
         {
-            using (var writerStream = new MemoryStream())
-            using (var writer = new ObjectWriter(writerStream))
+            var versionStamp = VersionStamp.Create();
+
+            using var writerStream = new MemoryStream();
+
+            using (var writer = new ObjectWriter(writerStream, leaveOpen: true))
             {
-                var versionStamp = VersionStamp.Create();
                 versionStamp.WriteTo(writer);
-
-                using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = ObjectReader.TryGetReader(readerStream))
-                {
-                    var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
-
-                    Assert.Equal(versionStamp, deserializedVersionStamp);
-                }
             }
+
+            using var readerStream = new MemoryStream(writerStream.ToArray());
+            using var reader = ObjectReader.TryGetReader(readerStream);
+            var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
+
+            Assert.Equal(versionStamp, deserializedVersionStamp);
         }
 
-        private void TestSymbolSerialization(Document document, string symbolName)
+        private static void TestSymbolSerialization(Document document, string symbolName)
         {
             var model = document.GetSemanticModelAsync().Result;
             var name = CS.SyntaxFactory.ParseName(symbolName);
@@ -64,16 +71,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root = (CS.Syntax.CompilationUnitSyntax)model.SyntaxTree.GetRoot();
             var annotation = SymbolAnnotation.Create(symbol);
             var rootWithAnnotation = root.WithAdditionalAnnotations(annotation);
-            Assert.Equal(true, rootWithAnnotation.ContainsAnnotations);
-            Assert.Equal(true, rootWithAnnotation.HasAnnotation(annotation));
+            Assert.True(rootWithAnnotation.ContainsAnnotations);
+            Assert.True(rootWithAnnotation.HasAnnotation(annotation));
 
             var stream = new MemoryStream();
             rootWithAnnotation.SerializeTo(stream);
 
             stream.Position = 0;
             var droot = CS.CSharpSyntaxNode.DeserializeFrom(stream);
-            Assert.Equal(true, droot.ContainsAnnotations);
-            Assert.Equal(true, droot.HasAnnotation(annotation));
+            Assert.True(droot.ContainsAnnotations);
+            Assert.True(droot.HasAnnotation(annotation));
 
             var dannotation = droot.GetAnnotations(SymbolAnnotation.Kind).SingleOrDefault();
             Assert.NotNull(dannotation);
@@ -82,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var id = SymbolAnnotation.GetSymbol(annotation, model.Compilation);
             var did = SymbolAnnotation.GetSymbol(dannotation, model.Compilation);
 
-            Assert.Equal(true, id.Equals(did));
+            Assert.True(id.Equals(did));
         }
     }
 }

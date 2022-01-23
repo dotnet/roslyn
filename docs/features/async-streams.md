@@ -176,6 +176,7 @@ IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token)
     if (initialThreadId == /*managedThreadId*/ && state == StateMachineStates.FinishedStateMachine)
     {
         state = InitialState; // -3
+        builder = AsyncIteratorMethodBuilder.Create();
         disposeMode = false;
         result = this;
     }

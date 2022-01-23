@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Runtime;
 using System.Threading.Tasks;
@@ -33,14 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     if (root != null)
                     {
-                        using (var key = root.OpenSubKey("Performance"))
+                        using var key = root.OpenSubKey("Performance");
+                        const string name = "SustainedLowLatencyDuration";
+                        if (key != null && key.GetValue(name) != null && key.GetValueKind(name) == Microsoft.Win32.RegistryValueKind.DWord)
                         {
-                            const string name = "SustainedLowLatencyDuration";
-                            if (key != null && key.GetValue(name) != null && key.GetValueKind(name) == Microsoft.Win32.RegistryValueKind.DWord)
-                            {
-                                s_delayMilliseconds = (int)key.GetValue(name, s_delayMilliseconds);
-                                return;
-                            }
+                            s_delayMilliseconds = (int)key.GetValue(name, s_delayMilliseconds);
+                            return;
                         }
                     }
                 }

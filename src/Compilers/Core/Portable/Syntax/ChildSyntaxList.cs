@@ -1,18 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     public readonly partial struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnlyList<SyntaxNodeOrToken>
     {
-        private readonly SyntaxNode _node;
+        private readonly SyntaxNode? _node;
         private readonly int _count;
 
         internal ChildSyntaxList(SyntaxNode node)
@@ -65,14 +66,14 @@ namespace Microsoft.CodeAnalysis
             {
                 if (unchecked((uint)index < (uint)_count))
                 {
-                    return ItemInternal(_node, index);
+                    return ItemInternal(_node!, index);
                 }
 
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
-        internal SyntaxNode Node
+        internal SyntaxNode? Node
         {
             get { return _node; }
         }
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index)
         {
-            GreenNode greenChild;
+            GreenNode? greenChild;
             var green = node.Green;
             var idx = index;
             var slotIndex = 0;
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             // The targetPosition must already be within this node
             Debug.Assert(node.FullSpan.Contains(targetPosition));
 
-            var green = node.Green;
+            GreenNode? green = node.Green;
             var position = node.Position;
             var index = 0;
 
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis
             int slot;
             for (slot = 0; ; slot++)
             {
-                GreenNode greenChild = green.GetSlot(slot);
+                GreenNode? greenChild = green.GetSlot(slot);
                 if (greenChild != null)
                 {
                     var endPosition = position + greenChild.FullWidth;
@@ -249,9 +250,9 @@ namespace Microsoft.CodeAnalysis
         /// internal indexer that does not verify index.
         /// Used when caller has already ensured that index is within bounds.
         /// </summary>
-        internal static SyntaxNode ItemInternalAsNode(SyntaxNode node, int index)
+        internal static SyntaxNode? ItemInternalAsNode(SyntaxNode node, int index)
         {
-            GreenNode greenChild;
+            GreenNode? greenChild;
             var green = node.Green;
             var idx = index;
             var slotIndex = 0;
@@ -343,6 +344,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns><see cref="Reversed"/> which contains all children of <see cref="ChildSyntaxList"/> in reversed order</returns>
         public Reversed Reverse()
         {
+            Debug.Assert(_node is object);
             return new Reversed(_node, _count);
         }
 
@@ -352,7 +354,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_node == null)
             {
-                return default(Enumerator);
+                return default;
             }
 
             return new Enumerator(_node, _count);
@@ -381,9 +383,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Determines whether the specified object is equal to the current instance.</summary>
         /// <returns>true if the specified object is a <see cref="ChildSyntaxList" /> structure and is equal to the current instance; otherwise, false.</returns>
         /// <param name="obj">The object to be compared with the current instance.</param>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return obj is ChildSyntaxList && Equals((ChildSyntaxList)obj);
+            return obj is ChildSyntaxList list && Equals(list);
         }
 
         /// <summary>Determines whether the specified <see cref="ChildSyntaxList" /> structure is equal to the current instance.</summary>

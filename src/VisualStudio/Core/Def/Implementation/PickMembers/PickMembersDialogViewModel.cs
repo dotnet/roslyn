@@ -1,52 +1,77 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PickMembers;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 {
     internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
     {
+        private readonly List<MemberSymbolViewModel> _allMembers;
+
         public List<MemberSymbolViewModel> MemberContainers { get; set; }
         public List<OptionViewModel> Options { get; set; }
+
+        /// <summary>
+        /// <see langword="true"/> if 'Select All' was chosen.  <see langword="false"/> if 'Deselect All' was chosen.
+        /// </summary>
+        public bool SelectedAll { get; set; }
 
         internal PickMembersDialogViewModel(
             IGlyphService glyphService,
             ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options)
+            ImmutableArray<PickMembersOption> options,
+            bool selectAll)
         {
-            MemberContainers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).ToList();
+            _allMembers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).ToList();
+            MemberContainers = _allMembers;
             Options = options.Select(o => new OptionViewModel(o)).ToList();
+
+            if (selectAll)
+            {
+                SelectAll();
+            }
+            else
+            {
+                DeselectAll();
+            }
+        }
+
+        internal void Filter(string searchText)
+        {
+            searchText = searchText.Trim();
+            MemberContainers = searchText.Length == 0
+                ? _allMembers
+                : _allMembers.Where(m => m.SymbolAutomationText.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+            NotifyPropertyChanged(nameof(MemberContainers));
         }
 
         internal void DeselectAll()
         {
+            SelectedAll = false;
             foreach (var memberContainer in MemberContainers)
-            {
                 memberContainer.IsChecked = false;
-            }
         }
 
         internal void SelectAll()
         {
+            SelectedAll = true;
             foreach (var memberContainer in MemberContainers)
-            {
                 memberContainer.IsChecked = true;
-            }
         }
 
         private int? _selectedIndex;
+
         public int? SelectedIndex
         {
             get
@@ -80,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_above_1, MemberContainers[SelectedIndex.Value].MemberAutomationText, MemberContainers[SelectedIndex.Value - 1].MemberAutomationText);
+                return string.Format(ServicesVSResources.Move_0_above_1, MemberContainers[SelectedIndex.Value].SymbolAutomationText, MemberContainers[SelectedIndex.Value - 1].SymbolAutomationText);
             }
         }
 
@@ -93,12 +118,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_below_1, MemberContainers[SelectedIndex.Value].MemberAutomationText, MemberContainers[SelectedIndex.Value + 1].MemberAutomationText);
+                return string.Format(ServicesVSResources.Move_0_below_1, MemberContainers[SelectedIndex.Value].SymbolAutomationText, MemberContainers[SelectedIndex.Value + 1].SymbolAutomationText);
             }
         }
 
-
-
+        [MemberNotNullWhen(true, nameof(SelectedIndex))]
         public bool CanMoveUp
         {
             get
@@ -113,6 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             }
         }
 
+        [MemberNotNullWhen(true, nameof(SelectedIndex))]
         public bool CanMoveDown
         {
             get
@@ -129,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         internal void MoveUp()
         {
-            Debug.Assert(CanMoveUp);
+            Contract.ThrowIfFalse(CanMoveUp);
 
             var index = SelectedIndex.Value;
             Move(MemberContainers, index, delta: -1);
@@ -137,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         internal void MoveDown()
         {
-            Debug.Assert(CanMoveDown);
+            Contract.ThrowIfFalse(CanMoveDown);
 
             var index = SelectedIndex.Value;
             Move(MemberContainers, index, delta: 1);
@@ -152,37 +177,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             SelectedIndex += delta;
         }
 
-        internal class MemberSymbolViewModel : AbstractNotifyPropertyChanged
+        internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
         {
-            private readonly IGlyphService _glyphService;
-
-            public ISymbol MemberSymbol { get; }
-
-            private static SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
-                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-            public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService)
+            public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
             {
-                MemberSymbol = symbol;
-                _glyphService = glyphService;
-                _isChecked = true;
             }
-
-            private bool _isChecked;
-            public bool IsChecked
-            {
-                get { return _isChecked; }
-                set { SetProperty(ref _isChecked, value); }
-            }
-
-            public string MemberName => MemberSymbol.ToDisplayString(s_memberDisplayFormat);
-
-            public ImageSource Glyph => MemberSymbol.GetGlyph().GetImageSource(_glyphService);
-
-            public string MemberAutomationText => MemberSymbol.Kind + " " + MemberName;
         }
 
         internal class OptionViewModel : AbstractNotifyPropertyChanged

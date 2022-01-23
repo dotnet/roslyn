@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
@@ -9,20 +10,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class WorkspaceRegistrationChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            public WorkspaceRegistrationChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(subjectBuffer, delay)
+            public WorkspaceRegistrationChangedEventSource(ITextBuffer subjectBuffer)
+                : base(subjectBuffer)
             {
             }
 
             protected override void ConnectToWorkspace(Workspace workspace)
-            {
-                this.RaiseChanged();
-            }
+                => this.RaiseChanged();
 
             protected override void DisconnectFromWorkspace(Workspace workspace)
-            {
-                this.RaiseChanged();
-            }
+                => this.RaiseChanged();
         }
     }
 }

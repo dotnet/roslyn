@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 context.Diagnostics);
 
             // If it's a void returning method (and not an entry point), also offer to keep the void return type
-            bool isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
+            var isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
             if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid && !isEntryPoint)
             {
                 context.RegisterCodeFix(
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
         }
 
-        private bool IsLikelyEntryPointName(string name, Document document)
+        private static bool IsLikelyEntryPointName(string name, Document document)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return syntaxFacts.StringComparer.Equals(name, "Main");
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // If we're on a method declaration, we'll get an IMethodSymbol back.  In that case, check
             // if it has the 'Async' suffix, and remove that suffix if so.
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
+            var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var knownTypes = new KnownTypes(compilation);
 
@@ -198,6 +202,11 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         protected static bool IsTaskLike(ITypeSymbol returnType, KnownTypes knownTypes)
         {
             if (returnType.Equals(knownTypes._taskType))
+            {
+                return true;
+            }
+
+            if (returnType.Equals(knownTypes._valueTaskType))
             {
                 return true;
             }

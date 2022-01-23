@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -10,28 +12,28 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal abstract class IdleProcessor
     {
-        private const int MinimumDelayInMS = 50;
+        private static readonly TimeSpan s_minimumDelay = TimeSpan.FromMilliseconds(50);
 
         protected readonly IAsynchronousOperationListener Listener;
         protected readonly CancellationToken CancellationToken;
-        protected readonly int BackOffTimeSpanInMS;
+        protected readonly TimeSpan BackOffTimeSpan;
 
         // points to processor task
-        private Task _processorTask;
+        private Task? _processorTask;
 
         // there is one thread that writes to it and one thread reads from it
-        private int _lastAccessTimeInMS;
+        private SharedStopwatch _timeSinceLastAccess;
 
         public IdleProcessor(
             IAsynchronousOperationListener listener,
-            int backOffTimeSpanInMS,
+            TimeSpan backOffTimeSpan,
             CancellationToken cancellationToken)
         {
-            this.Listener = listener;
-            this.CancellationToken = cancellationToken;
+            Listener = listener;
+            CancellationToken = cancellationToken;
 
-            BackOffTimeSpanInMS = backOffTimeSpanInMS;
-            _lastAccessTimeInMS = Environment.TickCount;
+            BackOffTimeSpan = backOffTimeSpan;
+            _timeSinceLastAccess = SharedStopwatch.StartNew();
         }
 
         protected abstract Task WaitAsync(CancellationToken cancellationToken);
@@ -39,42 +41,38 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         protected void Start()
         {
-            if (_processorTask == null)
-            {
-                _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, this.CancellationToken, TaskScheduler.Default);
-            }
+            Contract.ThrowIfFalse(_processorTask == null);
+            _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken, TaskScheduler.Default);
         }
 
         protected void UpdateLastAccessTime()
-        {
-            _lastAccessTimeInMS = Environment.TickCount;
-        }
+            => _timeSinceLastAccess = SharedStopwatch.StartNew();
 
         protected async Task WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
         {
             while (true)
             {
-                if (this.CancellationToken.IsCancellationRequested)
+                if (CancellationToken.IsCancellationRequested)
                 {
                     return;
                 }
 
-                var diffInMS = Environment.TickCount - _lastAccessTimeInMS;
-                if (diffInMS >= BackOffTimeSpanInMS)
+                var diff = _timeSinceLastAccess.Elapsed;
+                if (diff >= BackOffTimeSpan)
                 {
                     return;
                 }
 
                 // TODO: will safestart/unwarp capture cancellation exception?
-                var timeLeft = BackOffTimeSpanInMS - diffInMS;
-                if (!await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(Math.Max(MinimumDelayInMS, timeLeft)), CancellationToken).ConfigureAwait(false))
+                var timeLeft = BackOffTimeSpan - diff;
+                if (!await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(Math.Max(s_minimumDelay.TotalMilliseconds, timeLeft.TotalMilliseconds)), CancellationToken).ConfigureAwait(false))
                 {
-                    // The delay terminated early to accommodate a blocking operation. Make sure to delay long
-                    // enough that low priority (on idle) operations get a chance to be triggered.
+                    // The delay terminated early to accommodate a blocking operation. Make sure to yield so low
+                    // priority (on idle) operations get a chance to be triggered.
                     //
-                    // 📝 At the time this was discovered, it was not clear exactly why the delay was needed in order
-                    // to avoid live-lock scenarios.
-                    await Task.Delay(TimeSpan.FromMilliseconds(10), CancellationToken).ConfigureAwait(false);
+                    // 📝 At the time this was discovered, it was not clear exactly why the yield (previously delay)
+                    // was needed in order to avoid live-lock scenarios.
+                    await Task.Yield().ConfigureAwait(false);
                     return;
                 }
             }
@@ -82,24 +80,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private async Task ProcessAsync()
         {
-            while (true)
+            while (!CancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    if (this.CancellationToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
                     // wait for next item available
-                    await WaitAsync(this.CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    await WaitAsync(CancellationToken).ConfigureAwait(false);
 
-                    using (this.Listener.BeginAsyncOperation("ProcessAsync"))
+                    using (Listener.BeginAsyncOperation("ProcessAsync"))
                     {
                         // we have items but workspace is busy. wait for idle.
-                        await WaitForIdleAsync(Listener).ConfigureAwait(continueOnCapturedContext: false);
+                        await WaitForIdleAsync(Listener).ConfigureAwait(false);
 
-                        await ExecuteAsync().ConfigureAwait(continueOnCapturedContext: false);
+                        await ExecuteAsync().ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
@@ -110,16 +103,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public virtual Task AsyncProcessorTask
-        {
-            get
-            {
-                if (_processorTask == null)
-                {
-                    return Task.CompletedTask;
-                }
-
-                return _processorTask;
-            }
-        }
+            => _processorTask ?? Task.CompletedTask;
     }
 }

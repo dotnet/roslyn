@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -14,38 +19,42 @@ namespace Microsoft.CodeAnalysis.Editing
         private readonly SyntaxGenerator _generator;
         private readonly List<Change> _changes;
         private bool _allowEditsOnLazilyCreatedTrackedNewNodes;
-        private HashSet<SyntaxNode> _lazyTrackedNewNodesOpt;
+        private HashSet<SyntaxNode>? _lazyTrackedNewNodesOpt;
 
         /// <summary>
         /// Creates a new <see cref="SyntaxEditor"/> instance.
         /// </summary>
+        [Obsolete("Use SyntaxEditor(SyntaxNode, HostWorkspaceServices)")]
         public SyntaxEditor(SyntaxNode root, Workspace workspace)
+            : this(root, (workspace ?? throw new ArgumentNullException(nameof(workspace))).Services)
         {
-            if (workspace == null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
+        }
 
-            OriginalRoot = root ?? throw new ArgumentNullException(nameof(root));
-            _generator = SyntaxGenerator.GetGenerator(workspace, root.Language);
-            _changes = new List<Change>();
+        /// <summary>
+        /// Creates a new <see cref="SyntaxEditor"/> instance.
+        /// </summary>
+        public SyntaxEditor(SyntaxNode root, HostWorkspaceServices services)
+            : this(root ?? throw new ArgumentNullException(nameof(root)),
+                   SyntaxGenerator.GetGenerator(services ?? throw new ArgumentNullException(nameof(services)), root.Language))
+        {
         }
 
         internal SyntaxEditor(SyntaxNode root, SyntaxGenerator generator)
         {
-            OriginalRoot = root ?? throw new ArgumentNullException(nameof(root));
+            OriginalRoot = root;
             _generator = generator;
             _changes = new List<Change>();
         }
 
-        private SyntaxNode ApplyTrackingToNewNode(SyntaxNode node)
+        [return: NotNullIfNotNull("node")]
+        private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode? node)
         {
             if (node == null)
             {
                 return null;
             }
 
-            _lazyTrackedNewNodesOpt = _lazyTrackedNewNodesOpt ?? new HashSet<SyntaxNode>();
+            _lazyTrackedNewNodesOpt ??= new HashSet<SyntaxNode>();
             foreach (var descendant in node.DescendantNodesAndSelf())
             {
                 _lazyTrackedNewNodesOpt.Add(descendant);
@@ -58,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             foreach (var node in nodes)
             {
-                yield return ApplyTrackingToNewNode(node);
+                var result = ApplyTrackingToNewNode(node);
+                yield return result;
             }
         }
 
@@ -77,8 +87,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode GetChangedRoot()
         {
-            var nodes = Enumerable.Distinct(_changes.Where(c => OriginalRoot.Contains(c.Node))
-                                                    .Select(c => c.Node));
+            var nodes = Enumerable.Distinct(_changes.Where(c => OriginalRoot.Contains(c.OriginalNode))
+                                                    .Select(c => c.OriginalNode));
             var newRoot = OriginalRoot.TrackNodes(nodes);
 
             foreach (var change in _changes)
@@ -103,9 +113,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="node">The node to remove that currently exists as part of the tree.</param>
         public void RemoveNode(SyntaxNode node)
-        {
-            RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions);
-        }
+            => RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions);
 
         /// <summary>
         /// Remove the node from the tree.
@@ -134,6 +142,18 @@ namespace Microsoft.CodeAnalysis.Editing
 
             _allowEditsOnLazilyCreatedTrackedNewNodes = true;
             _changes.Add(new ReplaceChange(node, computeReplacement, this));
+        }
+
+        internal void ReplaceNode(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> computeReplacement)
+        {
+            CheckNodeInOriginalTreeOrTracked(node);
+            if (computeReplacement == null)
+            {
+                throw new ArgumentNullException(nameof(computeReplacement));
+            }
+
+            _allowEditsOnLazilyCreatedTrackedNewNodes = true;
+            _changes.Add(new ReplaceWithCollectionChange(node, computeReplacement, this));
         }
 
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
@@ -248,30 +268,40 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private abstract class Change
         {
-            internal readonly SyntaxNode Node;
+            internal readonly SyntaxNode OriginalNode;
 
             public Change(SyntaxNode node)
+                => OriginalNode = node;
+
+            public SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
-                this.Node = node;
+                var currentNode = root.GetCurrentNode(OriginalNode);
+                if (currentNode is null)
+                {
+                    Contract.Fail($"GetCurrentNode returned null with the following node: {OriginalNode}");
+                }
+
+                return Apply(root, currentNode, generator);
             }
 
-            public abstract SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator);
+            protected static SyntaxNode ValidateNewRoot(SyntaxNode? root)
+                => root ?? throw new InvalidOperationException("Tree root deleted");
+
+            protected abstract SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator);
         }
 
-        private class NoChange : Change
+        private sealed class NoChange : Change
         {
             public NoChange(SyntaxNode node)
                 : base(node)
             {
             }
 
-            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
-            {
-                return root;
-            }
+            protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
+                => root;
         }
 
-        private class RemoveChange : Change
+        private sealed class RemoveChange : Change
         {
             private readonly SyntaxRemoveOptions _options;
 
@@ -281,20 +311,42 @@ namespace Microsoft.CodeAnalysis.Editing
                 _options = options;
             }
 
-            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
-            {
-                return generator.RemoveNode(root, root.GetCurrentNode(this.Node), _options);
-            }
+            protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
+                => ValidateNewRoot(generator.RemoveNode(root, currentNode, _options));
         }
 
-        private class ReplaceChange : Change
+        private sealed class ReplaceChange : Change
         {
-            private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode> _modifier;
+            private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> _modifier;
             private readonly SyntaxEditor _editor;
 
             public ReplaceChange(
                 SyntaxNode node,
-                Func<SyntaxNode, SyntaxGenerator, SyntaxNode> modifier,
+                Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> modifier,
+                SyntaxEditor editor)
+                : base(node)
+            {
+                Contract.ThrowIfNull(node);
+                _modifier = modifier;
+                _editor = editor;
+            }
+
+            protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
+            {
+                var newNode = _modifier(currentNode, generator);
+                newNode = _editor.ApplyTrackingToNewNode(newNode);
+                return ValidateNewRoot(generator.ReplaceNode(root, currentNode, newNode));
+            }
+        }
+
+        private sealed class ReplaceWithCollectionChange : Change
+        {
+            private readonly Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> _modifier;
+            private readonly SyntaxEditor _editor;
+
+            public ReplaceWithCollectionChange(
+                SyntaxNode node,
+                Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> modifier,
                 SyntaxEditor editor)
                 : base(node)
             {
@@ -302,16 +354,19 @@ namespace Microsoft.CodeAnalysis.Editing
                 _editor = editor;
             }
 
-            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
+            protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
             {
-                var current = root.GetCurrentNode(this.Node);
-                var newNode = _modifier(current, generator);
-                newNode = _editor.ApplyTrackingToNewNode(newNode);
-                return generator.ReplaceNode(root, current, newNode);
+                var newNodes = _modifier(currentNode, generator).ToList();
+                for (var i = 0; i < newNodes.Count; i++)
+                {
+                    newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
+                }
+
+                return SyntaxGenerator.ReplaceNode(root, currentNode, newNodes);
             }
         }
 
-        private class ReplaceChange<TArgument> : Change
+        private sealed class ReplaceChange<TArgument> : Change
         {
             private readonly Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> _modifier;
             private readonly TArgument _argument;
@@ -329,16 +384,15 @@ namespace Microsoft.CodeAnalysis.Editing
                 _editor = editor;
             }
 
-            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
+            protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
             {
-                var current = root.GetCurrentNode(this.Node);
-                var newNode = _modifier(current, generator, _argument);
+                var newNode = _modifier(currentNode, generator, _argument);
                 newNode = _editor.ApplyTrackingToNewNode(newNode);
-                return generator.ReplaceNode(root, current, newNode);
+                return ValidateNewRoot(generator.ReplaceNode(root, currentNode, newNode));
             }
         }
 
-        private class InsertChange : Change
+        private sealed class InsertChange : Change
         {
             private readonly List<SyntaxNode> _newNodes;
             private readonly bool _isBefore;
@@ -350,17 +404,10 @@ namespace Microsoft.CodeAnalysis.Editing
                 _isBefore = isBefore;
             }
 
-            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
-            {
-                if (_isBefore)
-                {
-                    return generator.InsertNodesBefore(root, root.GetCurrentNode(this.Node), _newNodes);
-                }
-                else
-                {
-                    return generator.InsertNodesAfter(root, root.GetCurrentNode(this.Node), _newNodes);
-                }
-            }
+            protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
+                => _isBefore ?
+                    generator.InsertNodesBefore(root, currentNode, _newNodes) :
+                    generator.InsertNodesAfter(root, currentNode, _newNodes);
         }
     }
 }

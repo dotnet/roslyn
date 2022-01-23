@@ -1,14 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,23 +14,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            return SwitchLocalRewriter.Rewrite(this, node);
+            return SwitchStatementLocalRewriter.Rewrite(this, node);
         }
 
-        private class SwitchLocalRewriter : BaseSwitchLocalRewriter
+        private sealed class SwitchStatementLocalRewriter : BaseSwitchLocalRewriter
         {
+            /// <summary>
+            /// A map from section syntax to the first label in that section.
+            /// </summary>
+            private readonly Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
+
             public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
-                var rewriter = new SwitchLocalRewriter(node, localRewriter);
+                var rewriter = new SwitchStatementLocalRewriter(node, localRewriter);
                 BoundStatement result = rewriter.LowerSwitchStatement(node);
                 rewriter.Free();
                 return result;
             }
-
-            /// <summary>
-            /// A map from section syntax to the first label in that section.
-            /// </summary>
-            private Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
             /// <summary>
             /// We revise the returned label for a leaf so that all leaves in the same switch section are given the same label.
@@ -43,14 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = base.GetDagNodeLabel(dag);
                 if (dag is BoundLeafDecisionDagNode d)
                 {
-                    SyntaxNode section = d.Syntax.Parent;
+                    SyntaxNode? section = d.Syntax.Parent;
 
                     // It is possible that the leaf represents a compiler-generated default for a switch statement in the EE.
                     // In that case d.Syntax is the whole switch statement, and its parent is null. We are only interested
                     // in leaves that result from explicit switch case labels in a switch section.
                     if (section?.Kind() == SyntaxKind.SwitchSection)
                     {
-                        if (_sectionLabels.TryGetValue(section, out LabelSymbol replacementLabel))
+                        if (_sectionLabels.TryGetValue(section, out LabelSymbol? replacementLabel))
                         {
                             return replacementLabel;
                         }
@@ -62,8 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private SwitchLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
-                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax), isSwitchStatement: true)
+            private SwitchStatementLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
+                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax),
+                      // Only add instrumentation (such as sequence points) if the node is not compiler-generated.
+                      generateInstrumentation: localRewriter.Instrument && !node.WasCompilerGenerated)
             {
             }
 
@@ -96,9 +96,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Evaluate the input and set up sharing for dag temps with user variables
                 BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result, out _);
 
+                // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
+                // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
+                // the decision dag do not appear to jump back up to the enclosing construct.
+                if (GenerateInstrumentation)
+                {
+                    // Since there may have been no code to evaluate the input, add a no-op for any previous sequence point to bind to.
+                    if (result.Count == 0)
+                        result.Add(_factory.NoOp(NoOpStatementFlavor.Default));
+
+                    result.Add(_factory.HiddenSequencePoint());
+                }
+
                 // lower the decision dag.
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
                     LowerDecisionDag(decisionDag);
+
+                if (_whenNodeIdentifierLocal is not null)
+                {
+                    outerVariables.Add(_whenNodeIdentifierLocal);
+                }
 
                 // then add the rest of the lowered dag that references that input
                 result.Add(_factory.Block(loweredDag));
@@ -147,14 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(_tempAllocator.AllTemps());
 
                 _factory.Syntax = node.Syntax;
+                if (GenerateInstrumentation)
+                    result.Add(_factory.HiddenSequencePoint());
+
                 result.Add(_factory.Label(node.BreakLabel));
                 BoundStatement translatedSwitch = _factory.Block(outerVariables.ToImmutableAndFree(), node.InnerLocalFunctions, result.ToImmutableAndFree());
 
-                // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
-                {
+                if (GenerateInstrumentation)
                     translatedSwitch = _localRewriter._instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
-                }
 
                 return translatedSwitch;
             }

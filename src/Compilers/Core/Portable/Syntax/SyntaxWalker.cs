@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using Microsoft.CodeAnalysis.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis
 {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Depth >= SyntaxWalkerDepth.Node)
                     {
-                        Visit(child.AsNode());
+                        Visit(child.AsNode()!);
                     }
                 }
                 else if (child.IsToken)
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.Depth >= SyntaxWalkerDepth.StructuredTrivia && trivia.HasStructure)
             {
-                this.Visit(trivia.GetStructure());
+                this.Visit(trivia.GetStructure()!);
             }
         }
     }

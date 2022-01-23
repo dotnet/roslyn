@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Text
@@ -1366,7 +1368,7 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
             Assert.Equal(expectedEnumValues.Length, fields.Count - 1)
             For count = 0 To fields.Count - 1
                 Dim field = DirectCast(fields(count), FieldSymbol)
-                Dim fieldDefinition = DirectCast(field, Cci.IFieldDefinition)
+                Dim fieldDefinition = DirectCast(field.GetCciAdapter(), Cci.IFieldDefinition)
                 If count = 0 Then
                     Assert.Equal(field.Name, "value__")
                     Assert.False(field.IsShared)
@@ -1402,6 +1404,163 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
             Return currentSymbol
         End Function
 
+        <WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")>
+        <Fact>
+        Public Sub UseSiteError_01()
+            Dim sourceA =
+"
+public class A
+End Class
+"
+            Dim comp = CreateCompilation(sourceA, assemblyName:="UseSiteError_sourceA")
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"
+public class B( Of T)
+    public enum E
+        F
+    end enum
+end class
+public class C
+    public const F as B(Of A).E = Nothing
+end class
+"
+            comp = CreateCompilation(sourceB, references:={refA})
+            Dim refB = comp.EmitToImageReference()
+
+            Dim sourceC =
+"
+class Program
+    Shared Sub Main()
+        const x As Integer = CType(Not C.F, Integer)
+        System.Console.WriteLine(x)
+    End Sub
+end class
+"
+            comp = CreateCompilation(sourceC, references:={refB})
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
+        const x As Integer = CType(Not C.F, Integer)
+                                       ~~~
+</expected>)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim expr = tree.GetRoot().DescendantNodes().Single(Function(n) n.Kind() = SyntaxKind.NotExpression)
+            Dim value = model.GetConstantValue(expr)
+            Assert.True(value.HasValue)
+            Assert.Equal(-1, value.Value)
+        End Sub
+
+        <WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")>
+        <Fact>
+        Public Sub UseSiteError_02()
+            Dim sourceA =
+"
+public class A
+End Class
+"
+            Dim comp = CreateCompilation(sourceA, assemblyName:="UseSiteError_sourceA")
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"
+public class B( Of T)
+    public enum E
+        F
+    end enum
+end class
+public class C
+    public const F as B(Of A).E = Nothing
+end class
+"
+            comp = CreateCompilation(sourceB, references:={refA})
+            Dim refB = comp.EmitToImageReference()
+
+            Dim sourceC =
+"
+Option Infer On 
+class Program
+    Shared Sub Main()
+        Dim x = Not C.F
+        System.Console.WriteLine(x)
+    End Sub
+end class
+"
+            comp = CreateCompilation(sourceC, references:={refB}, options:=TestOptions.ReleaseExe)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
+        Dim x = Not C.F
+                    ~~~
+</expected>)
+
+            comp = CreateCompilation(sourceC, references:={refB}, options:=TestOptions.DebugExe)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A'. Add one to your project.
+        Dim x = Not C.F
+                    ~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(50163, "https://github.com/dotnet/roslyn/issues/50163")>
+        Public Sub LongDependencyChain()
+            Dim text As New StringBuilder()
+
+            text.AppendLine(
+"
+Enum Test
+    Item0 = 1
+")
+            For i As Integer = 1 To 2000
+                text.AppendLine()
+                text.AppendFormat("    Item{1} = Item{0} + 1", i - 1, i)
+            Next
+
+            text.AppendLine(
+"
+End Enum
+")
+
+            Dim comp = CreateCompilation(text.ToString())
+            Dim item2000 = comp.GetMember(Of FieldSymbol)("Test.Item2000")
+            Assert.Equal(2001, item2000.ConstantValue)
+        End Sub
+
+        <Fact>
+        <WorkItem(52624, "https://github.com/dotnet/roslyn/issues/52624")>
+        Public Sub Issue52624()
+            Dim source1 =
+"
+Public Enum SyntaxKind As UShort
+    None = 0
+    List = GreenNode.ListKind
+End Enum
+"
+            Dim source2 =
+"
+Friend Class GreenNode
+    Public Const ListKind = 1
+End Class
+"
+
+            For i As Integer = 1 To 1000
+                Dim comp = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll)
+                comp.VerifyDiagnostics()
+
+                Dim listKind = comp.GlobalNamespace.GetMember(Of FieldSymbol)("GreenNode.ListKind")
+                Assert.Equal(1, listKind.ConstantValue)
+                Assert.Equal("System.Int32", listKind.Type.ToTestDisplayString())
+
+                Dim list = comp.GlobalNamespace.GetMember(Of FieldSymbol)("SyntaxKind.List")
+                Assert.Equal(1US, list.ConstantValue)
+                Assert.Equal("SyntaxKind", list.Type.ToTestDisplayString())
+            Next
+        End Sub
     End Class
 
 End Namespace

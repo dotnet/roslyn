@@ -1,4 +1,10 @@
-﻿namespace Microsoft.CodeAnalysis.Debugging
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+namespace Microsoft.CodeAnalysis.Debugging
 {
     /// <summary>
     /// The kinds of custom debug info that we know how to interpret.
@@ -42,13 +48,13 @@
 
         /// <summary>
         /// C# and VB. Encodes EnC local variable slot map.
-        /// See https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLocalSlotMap.
+        /// See https://github.com/dotnet/corefx/blob/main/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLocalSlotMap.
         /// </summary>
         EditAndContinueLocalSlotMap = 6,
 
         /// <summary>
         /// C# and VB. Encodes EnC lambda map.
-        /// See https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLambdaAndClosureMap.
+        /// See https://github.com/dotnet/corefx/blob/main/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLambdaAndClosureMap.
         /// </summary>
         EditAndContinueLambdaMap = 7,
 

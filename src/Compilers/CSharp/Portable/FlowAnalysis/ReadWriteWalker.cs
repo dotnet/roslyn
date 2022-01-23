@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out IEnumerable<Symbol> captured,
             out IEnumerable<Symbol> unsafeAddressTaken,
             out IEnumerable<Symbol> capturedInside,
-            out IEnumerable<Symbol> capturedOutside)
+            out IEnumerable<Symbol> capturedOutside,
+            out IEnumerable<MethodSymbol> usedLocalFunctions)
         {
             var walker = new ReadWriteWalker(compilation, member, node, firstInRegion, lastInRegion, unassignedVariableAddressOfSyntaxes);
             try
@@ -32,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (badRegion)
                 {
                     readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = Enumerable.Empty<Symbol>();
+                    usedLocalFunctions = Enumerable.Empty<MethodSymbol>();
                 }
                 else
                 {
@@ -45,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     capturedOutside = walker.GetCapturedOutside();
 
                     unsafeAddressTaken = walker.GetUnsafeAddressTaken();
+
+                    usedLocalFunctions = walker.GetUsedLocalFunctions();
                 }
             }
             finally
@@ -66,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterRegion()
         {
-            for (var m = this.currentSymbol as MethodSymbol; (object)m != null; m = m.ContainingSymbol as MethodSymbol)
+            for (var m = this.CurrentSymbol as MethodSymbol; (object)m != null; m = m.ContainingSymbol as MethodSymbol)
             {
                 foreach (var p in m.Parameters)
                 {

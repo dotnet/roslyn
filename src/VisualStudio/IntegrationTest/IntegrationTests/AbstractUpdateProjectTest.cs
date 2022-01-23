@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.IO;
 using System.Linq;
@@ -12,8 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractUpdateProjectTest : AbstractIntegrationTest
     {
-        protected AbstractUpdateProjectTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        protected AbstractUpdateProjectTest(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
@@ -32,7 +36,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 projectElement.Elements().Where(IsUnconditionalPropertyGroup),
                 group => GetPropertyValue(group, name) == value);
 
-            bool IsUnconditionalPropertyGroup(XElement element)
+            static bool IsUnconditionalPropertyGroup(XElement element)
                 => element.Name.LocalName == "PropertyGroup" && !element.Attributes().Any(a => a.Name.LocalName == "Condition");
         }
 
@@ -42,7 +46,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 projectElement.Elements().Where(IsConditionalPropertyGroup),
                 group => Assert.Equal(value, GetPropertyValue(group, name)));
 
-            bool IsConditionalPropertyGroup(XElement element)
+            static bool IsConditionalPropertyGroup(XElement element)
                 => element.Name.LocalName == "PropertyGroup" && element.Attributes().Any(a => a.Name.LocalName == "Condition");
         }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
     // Reproduces logic in IProjectionBufferFactoryServiceExtensions (editor layer) 
-    // Used for tests currenty, but probably needed for other non-vs-editor API consumers.
+    // Used for tests currently, but probably needed for other non-vs-editor API consumers.
     internal static class IndentationHelper
     {
         /// <summary>
@@ -32,14 +34,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 // We need to figure out the shortest indentation level of the exposed lines.  We'll
                 // then remove that indentation from all lines.
                 var indentationColumn = DetermineIndentationColumn(text, classifiedSpans, tabSize);
-
-                string spanClassificationType = null;
                 var adjustedClassifiedSpans = new List<ClassifiedSpan>();
 
                 for (var i = 0; i < classifiedSpans.Length; i++)
                 {
                     var classifiedSpan = classifiedSpans[i];
-                    spanClassificationType = classifiedSpan.ClassificationType;
+                    var spanClassificationType = classifiedSpan.ClassificationType;
                     var span = classifiedSpan.TextSpan;
 
                     var startLineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber;

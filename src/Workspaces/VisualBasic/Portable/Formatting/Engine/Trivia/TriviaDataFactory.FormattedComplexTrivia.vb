@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
@@ -20,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                            spaces As Integer,
                            originalString As String,
                            cancellationToken As CancellationToken)
-                MyBase.New(context.OptionSet, LanguageNames.VisualBasic)
+                MyBase.New(context.Options, LanguageNames.VisualBasic)
 
                 Contract.ThrowIfNull(context)
                 Contract.ThrowIfNull(formattingRules)
@@ -57,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return Me._textChanges
             End Function
 
-            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As List(Of SyntaxTrivia)
+            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As SyntaxTriviaList
                 Return _formatter.FormatToSyntaxTrivia(cancellationToken)
             End Function
 

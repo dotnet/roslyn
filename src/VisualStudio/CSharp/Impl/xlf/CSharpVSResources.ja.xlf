@@ -2,9 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_using_directives_on_paste">
+        <source>Add missing using directives on paste</source>
+        <target state="translated">貼り付け時に欠落している using ディレクティブを追加する</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="translated">コンストラクター初期化子のコロンの後に空白行を許可する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="translated">連続する中かっこの間に空白行を許可する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="translated">同一の行に複数の埋め込みステートメントを許可する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">C# のすべての書式ルール (インデント、折り返し、スペース) を適用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="translated">セミコロンでステートメントをオートコンプリートに設定する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_show_completion_list_in_argument_lists">
+        <source>Automatically show completion list in argument lists</source>
+        <target state="translated">引数リストに入力候補一覧を自動的に表示する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">範囲指定されたブロック</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -22,9 +57,24 @@
         <target state="translated">C# 書式ルール</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">入力候補</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">破棄</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_color_scheme">
+        <source>Edit color scheme</source>
+        <target state="translated">配色の編集</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">範囲指定されたファイル</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -37,29 +87,49 @@
         <target state="translated">全般</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">イベント サブスクリプションの生成</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">関係演算子: &lt; &gt; &lt;= &gt;= is as == !=</target>
+        <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
+        <source>Insert // at the start of new lines when writing // comments</source>
+        <target state="translated">// コメントの記述時に // を新しい行の先頭に挿入する</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
-        <target state="new">Inside namespace</target>
+        <target state="translated">namespace 内</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
-        <target state="new">Outside namespace</target>
+        <target state="translated">namespace 外</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Pattern_matching_preferences_colon">
+        <source>Pattern matching preferences:</source>
+        <target state="translated">パターン マッチング設定:</target>
+        <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">書式設定中に追加のコード クリーンアップを実行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="translated">新しい行にオブジェクト、コレクション、配列、with 初期化子用の始めかっこを配置する</target>
+        <note>{Locked="with"}</note>
+      </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">拡張プロパティ パターンを優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
+        <source>Prefer implicit object creation when type is apparent</source>
+        <target state="translated">型が明白な場合に暗黙的なオブジェクトの作成を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
@@ -67,14 +137,34 @@
         <target state="translated">参照の等値性のチェックには 'is null' を優先する</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">型のチェックよりも 'null 値' チェックを優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="translated">パターン マッチングを優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
+        <source>Prefer pattern matching over mixed type check</source>
+        <target state="translated">混合型チェックよりパターン マッチングを優先する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
+        <target state="translated">switch 式を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Preferred_using_directive_placement">
         <source>Preferred 'using' directive placement</source>
-        <target state="new">Preferred 'using' directive placement</target>
+        <target state="translated">優先する 'using' ディレクティブの配置</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
@@ -82,9 +172,19 @@
         <target state="translated">不要な using の削除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_new_expressions">
+        <source>Show hints for 'new' expressions</source>
+        <target state="translated">'new' 式のヒントを表示する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="translated">インポートされていない名前空間の項目を表示する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">クイック ヒントに注釈を表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -94,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
-        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
+        <target state="translated">.NET Framework アセンブリの型に using を提案する</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -215,11 +315,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">新しい行にメソッドとローカル関数の始めかっこを配置する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">新しい行にオブジェクト、コレクション、および配列初期化子用の始めかっこを配置する</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">
@@ -369,7 +464,7 @@
       </trans-unit>
       <trans-unit id="Set_spacing_for_method_calls">
         <source>Set spacing for method calls</source>
-        <target state="translated">メソッドの呼び出しのスペースを設定する</target>
+        <target state="translated">メソッド呼び出しのスペースを設定する</target>
         <note />
       </trans-unit>
       <trans-unit id="Set_spacing_for_method_declarations">
@@ -420,11 +515,6 @@
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">ローカルの生成時に 'var' を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">他の場所で使用されていないローカル宣言を、抽出されたメソッドに移動する(_M)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -527,11 +617,6 @@
         <target state="translated">入力候補一覧にコード スニペットを配置する(_C)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">入力候補一覧</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Selection_In_Completion_List">
         <source>Selection In Completion List</source>
         <target state="translated">入力候補一覧からの選択</target>
@@ -624,7 +709,7 @@
       </trans-unit>
       <trans-unit id="using_preferences_colon">
         <source>'using' preferences:</source>
-        <target state="new">'using' preferences:</target>
+        <target state="translated">'using' の基本設定:</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">
@@ -793,9 +878,9 @@
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">他のバイナリ演算子: &amp;&amp; || ??</target>
-        <note />
+        <source>In other binary operators:  &amp;&amp;   ||   ??   and   or</source>
+        <target state="translated">他のバイナリ演算子内:  &amp;&amp;   ||   ??   and   or</target>
+        <note>'and' and 'or' are C# keywords and should not be localized</note>
       </trans-unit>
     </body>
   </file>

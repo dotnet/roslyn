@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -32,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _done;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public HACK_ThemeColorFixer(
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IClassificationFormatMapService classificationFormatMapService)
@@ -44,9 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         private void TextFormatMap_ClassificationFormatMappingChanged(object sender, EventArgs e)
-        {
-            VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
-        }
+            => VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
 
         public void RefreshThemeColors()
         {
@@ -105,6 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.Punctuation, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.ClassName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RecordClassName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StructName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.InterfaceName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.DelegateName, sourceFormatMap, targetFormatMap);

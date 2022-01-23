@@ -1,8 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -14,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return this.Type == null && this.Identifier.ContextualKind() == SyntaxKind.ArgListKeyword;
             }
+        }
+
+        public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
+        {
+            return Update(attributeLists, modifiers, type, identifier, exclamationExclamationToken: ExclamationExclamationToken, @default);
         }
     }
 }

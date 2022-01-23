@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -78,6 +82,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                return UnderlyingMethod.AreLocalsZeroed;
+            }
+        }
+
         public override ImmutableArray<Location> Locations
         {
             get
@@ -107,6 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return UnderlyingMethod.IsStatic;
+            }
+        }
+
+        public override bool RequiresInstanceReceiver
+        {
+            get
+            {
+                return UnderlyingMethod.RequiresInstanceReceiver;
             }
         }
 
@@ -297,7 +317,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => UnderlyingMethod.ReturnTypeAnnotationAttributes;
+        public sealed override bool ReturnsVoid => UnderlyingMethod.ReturnsVoid;
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => UnderlyingMethod.ReturnTypeFlowAnalysisAnnotations;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => UnderlyingMethod.ReturnNotNullIfParameterNotNull;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => UnderlyingMethod.FlowAnalysisAnnotations;
+
+        internal sealed override ImmutableArray<string> NotNullMembers => UnderlyingMethod.NotNullMembers;
+
+        internal sealed override ImmutableArray<string> NotNullWhenTrueMembers => UnderlyingMethod.NotNullWhenTrueMembers;
+
+        internal sealed override ImmutableArray<string> NotNullWhenFalseMembers => UnderlyingMethod.NotNullWhenFalseMembers;
 
         internal override bool ReturnValueIsMarshalledExplicitly
         {
@@ -324,5 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
+
+        internal override bool IsInitOnly => UnderlyingMethod.IsInitOnly;
     }
 }

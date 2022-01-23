@@ -1,27 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     internal static class Extensions
     {
-        public static bool CanApplyChange(this TextDocument document)
-        {
-            return document?.State.CanApplyChange() ?? false;
-        }
+        public static bool CanApplyChange([NotNullWhen(returnValue: true)] this TextDocument? document)
+            => document?.State.CanApplyChange() ?? false;
 
-        public static bool CanApplyChange(this TextDocumentState document)
-        {
-            return document?.Services.GetService<IDocumentOperationService>().CanApplyChange ?? false;
-        }
+        public static bool CanApplyChange([NotNullWhen(returnValue: true)] this TextDocumentState? document)
+            => document?.Services.GetService<IDocumentOperationService>()?.CanApplyChange ?? false;
 
-        public static bool SupportsDiagnostics(this TextDocument document)
-        {
-            return document?.State.SupportsDiagnostics() ?? false;
-        }
+        public static bool SupportsDiagnostics([NotNullWhen(returnValue: true)] this TextDocument? document)
+            => document?.State.SupportsDiagnostics() ?? false;
 
-        public static bool SupportsDiagnostics(this TextDocumentState document)
-        {
-            return document?.Services.GetService<IDocumentOperationService>().SupportDiagnostics ?? false;
-        }
+        public static bool SupportsDiagnostics([NotNullWhen(returnValue: true)] this TextDocumentState? document)
+            => document?.Services.GetService<IDocumentOperationService>()?.SupportDiagnostics ?? false;
     }
 }

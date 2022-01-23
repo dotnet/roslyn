@@ -1,12 +1,20 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
@@ -313,24 +321,11 @@ Next
             TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
-        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <WpfTheory, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub TestSnippetFormatting_TabSize_3()
-            TestFormattingWithTabSize(3)
-        End Sub
-
-        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
-        <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub TestSnippetFormatting_TabSize_4()
-            TestFormattingWithTabSize(4)
-        End Sub
-
-        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
-        <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub TestSnippetFormatting_TabSize_5()
-            TestFormattingWithTabSize(5)
-        End Sub
-
+        <InlineData(3)>
+        <InlineData(4)>
+        <InlineData(5)>
         Public Sub TestFormattingWithTabSize(tabSize As Integer)
             Dim workspaceXml =
 <Workspace>
@@ -353,26 +348,30 @@ End Class</Document>
 	End Sub
 End Class</Test>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, openDocuments:=False)
                 Dim document = workspace.Documents.Single()
 
-                workspace.Options = workspace.Options _
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True) _
                     .WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize) _
-                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
+                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)))
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     document.GetTextView(),
-                    document.TextBuffer,
-                    Nothing)
+                    document.GetTextBuffer(),
+                    signatureHelpControllerProvider:=Nothing,
+                    editorCommandHandlerServiceFactory:=Nothing,
+                    Nothing,
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
+                    workspace.GetService(Of IGlobalOptionService))
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
         End Sub
 
-        Private Async Function TestSnippetAddImportsAsync(
+        Private Shared Async Function TestSnippetAddImportsAsync(
                 markupCode As String,
                 namespacesToAdd As String(),
                 placeSystemNamespaceFirst As Boolean,
@@ -406,13 +405,24 @@ End Class</Test>
                     Guids.VisualBasicDebuggerLanguageId,
                     workspace.Documents.Single().GetTextView(),
                     workspace.Documents.Single().GetTextBuffer(),
-                    Nothing)
+                    signatureHelpControllerProvider:=Nothing,
+                    editorCommandHandlerServiceFactory:=Nothing,
+                    Nothing,
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
+                    workspace.GetService(Of IGlobalOptionService))
+
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                Dim options = Await document.GetOptionsAsync(CancellationToken.None).ConfigureAwait(False)
+                options = options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst)
+                Dim preferences = New VisualBasicCodeGenerationPreferences(options)
 
                 Dim updatedDocument = expansionClient.AddImports(
-                    workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                    document,
+                    preferences,
                     If(position, 0),
                     snippetNode,
-                    placeSystemNamespaceFirst, CancellationToken.None)
+                    allowInHiddenRegions:=False,
+                    CancellationToken.None)
 
                 Assert.Equal(expectedUpdatedCode.Replace(vbLf, vbCrLf),
                              (Await updatedDocument.GetTextAsync()).ToString())
@@ -426,17 +436,20 @@ End Class</Test>
                 Dim surfaceBufferDocument = workspace.CreateProjectionBufferDocument(
                     surfaceBufferDocumentXml.NormalizedValue,
                     {subjectBufferDocument},
-                    LanguageNames.VisualBasic,
                     options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     surfaceBufferDocument.GetTextView(),
-                    subjectBufferDocument.TextBuffer,
-                    Nothing)
+                    subjectBufferDocument.GetTextBuffer(),
+                    signatureHelpControllerProvider:=Nothing,
+                    editorCommandHandlerServiceFactory:=Nothing,
+                    Nothing,
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
+                    workspace.GetService(Of IGlobalOptionService))
 
-                SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+                SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
         End Sub
     End Class

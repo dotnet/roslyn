@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -7,11 +11,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
 {
     public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public ChangeToIEnumerableTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpChangeToIEnumerableCodeFixProvider());
 
@@ -97,6 +107,39 @@ class Program
     static IEnumerable<int> M()
     {
         yield return 0;
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
+        {
+            var initial =
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static IList<string?> [|M|]()
+    {
+        yield return """";
+    }
+}";
+
+            var expected =
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static IEnumerable<string?> M()
+    {
+        yield return """";
     }
 }";
             await TestInRegularAndScriptAsync(initial, expected);

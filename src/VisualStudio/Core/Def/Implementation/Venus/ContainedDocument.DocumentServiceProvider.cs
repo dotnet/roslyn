@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -15,13 +20,14 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
     internal sealed partial class ContainedDocument
     {
         // this is to support old venus/razor case before dev16. 
-        // all new razor (asp.NET core after dev16) should use thier own implementation not ours
+        // all new razor (asp.NET core after dev16) should use their own implementation not ours
         public class DocumentServiceProvider : IDocumentServiceProvider
         {
             private readonly SpanMapper _spanMapper;
@@ -50,20 +56,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             private static ITextSnapshot GetRoslynSnapshot(SourceText sourceText)
-            {
-                return sourceText.FindCorrespondingEditorTextSnapshot();
-            }
+                => sourceText.FindCorrespondingEditorTextSnapshot();
 
-            private class SpanMapper : ISpanMappingService
+            private class SpanMapper : AbstractSpanMappingService
             {
                 private readonly ITextBuffer _primaryBuffer;
 
                 public SpanMapper(ITextBuffer primaryBuffer)
+                    => _primaryBuffer = primaryBuffer;
+
+                /// <summary>
+                /// Legacy venus does not support us adding import directives and them mapping them to their own concepts.
+                /// </summary>
+                public override bool SupportsMappingImportDirectives => false;
+
+                public override async Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+                    Document oldDocument,
+                    Document newDocument,
+                    CancellationToken cancellationToken)
                 {
-                    _primaryBuffer = primaryBuffer;
+                    var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+                    var mappedSpanResults = await MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
+                    var mappedTextChanges = MatchMappedSpansToTextChanges(textChanges, mappedSpanResults);
+                    return mappedTextChanges;
                 }
 
-                public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+                public override async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(
+                    Document document,
+                    IEnumerable<TextSpan> spans,
+                    CancellationToken cancellationToken)
                 {
                     // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new SpanMappingService for every char user types.
                     var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -81,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     var builder = ArrayBuilder<MappedSpanResult>.GetInstance();
                     foreach (var span in spans)
                     {
-                        var result = default(MappedSpanResult?);
+                        var result = (MappedSpanResult?)null;
                         foreach (var primarySpan in primarySnapshot.MapFromSourceSnapshot(span.ToSnapshotSpan(roslynSnapshot)))
                         {
                             // this is from http://index/?query=MapSecondaryToPrimarySpan&rightProject=Microsoft.VisualStudio.Editor.Implementation&file=VsTextBufferCoordinatorAdapter.cs&line=177
@@ -110,9 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 private readonly ITextBuffer _primaryBuffer;
 
                 public DocumentExcerpter(ITextBuffer primaryBuffer)
-                {
-                    _primaryBuffer = primaryBuffer;
-                }
+                    => _primaryBuffer = primaryBuffer;
 
                 public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, CancellationToken cancellationToken)
                 {
@@ -146,14 +165,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         return null;
                     }
 
-                    var classifiedSpansOnContent = await GetClassifiedSpansOnContent(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, cancellationToken).ConfigureAwait(false);
+                    var options = ClassificationOptions.From(document.Project);
+                    var classifiedSpansOnContent = await GetClassifiedSpansOnContentAsync(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, options, cancellationToken).ConfigureAwait(false);
 
                     // the default implementation has no idea how to classify the primary snapshot
                     return new ExcerptResult(content, spanOnContent, classifiedSpansOnContent, document, span);
                 }
 
-                private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansOnContent(
-                    Document document, ITextSnapshot roslynSnapshot, SnapshotSpan contentSpanOnPrimarySnapshot, CancellationToken cancellationToken)
+                private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansOnContentAsync(
+                    Document document, ITextSnapshot roslynSnapshot, SnapshotSpan contentSpanOnPrimarySnapshot, ClassificationOptions options, CancellationToken cancellationToken)
                 {
                     var primarySnapshot = (IProjectionSnapshot)contentSpanOnPrimarySnapshot.Snapshot;
 
@@ -165,71 +185,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     // anything based on content is starting from 0
                     var startPositionOnContentSpan = GetNonWhitespaceStartPositionOnContent(contentSpanOnPrimarySnapshot);
 
-                    using (var pooledObject = SharedPools.Default<List<ClassifiedSpan>>().GetPooledObject())
+                    using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var list);
+
+                    foreach (var roslynSpan in primarySnapshot.MapToSourceSnapshots(contentSpanOnPrimarySnapshot.Span))
                     {
-                        var list = pooledObject.Object;
-
-                        foreach (var roslynSpan in primarySnapshot.MapToSourceSnapshots(contentSpanOnPrimarySnapshot.Span))
+                        if (roslynSnapshot.TextBuffer != roslynSpan.Snapshot.TextBuffer)
                         {
-                            if (roslynSnapshot.TextBuffer != roslynSpan.Snapshot.TextBuffer)
+                            // not mapped to right buffer. ignore
+                            continue;
+                        }
+
+                        // we don't have guarantee that pirmary snapshot is from same snapshot as roslyn snapshot. make sure
+                        // we map it to right snapshot
+                        var fixedUpSpan = roslynSpan.TranslateTo(roslynSnapshot, SpanTrackingMode.EdgeExclusive);
+                        var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, fixedUpSpan.Span.ToTextSpan(), options, cancellationToken).ConfigureAwait(false);
+                        if (classifiedSpans.IsDefault)
+                        {
+                            continue;
+                        }
+
+                        foreach (var classifiedSpan in classifiedSpans)
+                        {
+                            var mappedSpan = MapRoslynSpanToPrimarySpan(primarySnapshot, roslynSnapshot, classifiedSpan.TextSpan);
+                            if (mappedSpan == null)
                             {
-                                // not mapped to right buffer. ignore
                                 continue;
                             }
 
-                            // we don't have gurantee that pirmary snapshot is from same snapshot as roslyn snapshot. make sure
-                            // we map it to right snapshot
-                            var fixedUpSpan = roslynSpan.TranslateTo(roslynSnapshot, SpanTrackingMode.EdgeExclusive);
-                            var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, fixedUpSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-                            if (classifiedSpans.IsDefault)
+                            var spanOnContentSpan = GetSpanOnContent(mappedSpan.Value.Span.ToTextSpan(), contentSpan);
+                            if (spanOnContentSpan.Start < startPositionOnContentSpan)
                             {
+                                // skip span before start position.
                                 continue;
                             }
 
-                            foreach (var classifiedSpan in classifiedSpans)
-                            {
-                                var mappedSpan = MapRoslynSpanToPrimarySpan(primarySnapshot, roslynSnapshot, classifiedSpan.TextSpan);
-                                if (mappedSpan == null)
-                                {
-                                    continue;
-                                }
-
-                                var spanOnContentSpan = GetSpanOnContent(mappedSpan.Value.Span.ToTextSpan(), contentSpan);
-                                if (spanOnContentSpan.Start < startPositionOnContentSpan)
-                                {
-                                    // skip span before start position.
-                                    continue;
-                                }
-
-                                list.Add(new ClassifiedSpan(spanOnContentSpan, classifiedSpan.ClassificationType));
-                            }
+                            list.Add(new ClassifiedSpan(spanOnContentSpan, classifiedSpan.ClassificationType));
                         }
-
-                        // classifier expects there is no gap between classification spans. any empty space
-                        // from the above classification call will be filled with "text"
-                        //
-                        // the EditorClassifier call above fills all the gaps for the span it is called with, but we are combining
-                        // multiple spans with html code, so we need to fill those gaps
-                        var builder = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                        ClassifierHelper.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
-
-                        // add html after roslyn content if there is any
-                        if (builder.Count == 0)
-                        {
-                            // no roslyn code. add all as html code
-                            builder.Add(new ClassifiedSpan(new TextSpan(0, contentSpan.Length), ClassificationTypeNames.Text));
-                        }
-                        else
-                        {
-                            var lastSpan = builder[builder.Count - 1].TextSpan;
-                            if (lastSpan.End < contentSpan.Length)
-                            {
-                                builder.Add(new ClassifiedSpan(new TextSpan(lastSpan.End, contentSpan.Length - lastSpan.End), ClassificationTypeNames.Text));
-                            }
-                        }
-
-                        return builder.ToImmutableAndFree();
                     }
+
+                    // classifier expects there is no gap between classification spans. any empty space
+                    // from the above classification call will be filled with "text"
+                    //
+                    // the EditorClassifier call above fills all the gaps for the span it is called with, but we are combining
+                    // multiple spans with html code, so we need to fill those gaps
+                    using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var builder);
+                    ClassifierHelper.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
+
+                    // add html after roslyn content if there is any
+                    if (builder.Count == 0)
+                    {
+                        // no roslyn code. add all as html code
+                        builder.Add(new ClassifiedSpan(new TextSpan(0, contentSpan.Length), ClassificationTypeNames.Text));
+                    }
+                    else
+                    {
+                        var lastSpan = builder[^1].TextSpan;
+                        if (lastSpan.End < contentSpan.Length)
+                        {
+                            builder.Add(new ClassifiedSpan(new TextSpan(lastSpan.End, contentSpan.Length - lastSpan.End), ClassificationTypeNames.Text));
+                        }
+                    }
+
+                    return builder.ToImmutable();
                 }
 
                 private static int GetNonWhitespaceStartPositionOnContent(SnapshotSpan spanOnPrimarySnapshot)
@@ -271,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         return (line.Snapshot.AsText().GetSubText(contentSpan.Span.ToTextSpan()), GetSpanOnContent(primarySpan.Span.ToTextSpan(), contentSpan.Span.ToTextSpan()));
                     }
 
-                    return (default, default);
+                    return (null, default);
                 }
 
                 private static SnapshotSpan? GetContentSpanFromPrimarySpan(ExcerptMode mode, SnapshotSpan primarySpan)
@@ -295,13 +312,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         return new SnapshotSpan(line.Snapshot, Span.FromBounds(startLine.Extent.Start.Position, endLine.Extent.End.Position));
                     }
 
-                    return default;
+                    return null;
                 }
 
                 private static TextSpan GetSpanOnContent(TextSpan targetSpan, TextSpan excerptSpan)
-                {
-                    return new TextSpan(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
-                }
+                    => new(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
             }
         }
     }

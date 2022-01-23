@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -25,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
         Private ReadOnly _filterSpanWithinTree As TextSpan?
 
-        Private ReadOnly _diagnostics As ConcurrentQueue(Of Diagnostic)
+        Private ReadOnly _diagnostics As BindingDiagnosticBag
 
         Private ReadOnly _cancellationToken As CancellationToken
 
@@ -34,7 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <seealso cref="MethodCompiler._compilerTasks"/>
         Private ReadOnly _compilerTasks As ConcurrentStack(Of Task)
 
-        Private Sub New(compilation As VisualBasicCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As ConcurrentQueue(Of Diagnostic), cancellationToken As CancellationToken)
+        Private Sub New(compilation As VisualBasicCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken)
+            Debug.Assert(TypeOf diagnostics.DependenciesBag Is ConcurrentSet(Of AssemblySymbol))
+
             Me._compilation = compilation
             Me._filterTree = filterTree
             Me._filterSpanWithinTree = filterSpanWithinTree
@@ -64,15 +69,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="cancellationToken">To stop traversing the symbol table early.</param>
         ''' <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         ''' <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        Public Shared Sub CheckCompliance(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag, cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing)
-            Dim queue = New ConcurrentQueue(Of Diagnostic)()
+        Public Shared Sub CheckCompliance(compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing)
+            Dim queue = New BindingDiagnosticBag(diagnostics.DiagnosticBag, New ConcurrentSet(Of AssemblySymbol))
             Dim checker = New ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken)
             checker.Visit(compilation.Assembly)
             checker.WaitForWorkers()
-
-            For Each diag In queue
-                diagnostics.Add(diag)
-            Next
+            diagnostics.AddDependencies(queue.DependenciesBag)
         End Sub
 
         Private Sub WaitForWorkers()
@@ -110,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Sub()
                                 Try
                                     VisitModule(m)
-                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                Catch e As Exception When FatalError.ReportAndPropagateUnlessCanceled(e)
                                     Throw ExceptionUtilities.Unreachable
                                 End Try
                             End Sub),
@@ -154,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Sub()
                                 Try
                                     Visit(m)
-                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                Catch e As Exception When FatalError.ReportAndPropagateUnlessCanceled(e)
                                     Throw ExceptionUtilities.Unreachable
                                 End Try
                             End Sub),
@@ -782,12 +784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If attributeData.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute) Then
                     Dim attributeClass = attributeData.AttributeClass
                     If attributeClass IsNot Nothing Then
-                        Dim info = attributeClass.GetUseSiteErrorInfo()
-                        If info IsNot Nothing Then
-                            Dim location = If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.Locations(0))
-                            _diagnostics.Enqueue(New VBDiagnostic(info, location))
-                            Continue For
-                        End If
+                        _diagnostics.ReportUseSite(attributeClass, If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.Locations(0)))
                     End If
 
                     If Not attributeData.HasErrors Then
@@ -802,7 +799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(args.Length = 1, "We already checked the signature and HasErrors.")
 
                         ' Duplicates are reported elsewhere - we only care about the first (error-free) occurrence.
-                        Return DirectCast(args(0).Value, Boolean)
+                        Return DirectCast(args(0).ValueInternal, Boolean)
                     End If
                 End If
             Next
@@ -862,7 +859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub AddDiagnostic(symbol As Symbol, code As ERRID, location As Location, ParamArray args As Object())
             Dim info = New BadSymbolDiagnostic(symbol, code, args)
             Dim diag = New VBDiagnostic(info, location)
-            Me._diagnostics.Enqueue(diag)
+            Me._diagnostics.Add(diag)
         End Sub
 
         Private Shared Function IsImplicitClass(symbol As Symbol) As Boolean

@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -16,52 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            var node = context.TargetToken.Parent;
-
-            // At start of a file
-            if (node == null)
-            {
-                return false;
-            }
-
-            // After a cast or parenthesized expression: (Span<int>)stackalloc
-            if (context.TargetToken.IsAfterPossibleCast())
-            {
-                node = node.Parent;
-            }
-
-            // Inside a conditional expression: value ? stackalloc : stackalloc
-            while (node.IsKind(SyntaxKind.ConditionalExpression) &&
-                (context.TargetToken.IsKind(SyntaxKind.QuestionToken, SyntaxKind.ColonToken) || context.TargetToken.IsAfterPossibleCast()))
-            {
-                node = node.Parent;
-            }
-
-            // assignment: x = stackalloc
-            if (node.IsKind(SyntaxKind.SimpleAssignmentExpression))
-            {
-                return node.Parent.IsKind(SyntaxKind.ExpressionStatement);
-            }
-
-            // declaration: var x = stackalloc
-            if (node.IsKind(SyntaxKind.EqualsValueClause))
-            {
-                node = node.Parent;
-
-                if (node.IsKind(SyntaxKind.VariableDeclarator))
-                {
-                    node = node.Parent;
-
-                    if (node.IsKind(SyntaxKind.VariableDeclaration))
-                    {
-                        node = node.Parent;
-
-                        return node.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement);
-                    }
-                }
-            }
-
-            return false;
+            // Beginning with C# 8.0, stackalloc expression can be used inside other expressions
+            // whenever a Span<T> or ReadOnlySpan<T> variable is allowed.
+            return (context.IsAnyExpressionContext && !context.IsConstantExpressionContext) ||
+                       context.IsStatementContext ||
+                       context.IsGlobalStatementContext;
         }
     }
 }

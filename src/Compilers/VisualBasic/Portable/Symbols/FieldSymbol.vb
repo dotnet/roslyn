@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class FieldSymbol
         Inherits Symbol
-        Implements IFieldSymbol
+        Implements IFieldSymbol, IFieldSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
@@ -133,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End If
 
-                Dim value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                Dim value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 Return (value IsNot Nothing) AndAlso Not value.IsBad ' can be null in error scenarios
             End Get
         End Property
@@ -148,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Nothing
                 End If
 
-                Dim value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                Dim value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 Return If(value IsNot Nothing, value.Value, Nothing) ' can be null in error scenarios
             End Get
         End Property
@@ -156,16 +159,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the constant value.
         ''' </summary>
-        ''' <param name="inProgress">The previously visited const fields; used to detect cycles.</param>
-        Friend MustOverride Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+        ''' <param name="inProgress">Used to detect dependencies between constant field values.</param>
+        Friend MustOverride Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
 
         ''' <summary>
         ''' Const fields do not (always) have to be declared with a given type. To get the inferred type determined from
         ''' the initialization this method should be called instead of "Type". For non const field this method returns the
         ''' declared type.
         ''' </summary>
-        ''' <param name="inProgress">The previously visited const fields; used to detect cycles.</param><returns></returns>
-        Friend Overridable Function GetInferredType(inProgress As SymbolsInProgress(Of FieldSymbol)) As TypeSymbol
+        ''' <param name="inProgress">Used to detect dependencies between constant field values.</param><returns></returns>
+        Friend Overridable Function GetInferredType(inProgress As ConstantFieldsInProgress) As TypeSymbol
             Return Type
         End Function
 
@@ -264,44 +267,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Me.IsDefinition Then
-                Return MyBase.GetUseSiteErrorInfo()
+                Return New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
             End If
 
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return Me.OriginalDefinition.GetUseSiteInfo()
         End Function
 
-        Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
+        Friend Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
 
             Debug.Assert(IsDefinition)
 
             ' Check type.
-            Dim typeErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
 
-            If typeErrorInfo IsNot Nothing AndAlso typeErrorInfo.Code = ERRID.ERR_UnsupportedField1 Then
-                Return typeErrorInfo
+            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedField1 Then
+                Return useSiteInfo
             End If
 
             ' Check custom modifiers.
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.CustomModifiers)
+            Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(Me.CustomModifiers)
 
-            If modifiersErrorInfo IsNot Nothing AndAlso modifiersErrorInfo.Code = ERRID.ERR_UnsupportedField1 Then
-                Return modifiersErrorInfo
+            If modifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedField1 Then
+                Return modifiersUseSiteInfo
             End If
 
-            Dim result = If(typeErrorInfo, modifiersErrorInfo)
+            useSiteInfo = MergeUseSiteInfo(useSiteInfo, modifiersUseSiteInfo)
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
-            If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
+            If useSiteInfo.DiagnosticInfo Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
 
-                result = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.CustomModifiers, Me, unificationCheckedTypes))
+                Dim errorInfo As DiagnosticInfo = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                                                     GetUnificationUseSiteDiagnosticRecursive(Me.CustomModifiers, Me, unificationCheckedTypes))
+
+                If errorInfo IsNot Nothing Then
+                    Debug.Assert(errorInfo.Severity = DiagnosticSeverity.Error)
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+                End If
             End If
 
-            Return result
+            Return useSiteInfo
         End Function
 
         ''' <summary>
@@ -315,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = GetUseSiteErrorInfo()
+                Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
                 Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedField1
             End Get
         End Property
@@ -408,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IFieldSymbol_IsVolatile As Boolean Implements IFieldSymbol.IsVolatile
+        Private ReadOnly Property IFieldSymbol_IsVolatile As Boolean Implements IFieldSymbol.IsVolatile, IFieldSymbolInternal.IsVolatile
             Get
                 Return False
             End Get
@@ -420,6 +428,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbol_FixedSize As Integer Implements IFieldSymbol.FixedSize
+            Get
+                Return 0
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_Type As ITypeSymbol Implements IFieldSymbol.Type
             Get
                 Return Me.Type
@@ -428,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IFieldSymbol_NullableAnnotation As NullableAnnotation Implements IFieldSymbol.NullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
             End Get
         End Property
 
@@ -459,6 +473,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IFieldSymbol_CorrespondingTupleField As IFieldSymbol Implements IFieldSymbol.CorrespondingTupleField
             Get
                 Return Me.CorrespondingTupleField
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbol_HasExplicitTupleElementName As Boolean Implements IFieldSymbol.IsExplicitlyNamedTupleElement
+            Get
+                Return Not Me.IsImplicitlyDeclared
             End Get
         End Property
 

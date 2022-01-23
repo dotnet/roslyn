@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -6,12 +10,16 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
@@ -22,32 +30,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Export(typeof(MiscellaneousFilesWorkspace))]
-    internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IVsRunningDocTableEvents2
+    internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IRunningDocumentTableEventListener
     {
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
-        private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-        private readonly IVsTextManager _textManager;
+        private readonly Lazy<IVsTextManager> _lazyTextManager;
 
-        private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new Dictionary<Guid, LanguageInformation>();
+        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+
+        private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new();
 
         /// <summary>
         /// <see cref="WorkspaceRegistration"/> instances for all open buffers being tracked by by this object
         /// for possible inclusion into this workspace.
         /// </summary>
-        private IBidirectionalMap<uint, WorkspaceRegistration> _docCookieToWorkspaceRegistration = BidirectionalMap<uint, WorkspaceRegistration>.Empty;
+        private IBidirectionalMap<string, WorkspaceRegistration> _monikerToWorkspaceRegistration = BidirectionalMap<string, WorkspaceRegistration>.Empty;
 
         /// <summary>
-        /// The mapping of all doc cookies in the RDT and the <see cref="ProjectId"/> of the project and <see cref="SourceTextContainer"/> of the open
-        /// file we have created for that open buffer. An entry should only be in here if it's also already in <see cref="_docCookieToWorkspaceRegistration"/>.
+        /// The mapping of all monikers in the RDT and the <see cref="ProjectId"/> of the project and <see cref="SourceTextContainer"/> of the open
+        /// file we have created for that open buffer. An entry should only be in here if it's also already in <see cref="_monikerToWorkspaceRegistration"/>.
         /// </summary>
-        private readonly Dictionary<uint, (ProjectId projectId, SourceTextContainer textContainer)> _docCookiesToProjectIdAndContainer = new Dictionary<uint, (ProjectId, SourceTextContainer)>();
+        private readonly Dictionary<string, (ProjectId projectId, SourceTextContainer textContainer)> _monikersToProjectIdAndContainer = new Dictionary<string, (ProjectId, SourceTextContainer)>();
 
         private readonly ImmutableArray<MetadataReference> _metadataReferences;
-        private uint _runningDocumentTableEventsCookie;
 
         private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
 
@@ -57,46 +62,58 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
-            SaveEventsService saveEventsService,
             VisualStudioWorkspace visualStudioWorkspace,
-            SVsServiceProvider serviceProvider) :
-            base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
+            SVsServiceProvider serviceProvider)
+            : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
-            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
+            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
 
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
-            _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
+            _lazyTextManager = new Lazy<IVsTextManager>(() =>
+            {
+                _foregroundThreadAffinitization.AssertIsForeground();
+                return (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
+            });
 
-            ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
+            var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
-            saveEventsService.StartSendingSaveEvents();
+        }
+
+        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _, IVsWindowFrame __) => TrackOpenedDocument(moniker, textBuffer);
+
+        void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
+
+        /// <summary>
+        /// File hierarchy events are not relevant to the misc workspace.
+        /// </summary>
+        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
+        {
+        }
+
+        void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
+        {
+            // We want to consider this file to be added in one of two situations:
+            //
+            // 1) the old file already was a misc file, at which point we might just be doing a rename from
+            //    one name to another with the same extension
+            // 2) the old file was a different extension that we weren't tracking, which may have now changed
+            if (TryUntrackClosingDocument(oldMoniker) || TryGetLanguageInformation(oldMoniker) == null)
+            {
+                // Add the new one, if appropriate.
+                TrackOpenedDocument(newMoniker, buffer);
+            }
         }
 
         public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
-        {
-            _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
-        }
-
-        internal void StartSolutionCrawler()
-        {
-            // misc workspace will enable syntax errors and semantic errors for script files for
-            // all participating projects in the workspace
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax | DiagnosticProvider.Options.ScriptSemantic);
-        }
-
-        internal void StopSolutionCrawler()
-        {
-            DiagnosticProvider.Disable(this);
-        }
+            => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
 
         private LanguageInformation TryGetLanguageInformation(string filename)
         {
             LanguageInformation languageInformation = null;
 
-            if (ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
+            if (ErrorHandler.Succeeded(_lazyTextManager.Value.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
             {
                 _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
             }
@@ -115,88 +132,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                    select manager.CreateMetadataReferenceSnapshot(fullPath, MetadataReferenceProperties.Assembly);
         }
 
-        public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld, string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
-        {
-            // Did we rename?
-            if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_MkDocument) != 0)
-            {
-                // We want to consider this file to be added in one of two situations:
-                //
-                // 1) the old file already was a misc file, at which point we might just be doing a rename from
-                //    one name to another with the same extension
-                // 2) the old file was a different extension that we weren't tracking, which may have now changed
-                if (TryUntrackClosingDocument(docCookie, pszMkDocumentOld) || TryGetLanguageInformation(pszMkDocumentOld) == null)
-                {
-                    // Add the new one, if appropriate.
-                    TrackOpenedDocument(docCookie, pszMkDocumentNew);
-                }
-            }
-
-            // When starting a diff, the RDT doesn't call OnBeforeDocumentWindowShow, but it does call
-            // OnAfterAttributeChangeEx for the temporary buffer. The native IDE used this even to
-            // add misc files, so we'll do the same.
-            if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_DocDataReloaded) != 0)
-            {
-                var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
-
-                if (moniker != null && TryGetLanguageInformation(moniker) != null && !_docCookiesToProjectIdAndContainer.ContainsKey(docCookie))
-                {
-                    TrackOpenedDocument(docCookie, moniker);
-                }
-            }
-
-            if ((grfAttribs & (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized) != 0)
-            {
-                // The document is now initialized, we should try tracking it
-                TrackOpenedDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
-            }
-
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
-
-        public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
-
-        public int OnAfterSave(uint docCookie)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
-
-        public int OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
-
-        public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-        {
-            _foregroundThreadAffinitization.AssertIsForeground();
-
-            if (dwReadLocksRemaining + dwEditLocksRemaining == 0)
-            {
-                TryUntrackClosingDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
-            }
-
-            return VSConstants.S_OK;
-        }
-
-        private void TrackOpenedDocument(uint docCookie, string moniker)
+        private void TrackOpenedDocument(string moniker, ITextBuffer textBuffer)
         {
             _foregroundThreadAffinitization.AssertIsForeground();
 
             var languageInformation = TryGetLanguageInformation(moniker);
-
             if (languageInformation == null)
             {
                 // We can never put this document in a workspace, so just bail
@@ -205,25 +145,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // We don't want to realize the document here unless it's already initialized. Document initialization is watched in
             // OnAfterAttributeChangeEx and will retrigger this if it wasn't already done.
-            if (_runningDocumentTable.IsDocumentInitialized(docCookie) && !_docCookieToWorkspaceRegistration.ContainsKey(docCookie))
+            if (!_monikerToWorkspaceRegistration.ContainsKey(moniker))
             {
-                // GetDocumentData returns dynamic, and casting directly to IVsTextBuffer means we trigger a cast through the dyanmic
-                // binder. Since it's already a managed object, we can double cast to avoid loading the dynamic binder.
-                var vsTextBuffer = (IVsTextBuffer)(object)_runningDocumentTable.GetDocumentData(docCookie);
-                var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
+                var registration = Workspace.GetWorkspaceRegistration(textBuffer.AsTextContainer());
 
-                // As long as the buffer is initialized, then we should see if we should attach
-                if (textBuffer != null)
+                registration.WorkspaceChanged += Registration_WorkspaceChanged;
+                _monikerToWorkspaceRegistration = _monikerToWorkspaceRegistration.Add(moniker, registration);
+
+                if (!IsClaimedByAnotherWorkspace(registration))
                 {
-                    var registration = Workspace.GetWorkspaceRegistration(textBuffer.AsTextContainer());
-
-                    registration.WorkspaceChanged += Registration_WorkspaceChanged;
-                    _docCookieToWorkspaceRegistration = _docCookieToWorkspaceRegistration.Add(docCookie, registration);
-
-                    if (!IsClaimedByAnotherWorkspace(registration))
-                    {
-                        AttachToDocument(docCookie, moniker);
-                    }
+                    AttachToDocument(moniker, textBuffer);
                 }
             }
         }
@@ -246,23 +177,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Since WorkspaceChanged notifications may be asynchronous and happened on a different thread,
             // we might have already unsubscribed for this synchronously from the RDT while we were in the process of sending this
             // request back to the UI thread.
-            if (!_docCookieToWorkspaceRegistration.TryGetKey(workspaceRegistration, out var docCookie))
+            if (!_monikerToWorkspaceRegistration.TryGetKey(workspaceRegistration, out var moniker))
             {
                 return;
             }
 
             // It's also theoretically possible that we are getting notified about a workspace change to a document that has
             // been simultaneously removed from the RDT but we haven't gotten the notification. In that case, also bail.
-            if (!_runningDocumentTable.IsCookieValid(docCookie))
+            if (!_runningDocumentTableEventTracker.IsFileOpen(moniker))
             {
                 return;
             }
 
-            var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
-
             if (workspaceRegistration.Workspace == null)
             {
-                if (_docCookiesToProjectIdAndContainer.TryGetValue(docCookie, out var projectIdAndSourceTextContainer))
+                if (_monikersToProjectIdAndContainer.TryGetValue(moniker, out var projectIdAndSourceTextContainer))
                 {
                     // The workspace was taken from us and released and we have only asynchronously found out now.
                     // We already have the file open in our workspace, but the global mapping of source text container
@@ -277,16 +206,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // the moniker. Once we observe the rename later in OnAfterAttributeChangeEx we'll completely disconnect.
                     if (TryGetLanguageInformation(moniker) != null)
                     {
-                        AttachToDocument(docCookie, moniker);
+                        if (_runningDocumentTableEventTracker.TryGetBufferFromMoniker(moniker, out var buffer))
+                        {
+                            AttachToDocument(moniker, buffer);
+                        }
                     }
                 }
             }
             else if (IsClaimedByAnotherWorkspace(workspaceRegistration))
             {
                 // It's now claimed by another workspace, so we should unclaim it
-                if (_docCookiesToProjectIdAndContainer.ContainsKey(docCookie))
+                if (_monikersToProjectIdAndContainer.ContainsKey(moniker))
                 {
-                    DetachFromDocument(docCookie, moniker);
+                    DetachFromDocument(moniker);
                 }
             }
         }
@@ -295,41 +227,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Stops tracking a document in the RDT for whether we should attach to it.
         /// </summary>
         /// <returns>true if we were previously tracking it.</returns>
-        private bool TryUntrackClosingDocument(uint docCookie, string moniker)
+        private bool TryUntrackClosingDocument(string moniker)
         {
-            bool unregisteredRegistration = false;
+            _foregroundThreadAffinitization.AssertIsForeground();
+
+            var unregisteredRegistration = false;
+
             // Remove our registration changing handler before we call DetachFromDocument. Otherwise, calling DetachFromDocument
             // causes us to set the workspace to null, which we then respond to as an indication that we should
             // attach again.
-            if (_docCookieToWorkspaceRegistration.TryGetValue(docCookie, out var registration))
+            if (_monikerToWorkspaceRegistration.TryGetValue(moniker, out var registration))
             {
                 registration.WorkspaceChanged -= Registration_WorkspaceChanged;
-                _docCookieToWorkspaceRegistration = _docCookieToWorkspaceRegistration.RemoveKey(docCookie);
+                _monikerToWorkspaceRegistration = _monikerToWorkspaceRegistration.RemoveKey(moniker);
                 unregisteredRegistration = true;
             }
 
-            DetachFromDocument(docCookie, moniker);
+            DetachFromDocument(moniker);
 
             return unregisteredRegistration;
         }
 
-        private bool IsClaimedByAnotherWorkspace(WorkspaceRegistration registration)
+        private static bool IsClaimedByAnotherWorkspace(WorkspaceRegistration registration)
         {
             // Currently, we are also responsible for pushing documents to the metadata as source workspace,
             // so we count that here as well
             return registration.Workspace != null && registration.Workspace.Kind != WorkspaceKind.MetadataAsSource && registration.Workspace.Kind != WorkspaceKind.MiscellaneousFiles;
         }
 
-        private void AttachToDocument(uint docCookie, string moniker)
+        private void AttachToDocument(string moniker, ITextBuffer textBuffer)
         {
             _foregroundThreadAffinitization.AssertIsForeground();
 
-            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
-            // which saves us JIT time in this method.
-            var vsTextBuffer = (IVsTextBuffer)(object)_runningDocumentTable.GetDocumentData(docCookie);
-            var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
-
-            if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer))
+            if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer()))
             {
                 // We already added it, so we will keep it excluded from the misc files workspace
                 return;
@@ -342,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var sourceTextContainer = textBuffer.AsTextContainer();
             OnDocumentOpened(projectInfo.Documents.Single().Id, sourceTextContainer);
 
-            _docCookiesToProjectIdAndContainer.Add(docCookie, (projectInfo.Id, sourceTextContainer));
+            _monikersToProjectIdAndContainer.Add(moniker, (projectInfo.Id, sourceTextContainer));
         }
 
         /// <summary>
@@ -354,90 +284,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var languageInformation = TryGetLanguageInformation(filePath);
             Contract.ThrowIfNull(languageInformation);
 
-            var fileExtension = PathUtilities.GetExtension(filePath);
-
-            var languageServices = Services.GetLanguageServices(languageInformation.LanguageName);
-            var compilationOptionsOpt = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
-
-            // Use latest language version which is more permissive, as we cannot find out language version of the project which the file belongs to
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/575761
-            var parseOptionsOpt = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptionsWithLatestLanguageVersion();
-
-            if (parseOptionsOpt != null &&
-                compilationOptionsOpt != null &&
-                fileExtension == languageInformation.ScriptExtension)
-            {
-                parseOptionsOpt = parseOptionsOpt.WithKind(SourceCodeKind.Script);
-
-                var metadataService = Services.GetService<IMetadataService>();
-                var scriptEnvironmentService = Services.GetService<IScriptEnvironmentService>();
-
-                // Misc files workspace always provides the service:
-                Contract.ThrowIfNull(scriptEnvironmentService);
-
-                var baseDirectory = PathUtilities.GetDirectoryName(filePath);
-
-                // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886):
-                // - Need to have a way to specify these somewhere in VS options.
-                // - Use RuntimeMetadataReferenceResolver like in InteractiveEvaluator.CreateMetadataReferenceResolver
-                // - Add default namespace imports, default metadata references to match csi.rsp
-                // - Add default script globals available in 'csi goo.csx' environment: CommandLineScriptGlobals
-
-                var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    metadataService,
-                    new RelativePathResolver(scriptEnvironmentService.MetadataReferenceSearchPaths, baseDirectory));
-
-                compilationOptionsOpt = compilationOptionsOpt.
-                    WithMetadataReferenceResolver(referenceResolver).
-                    WithSourceReferenceResolver(new SourceFileResolver(scriptEnvironmentService.SourceReferenceSearchPaths, baseDirectory));
-            }
-
-            var projectId = ProjectId.CreateNewId(debugName: "Miscellaneous Files Project for " + filePath);
-            var documentId = DocumentId.CreateNewId(projectId, debugName: filePath);
-
-            var sourceCodeKind = GetSourceCodeKind(parseOptionsOpt, fileExtension, languageInformation);
-            var documentInfo = DocumentInfo.Create(
-                documentId,
-                filePath,
-                sourceCodeKind: sourceCodeKind,
-                loader: new FileTextLoader(filePath, defaultEncoding: null),
-                filePath: filePath);
-
-            // The assembly name must be unique for each collection of loose files. Since the name doesn't matter
-            // a random GUID can be used.
-            string assemblyName = Guid.NewGuid().ToString("N");
-
-            var projectInfo = ProjectInfo.Create(
-                projectId,
-                VersionStamp.Create(),
-                name: ServicesVSResources.Miscellaneous_Files,
-                assemblyName,
-                languageInformation.LanguageName,
-                compilationOptions: compilationOptionsOpt,
-                parseOptions: parseOptionsOpt,
-                documents: SpecializedCollections.SingletonEnumerable(documentInfo),
-                metadataReferences: _metadataReferences);
-
-            // Miscellaneous files projects are never fully loaded since, by definition, it won't know
-            // what the full set of information is except when the file is script code.
-            return projectInfo.WithHasAllInformation(hasAllInformation: sourceCodeKind == SourceCodeKind.Script);
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, new FileTextLoader(filePath, defaultEncoding: null), languageInformation, Services, _metadataReferences);
         }
 
-        private SourceCodeKind GetSourceCodeKind(
-            ParseOptions parseOptionsOpt,
-            string fileExtension,
-            LanguageInformation languageInformation)
-        {
-            if (parseOptionsOpt != null)
-            {
-                return parseOptionsOpt.Kind;
-            }
-
-            return string.Equals(fileExtension, languageInformation.ScriptExtension, StringComparison.OrdinalIgnoreCase) ?
-                SourceCodeKind.Script : SourceCodeKind.Regular;
-        }
-
-        private void DetachFromDocument(uint docCookie, string moniker)
+        private void DetachFromDocument(string moniker)
         {
             _foregroundThreadAffinitization.AssertIsForeground();
             if (_fileTrackingMetadataAsSourceService.TryRemoveDocumentFromWorkspace(moniker))
@@ -445,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            if (_docCookiesToProjectIdAndContainer.TryGetValue(docCookie, out var projectIdAndContainer))
+            if (_monikersToProjectIdAndContainer.TryGetValue(moniker, out var projectIdAndContainer))
             {
                 var document = this.CurrentSolution.GetProject(projectIdAndContainer.projectId).Documents.Single();
 
@@ -453,56 +303,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 OnDocumentClosed(document.Id, new FileTextLoader(document.FilePath, defaultEncoding: null));
                 OnProjectRemoved(document.Project.Id);
 
-                _docCookiesToProjectIdAndContainer.Remove(docCookie);
+                _monikersToProjectIdAndContainer.Remove(moniker);
 
                 return;
             }
         }
 
-        protected override void Dispose(bool finalize)
-        {
-            StopSolutionCrawler();
-
-            var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
-            runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
-            _runningDocumentTableEventsCookie = 0;
-            base.Dispose(finalize);
-        }
-
         public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            switch (feature)
-            {
-                case ApplyChangesKind.ChangeDocument:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+            => feature == ApplyChangesKind.ChangeDocument;
 
         protected override void ApplyDocumentTextChanged(DocumentId documentId, SourceText newText)
         {
-            foreach (var projectIdAndSourceTextContainer in _docCookiesToProjectIdAndContainer.Values)
+            foreach (var (projectId, textContainer) in _monikersToProjectIdAndContainer.Values)
             {
-                if (projectIdAndSourceTextContainer.projectId == documentId.ProjectId)
+                if (projectId == documentId.ProjectId)
                 {
-                    TextEditApplication.UpdateText(newText, projectIdAndSourceTextContainer.textContainer.GetTextBuffer(), EditOptions.DefaultMinimalChange);
+                    TextEditApplication.UpdateText(newText, textContainer.GetTextBuffer(), EditOptions.DefaultMinimalChange);
                     break;
                 }
             }
-        }
-
-        private class LanguageInformation
-        {
-            public LanguageInformation(string languageName, string scriptExtension)
-            {
-                this.LanguageName = languageName;
-                this.ScriptExtension = scriptExtension;
-            }
-
-            public string LanguageName { get; }
-            public string ScriptExtension { get; }
         }
     }
 }

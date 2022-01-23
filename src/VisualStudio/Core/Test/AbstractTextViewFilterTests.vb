@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -32,14 +34,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim projected = workspace.CreateProjectionBufferDocument(<text><![CDATA[
 @{|S1:|}
     <span>@{|S2:|}</span>
 {|S3:|}
 <h2>Default</h2>
-                                                         ]]></text>.Value.Replace(vbLf, vbCrLf), {doc}, LanguageNames.CSharp)
+                                                         ]]></text>.Value.Replace(vbLf, vbCrLf), {doc})
 
                 Dim matchingSpan = projected.SelectedSpans.Single()
                 TestSpan(workspace, projected, projected.CursorPosition.Value, matchingSpan.End)
@@ -69,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, doc.CursorPosition.Value, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
@@ -99,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
@@ -131,7 +133,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
@@ -161,7 +163,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
 
@@ -196,7 +198,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
@@ -227,7 +229,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
 
@@ -249,7 +251,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim spans() = {New VsTextSpan()}
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
-                         workspace,
                          braceMatcher,
                          initialLineNumber,
                          initialIndex,
@@ -271,7 +272,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim spans() = {New VsTextSpan()}
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
-                         workspace,
                          braceMatcher,
                          initialLineNumber,
                          initialIndex,

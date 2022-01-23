@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -12,14 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
-            ObjectCreationExpressionSyntax objectCreationExpression,
+        private static (IList<SignatureHelpItem>? items, int? selectedItem) GetDelegateTypeConstructors(
+            BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            INamedTypeSymbol delegateType,
-            INamedTypeSymbol containingType,
-            CancellationToken cancellationToken)
+            IStructuralTypeDisplayService structuralTypeDisplayService,
+            INamedTypeSymbol delegateType)
         {
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
@@ -30,18 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var position = objectCreationExpression.SpanStart;
             var item = CreateItem(
                 invokeMethod, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 isVariadic: false,
                 documentationFactory: null,
                 prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts: GetSeparatorParts(),
-                suffixParts: GetDelegateTypePostambleParts(invokeMethod),
-                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken));
+                suffixParts: GetDelegateTypePostambleParts(),
+                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position));
 
             return (SpecializedCollections.SingletonList(item), 0);
         }
 
-        private IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        private static IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>();
 
@@ -51,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             const string TargetName = "target";
 
@@ -85,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     displayParts: parts));
         }
 
-        private IList<SymbolDisplayPart> GetDelegateTypePostambleParts(IMethodSymbol invokeMethod)
+        private static IList<SymbolDisplayPart> GetDelegateTypePostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

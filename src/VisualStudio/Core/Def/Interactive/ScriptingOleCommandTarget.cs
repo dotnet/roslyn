@@ -1,14 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -20,31 +20,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
     {
         internal ScriptingOleCommandTarget(
             IWpfTextView wpfTextView,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
-            IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            IServiceProvider serviceProvider)
-            : base(wpfTextView, commandHandlerServiceFactory, editorAdaptersFactory, serviceProvider)
+            IComponentModel componentModel)
+            : base(wpfTextView, componentModel)
         {
-            wpfTextView.Closed += OnTextViewClosed;
-            wpfTextView.BufferGraph.GraphBufferContentTypeChanged += OnGraphBuffersChanged;
-            wpfTextView.BufferGraph.GraphBuffersChanged += OnGraphBuffersChanged;
-
-            RefreshCommandFilters();
         }
 
-        private void OnGraphBuffersChanged(object sender, EventArgs e)
-        {
-            RefreshCommandFilters();
-        }
-
-        private void OnTextViewClosed(object sender, EventArgs e)
-        {
-            this.WpfTextView.Closed -= OnTextViewClosed;
-            this.WpfTextView.BufferGraph.GraphBufferContentTypeChanged -= OnGraphBuffersChanged;
-            this.WpfTextView.BufferGraph.GraphBuffersChanged -= OnGraphBuffersChanged;
-        }
-
-        protected override ITextBuffer GetSubjectBufferContainingCaret()
+        protected override ITextBuffer? GetSubjectBufferContainingCaret()
         {
             var result = WpfTextView.GetBufferContainingCaret(contentType: ContentTypeNames.RoslynContentType);
 

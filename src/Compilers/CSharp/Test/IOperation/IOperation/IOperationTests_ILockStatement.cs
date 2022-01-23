@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -7,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_ILockStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -750,7 +754,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [System.Boolean ?]
@@ -762,13 +765,11 @@ Block[B0] - Entry
               Value: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (DefaultOrNullLiteral)
+                    (NullLiteral)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
-
     .try {R2, R3}
     {
         Block[B2] - Block
@@ -786,7 +787,6 @@ Block[B0] - Entry
                         ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'null')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input2 = true;')
                   Expression: 
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'input2 = true')
@@ -794,7 +794,6 @@ Block[B0] - Entry
                         IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-
             Next (Regular) Block[B6]
                 Finalizing: {R4}
                 Leaving: {R3} {R2} {R1}
@@ -806,7 +805,6 @@ Block[B0] - Entry
             Statements (0)
             Jump if False (Regular) to Block[B5]
                 ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'null')
-
             Next (Regular) Block[B4]
         Block[B4] - Block
             Predecessors: [B3]
@@ -819,7 +817,6 @@ Block[B0] - Entry
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
             Next (Regular) Block[B5]
         Block[B5] - Block
             Predecessors: [B3] [B4]
@@ -827,7 +824,6 @@ Block[B0] - Entry
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-
 Block[B6] - Exit
     Predecessors: [B2]
     Statements (0)

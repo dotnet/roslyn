@@ -1,23 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
-    <!-- 
-      Current version of the SDK doesn't emit constants properly for VB
-      https://github.com/dotnet/sdk/pull/2117
-    -->
-    <DefineConstants Condition="'$(TargetFramework)' == 'net472'">$(FinalDefineConstants),NET472=-1</DefineConstants>
-    <DefineConstants Condition="'$(TargetFramework)' == 'netcoreapp2.1'">$(FinalDefineConstants),NETCOREAPP2_1=-1</DefineConstants>
 
     <!-- Disabling on assumption -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
+
+    <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
@@ -26,14 +22,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
-    <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Resource.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resource.resx</DependentUpon>
-    </Compile>
     <Content Include="CodeGen\ConversionsILGenTestBaseline.txt" />
     <Content Include="CodeGen\ConversionsILGenTestBaseline1.txt" />
     <Content Include="ExpressionTrees\Results\CheckedAndOrXor.txt" />
@@ -107,18 +98,10 @@
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
     <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="ExpressionTrees\ExpTreeTestResources.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resource.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>Resource.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Include="CodeGen\ConversionsILGenTestBaseline.txt" />
     <EmbeddedResource Include="CodeGen\ConversionsILGenTestBaseline1.txt" />
     <EmbeddedResource Include="CodeGen\ConversionsILGenTestSource.vb" />
@@ -186,4 +169,5 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

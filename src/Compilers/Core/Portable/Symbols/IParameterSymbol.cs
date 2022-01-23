@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
@@ -36,6 +38,11 @@ namespace Microsoft.CodeAnalysis
         bool IsThis { get; }
 
         /// <summary>
+        /// Returns true if the parameter is a discard parameter.
+        /// </summary>
+        bool IsDiscard { get; }
+
+        /// <summary>
         /// Gets the type of the parameter.
         /// </summary>
         ITypeSymbol Type { get; }
@@ -64,7 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the parameter specifies a default value to be passed
         /// when no value is provided as an argument to a call. The default value
-        /// can be obtained with the DefaultValue property.
+        /// can be obtained with the <see cref="ExplicitDefaultValue"/> property.
         /// </summary>
         bool HasExplicitDefaultValue { get; }
 
@@ -76,7 +83,7 @@ namespace Microsoft.CodeAnalysis
         /// is the default value of the struct type.
         /// </remarks>
         /// <exception cref="System.InvalidOperationException">The parameter has no default value.</exception>
-        object ExplicitDefaultValue { get; }
+        object? ExplicitDefaultValue { get; }
 
         /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another
@@ -84,5 +91,10 @@ namespace Microsoft.CodeAnalysis
         /// source or metadata.
         /// </summary>
         new IParameterSymbol OriginalDefinition { get; }
+
+        /// <summary>
+        /// True if the compiler will synthesize a null check for this parameter (the parameter is declared in source with a <c>!!</c> following the parameter name).
+        /// </summary>
+        bool IsNullChecked { get; }
     }
 }

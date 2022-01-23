@@ -1,6 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
+using System;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
@@ -16,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
     /// current line.  With this tuple, both forms can be expressed, and the implementor does not
     /// have to convert from one to the other.
     /// </summary>
-    internal struct FSharpIndentationResult
+    internal readonly struct FSharpIndentationResult
     {
         /// <summary>
         /// The base position in the document that the indent should be relative to.  This position
@@ -29,13 +35,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         /// </summary>
         public int Offset { get; }
 
-        public FSharpIndentationResult(int basePosition, int offset) : this()
+        public FSharpIndentationResult(int basePosition, int offset)
         {
             BasePosition = basePosition;
             Offset = offset;
         }
     }
 
+    [Obsolete("Use IFSharpIndentationService instead")]
     internal interface IFSharpSynchronousIndentationService
     {
         /// <summary>
@@ -46,4 +53,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         /// </summary>
         FSharpIndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
     }
+
+    internal interface IFSharpIndentationService
+    {
+        /// <summary>
+        /// Determines the desired indentation of a given line.  May return <see langword="null"/> if the
+        /// no automatic indentation is desired.  May also return <see langword="null"/> if the line in
+        /// question is not blank and thus indentation should be deferred to the formatting command handler to handle.
+        /// </summary>
+        FSharpIndentationResult? GetDesiredIndentation(HostLanguageServices services, SourceText text, DocumentId documentId, string path, int lineNumber, FSharpIndentationOptions options);
+    }
+
+    internal readonly record struct FSharpIndentationOptions(int TabSize, FormattingOptions.IndentStyle IndentStyle);
 }

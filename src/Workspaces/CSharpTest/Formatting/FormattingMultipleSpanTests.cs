@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -29,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Simple1()
-        {
-            await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
-        }
+            => await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DontFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
@@ -125,8 +125,10 @@ class A { }";
     System.Console.WriteLine();
     }
 }";
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.IndentBlock, false }
+            };
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
@@ -150,8 +152,10 @@ class A { }";
         System.Console.WriteLine();
     }
 }";
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.WrappingPreserveSingleLine, false);
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.WrappingPreserveSingleLine, false }
+            };
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
@@ -159,31 +163,31 @@ class A { }";
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task EmptySpan()
         {
-            using (var workspace = new AdhocWorkspace())
-            {
-                var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
-                var document = project.AddDocument("Document", SourceText.From(""));
+            using var workspace = new AdhocWorkspace();
 
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-                var result = Formatter.Format(await syntaxTree.GetRootAsync(), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
-            }
+            var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+            var document = project.AddDocument("Document", SourceText.From(""));
+
+            var syntaxTree = await document.GetSyntaxTreeAsync();
+            var root = await syntaxTree.GetRootAsync();
+            var result = Formatter.Format(root, TextSpan.FromBounds(0, 0), workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
-        private Task AssertFormatAsync(string content, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
+        private Task AssertFormatAsync(string content, string expected, OptionsCollection changedOptionSet = null)
         {
             var tuple = PreprocessMarkers(content);
 
             return AssertFormatAsync(expected, tuple.Item1, tuple.Item2, changedOptionSet: changedOptionSet);
         }
 
-        private Tuple<string, List<TextSpan>> PreprocessMarkers(string codeWithMarker)
+        private static Tuple<string, List<TextSpan>> PreprocessMarkers(string codeWithMarker)
         {
-            int currentIndex = 0;
+            var currentIndex = 0;
             var spans = new List<TextSpan>();
 
             while (currentIndex < codeWithMarker.Length)
             {
-                int startPosition = codeWithMarker.IndexOf("/*1*/", currentIndex, StringComparison.Ordinal);
+                var startPosition = codeWithMarker.IndexOf("/*1*/", currentIndex, StringComparison.Ordinal);
                 if (startPosition < 0)
                 {
                     // no more markers
@@ -192,7 +196,7 @@ class A { }";
 
                 codeWithMarker = codeWithMarker.Substring(0, startPosition) + codeWithMarker.Substring(startPosition + 5);
 
-                int endPosition = codeWithMarker.IndexOf("/*2*/", startPosition, StringComparison.Ordinal);
+                var endPosition = codeWithMarker.IndexOf("/*2*/", startPosition, StringComparison.Ordinal);
 
                 codeWithMarker = codeWithMarker.Substring(0, endPosition) + codeWithMarker.Substring(endPosition + 5);
 

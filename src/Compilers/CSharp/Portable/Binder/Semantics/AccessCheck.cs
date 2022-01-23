@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -21,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsSymbolAccessible(
             Symbol symbol,
             AssemblySymbol within,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             bool failedThroughTypeCheck;
-            return IsSymbolAccessibleCore(symbol, within, null, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteDiagnostics);
+            return IsSymbolAccessibleCore(symbol, within, null, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteInfo);
         }
 
         /// <summary>
@@ -34,16 +37,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsSymbolAccessible(
             Symbol symbol,
             NamedTypeSymbol within,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             TypeSymbol throughTypeOpt = null)
         {
             bool failedThroughTypeCheck;
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteDiagnostics);
+            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteInfo);
         }
 
         /// <summary>
         /// Checks if 'symbol' is accessible from within type 'within', with
-        /// an qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
+        /// a qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
         /// if it failed the "through type" check.
         /// </summary>
         public static bool IsSymbolAccessible(
@@ -51,10 +54,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol within,
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             ConsList<TypeSymbol> basesBeingResolved = null)
         {
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteDiagnostics, basesBeingResolved);
+            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteInfo, basesBeingResolved);
+        }
+
+        /// <summary>
+        /// Returns true if the symbol is effectively public or internal based on
+        /// the declared accessibility of the symbol and any containing symbols.
+        /// </summary>
+        internal static bool IsEffectivelyPublicOrInternal(Symbol symbol, out bool isInternal)
+        {
+            Debug.Assert(symbol is object);
+
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                case SymbolKind.Event:
+                case SymbolKind.Field:
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                    break;
+                case SymbolKind.TypeParameter:
+                    symbol = symbol.ContainingSymbol;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+
+            isInternal = false;
+
+            do
+            {
+                switch (symbol.DeclaredAccessibility)
+                {
+                    case Accessibility.Public:
+                    case Accessibility.Protected:
+                    case Accessibility.ProtectedOrInternal:
+                        break;
+                    case Accessibility.Internal:
+                    case Accessibility.ProtectedAndInternal:
+                        isInternal = true;
+                        break;
+                    case Accessibility.Private:
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
+                }
+
+                symbol = symbol.ContainingType;
+            }
+            while (symbol is object);
+
+            return true;
         }
 
         /// <summary>
@@ -83,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert((object)symbol != null);
@@ -96,19 +149,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.ArrayType:
-                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType, within, null, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved);
 
                 case SymbolKind.PointerType:
-                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved);
 
                 case SymbolKind.NamedType:
-                    return IsNamedTypeAccessible((NamedTypeSymbol)symbol, within, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsNamedTypeAccessible((NamedTypeSymbol)symbol, within, ref useSiteInfo, basesBeingResolved);
 
                 case SymbolKind.Alias:
-                    return IsSymbolAccessibleCore(((AliasSymbol)symbol).Target, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((AliasSymbol)symbol).Target, within, null, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved);
 
                 case SymbolKind.Discard:
-                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).TypeWithAnnotations.Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved);
+
+                case SymbolKind.FunctionPointerType:
+                    var funcPtr = (FunctionPointerTypeSymbol)symbol;
+                    if (!IsSymbolAccessibleCore(funcPtr.Signature.ReturnType, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved))
+                    {
+                        return false;
+                    }
+
+                    foreach (var param in funcPtr.Signature.Parameters)
+                    {
+                        if (!IsSymbolAccessibleCore(param.Type, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
 
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.
@@ -123,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Assembly:
                 case SymbolKind.NetModule:
                 case SymbolKind.RangeVariable:
+                case SymbolKind.Method when ((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction:
                     // These types of symbols are always accessible (if visible).
                     return true;
 
@@ -130,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                 case SymbolKind.Field:
-                    if (symbol.IsStatic)
+                    if (!symbol.RequiresInstanceReceiver())
                     {
                         // static members aren't accessed "through" an "instance" of any type.  So we
                         // null out the "through" instance here.  This ensures that we'll understand
@@ -138,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throughTypeOpt = null;
                     }
 
-                    return IsMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics);
+                    return IsMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, out failedThroughTypeCheck, compilation, ref useSiteInfo);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
@@ -149,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Is the named type <paramref name="type"/> accessible from within <paramref name="within"/>,
         /// which must be a named type or an assembly.
         /// </summary>
-        private static bool IsNamedTypeAccessible(NamedTypeSymbol type, Symbol within, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
+        private static bool IsNamedTypeAccessible(NamedTypeSymbol type, Symbol within, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(within is NamedTypeSymbol || within is AssemblySymbol);
             Debug.Assert((object)type != null);
@@ -160,12 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!type.IsDefinition)
             {
                 // All type argument must be accessible.
-                var typeArgs = type.TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                var typeArgs = type.TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
                 foreach (var typeArg in typeArgs)
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
-                    if (typeArg.Type.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (typeArg.Type.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteInfo, basesBeingResolved))
                     {
                         return false;
                     }
@@ -175,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var containingType = type.ContainingType;
             return (object)containingType == null
                 ? IsNonNestedTypeAccessible(type.ContainingAssembly, type.DeclaredAccessibility, within)
-                : IsMemberAccessible(containingType, type.DeclaredAccessibility, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                : IsMemberAccessible(containingType, type.DeclaredAccessibility, within, null, out unused, compilation, ref useSiteInfo, basesBeingResolved);
         }
 
         /// <summary>
@@ -230,18 +301,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(within is NamedTypeSymbol || within is AssemblySymbol);
             Debug.Assert((object)containingType != null);
 
             failedThroughTypeCheck = false;
-
-            if (containingType.IsTupleType)
-            {
-                containingType = containingType.TupleUnderlyingType;
-            }
 
             // easy case - members of containing type are accessible.
             if ((object)containingType == (object)within)
@@ -250,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // A nested symbol is only accessible to us if its container is accessible as well.
-            if (!IsNamedTypeAccessible(containingType, within, ref useSiteDiagnostics, basesBeingResolved))
+            if (!IsNamedTypeAccessible(containingType, within, ref useSiteInfo, basesBeingResolved))
             {
                 return false;
             }
@@ -268,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throughTypeOpt,
                 out failedThroughTypeCheck,
                 compilation,
-                ref useSiteDiagnostics,
+                ref useSiteInfo,
                 basesBeingResolved);
         }
 
@@ -279,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             ConsList<TypeSymbol> basesBeingResolved = null)
         {
             failedThroughTypeCheck = false;
@@ -320,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // We had internal access.  Also have to make sure we have protected access.
-                    return IsProtectedSymbolAccessible(withinType, throughTypeOpt, originalContainingType, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsProtectedSymbolAccessible(withinType, throughTypeOpt, originalContainingType, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved);
 
                 case Accessibility.ProtectedOrInternal:
                     if (withinAssembly.HasInternalAccessTo(containingType.ContainingAssembly))
@@ -332,10 +398,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We don't have internal access.  But if we have protected access then that's
                     // sufficient.
-                    return IsProtectedSymbolAccessible(withinType, throughTypeOpt, originalContainingType, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsProtectedSymbolAccessible(withinType, throughTypeOpt, originalContainingType, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved);
 
                 case Accessibility.Protected:
-                    return IsProtectedSymbolAccessible(withinType, throughTypeOpt, originalContainingType, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsProtectedSymbolAccessible(withinType, throughTypeOpt, originalContainingType, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(declaredAccessibility);
@@ -353,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol originalContainingType,
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             ConsList<TypeSymbol> basesBeingResolved = null)
         {
             failedThroughTypeCheck = false;
@@ -397,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(current.IsDefinition);
 
-                    if (current.InheritsFromOrImplementsIgnoringConstruction(originalContainingType, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (current.InheritsFromOrImplementsIgnoringConstruction(originalContainingType, compilation, ref useSiteInfo, basesBeingResolved))
                     {
                         // NOTE(cyrusn): We're continually walking up the 'throughType's inheritance
                         // chain.  We could compute it up front and cache it in a set.  However, we
@@ -406,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // slower to create and check inside the set versus just walking the
                         // inheritance chain.
                         if ((object)originalThroughTypeOpt == null ||
-                            originalThroughTypeOpt.InheritsFromOrImplementsIgnoringConstruction(current, compilation, ref useSiteDiagnostics))
+                            originalThroughTypeOpt.InheritsFromOrImplementsIgnoringConstruction(current, compilation, ref useSiteInfo))
                         {
                             return true;
                         }
@@ -479,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this TypeSymbol type,
             NamedTypeSymbol baseType,
             CSharpCompilation compilation,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(type.IsDefinition);
@@ -525,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     current = (TypeSymbol)next.OriginalDefinition;
-                    current.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                    current.AddUseSiteInfo(ref useSiteInfo);
                 }
             }
 
@@ -558,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var candidate in interfacesLookedAt)
                     {
-                        candidate.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                        candidate.AddUseSiteInfo(ref useSiteInfo);
                     }
                 }
             }

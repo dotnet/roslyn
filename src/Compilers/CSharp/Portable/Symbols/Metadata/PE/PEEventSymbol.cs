@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
@@ -10,8 +13,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -26,10 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly TypeWithAnnotations _eventTypeWithAnnotations;
         private readonly PEMethodSymbol _addMethod;
         private readonly PEMethodSymbol _removeMethod;
-        private readonly PEFieldSymbol _associatedFieldOpt;
+        private readonly PEFieldSymbol? _associatedFieldOpt;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private Tuple<CultureInfo, string> _lazyDocComment;
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private Tuple<CultureInfo, string>? _lazyDocComment;
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
@@ -54,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEMethodSymbol removeMethod,
             MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols)
         {
-            Debug.Assert((object)moduleSymbol != null);
-            Debug.Assert((object)containingType != null);
+            RoslynDebug.Assert((object)moduleSymbol != null);
+            RoslynDebug.Assert((object)containingType != null);
             Debug.Assert(!handle.IsNil);
-            Debug.Assert((object)addMethod != null);
-            Debug.Assert((object)removeMethod != null);
+            RoslynDebug.Assert((object)addMethod != null);
+            RoslynDebug.Assert((object)removeMethod != null);
 
             _addMethod = addMethod;
             _removeMethod = removeMethod;
@@ -75,12 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             catch (BadImageFormatException mrEx)
             {
-                if ((object)_name == null)
-                {
-                    _name = string.Empty;
-                }
-
-                _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _name = _name ?? string.Empty;
+                _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
 
                 if (eventType.IsNil)
                 {
@@ -96,13 +95,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 const int targetSymbolCustomModifierCount = 0;
                 var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
+                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol);
 
                 // We start without annotation (they will be decoded below)
                 var type = TypeWithAnnotations.Create(typeSymbol);
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
+
+                // The containing type is passed to NullableTypeDecoder.TransformType to determine access
+                // because the event does not have explicit accessibility in metadata.
+                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
                 _eventTypeWithAnnotations = type;
             }
@@ -122,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _addMethod.SetAssociatedEvent(this, MethodKind.EventAdd);
                 _removeMethod.SetAssociatedEvent(this, MethodKind.EventRemove);
 
-                PEFieldSymbol associatedField = GetAssociatedField(privateFieldNameToSymbols, isWindowsRuntimeEvent);
-                if ((object)associatedField != null)
+                PEFieldSymbol? associatedField = GetAssociatedField(privateFieldNameToSymbols, isWindowsRuntimeEvent);
+                if ((object?)associatedField != null)
                 {
                     _associatedFieldOpt = associatedField;
                     associatedField.SetAssociatedEvent(this);
@@ -149,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <remarks>
         /// Perf impact: If we find a field with the same name, we will eagerly evaluate its type.
         /// </remarks>
-        private PEFieldSymbol GetAssociatedField(MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols, bool isWindowsRuntimeEvent)
+        private PEFieldSymbol? GetAssociatedField(MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols, bool isWindowsRuntimeEvent)
         {
             // NOTE: Neither the name nor the accessibility of a PEFieldSymbol is lazy.
             foreach (PEFieldSymbol candidateAssociatedField in privateFieldNameToSymbols[_name])
@@ -203,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override FieldSymbol AssociatedField
+        internal override FieldSymbol? AssociatedField
         {
             get
             {
@@ -230,6 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         public override string Name
         {
             get { return _name; }
+        }
+
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
         }
 
         internal override bool HasSpecialName
@@ -379,7 +387,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 var implementedEvents = PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_addMethod);
-                implementedEvents.IntersectWith(PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_removeMethod));
+
+                if (implementedEvents.Count != 0)
+                {
+                    implementedEvents.IntersectWith(PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_removeMethod));
+                }
 
                 var builder = ArrayBuilder<EventSymbol>.GetInstance();
 
@@ -432,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // CONSIDER: It would be nice if we could reuse this signature information in the PEMethodSymbol.
             var metadataDecoder = new MetadataDecoder(moduleSymbol, method);
             SignatureHeader signatureHeader;
-            BadImageFormatException mrEx;
+            BadImageFormatException? mrEx;
             var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, setParamHandles: false);
 
             if (mrEx != null)
@@ -443,21 +455,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return metadataDecoder.DoesSignatureMatchEvent(eventType, methodParams);
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            AssemblySymbol primaryDependency = PrimaryDependency;
+
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                DiagnosticInfo result = null;
+                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                _lazyUseSiteDiagnostic = result;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
@@ -469,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

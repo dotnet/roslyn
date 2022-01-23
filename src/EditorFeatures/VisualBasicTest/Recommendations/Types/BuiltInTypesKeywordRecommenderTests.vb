@@ -1,9 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Types
     Public Class BuiltInTypesKeywordRecommenderTests
+        Inherits RecommenderTests
+
         Private ReadOnly _keywordList As String() = {
             "Boolean",
             "Byte",
@@ -24,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
         }
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NumericTypesAfterEnumAs() As Threading.Tasks.Task
-            Await VerifyRecommendationsAreExactlyAsync(<File>Enum Goo As |</File>, "Byte",
+        Public Sub NumericTypesAfterEnumAs()
+            VerifyRecommendationsAreExactly(<File>Enum Goo As |</File>, "Byte",
                                                                         "SByte",
                                                                         "Short",
                                                                         "UShort",
@@ -33,26 +37,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
                                                                         "UInteger",
                                                                         "Long",
                                                                         "ULong")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllTypesAfterMethodBody() As Threading.Tasks.Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim goo As |</MethodBody>, _keywordList)
-        End Function
+        Public Sub AllTypesAfterMethodBody()
+            VerifyRecommendationsContain(<MethodBody>Dim goo As |</MethodBody>, _keywordList)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoTypesAreInTypeConstraint() As Threading.Tasks.Task
-            Await VerifyRecommendationsMissingAsync(<File>Class Goo(Of String As |</File>, _keywordList)
-        End Function
+        Public Sub NoTypesAreInTypeConstraint()
+            VerifyRecommendationsMissing(<File>Class Goo(Of String As |</File>, _keywordList)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoTypesAfterImports() As Threading.Tasks.Task
-            Await VerifyRecommendationsMissingAsync(<File>Imports |</File>, _keywordList)
-        End Function
+        Public Sub NoTypesAfterImports()
+            VerifyRecommendationsMissing(<File>Imports |</File>, _keywordList)
+        End Sub
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoTypesInDelegateCreation() As Task
+        Public Sub NoTypesInDelegateCreation()
             Dim code =
 <File>
 Module Program
@@ -68,11 +72,11 @@ Module Program
 End Module
 </File>
 
-            Await VerifyRecommendationsMissingAsync(code, _keywordList)
-        End Function
+            VerifyRecommendationsMissing(code, _keywordList)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoTypesInInheritsStatement() As Task
+        Public Sub NoTypesInInheritsStatement()
             Dim code =
 <File>
 Class C
@@ -80,11 +84,11 @@ Class C
 End Class
 </File>
 
-            Await VerifyRecommendationsMissingAsync(code, _keywordList)
-        End Function
+            VerifyRecommendationsMissing(code, _keywordList)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoTypesInImplementsStatement() As Task
+        Public Sub NoTypesInImplementsStatement()
             Dim code =
 <File>
 Class C
@@ -92,11 +96,11 @@ Class C
 End Class
 </File>
 
-            Await VerifyRecommendationsMissingAsync(code, _keywordList)
-        End Function
+            VerifyRecommendationsMissing(code, _keywordList)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function Preselection() As Task
+        Public Sub Preselection()
             Dim code =
 <File>
 Class Program
@@ -110,7 +114,7 @@ Class Program
 End Class
 </File>
 
-            Await VerifyRecommendationsWithPriority(code, SymbolMatchPriority.Keyword, "Integer")
-        End Function
+            VerifyRecommendationsWithPriority(code, SymbolMatchPriority.Keyword, "Integer")
+        End Sub
     End Class
 End Namespace

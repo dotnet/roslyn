@@ -4,19 +4,59 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">이 옵션에 대한 언어 이름을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">이 옵션에 대한 언어 이름을 지정해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">'{0}' 형식을 포함하는 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">변경 내용은 SourceText의 범위 내에 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">디버깅 중에는 어셈블리 참조의 버전 변경이 허용되지 않습니다. '{0}'이(가) 버전을 '{1}'(으)로 변경했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="translated">{0}' 분석기에서 다음 예외를 throw했습니다.
+        <target state="translated">'{0}' 분석기에서 다음 예외를 throw했습니다.
 '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="translated">이 분석기를 사용하지 않도록 설정하려면 다음 진단이 표시되지 않도록 설정하세요. {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
+        <target state="translated">hintName의 {0} 위치 {2}에 잘못된 문자 '{1}'이(가) 있습니다.</target>
+        <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
+        <target state="translated">추가된 원본 파일의 hintName ‘{0}’은(는) 생성기 내에서 고유해야 합니다.</target>
+        <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">추가 파일이 기본 'CompilationWithAnalyzers'에 속하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="translated">표시되지 않는 진단 ID '{0}'이(가) 지정된 비표시 설명자의 표시하지 않을 수 있는 ID '{1}'과(와) 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -32,6 +72,16 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">'{0}' 매개 변수는 이 컴파일 또는 일부 참조된 어셈블리의 기호여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">모듈에 잘못된 특성이 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="translated">ID가 '{0}'인 보고되지 않는 진단은 표시되지 않도록 설정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -69,9 +119,49 @@
         <target state="translated">모듈 복사본은 어셈블리 메타데이터를 만드는 데 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="translated">생성기당 하나의 {0}만 등록할 수 있습니다.</target>
+        <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
+        <target state="translated">hintName이 '{0}'인 SourceText에는 명시적 인코딩 집합이 있어야 합니다.</target>
+        <note>'SourceText' is not localizable. {0}: the provided hintname</note>
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">'{0}' 분석기의 'SupportedDiagnostics'에 null 설명자가 포함되어 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="translated">'{0}' 분석기의 'SupportedSuppressions'에 null 설명자가 포함되어 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="translated">진단 '{0}:{1}'은(는) 비표시 ID가 '{2}'이고 근거가 '{3}'인 DiagnosticSuppressor에서 프로그래밍 방식으로 표시되지 않았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="translated">분석기 진단의 프로그래밍 방식 비표시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">SuppressionDescriptor에 null, 빈 문자열 및 공백만 포함된 문자열이 아닌 ID가 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="translated">튜플 요소 nullable 주석이 지정된 경우, 주석 수는 튜플의 카디널리티와 일치해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">오류의 특정 원인을 확인할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -204,6 +294,11 @@
         <target state="translated">{0}.GetMetadata()는 {1}의 인스턴스를 반환해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="translated">ID가 '{0}'인 보고된 비표시가 억제 장치에서 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">값이 너무 커서 30비트 정수로 표시할 수 없습니다.</target>
@@ -311,7 +406,7 @@
       </trans-unit>
       <trans-unit id="InvalidModuleName">
         <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
-        <target state="translated">{0}' 메타데이터 모듈에 잘못된 모듈 이름이 지정되었습니다('{1}').</target>
+        <target state="translated">'{0}' 메타데이터 모듈에 잘못된 모듈 이름이 지정되었습니다('{1}').</target>
         <note />
       </trans-unit>
       <trans-unit id="FileSizeExceedsMaximumAllowed">
@@ -416,12 +511,12 @@
       </trans-unit>
       <trans-unit id="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream">
         <source>Including private members should not be used when emitting to the secondary assembly output.</source>
-        <target state="translated">보조 어셈블리 출력으로 내보낼 때 개인 멤버를 포함해서는 안 됩니다.</target>
+        <target state="translated">보조 어셈블리 출력으로 내보낼 때 프라이빗 멤버를 포함해서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
         <source>Must include private members unless emitting a ref assembly.</source>
-        <target state="translated">참조 어셈블리를 내보내지 않는 경우 개인 멤버를 포함해야 합니다.</target>
+        <target state="translated">참조 어셈블리를 내보내지 않는 경우 프라이빗 멤버를 포함해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
@@ -479,14 +574,34 @@
         <target state="translated">잘못된 문화권 이름입니다('{0}').</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">전역 분석기 구성 섹션 이름 '{0}'이(가) 절대 경로가 아니므로 잘못되었습니다. 섹션이 무시됩니다. 파일 '{1}'에 섹션이 선언되었습니다.</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">전역 분석기 구성 섹션 이름이 절대 경로가 아니므로 잘못되었습니다. 섹션이 무시됩니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
-        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <target state="translated">'{2}'의 분석기 구성 파일에 있는 진단 '{0}'에 잘못된 심각도 '{1}'이(가) 지정되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
         <source>Invalid severity in analyzer config file.</source>
-        <target state="new">Invalid severity in analyzer config file.</target>
+        <target state="translated">분석기 구성 파일의 심각도가 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="translated">여러 전역 분석기 구성 파일이 섹션 '{1}'에 같은 키 '{0}'을(를) 설정했습니다. 해당 키 설정이 해제되었습니다. 키는 '{2}' 파일에 의해 설정되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="translated">여러 전역 분석기 구성 파일이 같은 키를 설정했습니다. 해당 키 설정이 해제되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
@@ -522,11 +637,16 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">분석기 오류</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">분석기 '{0}'에서 '{2}' 메시지와 함께 '{1}' 형식의 예외를 throw했습니다.</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">분석기 '{0}'에서 '{2}' 메시지와 함께 '{1}' 형식의 예외를 throw했습니다.
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
@@ -591,11 +711,6 @@
         <target state="translated">인수에는 null 요소가 있을 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">분석기에서 'async' 작업을 등록하려고 했지만, 이 작업은 지원되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
         <target state="translated">ID가 '{0}'인 보고된 진단이 분석기에서 지원되지 않습니다.</target>
@@ -618,12 +733,12 @@
       </trans-unit>
       <trans-unit id="Cannot_deserialize_type_0">
         <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">{0}' 형식을 역직렬화할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식을 역직렬화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_serialize_type_0">
         <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">{0}' 형식을 직렬화할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식을 직렬화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
@@ -785,7 +900,7 @@
       </trans-unit>
       <trans-unit id="ReferenceOfTypeIsInvalid1">
         <source>Reference of type '{0}' is not valid for this compilation.</source>
-        <target state="translated">{0}' 형식의 참조를 이 컴파일에 사용할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식의 참조를 이 컴파일에 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MetadataRefNotFoundToRemove1">
@@ -865,7 +980,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
+        <target state="translated">'{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Stream_contains_invalid_data">

@@ -1,12 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
@@ -14,12 +16,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicEmbeddedLanguageDiagnosticAnalyzer(), Nothing)
+            Return (New VisualBasicRegexDiagnosticAnalyzer(), Nothing)
         End Function
 
+<<<<<<< HEAD
         Private Function OptionOn() As IDictionary(Of OptionKey, Object)
             Dim values = New Dictionary(Of OptionKey, Object)
             values.Add(New OptionKey(RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), True)
+=======
+        Private Shared Function OptionOn() As OptionsCollection
+            Dim values = New OptionsCollection(LanguageNames.VisualBasic)
+            values.Add(RegularExpressionsOptions.ReportInvalidRegexPatterns, True)
+>>>>>>> jsonTests
             Return values
         End Function
 
@@ -34,9 +42,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             end sub
         end class",
                         options:=OptionOn(),
-                        diagnosticId:=RegexDiagnosticAnalyzer.DiagnosticId,
+                        diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
-                        diagnosticMessage:=String.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
+                        diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
@@ -50,9 +58,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             end sub
         end class",
                         options:=OptionOn(),
-                        diagnosticId:=RegexDiagnosticAnalyzer.DiagnosticId,
+                        diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
-                        diagnosticMessage:=String.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
+                        diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
         End Function
     End Class
 End Namespace

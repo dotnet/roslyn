@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -15,22 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             public override string Title
-            {
-                get
+                => this.FixAllState.Scope switch
                 {
-                    switch (this.FixAllState.Scope)
-                    {
-                        case FixAllScope.Document:
-                            return FeaturesResources.Document;
-                        case FixAllScope.Project:
-                            return FeaturesResources.Project;
-                        case FixAllScope.Solution:
-                            return FeaturesResources.Solution;
-                        default:
-                            throw new NotSupportedException();
-                    }
-                }
-            }
+                    FixAllScope.Document => FeaturesResources.Document,
+                    FixAllScope.Project => FeaturesResources.Project,
+                    FixAllScope.Solution => FeaturesResources.Solution,
+                    _ => throw new NotSupportedException(),
+                };
 
             internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
         }

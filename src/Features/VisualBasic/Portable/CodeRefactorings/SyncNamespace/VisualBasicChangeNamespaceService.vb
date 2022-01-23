@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -15,36 +17,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         Inherits AbstractChangeNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Overrides Function TryGetReplacementReferenceSyntax(reference As SyntaxNode, newNamespaceParts As ImmutableArray(Of String), syntaxFacts As ISyntaxFactsService, ByRef old As SyntaxNode, ByRef [new] As SyntaxNode) As Boolean
             Dim nameRef = TryCast(reference, SimpleNameSyntax)
-            If nameRef IsNot Nothing Then
-                old = If(syntaxFacts.IsRightSideOfQualifiedName(nameRef), nameRef.Parent, nameRef)
+            old = nameRef
+            [new] = nameRef
 
-                If old Is nameRef Or newNamespaceParts.IsDefaultOrEmpty Then
-                    [new] = old
-                Else
-                    If newNamespaceParts.Length = 1 And newNamespaceParts(0).Length = 0 Then
-                        [new] = SyntaxFactory.QualifiedName(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
-                    Else
-                        Dim qualifiedNamespaceName = CreateNameSyntax(newNamespaceParts, newNamespaceParts.Length - 1)
-                        [new] = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia())
-                    End If
-                    [new] = [new].WithTriviaFrom(old)
-                End If
-                Return True
-            Else
-                old = Nothing
-                [new] = Nothing
+            If nameRef Is Nothing Or newNamespaceParts.IsDefaultOrEmpty Then
                 Return False
             End If
+
+            If syntaxFacts.IsRightOfQualifiedName(nameRef) Then
+                old = nameRef.Parent
+                If IsGlobalNamespace(newNamespaceParts) Then
+                    [new] = SyntaxFactory.QualifiedName(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
+                Else
+                    Dim qualifiedNamespaceName = CreateNamespaceAsQualifiedName(newNamespaceParts, newNamespaceParts.Length - 1)
+                    [new] = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia())
+                End If
+
+                [new] = [new].WithTriviaFrom(old)
+
+            ElseIf syntaxFacts.IsNameOfsimpleMemberAccessExpression(nameRef) Then
+                old = nameRef.Parent
+                If IsGlobalNamespace(newNamespaceParts) Then
+                    [new] = SyntaxFactory.SimpleMemberAccessExpression(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
+                Else
+                    Dim memberAccessNamespaceName = CreateNamespaceAsMemberAccess(newNamespaceParts, newNamespaceParts.Length - 1)
+                    [new] = SyntaxFactory.SimpleMemberAccessExpression(memberAccessNamespaceName, nameRef.WithoutTrivia())
+                End If
+
+                [new] = [new].WithTriviaFrom(old)
+            End If
+
+            Return True
         End Function
 
         ' TODO: Implement the service for VB
         Protected Overrides Function GetValidContainersFromAllLinkedDocumentsAsync(document As Document, container As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (DocumentId, SyntaxNode)))
-            Return Task.FromResult(CType(Nothing, ImmutableArray(Of (DocumentId, SyntaxNode))))
+            Return SpecializedTasks.Default(Of ImmutableArray(Of (DocumentId, SyntaxNode)))()
         End Function
 
         ' This is only reachable when called from a VB service, which is not implemented yet.
@@ -67,14 +81,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Shared Function CreateNameSyntax(namespaceParts As ImmutableArray(Of String), index As Integer) As NameSyntax
+        Private Shared Function CreateNamespaceAsQualifiedName(namespaceParts As ImmutableArray(Of String), index As Integer) As NameSyntax
             Dim part = namespaceParts(index).EscapeIdentifier()
             Dim namePiece = SyntaxFactory.IdentifierName(part)
 
             If index = 0 Then
                 Return namePiece
             Else
-                Return SyntaxFactory.QualifiedName(CreateNameSyntax(namespaceParts, index - 1), namePiece)
+                Return SyntaxFactory.QualifiedName(CreateNamespaceAsQualifiedName(namespaceParts, index - 1), namePiece)
+            End If
+        End Function
+
+        Private Shared Function CreateNamespaceAsMemberAccess(namespaceParts As ImmutableArray(Of String), index As Integer) As ExpressionSyntax
+            Dim part = namespaceParts(index).EscapeIdentifier()
+            Dim namePiece = SyntaxFactory.IdentifierName(part)
+
+            If index = 0 Then
+                Return namePiece
+            Else
+                Return SyntaxFactory.SimpleMemberAccessExpression(CreateNamespaceAsMemberAccess(namespaceParts, index - 1), namePiece)
             End If
         End Function
     End Class

@@ -1,17 +1,40 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Fading
 {
-    internal static class FadingOptions
+    internal sealed class FadingOptions
     {
-        public static readonly PerLanguageOption<bool> FadeOutUnusedImports = new PerLanguageOption<bool>(
-            nameof(FadingOptions), nameof(FadeOutUnusedImports), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnusedImports)}"));
+        [ExportSolutionOptionProvider, Shared]
+        internal sealed class Provider : IOptionProvider
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Provider()
+            {
+            }
 
-        public static readonly PerLanguageOption<bool> FadeOutUnreachableCode = new PerLanguageOption<bool>(
-            nameof(FadingOptions), nameof(FadeOutUnreachableCode), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnreachableCode)}"));
+            ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+                FadeOutUnusedImports,
+                FadeOutUnreachableCode);
+        }
+
+        private const string FeatureName = "FadingOptions";
+
+        public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new(
+            FeatureName, "FadeOutUnusedImports", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports"));
+
+        public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new(
+            FeatureName, "FadeOutUnreachableCode", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode"));
     }
 }

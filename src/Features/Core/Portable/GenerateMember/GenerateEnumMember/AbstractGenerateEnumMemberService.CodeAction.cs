@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -15,16 +17,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
     {
         private partial class GenerateEnumMemberCodeAction : CodeAction
         {
-            private readonly TService _service;
             private readonly Document _document;
             private readonly State _state;
 
             public GenerateEnumMemberCodeAction(
-                TService service,
                 Document document,
                 State state)
             {
-                _service = service;
                 _document = document;
                 _state = state;
             }
@@ -36,10 +35,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 var semanticFacts = languageServices.GetService<ISemanticFactsService>();
 
                 var value = semanticFacts.LastEnumValueHasInitializer(_state.TypeToGenerateIn)
-                    ? EnumValueUtilities.GetNextEnumValue(_state.TypeToGenerateIn, cancellationToken)
+                    ? EnumValueUtilities.GetNextEnumValue(_state.TypeToGenerateIn)
                     : null;
 
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var result = await codeGenerator.AddFieldAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                         name: _state.IdentifierToken.ValueText,
                         hasConstantValue: value != null,
                         constantValue: value),
-                    new CodeGenerationOptions(contextLocation: _state.IdentifierToken.GetLocation()),
+                    new CodeGenerationContext(contextLocation: _state.IdentifierToken.GetLocation()),
                     cancellationToken)
                     .ConfigureAwait(false);
 
@@ -62,12 +60,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
             {
                 get
                 {
-                    var text = FeaturesResources.Generate_enum_member_1_0;
-
                     return string.Format(
-                        text,
-                        _state.IdentifierToken.ValueText,
-                        _state.TypeToGenerateIn.Name);
+                        FeaturesResources.Generate_enum_member_0, _state.IdentifierToken.ValueText);
                 }
             }
         }

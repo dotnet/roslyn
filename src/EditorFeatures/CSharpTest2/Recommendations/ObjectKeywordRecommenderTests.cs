@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -46,6 +50,13 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -282,9 +293,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNestedPartial()
@@ -667,15 +676,11 @@ class C { }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAsync()
-        {
-            await VerifyKeywordAsync(@"class c { async $$ }");
-        }
+            => await VerifyKeywordAsync(@"class c { async $$ }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAsyncAsType()
-        {
-            await VerifyAbsenceAsync(@"class c { async async $$ }");
-        }
+        public async Task TestAfterAsyncAsType()
+            => await VerifyKeywordAsync(@"class c { async async $$ }");
 
         [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -700,7 +705,7 @@ class Program
     }
     static void Helper(object x) { }
 }
-", matchPriority: SymbolMatchPriority.Keyword);
+");
         }
 
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
@@ -726,6 +731,65 @@ class Program
         ($$
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerType()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterComma()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<int, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDelegateAsterisk()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    delegate*$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInDeclarationDeconstruction()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"var (x, $$) = (0, 0);"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"(x, $$) = (0, 0);"));
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunction))]
+        public async Task TestAfterKeywordIndicatingLocalFunction(string keyword)
+        {
+            await VerifyKeywordAsync(AddInsideMethod($@"
+{keyword} $$"));
         }
     }
 }

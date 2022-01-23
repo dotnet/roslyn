@@ -1,87 +1,90 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    /// <summary>
-    /// An option that can be specified once per language.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class PerLanguageOption<T> : IOptionWithGroup
+    /// <inheritdoc cref="PerLanguageOption2{T}"/>
+    public class PerLanguageOption<T> : IPerLanguageOption<T>
     {
-        /// <summary>
-        /// Feature this option is associated with.
-        /// </summary>
-        public string Feature { get; }
+        private readonly OptionDefinition _optionDefinition;
 
-        /// <summary>
-        /// Optional group/sub-feature for this option.
-        /// </summary>
-        internal OptionGroup Group { get; }
+        /// <inheritdoc cref="OptionDefinition.Feature"/>
+        public string Feature => _optionDefinition.Feature;
 
-        /// <summary>
-        /// The name of the option.
-        /// </summary>
-        public string Name { get; }
+        /// <inheritdoc cref="OptionDefinition.Group"/>
+        internal OptionGroup Group => _optionDefinition.Group;
 
-        /// <summary>
-        /// The type of the option value.
-        /// </summary>
-        public Type Type => typeof(T);
+        /// <inheritdoc cref="OptionDefinition.Name"/>
+        public string Name => _optionDefinition.Name;
 
-        /// <summary>
-        /// The default option value.
-        /// </summary>
-        public T DefaultValue { get; }
+        /// <inheritdoc cref="OptionDefinition.Type"/>
+        public Type Type => _optionDefinition.Type;
 
+        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
+        public T DefaultValue => (T)_optionDefinition.DefaultValue!;
+
+        /// <inheritdoc cref="PerLanguageOption2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation>())
+            : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
         {
         }
 
         public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
+            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations.ToImmutableArray())
         {
         }
 
-        internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+        internal PerLanguageOption(string feature, string name, T defaultValue, OptionStorageLocation storageLocation)
+            : this(feature, name, defaultValue, storageLocations: ImmutableArray.Create(storageLocation))
         {
-            if (string.IsNullOrWhiteSpace(feature))
-            {
-                throw new ArgumentNullException(nameof(feature));
-            }
-
-            if (group == null)
-            {
-                throw new ArgumentNullException(nameof(group));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(nameof(name));
-            }
-
-            this.Feature = feature;
-            this.Group = group;
-            this.Name = name;
-            this.DefaultValue = defaultValue;
-            this.StorageLocations = storageLocations.ToImmutableArray();
         }
 
-        object IOption.DefaultValue => this.DefaultValue;
+        internal PerLanguageOption(string feature, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
+            : this(feature, OptionGroup.Default, name, defaultValue, storageLocations)
+        {
+        }
 
-        bool IOption.IsPerLanguage => true;
+        internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
+            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: true), storageLocations)
+        {
+        }
+
+        internal PerLanguageOption(OptionDefinition optionDefinition, ImmutableArray<OptionStorageLocation> storageLocations)
+        {
+            _optionDefinition = optionDefinition;
+            StorageLocations = storageLocations;
+        }
+
+        OptionDefinition IOption2.OptionDefinition => _optionDefinition;
 
         OptionGroup IOptionWithGroup.Group => this.Group;
 
-        public override string ToString()
+        object? IOption.DefaultValue => this.DefaultValue;
+
+        bool IOption.IsPerLanguage => true;
+
+        bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
+
+        public override string ToString() => _optionDefinition.ToString();
+
+        public override int GetHashCode() => _optionDefinition.GetHashCode();
+
+        public override bool Equals(object? obj) => Equals(obj as IOption2);
+
+        private bool Equals(IOption2? other)
         {
-            return string.Format("{0} - {1}", this.Feature, this.Name);
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return _optionDefinition == other?.OptionDefinition;
         }
     }
 }

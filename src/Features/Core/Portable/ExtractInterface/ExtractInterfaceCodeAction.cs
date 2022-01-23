@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -12,7 +14,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
     {
         private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
         private readonly AbstractExtractInterfaceService _extractInterfaceService;
-        private readonly Task<IEnumerable<CodeActionOperation>> _taskReturningNoCodeActionOperations = SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
 
         public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
         {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 ? string.Empty
                 : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-            return _extractInterfaceService.GetExtractInterfaceOptionsAsync(
+            return AbstractExtractInterfaceService.GetExtractInterfaceOptionsAsync(
                 _typeAnalysisResult.DocumentToExtractFrom,
                 _typeAnalysisResult.TypeToExtractFrom,
                 _typeAnalysisResult.ExtractableMembers,
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            IEnumerable<CodeActionOperation> operations = null;
+            var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 
             if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
             {
@@ -56,6 +57,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return operations;
         }
 
-        public override string Title => FeaturesResources.Extract_Interface;
+        public override string Title => FeaturesResources.Extract_interface;
     }
 }

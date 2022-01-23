@@ -8,18 +8,18 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Editor de Página de Código do Microsoft Visual Basic</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="translated">Editor do Visual Basic com Codificação</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Editor do Microsoft Visual Basic</target>
+        <source>Visual Basic Editor</source>
+        <target state="translated">Editor do Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">Inserção automática de construções finais;Alterar configurações de reformatação automática;Alterar modo de estrutura de tópicos;Inserção automática de membros Interface e MustOverride;Mostrar ou ocultar separadores de linha de procedimento;Ativar ou desativar sugestões para correção de erros;Ativar ou desativar realce de referências e palavras-chave;Regex;Colorir expressões regulares;Realçar componentes relacionados sob o cursor;Relatar expressões regulares inválidas</target>
+        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
+        <target state="translated">Variáveis reatribuídas de sublinhado; Exibir as dicas embutidas;Inserção automática de constructos finais;Alterar as configurações de reformatação automática;Alterar o modo de estrutura de tópicos;Inserção automática dos membros Interface e MustOverride;Mostrar ou ocultar os separadores de linha de procedimento;Ativar ou desativar as sugestões para correção de erros;Ativar ou desativar o realce de referências e palavras-chave;Regex;Colorir as expressões regulares;Realçar os componentes relacionados sob o cursor;Relatar as expressões regulares inválidas;regex;expressão regular;Usar cores avançadas;Esquema de Cores do Editor;Margem de herança;Diretivas de importação;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="10161">
         <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
-        <target state="translated">Qualify with Me;Prefer intrinsic types;Style;Code Style</target>
+        <target state="translated">Qualificar com Me;Preferir tipos intrínsecos;Estilo;Estilo do Código</target>
         <note>Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="110">
@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">Um arquivo de script vazio do Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Script do Visual Basic</target>
         <note />
       </trans-unit>
     </body>

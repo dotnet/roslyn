@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
@@ -6,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -14,29 +19,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
-            using (var session = CreateSession("$$"))
-            {
-                Assert.NotNull(session);
-            }
+            using var session = CreateSession("$$");
+            Assert.NotNull(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_TopLevel()
         {
-            using (var session = CreateSession("$$"))
-            {
-                Assert.NotNull(session);
-            }
+            using var session = CreateSession("$$");
+            Assert.NotNull(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_TopLevel2()
         {
-            using (var session = CreateSession("using System;$$"))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSession("using System;$$");
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -44,11 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C$$";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -59,11 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     void Method$$
 }";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -71,12 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C$$";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckBackspace(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckBackspace(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -84,12 +77,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C$$";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckTab(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckTab(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -97,12 +88,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C$$";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckOverType(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -110,11 +99,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             var code = @"class C<$$>";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -125,11 +112,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     C<C$$>
 }";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -143,11 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var b = i $$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -160,11 +143,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var a = new List$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -177,11 +158,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var a = typeof(List$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
@@ -192,13 +171,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     List$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                Type(session.Session, "int");
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            Type(session.Session, "int");
+            CheckOverType(session.Session);
         }
 
         [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
@@ -209,13 +186,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     void List$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                Type(session.Session, "T");
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            Type(session.Session, "T");
+            CheckOverType(session.Session);
         }
 
         [WorkItem(531637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531637")]
@@ -226,13 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     async Task$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                Type(session.Session, "int");
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            Type(session.Session, "int");
+            CheckOverType(session.Session);
         }
 
         [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
@@ -248,13 +221,11 @@ class C
         List$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                Type(session.Session, "int");
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            Type(session.Session, "int");
+            CheckOverType(session.Session);
         }
 
         [WorkItem(530864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530864")]
@@ -268,11 +239,9 @@ class C
         List$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
@@ -287,11 +256,9 @@ class C
         var a = args[0]$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
@@ -306,11 +273,9 @@ class C
         var a = args?.First()$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
@@ -325,11 +290,9 @@ class C
         args?.OfType$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
@@ -355,13 +318,11 @@ class Inner<V>
 {
     public void Method<X>() { }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                Type(session.Session, "int");
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            Type(session.Session, "int");
+            CheckOverType(session.Session);
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
@@ -395,11 +356,9 @@ internal class Inner
     public Inner() { }
     public void DoSomething<V>() { }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
@@ -431,18 +390,31 @@ public class Inner
 {
     public void Method<U>() { }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
-        internal Holder CreateSession(string code)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void FunctionPointerStartSession()
+        {
+            var code = @"
+class C
+{
+    delegate*$$";
+
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            Type(session.Session, "int");
+            CheckOverType(session.Session);
+        }
+
+        internal static Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter, BraceCompletionSessionProvider.LessAndGreaterThan.CloseCharacter);
+                LessAndGreaterThan.OpenCharacter, LessAndGreaterThan.CloseCharacter);
         }
     }
 }

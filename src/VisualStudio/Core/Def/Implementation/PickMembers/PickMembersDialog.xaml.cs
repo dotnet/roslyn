@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -54,6 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                 Deselect_All_Click));
         }
 
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _viewModel.Filter(SearchTextBox.Text);
+            Members.Items.Refresh();
+        }
+
         private void OK_Click(object sender, RoutedEventArgs e)
             => DialogResult = true;
 
@@ -68,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveUp && oldSelectedIndex >= 0)
             {
                 _viewModel.MoveUp();
@@ -81,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         private void MoveDown_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveDown && oldSelectedIndex >= 0)
             {
                 _viewModel.MoveDown();
@@ -96,8 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         {
             if (Members.SelectedIndex >= 0)
             {
-                var row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;
-                if (row == null)
+                if (Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is not ListViewItem row)
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;
@@ -136,16 +145,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
             private readonly PickMembersDialog _dialog;
 
             public TestAccessor(PickMembersDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public Button OKButton => _dialog.OKButton;
 

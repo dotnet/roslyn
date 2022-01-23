@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
@@ -67,12 +70,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             InvokeOnUIThread(cancellationToken =>
             {
                 var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
-                var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
+                var cmdGroup = typeof(VSConstants.VSStd14CmdID).GUID;
                 var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
 
-                const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
-                var cmdID = ECMD_SMARTTASKS;
-                object obj = null;
+                var cmdID = VSConstants.VSStd14CmdID.ShowQuickFixes;
+                object? obj = null;
                 shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
             });
         }
@@ -94,18 +96,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// querying the editor
         /// </remarks>
         public bool IsCompletionActive()
-            => ExecuteOnActiveView(view =>
+        {
+            if (!HasActiveTextView())
+            {
+                return false;
+            }
+
+            return ExecuteOnActiveView(view =>
             {
                 var broker = GetComponentModelService<ICompletionBroker>();
                 return broker.IsCompletionActive(view);
             });
+        }
 
         protected abstract ITextBuffer GetBufferContainingCaret(IWpfTextView view);
 
         public string[] GetCurrentClassifications()
             => InvokeOnUIThread(cancellationToken =>
             {
-                IClassifier classifier = null;
+                IClassifier? classifier = null;
                 try
                 {
                     var textView = GetActiveTextView();
@@ -246,20 +255,52 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 action(view);
             };
 
-        public string GetQuickInfo()
-            => ExecuteOnActiveView(view =>
+        public void InvokeQuickInfo()
+        {
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
+                var session = await broker.TriggerQuickInfoAsync(GetActiveTextView());
+                Contract.ThrowIfNull(session);
+            });
+        }
+
+        public string GetQuickInfo()
+        {
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var view = GetActiveTextView();
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
                 var session = broker.GetSession(view);
+
+                // GetSession will not return null if preceded by a call to InvokeQuickInfo
+                Contract.ThrowIfNull(session);
+
+                using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+                while (session.State != QuickInfoSessionState.Visible)
+                {
+                    cts.Token.ThrowIfCancellationRequested();
+                    await Task.Delay(50, cts.Token).ConfigureAwait(true);
+                }
+
                 return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
             });
+        }
 
         public void VerifyTags(string tagTypeName, int expectedCount)
             => ExecuteOnActiveView(view =>
         {
-            Type type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
-            bool filterTag(IMappingTagSpan<ITag> tag) { return tag.Tag.GetType().Equals(type); }
+            var type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
+            bool filterTag(IMappingTagSpan<ITag> tag)
+            {
+                return tag.Tag.GetType().Equals(type);
+            }
+
             var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
             var aggregator = service.CreateTagAggregator<ITag>(view);
             var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
@@ -315,17 +356,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             var activeSession = broker.GetSession(view);
-            if (activeSession == null || !activeSession.IsExpanded)
+            if (activeSession == null)
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
                 throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
             }
 
-            if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
-            {
-                actionSets = Array.Empty<SuggestedActionSet>();
-            }
-
+            var actionSets = await LightBulbHelper.WaitForItemsAsync(broker, view);
             return await SelectActionsAsync(actionSets);
         }
 
@@ -382,11 +419,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     }
 
                     var actionSetsForAction = await action.GetActionSetsAsync(CancellationToken.None);
-                    action = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value);
-                    if (action == null)
+                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value);
+                    if (fixAllAction == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
                     }
+
+                    action = fixAllAction;
 
                     if (willBlockUntilComplete
                         && action is FixAllSuggestedAction fixAllSuggestedAction
@@ -407,9 +446,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     broker.DismissSession(view);
                 }
 
-                action.Invoke(CancellationToken.None);
-                return !(action is SuggestedAction suggestedAction)
-                    || suggestedAction.GetTestAccessor().IsApplied;
+                if (action is not SuggestedAction suggestedAction)
+                    return true;
+
+                broker.DismissSession(view);
+                var threadOperationExecutor = GetComponentModelService<IUIThreadOperationExecutor>();
+                var guardedOperations = GetComponentModelService<IGuardedOperations2>();
+                threadOperationExecutor.Execute(
+                    title: "Execute Suggested Action",
+                    defaultDescription: Accelerator.StripAccelerators(action.DisplayText, '_'),
+                    allowCancellation: true,
+                    showProgress: true,
+                    action: context =>
+                    {
+                        guardedOperations.CallExtensionPoint(
+                            errorSource: suggestedAction,
+                            call: () => suggestedAction.Invoke(context),
+                            exceptionGuardFilter: e => e is not OperationCanceledException);
+                    });
+
+                return true;
             };
         }
 
@@ -439,7 +495,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return actions;
         }
 
-        private static async Task<FixAllSuggestedAction> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
+        private static async Task<FixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -459,10 +515,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     if (action.HasActionSets)
                     {
                         var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
-                        fixAllSuggestedAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope);
-                        if (fixAllSuggestedAction != null)
+                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope);
+                        if (fixAllCodeAction != null)
                         {
-                            return fixAllSuggestedAction;
+                            return fixAllCodeAction;
                         }
                     }
                 }
@@ -477,6 +533,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
                 broker.DismissSession(view);
             });
+
+        public void DismissCompletionSessions()
+            => ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModel().GetService<ICompletionBroker>();
+                broker.DismissAllSessions(view);
+            });
+
+        protected abstract bool HasActiveTextView();
 
         protected abstract IWpfTextView GetActiveTextView();
     }

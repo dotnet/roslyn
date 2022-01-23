@@ -1,68 +1,24 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Humanizer;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class SemanticModelExtensions
+    internal static partial class SemanticModelExtensions
     {
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return SemanticMap.From(semanticModel, node, cancellationToken);
-        }
-
-        /// <summary>
-        /// Gets semantic information, such as type, symbols, and diagnostics, about the parent of a token.
-        /// </summary>
-        /// <param name="semanticModel">The SemanticModel object to get semantic information
-        /// from.</param>
-        /// <param name="token">The token to get semantic information from. This must be part of the
-        /// syntax tree associated with the binding.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetSymbolInfo(token.Parent, cancellationToken);
-        }
-
-        public static TSymbol GetEnclosingSymbol<TSymbol>(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            where TSymbol : ISymbol
-        {
-            for (var symbol = semanticModel.GetEnclosingSymbol(position, cancellationToken);
-                 symbol != null;
-                 symbol = symbol.ContainingSymbol)
-            {
-                if (symbol is TSymbol tSymbol)
-                {
-                    return tSymbol;
-                }
-            }
-
-            return default;
-        }
-
-        public static ISymbol GetEnclosingNamedTypeOrAssembly(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(position, cancellationToken) ??
-                (ISymbol)semanticModel.Compilation.Assembly;
-        }
-
-        public static INamedTypeSymbol GetEnclosingNamedType(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(position, cancellationToken);
-        }
-
-        public static INamespaceSymbol GetEnclosingNamespace(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamespaceSymbol>(position, cancellationToken);
-        }
+            => SemanticMap.From(semanticModel, node, cancellationToken);
 
         /// <summary>
         /// Fetches the ITypeSymbol that should be used if we were generating a parameter or local that would accept <paramref name="expression"/>. If
@@ -77,14 +33,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (typeInfo.Type != null)
             {
-                return typeInfo.Type.WithNullability(typeInfo.Nullability.FlowState);
+                return typeInfo.Type;
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
             return symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
-        private static ISymbol MapSymbol(ISymbol symbol, ITypeSymbol type)
+        private static ISymbol? MapSymbol(ISymbol symbol, ITypeSymbol? type)
         {
             if (symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType)
             {
@@ -135,23 +91,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TokenSemanticInfo GetSemanticInfo(
             this SemanticModel semanticModel,
             SyntaxToken token,
-            Workspace workspace,
+            HostWorkspaceServices services,
             CancellationToken cancellationToken)
         {
-            var languageServices = workspace.Services.GetLanguageServices(token.Language);
-            var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
+            var languageServices = services.GetLanguageServices(token.Language);
+            var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
             if (!syntaxFacts.IsBindableToken(token))
             {
                 return TokenSemanticInfo.Empty;
             }
 
-            var semanticFacts = languageServices.GetService<ISemanticFactsService>();
+            var semanticFacts = languageServices.GetRequiredService<ISemanticFactsService>();
 
-            IAliasSymbol aliasSymbol;
-            ITypeSymbol type;
-            ITypeSymbol convertedType;
-            ISymbol declaredSymbol;
-            ImmutableArray<ISymbol> allSymbols;
+            IAliasSymbol? aliasSymbol;
+            ITypeSymbol? type;
+            ITypeSymbol? convertedType;
+            ISymbol? declaredSymbol;
+            ImmutableArray<ISymbol?> allSymbols;
 
             var overriddingIdentifier = syntaxFacts.GetDeclarationIdentifierIfOverride(token);
             if (overriddingIdentifier.HasValue)
@@ -165,20 +121,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 type = null;
                 convertedType = null;
                 declaredSymbol = null;
-                allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create(overriddenSymbol);
+                allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol?>.Empty : ImmutableArray.Create<ISymbol?>(overriddenSymbol);
             }
             else
             {
-                aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
-                var bindableParent = syntaxFacts.GetBindableParent(token);
-                var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+                aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
+                var bindableParent = syntaxFacts.TryGetBindableParent(token);
+                var typeInfo = bindableParent != null ? semanticModel.GetTypeInfo(bindableParent, cancellationToken) : default;
                 type = typeInfo.Type;
                 convertedType = typeInfo.ConvertedType;
                 declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
 
                 var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
                 allSymbols = skipSymbolInfoLookup
-                    ? ImmutableArray<ISymbol>.Empty
+                    ? ImmutableArray<ISymbol?>.Empty
                     : semanticFacts
                         .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
                         .WhereAsArray(s => !s.Equals(declaredSymbol))
@@ -203,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (namedType.TypeKind == TypeKind.Delegate ||
                         namedType.AssociatedSymbol != null)
                     {
-                        allSymbols = ImmutableArray.Create<ISymbol>(type);
+                        allSymbols = ImmutableArray.Create<ISymbol?>(type);
                         type = null;
                     }
                 }
@@ -218,65 +174,63 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, convertedType, token.Span);
         }
 
-        public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)
+        public static string GenerateNameFromType(this SemanticModel semanticModel, ITypeSymbol type, ISyntaxFacts syntaxFacts, bool capitalize)
         {
-            if (!semanticModel.IsSpeculativeSemanticModel)
+            var pluralize = semanticModel.ShouldPluralize(type);
+            var typeArguments = type.GetAllTypeArguments();
+
+            // We may be able to use the type's arguments to generate a name if we're working with an enumerable type.
+            if (pluralize && TryGeneratePluralizedNameFromTypeArgument(syntaxFacts, typeArguments, capitalize, out var typeArgumentParameterName))
             {
-                return semanticModel;
+                return typeArgumentParameterName;
             }
 
-            Contract.ThrowIfNull(semanticModel.ParentModel);
-            Contract.ThrowIfTrue(semanticModel.ParentModel.IsSpeculativeSemanticModel);
-            Contract.ThrowIfTrue(semanticModel.ParentModel.ParentModel != null);
-            return semanticModel.ParentModel;
-        }
-
-        public static HashSet<ISymbol> GetAllDeclaredSymbols(
-            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken, Func<SyntaxNode, bool> filter = null)
-        {
-            var symbols = new HashSet<ISymbol>();
-            if (container != null)
+            // If there's no type argument and we have an array type, we should pluralize, e.g. using 'frogs' for 'new Frog[]' instead of 'frog'
+            if (type.TypeKind == TypeKind.Array && typeArguments.IsEmpty)
             {
-                GetAllDeclaredSymbols(semanticModel, container, symbols, cancellationToken, filter);
+                return type.CreateParameterName(capitalize).Pluralize();
             }
 
-            return symbols;
+            // Otherwise assume no pluralization, e.g. using 'immutableArray', 'list', etc. instead of their
+            // plural forms
+            return type.CreateParameterName(capitalize);
         }
 
-        public static IEnumerable<ISymbol> GetExistingSymbols(
-            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken, Func<SyntaxNode, bool> descendInto = null)
+        private static bool ShouldPluralize(this SemanticModel semanticModel, ITypeSymbol type)
         {
-            // Ignore an anonymous type property or tuple field.  It's ok if they have a name that
-            // matches the name of the local we're introducing.
-            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken, descendInto)
-                .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
+            if (type == null)
+                return false;
+
+            // string implements IEnumerable<char>, so we need to specifically exclude it.
+            if (type.SpecialType == SpecialType.System_String)
+                return false;
+
+            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
+            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
         }
 
-        private static void GetAllDeclaredSymbols(
-            SemanticModel semanticModel, SyntaxNode node,
-            HashSet<ISymbol> symbols, CancellationToken cancellationToken, Func<SyntaxNode, bool> descendInto = null)
+        private static bool TryGeneratePluralizedNameFromTypeArgument(
+            ISyntaxFacts syntaxFacts,
+            ImmutableArray<ITypeSymbol> typeArguments,
+            bool capitalize,
+            [NotNullWhen(true)] out string? parameterName)
         {
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-
-            if (symbol != null)
+            // We only consider generating a name if there's one type argument.
+            // This logic can potentially be expanded upon in the future.
+            if (typeArguments.Length == 1)
             {
-                symbols.Add(symbol);
-            }
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
+                // We only want the last part of the type, i.e. we don't want namespaces.
+                var typeArgument = typeArguments.Single().ToDisplayParts().Last().ToString();
+                if (syntaxFacts.IsValidIdentifier(typeArgument))
                 {
-                    var childNode = child.AsNode();
-                    if (ShouldDescendInto(childNode, descendInto))
-                    {
-                        GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken, descendInto);
-                    }
+                    typeArgument = typeArgument.Pluralize();
+                    parameterName = capitalize ? typeArgument.ToPascalCase() : typeArgument.ToCamelCase();
+                    return true;
                 }
             }
 
-            static bool ShouldDescendInto(SyntaxNode node, Func<SyntaxNode, bool> filter)
-                => filter != null ? filter(node) : true;
+            parameterName = null;
+            return false;
         }
     }
 }

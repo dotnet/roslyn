@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -6,9 +10,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -47,79 +50,75 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
 
-            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView)))
+            using var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView));
+            var document = snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+            if (document == null)
             {
-                var document = snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-                if (document == null)
-                {
-                    return true;
-                }
-
-                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                if (syntaxFactsService == null)
-                {
-                    return true;
-                }
-
-                var libraryService = document.GetLanguageService<ILibraryService>();
-                if (libraryService == null)
-                {
-                    return true;
-                }
-
-                var userCancellationToken = context.OperationContext.UserCancellationToken;
-                var semanticModel = document
-                    .GetSemanticModelAsync(userCancellationToken)
-                    .WaitAndGetResult(userCancellationToken);
-
-                var root = semanticModel.SyntaxTree
-                    .GetRootAsync(userCancellationToken)
-                    .WaitAndGetResult(userCancellationToken);
-
-                var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, caretPosition);
-
-                var symbol = memberDeclaration != null
-                    ? semanticModel.GetDeclaredSymbol(memberDeclaration, userCancellationToken)
-                    : null;
-
-                while (symbol != null && !IsValidSymbolToSynchronize(symbol))
-                {
-                    symbol = symbol.ContainingSymbol;
-                }
-
-                IVsNavInfo navInfo = null;
-                if (symbol != null)
-                {
-                    navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
-                }
-
-                if (navInfo == null)
-                {
-                    navInfo = libraryService.NavInfoFactory.CreateForProject(document.Project);
-                }
-
-                if (navInfo == null)
-                {
-                    return true;
-                }
-
-                var navigationTool = _serviceProvider.GetService<SVsClassView, IVsNavigationTool>();
-                navigationTool.NavigateToNavInfo(navInfo);
                 return true;
             }
+
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsService == null)
+            {
+                return true;
+            }
+
+            var libraryService = document.GetLanguageService<ILibraryService>();
+            if (libraryService == null)
+            {
+                return true;
+            }
+
+            var userCancellationToken = context.OperationContext.UserCancellationToken;
+            var semanticModel = document
+                .GetSemanticModelAsync(userCancellationToken)
+                .WaitAndGetResult(userCancellationToken);
+
+            var root = semanticModel.SyntaxTree
+                .GetRootAsync(userCancellationToken)
+                .WaitAndGetResult(userCancellationToken);
+
+            var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, caretPosition);
+
+            var symbol = memberDeclaration != null
+                ? semanticModel.GetDeclaredSymbol(memberDeclaration, userCancellationToken)
+                : null;
+
+            while (symbol != null && !IsValidSymbolToSynchronize(symbol))
+            {
+                symbol = symbol.ContainingSymbol;
+            }
+
+            IVsNavInfo navInfo = null;
+            if (symbol != null)
+            {
+                navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
+            }
+
+            if (navInfo == null)
+            {
+                navInfo = libraryService.NavInfoFactory.CreateForProject(document.Project);
+            }
+
+            if (navInfo == null)
+            {
+                return true;
+            }
+
+            var navigationTool = IServiceProviderExtensions.GetService<SVsClassView, IVsNavigationTool>(_serviceProvider);
+            navigationTool.NavigateToNavInfo(navInfo);
+            return true;
         }
 
         private static bool IsValidSymbolToSynchronize(ISymbol symbol) =>
-            symbol.Kind == SymbolKind.Event ||
-            symbol.Kind == SymbolKind.Field ||
-            symbol.Kind == SymbolKind.Method ||
-            symbol.Kind == SymbolKind.NamedType ||
-            symbol.Kind == SymbolKind.Property;
+            symbol.Kind is SymbolKind.Event or
+            SymbolKind.Field or
+            SymbolKind.Method or
+            SymbolKind.NamedType or
+            SymbolKind.Property;
 
         public CommandState GetCommandState(SyncClassViewCommandArgs args)
-        {
-            return Commanding.CommandState.Unspecified;
-        }
+            => Commanding.CommandState.Available;
     }
 }

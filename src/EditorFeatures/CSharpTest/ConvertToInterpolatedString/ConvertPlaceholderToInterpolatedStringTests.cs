@@ -1,10 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString
@@ -14,27 +21,129 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestSingleItemSubstitution()
+        private static readonly string[] CompositeFormattedMethods = new[]
+        {
+            "Console.Write",
+            "Console.WriteLine",
+            "Debug.WriteLine",
+            "Debug.Print",
+            "Trace.TraceError",
+            "Trace.TraceWarning",
+            "Trace.TraceInformation",
+        };
+
+        public static IEnumerable<object[]> InvocationData
+        {
+            get
+            {
+                // Every API so far starts to use a params object after 4 paramters following the formatted 
+                const int ParametersToCheck = 4;
+
+                // string.Format gets replaced with just the interpolated string
+                for (var i = 1; i <= ParametersToCheck; i++)
+                {
+                    var invocation = $"string.Format({MakeFormattedParameters(i)})";
+                    var result = $"${MakeInterpolatedString(i)}";
+                    yield return new[] { invocation, result };
+                }
+
+                // Composite Formatted methods do not get replaced, but instead
+                // take the string as the only parameter
+                for (var i = 1; i <= ParametersToCheck; i++)
+                {
+                    foreach (var function in CompositeFormattedMethods)
+                    {
+                        var invocation = $"{function}({MakeFormattedParameters(i)})";
+                        var result = $"{function}(${MakeInterpolatedString(i)})";
+                        yield return new[] { invocation, result };
+                    }
+                }
+
+                // Makes a string of form "{0} {1}..."
+                static string MakeInterpolatedString(int numberOfParameters)
+                {
+                    var interpolatedString = "\"";
+
+                    for (var i = 0; i < numberOfParameters; i++)
+                    {
+                        interpolatedString += $"{{{i}}}";
+                    }
+
+                    return interpolatedString + "\"";
+                }
+
+                // Makes a string of form "{0} {1}..., 0, 1, ..."
+                static string MakeFormattedParameters(int numberOfParameters)
+                {
+                    var formatString = MakeInterpolatedString(numberOfParameters);
+                    return formatString + "," + string.Join(",", Enumerable.Range(0, numberOfParameters));
+
+                }
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [MemberData(nameof(InvocationData))]
+        public async Task TestInvocationSubstitution(string before, string after)
         {
             await TestInRegularAndScriptAsync(
+@$"using System;
+using System.Diagnostics;
+
+class T
+{{
+    void M()
+    {{
+        [|{before}|];
+    }}
+}}",
+@$"using System;
+using System.Diagnostics;
+
+class T
+{{
+    void M()
+    {{
+        {after};
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestMissing_ConsoleWriteLine()
+        {
+            await TestMissingAsync(
 @"using System;
 
 class T
 {
     void M()
     {
-        var a = [|string.Format(""{0}"", 1)|];
+        var i = 25;
+        [|Console.WriteLine(GetString(), i)|];
     }
-}",
+
+    string GetString() => """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(55053, "https://github.com/dotnet/roslyn/issues/55053")]
+        public async Task TestMissing_ConsoleWrite()
+        {
+            await TestMissingAsync(
 @"using System;
 
 class T
 {
     void M()
     {
-        var a = $""{1}"";
+        var i = 25;
+        [|Console.Write(GetString(), i)|];
     }
+
+    string GetString() => """";
 }");
         }
 
@@ -712,6 +821,81 @@ class T
     void M()
     {
         var a = $""{""10""} {""11""} {""12""} {3}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestOnlyArgumentSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format([|""{0}""|], 1);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestOnlyArgumentSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format(""{0}"", [|1|]);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format([|""{0}"", 1|]);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
     }
 }");
         }

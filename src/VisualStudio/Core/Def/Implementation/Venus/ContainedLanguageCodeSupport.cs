@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -60,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
-            var codeModel = document.GetLanguageService<ICodeModelNavigationPointService>();
+            var codeModel = document.GetRequiredLanguageService<ICodeModelNavigationPointService>();
             var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var point = codeModel.GetStartPoint(typeNode, options, EnvDTE.vsCMPart.vsCMPartBody);
             var reservedNames = semanticModel.LookupSymbols(point.Value.Position, type).Select(m => m.Name);
@@ -136,6 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// <returns>Either the unique id of the method if it already exists, or the unique id of
         /// the to be generated method, the text of the to be generated method, and the position in
         /// <paramref name="itemidInsertionPoint"/> where the text should be inserted.</returns>
+#pragma warning disable IDE0060 // Remove unused parameter - API used by partner (Venus), avoid build break.
         public static Tuple<string, string, VsTextSpan> EnsureEventHandler(
             Document thisDocument,
             Document targetDocument,
@@ -148,6 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             bool useHandlesClause,
             AbstractFormattingRule additionalFormattingRule,
             CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var thisCompilation = thisDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var type = thisCompilation.GetTypeByMetadataName(className);
@@ -196,34 +202,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var annotation = new SyntaxAnnotation();
             newMethod = annotation.AddAnnotationToSymbol(newMethod);
-            var codeModel = targetDocument.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
-            var syntaxFacts = targetDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var codeModel = targetDocument.Project.LanguageServices.GetRequiredService<ICodeModelNavigationPointService>();
+            var syntaxFacts = targetDocument.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
             var targetSyntaxTree = targetDocument.GetSyntaxTreeSynchronously(cancellationToken);
 
             var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
             var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
-            var options = targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
-            var insertionPoint = codeModel.GetEndPoint(destinationType, options, EnvDTE.vsCMPart.vsCMPartBody);
+            var documentOptions = targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var insertionPoint = codeModel.GetEndPoint(destinationType, documentOptions, EnvDTE.vsCMPart.vsCMPartBody);
 
             if (insertionPoint == null)
             {
                 throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
-            var newType = codeGenerationService.AddMethod(destinationType, newMethod, new CodeGenerationOptions(autoInsertionLocation: false), cancellationToken);
+            var options = codeGenerationService.GetOptions(
+                targetSyntaxTree.Options,
+                documentOptions,
+                new CodeGenerationContext(autoInsertionLocation: false));
+
+            var newType = codeGenerationService.AddMethod(destinationType, newMethod, options, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
             newRoot = Simplifier.ReduceAsync(
                 targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
+            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
             newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
-                targetDocument.Project.Solution.Workspace,
-                targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken),
+                targetDocument.Project.Solution.Workspace.Services,
+                formattingOptions,
                 formattingRules,
                 cancellationToken);
 
@@ -421,7 +433,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 case ContainedLanguageRenameType.CLRT_NAMESPACE:
                     var ns = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GlobalNamespace;
                     var parts = fullyQualifiedName.Split('.');
-                    for (int i = 0; i < parts.Length && ns != null; i++)
+                    for (var i = 0; i < parts.Length && ns != null; i++)
                     {
                         ns = ns.GetNamespaceMembers().SingleOrDefault(n => n.Name == parts[i]);
                     }

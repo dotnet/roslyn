@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -37,6 +40,18 @@ namespace Microsoft.CodeAnalysis
             foreach (var item in builder)
             {
                 if (!predicate(item))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool All<T, A>(this ArrayBuilder<T> builder, Func<T, A, bool> predicate, A arg)
+        {
+            foreach (var item in builder)
+            {
+                if (!predicate(item, arg))
                 {
                     return false;
                 }
@@ -122,7 +137,47 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static void AddOptional<T>(this ArrayBuilder<T> builder, T item)
+        /// <summary>
+        /// Maps an array builder to immutable array.
+        /// </summary>
+        /// <typeparam name="TItem"></typeparam>
+        /// <typeparam name="TArg"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="items">The sequence to map</param>
+        /// <param name="map">The mapping delegate</param>
+        /// <param name="arg">The extra input used by mapping delegate</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectAsArrayWithIndex<TItem, TArg, TResult>(this ArrayBuilder<TItem> items, Func<TItem, int, TArg, TResult> map, TArg arg)
+        {
+            switch (items.Count)
+            {
+                case 0:
+                    return ImmutableArray<TResult>.Empty;
+
+                case 1:
+                    return ImmutableArray.Create(map(items[0], 0, arg));
+
+                case 2:
+                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg));
+
+                case 3:
+                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg));
+
+                case 4:
+                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg), map(items[3], 3, arg));
+
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(items.Count);
+                    foreach (var item in items)
+                    {
+                        builder.Add(map(item, builder.Count, arg));
+                    }
+
+                    return builder.ToImmutableAndFree();
+            }
+        }
+
+        public static void AddOptional<T>(this ArrayBuilder<T> builder, T? item)
             where T : class
         {
             if (item != null)
@@ -146,14 +201,26 @@ namespace Microsoft.CodeAnalysis
             return e;
         }
 
+        public static bool TryPop<T>(this ArrayBuilder<T> builder, [MaybeNullWhen(false)] out T result)
+        {
+            if (builder.Count > 0)
+            {
+                result = builder.Pop();
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
         public static T Peek<T>(this ArrayBuilder<T> builder)
         {
             return builder[builder.Count - 1];
         }
 
-        public static ImmutableArray<T> ToImmutableOrEmptyAndFree<T>(this ArrayBuilder<T> builderOpt)
+        public static ImmutableArray<T> ToImmutableOrEmptyAndFree<T>(this ArrayBuilder<T>? builder)
         {
-            return builderOpt?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
+            return builder?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
         }
 
         public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T? value)
@@ -165,7 +232,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T value)
+        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T? value)
             where T : class
         {
             if (value != null)
@@ -174,6 +241,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+#nullable disable
         public static void FreeAll<T>(this ArrayBuilder<T> builder, Func<T, ArrayBuilder<T>> getNested)
         {
             foreach (var item in builder)
@@ -182,5 +250,6 @@ namespace Microsoft.CodeAnalysis
             }
             builder.Free();
         }
+#nullable enable
     }
 }

@@ -1,58 +1,27 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicReplaceMethodWithPropertyService
-        Inherits AbstractReplaceMethodWithPropertyService
+        Inherits AbstractReplaceMethodWithPropertyService(Of MethodStatementSyntax)
         Implements IReplaceMethodWithPropertyService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Public Function GetMethodDeclaration(token As SyntaxToken) As SyntaxNode Implements IReplaceMethodWithPropertyService.GetMethodDeclaration
-            Dim containingMethod = token.Parent.FirstAncestorOrSelf(Of MethodStatementSyntax)
-            If containingMethod Is Nothing Then
-                Return Nothing
-            End If
-
-            Dim start = If(containingMethod.AttributeLists.Count > 0,
-                containingMethod.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
-                 containingMethod.SpanStart)
-
-            ' Offer this refactoring anywhere in the signature of the method.
-            Dim position = token.SpanStart
-            If position < start Then
-                Return Nothing
-            End If
-
-            If containingMethod.HasReturnType() AndAlso
-                position > containingMethod.GetReturnType().Span.End Then
-                Return Nothing
-            End If
-
-            ' Parameter lists in VB are optional and may not be provided.
-            If containingMethod.ParameterList Is Nothing Then
-                If position > containingMethod.Span.End Then
-                    Return Nothing
-                End If
-            Else
-                If position > containingMethod.ParameterList.Span.End Then
-                    Return Nothing
-                End If
-            End If
-
-            Return containingMethod
-        End Function
 
         Public Sub RemoveSetMethod(editor As SyntaxEditor, setMethodDeclaration As SyntaxNode) Implements IReplaceMethodWithPropertyService.RemoveSetMethod
             Dim setMethodStatement = TryCast(setMethodDeclaration, MethodStatementSyntax)
@@ -79,10 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             Dim methodBlockOrStatement = GetParentIfBlock(getMethodDeclaration)
             editor.ReplaceNode(methodBlockOrStatement,
-                               ConvertMethodsToProperty(editor, semanticModel, getAndSetMethods, propertyName, nameChanged))
+                               ConvertMethodsToProperty(editor, getAndSetMethods, propertyName, nameChanged))
         End Sub
 
-        Private Function GetParentIfBlock(declaration As MethodStatementSyntax) As DeclarationStatementSyntax
+        Private Shared Function GetParentIfBlock(declaration As MethodStatementSyntax) As DeclarationStatementSyntax
             If declaration.IsParentKind(SyntaxKind.FunctionBlock) OrElse declaration.IsParentKind(SyntaxKind.SubBlock) Then
                 Return DirectCast(declaration.Parent, DeclarationStatementSyntax)
             End If
@@ -90,9 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return declaration
         End Function
 
-        Private Function ConvertMethodsToProperty(
+        Private Shared Function ConvertMethodsToProperty(
             editor As SyntaxEditor,
-            semanticModel As SemanticModel,
             getAndSetMethods As GetAndSetMethods,
             propertyName As String, nameChanged As Boolean) As DeclarationStatementSyntax
 
@@ -154,12 +122,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             End If
 
             newPropertyDeclaration = SetLeadingTrivia(
-                VisualBasicSyntaxFactsService.Instance, getAndSetMethods, newPropertyDeclaration)
+                VisualBasicSyntaxFacts.Instance, getAndSetMethods, newPropertyDeclaration)
 
             Return newPropertyDeclaration.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
-        Private Function GetPropertyName(identifier As SyntaxToken, propertyName As String, nameChanged As Boolean) As SyntaxToken
+        Private Shared Function GetPropertyName(identifier As SyntaxToken, propertyName As String, nameChanged As Boolean) As SyntaxToken
             Return If(nameChanged, SyntaxFactory.Identifier(propertyName), identifier)
         End Function
 
@@ -242,16 +210,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 End Function)
         End Sub
 
-        Private Shared Function IsInvocationName(nameNode As IdentifierNameSyntax, invocationExpression As ExpressionSyntax) As Boolean
-            If invocationExpression Is nameNode Then
-                Return True
-            End If
-
-            If nameNode.IsAnyMemberAccessExpressionName() AndAlso nameNode.Parent Is invocationExpression Then
-                Return True
-            End If
-
-            Return False
+        Private Function IReplaceMethodWithPropertyService_GetMethodDeclarationAsync(context As CodeRefactoringContext) As Task(Of SyntaxNode) Implements IReplaceMethodWithPropertyService.GetMethodDeclarationAsync
+            Return GetMethodDeclarationAsync(context)
         End Function
     End Class
 End Namespace

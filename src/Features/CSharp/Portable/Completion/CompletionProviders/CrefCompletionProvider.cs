@@ -1,31 +1,37 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using System;
-using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(CrefCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(EnumAndCompletionListTagCompletionProvider))]
+    [Shared]
     internal sealed class CrefCompletionProvider : AbstractCrefCompletionProvider
     {
         public static readonly SymbolDisplayFormat QualifiedCrefFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -33,8 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
         public static readonly SymbolDisplayFormat CrefFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -47,8 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // that uses the intrinsic type keyword and an item that uses the
         // name of the special type 
         public static readonly SymbolDisplayFormat CrefFormatForSpecialTypes =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -56,17 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-        private readonly Action<SyntaxNode> _testSpeculativeNodeCallbackOpt;
+        private Action<SyntaxNode?>? _testSpeculativeNodeCallback;
 
-        public CrefCompletionProvider(Action<SyntaxNode> testSpeculativeNodeCallbackOpt = null)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CrefCompletionProvider()
         {
-            _testSpeculativeNodeCallbackOpt = testSpeculativeNodeCallbackOpt;
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -74,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var document = context.Document;
                 var position = context.Position;
-                var options = context.Options;
+                var options = context.CompletionOptions;
                 var cancellationToken = context.CancellationToken;
 
                 var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
@@ -84,28 +91,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
+                Contract.ThrowIfNull(semanticModel);
+
                 context.IsExclusive = true;
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var span = GetCompletionItemSpan(text, position);
-                var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
-                var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, hideAdvancedMembers.ToString());
+                var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, options.HideAdvancedMembers.ToString());
 
-                var items = CreateCompletionItems(document.Project.Solution.Workspace,
-                    semanticModel, symbols, token, span, position, serializedOptions);
+                var items = CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions);
 
                 context.AddItems(items);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
         }
 
-        protected override async Task<(SyntaxToken, SemanticModel, ImmutableArray<ISymbol>)> GetSymbolsAsync(
-            Document document, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<(SyntaxToken, SemanticModel?, ImmutableArray<ISymbol>)> GetSymbolsAsync(
+            Document document, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
             {
                 return (default, null, ImmutableArray<ISymbol>.Empty);
@@ -116,20 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // To get a Speculative SemanticModel (which is much faster), we need to 
             // walk up to the node the DocumentationTrivia is attached to.
-            var parentNode = token.Parent.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>()?.ParentTrivia.Token.Parent;
-            _testSpeculativeNodeCallbackOpt?.Invoke(parentNode);
+            var parentNode = token.Parent?.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>()?.ParentTrivia.Token.Parent;
+            _testSpeculativeNodeCallback?.Invoke(parentNode);
             if (parentNode == null)
             {
                 return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(
                 parentNode, cancellationToken).ConfigureAwait(false);
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken)
-                .FilterToVisibleAndBrowsableSymbols(
-                    options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language),
-                    semanticModel.Compilation);
+                .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
 
             return (token, semanticModel, symbols);
         }
@@ -198,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (IsCrefQualifiedNameContext(token))
             {
-                return GetQualifiedSymbols((QualifiedCrefSyntax)token.Parent, token, semanticModel, cancellationToken);
+                return GetQualifiedSymbols((QualifiedCrefSyntax)token.Parent!, token, semanticModel, cancellationToken);
             }
 
             return ImmutableArray<ISymbol>.Empty;
@@ -263,16 +268,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ch => CompletionUtilities.IsWordCharacter(ch) || ch == '{' || ch == '}');
         }
 
-        private IEnumerable<CompletionItem> CreateCompletionItems(
-            Workspace workspace, SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan, int position, ImmutableDictionary<string, string> options)
+        private static IEnumerable<CompletionItem> CreateCompletionItems(
+            SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableDictionary<string, string> options)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try
             {
                 foreach (var symbol in symbols)
                 {
-                    yield return CreateItem(workspace, semanticModel, symbol, token, position, builder, options);
-                    if (TryCreateSpecialTypeItem(workspace, semanticModel, symbol, token, position, builder, options, out var item))
+                    yield return CreateItem(semanticModel, symbol, token, position, builder, options);
+                    if (TryCreateSpecialTypeItem(semanticModel, symbol, token, position, builder, options, out var item))
                     {
                         yield return item;
                     }
@@ -284,16 +289,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private bool TryCreateSpecialTypeItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
-            ImmutableDictionary<string, string> options, out CompletionItem item)
+        private static bool TryCreateSpecialTypeItem(
+            SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
+            ImmutableDictionary<string, string> options, [NotNullWhen(true)] out CompletionItem? item)
         {
             // If the type is a SpecialType, create an additional item using 
             // its actual name (as opposed to intrinsic type keyword)
             var typeSymbol = symbol as ITypeSymbol;
             if (typeSymbol.IsSpecialType())
             {
-                item = CreateItem(workspace, semanticModel, symbol, token, position, builder, options, CrefFormatForSpecialTypes);
+                item = CreateItem(semanticModel, symbol, token, position, builder, options, CrefFormatForSpecialTypes);
                 return true;
             }
 
@@ -301,16 +306,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private CompletionItem CreateItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
+        private static CompletionItem CreateItem(
+            SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
         {
             // For every symbol, we create an item that uses the regular CrefFormat,
             // which uses intrinsic type keywords
-            return CreateItem(workspace, semanticModel, symbol, token, position, builder, options, CrefFormat);
+            return CreateItem(semanticModel, symbol, token, position, builder, options, CrefFormat);
         }
 
-        private CompletionItem CreateItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options,
+        private static CompletionItem CreateItem(
+            SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options,
             SymbolDisplayFormat unqualifiedCrefFormat)
         {
             builder.Clear();
@@ -332,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     builder.Append(symbol.IsIndexer() ? '[' : '(');
 
-                    for (int i = 0; i < parameters.Length; i++)
+                    for (var i = 0; i < parameters.Length; i++)
                     {
                         if (i > 0)
                         {
@@ -364,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CreateItemFromBuilder(symbol, position, builder, options);
         }
 
-        private CompletionItem CreateItemFromBuilder(ISymbol symbol, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
+        private static CompletionItem CreateItemFromBuilder(ISymbol symbol, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
         {
             var symbolText = builder.ToString();
 
@@ -380,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: position,
                 sortText: symbolText,
+                filterText: insertionText,
                 properties: options,
                 rules: GetRules(insertionText));
         }
@@ -387,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CharacterSetModificationRule s_WithoutOpenBrace = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '{');
         private static readonly CharacterSetModificationRule s_WithoutOpenParen = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(');
 
-        private CompletionItemRules GetRules(string displayText)
+        private static CompletionItemRules GetRules(string displayText)
         {
             var commitRules = ImmutableArray<CharacterSetModificationRule>.Empty;
 
@@ -421,6 +427,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CrefCompletionProvider _crefCompletionProvider;
+
+            public TestAccessor(CrefCompletionProvider crefCompletionProvider)
+                => _crefCompletionProvider = crefCompletionProvider;
+
+            public void SetSpeculativeNodeCallback(Action<SyntaxNode?> value)
+                => _crefCompletionProvider._testSpeculativeNodeCallback = value;
         }
     }
 }

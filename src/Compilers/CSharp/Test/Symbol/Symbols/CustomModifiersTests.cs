@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -56,9 +60,9 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = (Compilation)CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
+            var test = compilation.GetTypeByMetadataName("Test1").GetMember<IMethodSymbol>("Test");
             var type = (INamedTypeSymbol)test.Parameters.First().Type;
             Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsLong)?", type.ToTestDisplayString());
             Assert.Equal("System.Runtime.CompilerServices.IsLong", type.GetTypeArgumentCustomModifiers(0).Single().Modifier.ToTestDisplayString());
@@ -126,9 +130,9 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = (Compilation)CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
+            var test = compilation.GetTypeByMetadataName("Test1").GetMember<IMethodSymbol>("Test");
             var type = (INamedTypeSymbol)test.Parameters.First().Type;
             Assert.Equal("System.Collections.Generic.Dictionary<System.Int32, System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)>",
                          type.ToTestDisplayString());
@@ -1516,7 +1520,7 @@ class Module1
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());
 
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First().Modifier.ContainingAssembly);
+            Assert.Same(compilation1.SourceModule.CorLibrary(), ((CSharpCustomModifier)((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First()).ModifierSymbol.ContainingAssembly);
 
             var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] { }, references: new[] { new CSharpCompilationReference(compilation1) });
 
@@ -1525,7 +1529,7 @@ class Module1
 
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingAssemblySymbol>(test.ContainingAssembly);
             Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First().Modifier.ContainingAssembly);
+            Assert.Same(compilation2.SourceModule.CorLibrary(), ((CSharpCustomModifier)((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First()).ModifierSymbol.ContainingAssembly);
 
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary());
         }
@@ -1825,7 +1829,7 @@ class CL3 : CL2
 ";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Mscorlib40, references: new[] { SystemCoreRef });
 
-            System.Action<IModuleSymbol> validator = (m) =>
+            System.Action<ModuleSymbol> validator = (m) =>
             {
                 var cl3 = ((ModuleSymbol)m).GlobalNamespace.GetTypeMember("CL3");
                 var test = cl3.GetMember<MethodSymbol>("Test");
@@ -2810,6 +2814,189 @@ class CL3 : CL1
             CompileAndVerify(compilation, expectedOutput:
 @"Alice and Bob
 Charlie");
+        }
+
+        [Fact]
+        [WorkItem(58520, "https://github.com/dotnet/roslyn/issues/58520")]
+        public void Issue58520_01()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit C1`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        string Method () cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 6 (0x6)
+        .maxstack 8
+
+        IL_0000: ldstr ""Method""
+        IL_0005: ret
+    } // end of method C1`1::Method
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C1`1::.ctor
+
+} // end of class C1`1
+
+.class public auto ansi beforefieldinit C2`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C2`1::.ctor
+
+} // end of class C2`1
+
+.class public auto ansi beforefieldinit C3`1<T>
+    extends class C1`1<int32 modopt(class C2`1<!T>)>
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x205f
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void class C1`1<int32>::.ctor()
+        IL_0006: ret
+    } // end of method C3`1::.ctor
+
+} // end of class C3`1
+";
+
+            var source = @"
+class Test
+{
+    static void Main()
+    {
+        M<int>();
+    }
+
+    static void M<T>()
+    {
+        System.Func<string> x = C3<T>.Method;
+        System.Console.WriteLine(x());
+    }
+}
+";
+            var compilation = CreateCompilationWithIL(source, ilSource, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"Method");
+        }
+
+        [Fact]
+        [WorkItem(58520, "https://github.com/dotnet/roslyn/issues/58520")]
+        public void Issue58520_02()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit C1`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        string Method () cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 6 (0x6)
+        .maxstack 8
+
+        IL_0000: ldstr ""Method""
+        IL_0005: ret
+    } // end of method C1`1::Method
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C1`1::.ctor
+
+} // end of class C1`1
+
+.class public auto ansi beforefieldinit C2`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C2`1::.ctor
+
+} // end of class C2`1
+
+.class public auto ansi beforefieldinit C3`1<T>
+    extends class C1`1<int32 modopt(class C2`1<!T>)>
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x205f
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void class C1`1<int32>::.ctor()
+        IL_0006: ret
+    } // end of method C3`1::.ctor
+
+} // end of class C3`1
+";
+
+            var source = @"
+class Test
+{
+    static void Main()
+    {
+        M<int>();
+    }
+
+    static void M<T>()
+    {
+        System.Func<string> x0 = C1<int>.Method;
+        System.Func<string> x1 = C3<T>.Method;
+        System.Console.WriteLine(x0()+x1());
+    }
+}
+";
+            var compilation = CreateCompilationWithIL(source, ilSource, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"MethodMethod");
         }
     }
 }

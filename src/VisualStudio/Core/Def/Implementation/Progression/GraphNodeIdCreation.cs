@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -32,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         internal static async Task<GraphNodeId> GetIdForNamespaceAsync(INamespaceSymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            CodeQualifiedIdentifierBuilder builder = new CodeQualifiedIdentifierBuilder();
+            var builder = new CodeQualifiedIdentifierBuilder();
 
             var assembly = await GetAssemblyFullPathAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             if (assembly != null)
@@ -133,15 +137,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 return await GetPartialForTypeParameterSymbolAsync(typeParameter, nodeName, solution, cancellationToken).ConfigureAwait(false);
             }
-            else if (symbol is IDynamicTypeSymbol dynamicType)
+            else if (symbol is IDynamicTypeSymbol)
             {
-                return GetPartialForDynamicType(dynamicType, nodeName);
+                return GetPartialForDynamicType(nodeName);
             }
 
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static GraphNodeId GetPartialForDynamicType(IDynamicTypeSymbol dt, GraphNodeIdName nodeName)
+        private static GraphNodeId GetPartialForDynamicType(GraphNodeIdName nodeName)
         {
             // We always consider this to be the "Object" type since Progression takes a very metadata-ish view of the type
             return GraphNodeId.GetPartial(nodeName, "Object");
@@ -180,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // because a symbol is not marked as "constructed" when a type is constructed using its own type parameters.
                 // To distinguish this case, we use "isInGenericArguments" flag which we pass either to populate arguments recursively or to populate "ParentType".
 
-                bool hasGenericArguments = (!Equals(namedType.ConstructedFrom, namedType) || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
+                var hasGenericArguments = (!Equals(namedType.ConstructedFrom, namedType) || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
 
                 if (hasGenericArguments)
                 {
@@ -201,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     partials.Add(await GetPartialForTypeAsync(namedType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken, hasGenericArguments).ConfigureAwait(false));
                 }
 
-                return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(false, partials.ToArray()));
+                return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(partials.ToArray()));
             }
         }
 
@@ -225,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 partials.Add(await GetPartialForTypeAsync(pointerType.PointedAtType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
             }
 
-            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(false, partials.ToArray()));
+            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(partials.ToArray()));
         }
 
         private static async Task<GraphNodeId> GetPartialForArrayTypeAsync(IArrayTypeSymbol arrayType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
@@ -246,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.ArrayRank, arrayType.Rank.ToString()));
             partials.Add(await GetPartialForTypeAsync(arrayType.ElementType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
 
-            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(false, partials.ToArray()));
+            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary(partials.ToArray()));
         }
 
         private static async Task<GraphNodeId> GetPartialForTypeParameterSymbolAsync(ITypeParameterSymbol typeParameterSymbol, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
@@ -326,10 +330,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         //     }
 
                         var nodes = await GetPartialsForNamespaceAndTypeAsync(methodSymbol.ReturnType, true, solution, cancellationToken).ConfigureAwait(false);
-                        List<GraphNodeId> returnTypePartial = nodes.ToList();
+                        var returnTypePartial = nodes.ToList();
                         returnTypePartial.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.ParamKind, Microsoft.VisualStudio.GraphModel.CodeSchema.ParamKind.Return));
 
-                        GraphNodeId returnCollection = GraphNodeId.GetNested(returnTypePartial.ToArray());
+                        var returnCollection = GraphNodeId.GetNested(returnTypePartial.ToArray());
                         parameterTypeIds.Add(returnCollection);
                     }
 
@@ -340,7 +344,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 partials.Add(GraphNodeId.GetPartial(
                             CodeGraphNodeIdName.Member,
-                            MakeCollectionIfNecessary(false, memberPartials.ToArray())));
+                            MakeCollectionIfNecessary(memberPartials.ToArray())));
             }
             else
             {
@@ -350,7 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return GraphNodeId.GetNested(partials.ToArray());
         }
 
-        private static object MakeCollectionIfNecessary(bool isHomogeneous, GraphNodeId[] array)
+        private static object MakeCollectionIfNecessary(GraphNodeId[] array)
         {
             // Place the array of GraphNodeId's into the collection if necessary, so to make them appear in VS Properties Panel
             if (array.Length > 1)
@@ -368,8 +372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 return symbol.ContainingAssembly;
             }
 
-            var typeSymbol = symbol as ITypeSymbol;
-            if (typeSymbol == null)
+            if (symbol is not ITypeSymbol typeSymbol)
             {
                 return null;
             }
@@ -386,7 +389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private static async Task<Uri> GetAssemblyFullPathAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            IAssemblySymbol containingAssembly = GetContainingAssembly(symbol);
+            var containingAssembly = GetContainingAssembly(symbol);
             return await GetAssemblyFullPathAsync(containingAssembly, solution, cancellationToken).ConfigureAwait(false);
         }
 
@@ -397,10 +400,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 return null;
             }
 
-            Project foundProject = solution.GetProject(containingAssembly, cancellationToken);
+            var foundProject = solution.GetProject(containingAssembly, cancellationToken);
             if (foundProject != null)
             {
-                if (solution.Workspace is VisualStudioWorkspace workspace)
+                if (solution.Workspace is VisualStudioWorkspace)
                 {
                     // TODO: audit the OutputFilePath and whether this is bin or obj
                     if (!string.IsNullOrWhiteSpace(foundProject.OutputFilePath))
@@ -440,10 +443,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         internal static async Task<GraphNodeId> GetIdForAssemblyAsync(IAssemblySymbol assemblySymbol, Solution solution, CancellationToken cancellationToken)
         {
-            Uri assembly = await GetAssemblyFullPathAsync(assemblySymbol, solution, cancellationToken).ConfigureAwait(false);
+            var assembly = await GetAssemblyFullPathAsync(assemblySymbol, solution, cancellationToken).ConfigureAwait(false);
             if (assembly != null)
             {
-                CodeQualifiedIdentifierBuilder builder = new CodeQualifiedIdentifierBuilder();
+                var builder = new CodeQualifiedIdentifierBuilder();
                 builder.Assembly = assembly;
                 return builder.ToQualifiedIdentifier();
             }
@@ -460,17 +463,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 throw new ArgumentException("symbol");
             }
 
-            ISymbol containingSymbol = symbol.ContainingSymbol;
+            var containingSymbol = symbol.ContainingSymbol;
             if (containingSymbol is IMethodSymbol method && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
             {
-                IPropertySymbol property = (IPropertySymbol)method.AssociatedSymbol;
+                var property = (IPropertySymbol)method.AssociatedSymbol;
                 if (property.Parameters.Any(p => p.Name == symbol.Name))
                 {
                     containingSymbol = property;
                 }
             }
 
-            GraphNodeId memberId = await GetIdForMemberAsync(containingSymbol, solution, cancellationToken).ConfigureAwait(false);
+            var memberId = await GetIdForMemberAsync(containingSymbol, solution, cancellationToken).ConfigureAwait(false);
             if (memberId != null)
             {
                 return memberId + GraphNodeId.GetPartial(CodeGraphNodeIdName.Parameter, symbol.Name);
@@ -488,10 +491,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 throw new ArgumentException("symbol");
             }
 
-            GraphNodeId memberId = await GetIdForMemberAsync(symbol.ContainingSymbol, solution, cancellationToken).ConfigureAwait(false);
+            var memberId = await GetIdForMemberAsync(symbol.ContainingSymbol, solution, cancellationToken).ConfigureAwait(false);
             if (memberId != null)
             {
-                CodeQualifiedIdentifierBuilder builder = new CodeQualifiedIdentifierBuilder(memberId);
+                var builder = new CodeQualifiedIdentifierBuilder(memberId);
                 builder.LocalVariable = symbol.Name;
                 builder.LocalVariableIndex = await GetLocalVariableIndexAsync(symbol, solution, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
@@ -511,7 +514,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// </summary>
         private static async Task<int> GetLocalVariableIndexAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            int pos = 0;
+            var pos = 0;
 
             foreach (var reference in symbol.ContainingSymbol.DeclaringSyntaxReferences)
             {
@@ -526,7 +529,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 if (currentNode != null)
                 {
-                    Document document = solution.GetDocument(currentNode.SyntaxTree);
+                    var document = solution.GetDocument(currentNode.SyntaxTree);
                     if (document == null)
                     {
                         continue;
@@ -535,7 +538,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     foreach (var node in currentNode.DescendantNodes())
                     {
-                        ISymbol current = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+                        var current = semanticModel.GetDeclaredSymbol(node, cancellationToken);
                         if (current != null && current.Name == symbol.Name && (current.Kind == SymbolKind.Local || current.Kind == SymbolKind.RangeVariable))
                         {
                             if (!current.Equals(symbol))

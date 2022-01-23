@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -15,9 +19,10 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
 using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
-using Microsoft.DiaSymReader;
 
 namespace Microsoft.Cci
 {
@@ -97,12 +102,14 @@ namespace Microsoft.Cci
                 {
 #if DEBUG
                     // validate that all definitions are writable
-                    // if same scenario would happen in an winmdobj project
+                    // if same scenario would happen in a winmdobj project
                     nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(mdWriter.Module.GetSymbolToLocationMap());
 #endif
                 }
 
-                nativePdbWriterOpt.WriteRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
+                nativePdbWriterOpt.WriteRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
+
+                nativePdbWriterOpt.WriteCompilerVersion(context.Module.CommonCompilation.Language);
             }
 
             Stream peStream = getPeStream();
@@ -140,9 +147,8 @@ namespace Microsoft.Cci
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
                 sizeOfHeapCommit: properties.SizeOfHeapCommit);
 
-            // TODO: replace SHA1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
             var peIdProvider = isDeterministic ?
-                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeHash(HashAlgorithmName.SHA1, content))) :
+                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSourceHash(content))) :
                 null;
 
             // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
@@ -151,7 +157,7 @@ namespace Microsoft.Cci
             BlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitPortableDebugMetadata)
             {
-                mdWriter.AddRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
+                mdWriter.AddRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
 
                 // The algorithm must be specified for deterministic builds (checked earlier).
                 Debug.Assert(!isDeterministic || context.Module.PdbChecksumAlgorithm.Name != null);
@@ -333,10 +339,16 @@ namespace Microsoft.Cci
                 return new ResourceSectionBuilderFromResources(nativeResourcesOpt);
             }
 
+            var rawResourcesOpt = module.RawWin32Resources;
+            if (rawResourcesOpt != null)
+            {
+                return new ResourceSectionBuilderFromRaw(rawResourcesOpt);
+            }
+
             return null;
         }
 
-        private class ResourceSectionBuilderFromObj : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromObj : ResourceSectionBuilder
         {
             private readonly ResourceSection _resourceSection;
 
@@ -352,7 +364,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private class ResourceSectionBuilderFromResources : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromResources : ResourceSectionBuilder
         {
             private readonly IEnumerable<IWin32Resource> _resources;
 
@@ -365,6 +377,24 @@ namespace Microsoft.Cci
             protected override void Serialize(BlobBuilder builder, SectionLocation location)
             {
                 NativeResourceWriter.SerializeWin32Resources(builder, _resources, location.RelativeVirtualAddress);
+            }
+        }
+
+        private sealed class ResourceSectionBuilderFromRaw : ResourceSectionBuilder
+        {
+            private readonly Stream _resources;
+            public ResourceSectionBuilderFromRaw(Stream resources)
+            {
+                _resources = resources;
+            }
+
+            protected override void Serialize(BlobBuilder builder, SectionLocation location)
+            {
+                int value;
+                while ((value = _resources.ReadByte()) >= 0)
+                {
+                    builder.WriteByte((byte)value);
+                }
             }
         }
     }

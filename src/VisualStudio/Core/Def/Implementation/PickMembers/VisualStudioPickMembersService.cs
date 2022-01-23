@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -16,27 +19,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         private readonly IGlyphService _glyphService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioPickMembersService(IGlyphService glyphService)
-        {
-            _glyphService = glyphService;
-        }
+            => _glyphService = glyphService;
 
         public PickMembersResult PickMembers(
-            string title, ImmutableArray<ISymbol> members, ImmutableArray<PickMembersOption> options)
+            string title,
+            ImmutableArray<ISymbol> members,
+            ImmutableArray<PickMembersOption> options,
+            bool selectAll)
         {
             options = options.NullToEmpty();
 
-            var viewModel = new PickMembersDialogViewModel(_glyphService, members, options);
+            var viewModel = new PickMembersDialogViewModel(_glyphService, members, options, selectAll);
             var dialog = new PickMembersDialog(viewModel, title);
             var result = dialog.ShowModal();
 
-            if (result.HasValue && result.Value)
+            if (result == true)
             {
                 return new PickMembersResult(
                     viewModel.MemberContainers.Where(c => c.IsChecked)
-                                              .Select(c => c.MemberSymbol)
+                                              .Select(c => c.Symbol)
                                               .ToImmutableArray(),
-                    options);
+                    options,
+                    viewModel.SelectedAll);
             }
             else
             {

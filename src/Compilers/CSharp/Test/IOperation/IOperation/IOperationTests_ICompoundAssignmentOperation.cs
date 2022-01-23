@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -10,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_ICompoundAssignmentOperation : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -77,7 +81,7 @@ class C
             (IOperation operation, SyntaxNode node) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
             var compoundAssignment = (ICompoundAssignmentOperation)operation;
 
-            var typeSymbol = (TypeSymbol)compilation.GetSymbolsWithName(sym => sym == "C", SymbolFilter.All).Single();
+            var typeSymbol = compilation.GetTypeByMetadataName("C");
             var implicitSymbols = typeSymbol.GetMembers("op_Implicit").Cast<MethodSymbol>();
             var inSymbol = implicitSymbols.Where(sym => sym.ReturnType.SpecialType == SpecialType.System_Int32).Single();
             var outSymbol = implicitSymbols.Where(sym => sym != inSymbol).Single();

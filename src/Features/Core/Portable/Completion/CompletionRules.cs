@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public EnterKeyRule DefaultEnterKeyRule { get; }
 
         /// <summary>
-        /// The rule determing how snippets work.
+        /// The rule determining how snippets work.
         /// </summary>
         public SnippetsRule SnippetsRule { get; }
 
@@ -44,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Completion
             EnterKeyRule defaultEnterKeyRule,
             SnippetsRule snippetsRule)
         {
-            this.DismissIfEmpty = dismissIfEmpty;
-            this.DismissIfLastCharacterDeleted = dismissIfLastCharacterDeleted;
-            this.DefaultCommitCharacters = defaultCommitCharacters.NullToEmpty();
-            this.DefaultEnterKeyRule = defaultEnterKeyRule;
-            this.SnippetsRule = snippetsRule;
+            DismissIfEmpty = dismissIfEmpty;
+            DismissIfLastCharacterDeleted = dismissIfLastCharacterDeleted;
+            DefaultCommitCharacters = defaultCommitCharacters.NullToEmpty();
+            DefaultEnterKeyRule = defaultEnterKeyRule;
+            SnippetsRule = snippetsRule;
         }
 
         /// <summary>
@@ -98,17 +100,17 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<EnterKeyRule> defaultEnterKeyRule = default,
             Optional<SnippetsRule> snippetsRule = default)
         {
-            var newDismissIfEmpty = dismissIfEmpty.HasValue ? dismissIfEmpty.Value : this.DismissIfEmpty;
-            var newDismissIfLastCharacterDeleted = dismissIfLastCharacterDeleted.HasValue ? dismissIfLastCharacterDeleted.Value : this.DismissIfLastCharacterDeleted;
-            var newDefaultCommitCharacters = defaultCommitCharacters.HasValue ? defaultCommitCharacters.Value : this.DefaultCommitCharacters;
-            var newDefaultEnterKeyRule = defaultEnterKeyRule.HasValue ? defaultEnterKeyRule.Value : this.DefaultEnterKeyRule;
-            var newSnippetsRule = snippetsRule.HasValue ? snippetsRule.Value : this.SnippetsRule;
+            var newDismissIfEmpty = dismissIfEmpty.HasValue ? dismissIfEmpty.Value : DismissIfEmpty;
+            var newDismissIfLastCharacterDeleted = dismissIfLastCharacterDeleted.HasValue ? dismissIfLastCharacterDeleted.Value : DismissIfLastCharacterDeleted;
+            var newDefaultCommitCharacters = defaultCommitCharacters.HasValue ? defaultCommitCharacters.Value : DefaultCommitCharacters;
+            var newDefaultEnterKeyRule = defaultEnterKeyRule.HasValue ? defaultEnterKeyRule.Value : DefaultEnterKeyRule;
+            var newSnippetsRule = snippetsRule.HasValue ? snippetsRule.Value : SnippetsRule;
 
-            if (newDismissIfEmpty == this.DismissIfEmpty &&
-                newDismissIfLastCharacterDeleted == this.DismissIfLastCharacterDeleted &&
-                newDefaultCommitCharacters == this.DefaultCommitCharacters &&
-                newDefaultEnterKeyRule == this.DefaultEnterKeyRule &&
-                newSnippetsRule == this.SnippetsRule)
+            if (newDismissIfEmpty == DismissIfEmpty &&
+                newDismissIfLastCharacterDeleted == DismissIfLastCharacterDeleted &&
+                newDefaultCommitCharacters == DefaultCommitCharacters &&
+                newDefaultEnterKeyRule == DefaultEnterKeyRule &&
+                newSnippetsRule == SnippetsRule)
             {
                 return this;
             }
@@ -127,41 +129,31 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionRules"/> with the <see cref="DismissIfEmpty"/> property changed.
         /// </summary>
         public CompletionRules WithDismissIfEmpty(bool dismissIfEmpty)
-        {
-            return With(dismissIfEmpty: dismissIfEmpty);
-        }
+            => With(dismissIfEmpty: dismissIfEmpty);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionRules"/> with the <see cref="DismissIfLastCharacterDeleted"/> property changed.
         /// </summary>
         public CompletionRules WithDismissIfLastCharacterDeleted(bool dismissIfLastCharacterDeleted)
-        {
-            return With(dismissIfLastCharacterDeleted: dismissIfLastCharacterDeleted);
-        }
+            => With(dismissIfLastCharacterDeleted: dismissIfLastCharacterDeleted);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionRules"/> with the <see cref="DefaultCommitCharacters"/> property changed.
         /// </summary>
         public CompletionRules WithDefaultCommitCharacters(ImmutableArray<char> defaultCommitCharacters)
-        {
-            return With(defaultCommitCharacters: defaultCommitCharacters);
-        }
+            => With(defaultCommitCharacters: defaultCommitCharacters);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionRules"/> with the <see cref="DefaultEnterKeyRule"/> property changed.
         /// </summary>
         public CompletionRules WithDefaultEnterKeyRule(EnterKeyRule defaultEnterKeyRule)
-        {
-            return With(defaultEnterKeyRule: defaultEnterKeyRule);
-        }
+            => With(defaultEnterKeyRule: defaultEnterKeyRule);
 
         /// <summary>
         /// Creates a copy of the this <see cref="CompletionRules"/> with the <see cref="SnippetsRule"/> property changed.
         /// </summary>
         public CompletionRules WithSnippetsRule(SnippetsRule snippetsRule)
-        {
-            return With(snippetsRule: snippetsRule);
-        }
+            => With(snippetsRule: snippetsRule);
 
         private static readonly ImmutableArray<char> s_defaultCommitKeys = ImmutableArray.Create(
                 ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
@@ -171,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The default <see cref="CompletionRules"/> if none is otherwise specified.
         /// </summary>
-        public static readonly CompletionRules Default = new CompletionRules(
+        public static readonly CompletionRules Default = new(
             dismissIfEmpty: false,
             dismissIfLastCharacterDeleted: false,
             defaultCommitCharacters: s_defaultCommitKeys,

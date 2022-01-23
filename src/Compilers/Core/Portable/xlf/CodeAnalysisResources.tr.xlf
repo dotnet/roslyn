@@ -4,19 +4,59 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">Bu seçenek için bir dil adı belirtilemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">Bu seçenek için bir dil adı belirtilmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">'{0}' türünü içeren bütünleştirilmiş kod, desteklenmeyen .NET Framework'e başvuruyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">Değişiklikler, SourceText sınırları içinde olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">Hata ayıklama sırasında bütünleştirilmiş kod başvurusunun sürümünü değiştirmeye izin verilmez: '{0}' sürümü, '{1}' olarak değiştirildi.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="translated">{0}' çözümleyicisi şu özel durumu oluşturdu:
+        <target state="translated">'{0}' çözümleyicisi şu özel durumu oluşturdu:
 '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="translated">Bu çözümleyiciyi devre dışı bırakmak için şu tanılamaları gizleyin: {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
+        <target state="translated">hintName '{0}', {2} konumunda geçersiz bir '{1}' karakteri içeriyor.</target>
+        <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
+        <target state="translated">Eklenen kaynak dosyanın '{0}' hintName'i bir oluşturucu içinde benzersiz olmalıdır.</target>
+        <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">Ek dosya, temel alınan 'CompilationWithAnalyzers' öğesine ait değil.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="translated">'{0}' gizlenmiş tanılama kimliği, belirtilen gizleme tanımlayıcısı için gizlenebilir '{1}' kimliği ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -32,6 +72,16 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">'{0}' parametresi bu derleme veya bazı başvurulan derleme bir sembol olması gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">Modülde geçersiz öznitelikler var.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="translated">'{0}' kimlikli raporlanamayan tanılama gizlenemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -69,9 +119,49 @@
         <target state="translated">Derleme meta verileri oluşturmak için modül kopyası kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="translated">Oluşturucu başına tek bir {0} kaydedilebilir.</target>
+        <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
+        <target state="translated">SourceText'in '{0}'' hintName'i açık bir kodlama kümesi olmalıdır.</target>
+        <note>'SourceText' is not localizable. {0}: the provided hintname</note>
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">Çözümleyicisi '{0}', 'SupportedDiagnostics' boş bir tanımlayıcısı içerir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="translated">'{0}' çözümleyicisi, 'SupportedSuppressions' içinde boş bir tanımlayıcı içeriyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="translated">'{0}: {1}' tanılaması, '{2}' gizleme kimliği ve '{3}' gerekçesi ile DiagnosticSuppressor tarafından programlama yoluyla gizlendi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="translated">Bir çözümleyici tanılamasının programlı bir şekilde gizlenmesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">SuppressionDescriptor türünün kimliği, null veya boş bir dize ya da yalnızca boşluk içeren bir dize olmamalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="translated">Demet öğelerine yönelik boş değer atanabilir ek açıklamalar belirtildiyse, ek açıklamaların sayısı demetin kardinalitesiyle eşleşmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">Hatanın nedeni belirlenemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -166,12 +256,12 @@
       </trans-unit>
       <trans-unit id="InMemoryAssembly">
         <source>&lt;in-memory assembly&gt;</source>
-        <target state="translated">&lt; bellek içi derleme &gt;</target>
+        <target state="translated">&lt;bellek içi derleme&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt; bellek modülü &gt;</target>
+        <target state="translated">&lt;bellek modülü&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">
@@ -202,6 +292,11 @@
       <trans-unit id="GetMetadataMustReturnInstance">
         <source>{0}.GetMetadata() must return an instance of {1}.</source>
         <target state="translated">{0}.GetMetadata() bir {1} örneği döndürmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="translated">'{0}' kimliği ile bildirilen gizleme, gizleyici tarafından desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -311,7 +406,7 @@
       </trans-unit>
       <trans-unit id="InvalidModuleName">
         <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
-        <target state="translated">{0}' meta veri modülünde geçersiz modül adı belirtildi: '{1}'</target>
+        <target state="translated">'{0}' meta veri modülünde geçersiz modül adı belirtildi: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="FileSizeExceedsMaximumAllowed">
@@ -479,14 +574,34 @@
         <target state="translated">Geçersiz kültür adı: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">Genel çözümleyici yapılandırması bölümü adı ('{0}') mutlak bir yol olmadığından geçersiz. Bölüm yoksayılacak. Bölüm '{1}' dosyasında bildirildi</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">Genel çözümleyici yapılandırması bölümü adı mutlak bir yol olmadığından geçersiz. Bölüm yoksayılacak.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
-        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <target state="translated">'{0}' tanılamasına '{2}' konumundaki çözümleyici yapılandırma dosyasında geçersiz bir önem derecesi ('{1}') verildi.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
         <source>Invalid severity in analyzer config file.</source>
-        <target state="new">Invalid severity in analyzer config file.</target>
+        <target state="translated">Çözümleyici yapılandırma dosyasında geçersiz önem derecesi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="translated">Birden çok genel çözümleyici yapılandırma dosyası, '{1}' bölümünde aynı '{0}' anahtarını ayarladı. Ayar kaldırıldı. Anahtar şu dosyalar tarafından ayarlandı: '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="translated">Birden çok genel çözümleyici yapılandırma dosyası aynı anahtarı ayarladı. Ayar kaldırıldı.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
@@ -522,11 +637,16 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">Çözümleyici Hatası</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">{0}' çözümleyicisi '{2}' iletisiyle '{1}' türünde bir özel durum oluşturdu.</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">'{0}' çözümleyicisi '{2}' iletisiyle '{1}' türünde bir özel durum oluşturdu.
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
@@ -591,14 +711,9 @@
         <target state="translated">Bağımsız değişken null öğe içeremez.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">Çözümleyici, desteklenmeyen 'asenkron' bir eylem kaydetmeye çalıştı.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">{0}' kimliği ile bildirilen tanılama, çözümleyici tarafından desteklenmiyor.</target>
+        <target state="translated">'{0}' kimliği ile bildirilen tanılama, çözümleyici tarafından desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticIdReported">
@@ -613,17 +728,17 @@
       </trans-unit>
       <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
         <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">{0}' türü, serileştirme bağlayıcısı tarafından anlaşılamıyor.</target>
+        <target state="translated">'{0}' türü, serileştirme bağlayıcısı tarafından anlaşılamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_deserialize_type_0">
         <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">{0}' türü seri durumdan çıkarılamıyor.</target>
+        <target state="translated">'{0}' türü seri durumdan çıkarılamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_serialize_type_0">
         <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">{0}' türü seri hale getirilemiyor.</target>
+        <target state="translated">'{0}' türü seri hale getirilemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
@@ -785,7 +900,7 @@
       </trans-unit>
       <trans-unit id="ReferenceOfTypeIsInvalid1">
         <source>Reference of type '{0}' is not valid for this compilation.</source>
-        <target state="translated">{0}' türündeki başvuru bu derleme için geçerli değil.</target>
+        <target state="translated">'{0}' türündeki başvuru bu derleme için geçerli değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="MetadataRefNotFoundToRemove1">
@@ -865,7 +980,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}' türünün seri durumdan çıkarma okuyucusu, yanlış sayıda değer okudu.</target>
+        <target state="translated">'{0}' türünün seri durumdan çıkarma okuyucusu, yanlış sayıda değer okudu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Stream_contains_invalid_data">

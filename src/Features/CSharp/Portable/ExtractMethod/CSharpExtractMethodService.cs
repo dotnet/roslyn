@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -13,18 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     internal class CSharpExtractMethodService : AbstractExtractMethodService<CSharpSelectionValidator, CSharpMethodExtractor, CSharpSelectionResult>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpExtractMethodService()
         {
         }
 
-        protected override CSharpSelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, OptionSet options)
-        {
-            return new CSharpSelectionValidator(document, textSpan, options);
-        }
+        protected override CSharpSelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction, ExtractMethodOptions options)
+            => new CSharpSelectionValidator(document, textSpan, localFunction, options);
 
-        protected override CSharpMethodExtractor CreateMethodExtractor(CSharpSelectionResult selectionResult)
-        {
-            return new CSharpMethodExtractor(selectionResult);
-        }
+        protected override CSharpMethodExtractor CreateMethodExtractor(CSharpSelectionResult selectionResult, bool localFunction)
+            => new CSharpMethodExtractor(selectionResult, localFunction);
     }
 }

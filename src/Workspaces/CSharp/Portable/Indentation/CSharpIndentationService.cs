@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
-using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,44 +22,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     [ExportLanguageService(typeof(IIndentationService), LanguageNames.CSharp), Shared]
     internal sealed partial class CSharpIndentationService : AbstractIndentationService<CompilationUnitSyntax>
     {
-        public static readonly CSharpIndentationService Instance = new CSharpIndentationService();
+        public static readonly CSharpIndentationService Instance = new();
 
         private static readonly AbstractFormattingRule s_instance = new FormattingRule();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public CSharpIndentationService()
         {
         }
 
-        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule()
-        {
-            return s_instance;
-        }
-
-        protected override AbstractIndenter GetIndenter(
-            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            return new Indenter(
-                syntaxFacts, syntaxTree, formattingRules,
-                optionSet, lineToBeIndented, cancellationToken);
-        }
+        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle)
+            => s_instance;
 
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root,
             TextLine line,
-            OptionSet optionSet,
-            CancellationToken cancellationToken)
+            IndentationOptions options,
+            out SyntaxToken token)
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);
 
-            if (!optionSet.GetOption(FormattingOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
+            token = default;
+            if (!options.AutoFormattingOptions.FormatOnReturn)
             {
                 return false;
             }
 
-            if (optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp) != FormattingOptions.IndentStyle.Smart)
+            if (options.AutoFormattingOptions.IndentStyle != FormattingOptions.IndentStyle.Smart)
             {
                 return false;
             }
@@ -69,7 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            var token = root.FindToken(firstNonWhitespacePosition.Value);
+            token = root.FindToken(firstNonWhitespacePosition.Value);
+            if (IsInvalidToken(token))
+            {
+                return false;
+            }
+
             if (token.IsKind(SyntaxKind.None) ||
                 token.SpanStart != firstNonWhitespacePosition)
             {
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet);
+            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, options.FormattingOptions);
             if (lineOperation == null || lineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 // no indentation operation, nothing to do for smart token formatter
@@ -97,9 +95,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return true;
         }
 
+        private static bool IsInvalidToken(SyntaxToken token)
+        {
+            // invalid token to be formatted
+            return token.IsKind(SyntaxKind.None) ||
+                   token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
+                   token.IsKind(SyntaxKind.EndOfFileToken);
+        }
+
         private class FormattingRule : AbstractFormattingRule
         {
-            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
+            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             {
                 // these nodes should be from syntax tree from ITextSnapshot.
                 Debug.Assert(node.SyntaxTree != null);
@@ -119,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
 
                 if (node is BaseArgumentListSyntax argument &&
-                    argument.Parent.Kind() != SyntaxKind.ThisConstructorInitializer &&
+                    !argument.Parent.IsKind(SyntaxKind.ThisConstructorInitializer) &&
                     !IsBracketedArgumentListMissingBrackets(argument as BracketedArgumentListSyntax))
                 {
                     AddIndentBlockOperations(list, argument);
@@ -156,15 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
-            {
-                return node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
-            }
+            private static bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax? node)
+                => node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
 
-            private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
+            private static void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
-                var section = node as SwitchSectionSyntax;
-                if (section == null || section.Statements.Count == 0)
+                if (node is not SwitchSectionSyntax section || section.Statements.Count == 0)
                 {
                     return;
                 }
@@ -172,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 var startToken = section.Statements.First().GetFirstToken(includeZeroWidth: true);
                 var endToken = section.Statements.Last().GetLastToken(includeZeroWidth: true);
 
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     var operation = list[i];
                     if (operation.StartToken == startToken && operation.EndToken == endToken)
@@ -185,8 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             private static void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node)
             {
+                RoslynDebug.AssertNotNull(node.Parent);
+
                 // only add indent block operation if the base token is the first token on line
-                var text = node.SyntaxTree.GetText();
                 var baseToken = node.Parent.GetFirstToken(includeZeroWidth: true);
 
                 list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -10,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Friend MustInherit Class MethodSymbol
         Inherits Symbol
-        Implements IMethodSymbolInternal
+        Implements IMethodSymbol, IMethodSymbolInternal
 
         ''' <summary>
         ''' Gets what kind of method this is. There are several different kinds of things in the
@@ -109,6 +111,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_IsInitOnly As Boolean Implements IMethodSymbol.IsInitOnly
+            Get
+                Return IsInitOnly
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns true if this method has no return type; i.e., is a Sub instead of a Function.
         ''' </summary>
@@ -125,6 +133,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Metadata: Returns False; methods from metadata cannot be an iterator.
         ''' </summary>
         Public MustOverride ReadOnly Property IsIterator As Boolean
+
+        ''' <summary>
+        ''' Indicates whether the accessor is marked with the 'init' modifier.
+        ''' </summary>
+        Public MustOverride ReadOnly Property IsInitOnly As Boolean
 
         ''' <summary>
         ''' Source: Returns False; methods from source cannot return by reference.
@@ -243,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Forces binding and decoding of attributes.
         ''' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We maintain compatibility.
         ''' </remarks>
-        Friend ReadOnly Property IsConditional As Boolean
+        Public ReadOnly Property IsConditional As Boolean Implements IMethodSymbol.IsConditional
             Get
                 Return Me.GetAppliedConditionalSymbols.Any()
             End Get
@@ -525,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim firstType = Parameters(0).Type
-            If firstType.TypeKind <> TypeKind.Array Then
+            If firstType.TypeKind <> TYPEKIND.Array Then
                 Return False
             End If
 
@@ -559,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             typeArguments.CheckTypeArguments(Me.Arity)
         End Sub
 
-        ' Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
+        ' Apply type substitution to a generic method to create a method symbol with the given type parameters supplied.
         Public Overridable Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As MethodSymbol
             CheckCanConstructAndTypeArguments(typeArguments)
 
@@ -605,57 +618,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Me.IsDefinition Then
-                Return MyBase.GetUseSiteErrorInfo()
+                Return New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
             End If
 
             ' There is no reason to specially check type arguments because
             ' constructed members are never imported.
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return Me.OriginalDefinition.GetUseSiteInfo()
         End Function
 
-        Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
+        Friend Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
 
             Debug.Assert(IsDefinition)
 
             ' Check return type.
-            Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.ReturnType)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency), DeriveUseSiteInfoFromType(Me.ReturnType))
 
-            If errorInfo IsNot Nothing AndAlso errorInfo.Code = ERRID.ERR_UnsupportedMethod1 Then
-                Return errorInfo
+            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedMethod1 Then
+                Return useSiteInfo
             End If
 
             ' Check return type custom modifiers.
-            Dim refModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.RefCustomModifiers)
+            Dim refModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If refModifiersErrorInfo IsNot Nothing AndAlso refModifiersErrorInfo.Code = ERRID.ERR_UnsupportedMethod1 Then
-                Return refModifiersErrorInfo
+            If refModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedMethod1 Then
+                Return refModifiersUseSiteInfo
             End If
 
-            Dim typeModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.ReturnTypeCustomModifiers)
+            Dim typeModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.ReturnTypeCustomModifiers, allowIsExternalInit:=IsInitOnly)
 
-            If typeModifiersErrorInfo IsNot Nothing AndAlso typeModifiersErrorInfo.Code = ERRID.ERR_UnsupportedMethod1 Then
-                Return typeModifiersErrorInfo
+            If typeModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedMethod1 Then
+                Return typeModifiersUseSiteInfo
             End If
-
-            errorInfo = If(errorInfo, If(refModifiersErrorInfo, typeModifiersErrorInfo))
 
             ' Check parameters.
-            Dim result = MergeUseSiteErrorInfo(errorInfo, DeriveUseSiteErrorInfoFromParameters(Me.Parameters))
+            Dim parametersUseSiteInfo = DeriveUseSiteInfoFromParameters(Me.Parameters)
+
+            If parametersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedMethod1 Then
+                Return parametersUseSiteInfo
+            End If
+
+            Dim errorInfo As DiagnosticInfo = If(useSiteInfo.DiagnosticInfo,
+                                              If(refModifiersUseSiteInfo.DiagnosticInfo,
+                                              If(typeModifiersUseSiteInfo.DiagnosticInfo,
+                                                 parametersUseSiteInfo.DiagnosticInfo)))
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
-            If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
+            If errorInfo Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
-                result = If(Me.ReturnType.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
-                         If(GetUnificationUseSiteDiagnosticRecursive(Me.RefCustomModifiers, Me, unificationCheckedTypes),
-                         If(GetUnificationUseSiteDiagnosticRecursive(Me.ReturnTypeCustomModifiers, Me, unificationCheckedTypes),
-                         If(GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.TypeParameters, Me, unificationCheckedTypes)))))
+                errorInfo = If(Me.ReturnType.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                            If(GetUnificationUseSiteDiagnosticRecursive(Me.RefCustomModifiers, Me, unificationCheckedTypes),
+                            If(GetUnificationUseSiteDiagnosticRecursive(Me.ReturnTypeCustomModifiers, Me, unificationCheckedTypes),
+                            If(GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes),
+                               GetUnificationUseSiteDiagnosticRecursive(Me.TypeParameters, Me, unificationCheckedTypes)))))
+
+                Debug.Assert(errorInfo Is Nothing OrElse errorInfo.Severity = DiagnosticSeverity.Error)
             End If
 
-            Return result
+            If errorInfo IsNot Nothing Then
+                Return New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+            End If
+
+            Dim primaryDependency = useSiteInfo.PrimaryDependency
+            Dim secondaryDependency = useSiteInfo.SecondaryDependencies
+
+            refModifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+            typeModifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+            parametersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+
+            Return New UseSiteInfo(Of AssemblySymbol)(diagnosticInfo:=Nothing, primaryDependency, secondaryDependency)
         End Function
 
         ''' <summary>
@@ -669,7 +702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = GetUseSiteErrorInfo()
+                Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
                 Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedMethod1
             End Get
         End Property
@@ -740,16 +773,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Name lookup should use this method in order to capture proximity, which affects 
         ''' overload resolution. 
         ''' </summary>
-        Friend Function ReduceExtensionMethod(instanceType As TypeSymbol, proximity As Integer) As MethodSymbol
-            Return ReducedExtensionMethodSymbol.Create(instanceType, Me, proximity)
+        Friend Function ReduceExtensionMethod(instanceType As TypeSymbol, proximity As Integer, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As MethodSymbol
+            Return ReducedExtensionMethodSymbol.Create(instanceType, Me, proximity, useSiteInfo)
         End Function
 
         ''' <summary>
         ''' If this is an extension method that can be applied to a instance of the given type,
         ''' returns the reduced method symbol thus formed. Otherwise, returns Nothing.
         ''' </summary>
-        Public Function ReduceExtensionMethod(instanceType As TypeSymbol) As MethodSymbol
-            Return ReduceExtensionMethod(instanceType, proximity:=0)
+        Public Function ReduceExtensionMethod(instanceType As TypeSymbol, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As MethodSymbol
+            Return ReduceExtensionMethod(instanceType, proximity:=0, useSiteInfo)
         End Function
 
         ''' <summary>
@@ -779,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks>
         ''' The method MAY return a binder used for binding so it can be reused later in method compiler
         ''' </remarks>
-        Friend Overridable Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overridable Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -862,6 +895,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_MethodImplementationFlags As System.Reflection.MethodImplAttributes Implements IMethodSymbol.MethodImplementationFlags
+            Get
+                Return Me.ImplementationAttributes
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_IsExtensionMethod As Boolean Implements IMethodSymbol.IsExtensionMethod
             Get
                 Return Me.IsExtensionMethod
@@ -894,7 +933,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_ReceiverNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReceiverNullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
             End Get
         End Property
 
@@ -913,7 +952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw New ArgumentNullException(NameOf(receiverType))
             End If
 
-            Return Me.ReduceExtensionMethod(receiverType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(receiverType)))
+            Return Me.ReduceExtensionMethod(receiverType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(receiverType)), CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
         End Function
 
         Private ReadOnly Property IMethodSymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IMethodSymbol.Parameters
@@ -965,6 +1004,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_IsPartialDefinition As Boolean Implements IMethodSymbol.IsPartialDefinition
+            Get
+                Return If(TryCast(Me, SourceMemberMethodSymbol)?.IsPartialDefinition, False)
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_ReturnsVoid As Boolean Implements IMethodSymbol.ReturnsVoid
             Get
                 Return Me.IsSub
@@ -997,7 +1042,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_ReturnNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReturnNullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_CallingConvention As Reflection.Metadata.SignatureCallingConvention Implements IMethodSymbol.CallingConvention
+            Get
+                Return Cci.CallingConventionUtils.ToSignatureConvention(CallingConvention)
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_UnmanagedCallingConventionTypes As ImmutableArray(Of INamedTypeSymbol) Implements IMethodSymbol.UnmanagedCallingConventionTypes
+            Get
+                Return ImmutableArray(Of INamedTypeSymbol).Empty
             End Get
         End Property
 
@@ -1007,9 +1064,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_TypeArgumentsNullableAnnotation As ImmutableArray(Of NullableAnnotation) Implements IMethodSymbol.TypeArgumentsNullableAnnotations
+        Private ReadOnly Property IMethodSymbol_TypeArgumentsNullableAnnotation As ImmutableArray(Of NullableAnnotation) Implements IMethodSymbol.TypeArgumentNullableAnnotations
             Get
-                Return Me.TypeArguments.SelectAsArray(Function(t) NullableAnnotation.NotApplicable)
+                Return Me.TypeArguments.SelectAsArray(Function(t) NullableAnnotation.None)
             End Get
         End Property
 
@@ -1031,7 +1088,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_IsAsync As Boolean Implements IMethodSymbol.IsAsync
+        Private ReadOnly Property IMethodSymbol_IsAsync As Boolean Implements IMethodSymbol.IsAsync, IMethodSymbolInternal.IsAsync
             Get
                 Return Me.IsAsync
             End Get
@@ -1059,12 +1116,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ImmutableArrayExtensions.Cast(Of VisualBasicAttributeData, AttributeData)(Me.GetReturnTypeAttributes)
         End Function
 
-        Private Function IMethodSymbol_Construct(ParamArray arguments() As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.Construct
-            For Each arg In arguments
-                arg.EnsureVbSymbolOrNothing(Of TypeSymbol)("typeArguments")
-            Next
+        Private Function IMethodSymbol_Construct(ParamArray typeArguments() As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.Construct
+            Return Construct(ConstructTypeArguments(typeArguments))
+        End Function
 
-            Return Construct(arguments.Cast(Of TypeSymbol).ToArray())
+        Private Function IMethodSymbolInternal_Construct(ParamArray typeArguments() As ITypeSymbolInternal) As IMethodSymbolInternal Implements IMethodSymbolInternal.Construct
+            Return Construct(DirectCast(typeArguments, TypeSymbol()))
+        End Function
+
+        Private Function IMethodSymbol_Construct(typeArguments As ImmutableArray(Of ITypeSymbol), typeArgumentNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As IMethodSymbol Implements IMethodSymbol.Construct
+            Return Construct(ConstructTypeArguments(typeArguments, typeArgumentNullableAnnotations))
         End Function
 
         Private ReadOnly Property IMethodSymbol_AssociatedAnonymousDelegate As INamedTypeSymbol Implements IMethodSymbol.AssociatedAnonymousDelegate

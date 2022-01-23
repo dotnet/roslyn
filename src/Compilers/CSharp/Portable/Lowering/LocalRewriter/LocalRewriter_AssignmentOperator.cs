@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -32,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true);
                     break;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    loweredLeft = VisitIndexOrRangePatternIndexerAccess(
-                        (BoundIndexOrRangePatternIndexerAccess)left,
+                case BoundKind.ImplicitIndexerAccess:
+                    loweredLeft = VisitImplicitIndexerAccess(
+                        (BoundImplicitIndexerAccess)left,
                         isLeftOfAssignment: true);
                     break;
 
@@ -61,8 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // dyn[args] = expr
                         var indexerAccess = (BoundDynamicIndexerAccess)left;
-                        Debug.Assert(indexerAccess.ReceiverOpt != null);
-                        var loweredReceiver = VisitExpression(indexerAccess.ReceiverOpt);
+                        var loweredReceiver = VisitExpression(indexerAccess.Receiver);
+                        // Dynamic can't have created handler conversions because we don't know target types.
+                        AssertNoImplicitInterpolatedStringHandlerConversions(indexerAccess.Arguments);
                         var loweredArguments = VisitList(indexerAccess.Arguments);
                         return MakeDynamicSetIndex(
                             indexerAccess,
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var indexerAccess = (BoundDynamicIndexerAccess)rewrittenLeft;
                     return MakeDynamicSetIndex(
                         indexerAccess,
-                        indexerAccess.ReceiverOpt,
+                        indexerAccess.Receiver,
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentNamesOpt,
                         indexerAccess.ArgumentRefKindsOpt,
@@ -180,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(!isRef);
                         BoundPropertyAccess propertyAccess = (BoundPropertyAccess)rewrittenLeft;
-                        BoundExpression rewrittenReceiver = propertyAccess.ReceiverOpt;
+                        BoundExpression? rewrittenReceiver = propertyAccess.ReceiverOpt;
                         PropertySymbol property = propertyAccess.PropertySymbol;
                         Debug.Assert(!property.IsIndexer);
                         return MakePropertyAssignment(
@@ -200,15 +203,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(!isRef);
                         BoundIndexerAccess indexerAccess = (BoundIndexerAccess)rewrittenLeft;
-                        BoundExpression rewrittenReceiver = indexerAccess.ReceiverOpt;
-                        ImmutableArray<BoundExpression> rewrittenArguments = indexerAccess.Arguments;
+                        BoundExpression? rewrittenReceiver = indexerAccess.ReceiverOpt;
+                        ImmutableArray<BoundExpression> arguments = indexerAccess.Arguments;
                         PropertySymbol indexer = indexerAccess.Indexer;
                         Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
                         return MakePropertyAssignment(
                             syntax,
                             rewrittenReceiver,
                             indexer,
-                            rewrittenArguments,
+                            arguments,
                             indexerAccess.ArgumentRefKindsOpt,
                             indexerAccess.Expanded,
                             indexerAccess.ArgsToParamsOpt,
@@ -245,7 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Sequence:
-                    // An Index or Range pattern-based indexer produces a sequence with a nested
+                    // An Index or Range pattern-based indexer, or an interpolated string handler conversion
+                    // that uses an indexer argument, produces a sequence with a nested
                     // BoundIndexerAccess. We need to lower the final expression and produce an
                     // update sequence
                     var sequence = (BoundSequence)rewrittenLeft;
@@ -277,11 +281,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+
         private BoundExpression MakePropertyAssignment(
             SyntaxNode syntax,
-            BoundExpression rewrittenReceiver,
+            BoundExpression? rewrittenReceiver,
             PropertySymbol property,
-            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
@@ -292,38 +298,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();
 
-            if ((object)setMethod == null)
+            if (setMethod is null)
             {
-                Debug.Assert((property as SourcePropertySymbol)?.IsAutoProperty == true,
+                var autoProp = (SourcePropertySymbolBase)property.OriginalDefinition;
+                Debug.Assert(autoProp.IsAutoPropertyWithGetAccessor,
                     "only autoproperties can be assignable without having setters");
+                Debug.Assert(property.Equals(autoProp, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-                var backingField = (property as SourcePropertySymbol).BackingField;
+                var backingField = autoProp.BackingField;
                 return _factory.AssignmentExpression(
                     _factory.Field(rewrittenReceiver, backingField),
                     rewrittenRight);
             }
 
-            // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-            ImmutableArray<LocalSymbol> argTemps;
-            rewrittenArguments = MakeArguments(
-                syntax,
-                rewrittenArguments,
+            arguments = VisitArguments(
+                arguments,
                 property,
-                setMethod,
+                argsToParamsOpt,
+                argumentRefKindsOpt,
+                ref rewrittenReceiver,
+                out ArrayBuilder<LocalSymbol>? argTempsBuilder);
+
+            arguments = MakeArguments(
+                syntax,
+                arguments,
+                property,
                 expanded,
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,
-                out argTemps,
-                invokedAsExtensionMethod: false,
-                enableCallerInfo: ThreeState.True);
+                ref argTempsBuilder,
+                invokedAsExtensionMethod: false);
+
+            var argTemps = argTempsBuilder.ToImmutableAndFree();
 
             if (used)
             {
                 // Save expression value to a temporary before calling the
                 // setter, and restore the temporary after the setter, so the
                 // assignment can be used as an embedded expression.
-                TypeSymbol exprType = rewrittenRight.Type;
+                TypeSymbol? exprType = rewrittenRight.Type;
+                Debug.Assert(exprType is object);
 
                 LocalSymbol rhsTemp = _factory.SynthesizedLocal(exprType);
 
@@ -339,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenReceiver,
                     setMethod,
-                    AppendToPossibleNull(rewrittenArguments, rhsAssignment));
+                    AppendToPossibleNull(arguments, rhsAssignment));
 
                 return new BoundSequence(
                     syntax,
@@ -354,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenReceiver,
                     setMethod,
-                    AppendToPossibleNull(rewrittenArguments, rewrittenRight));
+                    AppendToPossibleNull(arguments, rewrittenRight));
 
                 if (argTemps.IsDefaultOrEmpty)
                 {
@@ -373,8 +387,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, T newElement)
+            where T : notnull
         {
-            Debug.Assert(newElement != null);
+            Debug.Assert(newElement is { });
             return possibleNull.NullToEmpty().Add(newElement);
         }
     }

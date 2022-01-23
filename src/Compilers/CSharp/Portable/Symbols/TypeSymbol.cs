@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
@@ -8,11 +12,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+
+#pragma warning disable CS0660
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -20,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A TypeSymbol is a base class for all the symbols that represent a type
     /// in C#.
     /// </summary>
-    internal abstract partial class TypeSymbol : NamespaceOrTypeSymbol, ITypeSymbol
+    internal abstract partial class TypeSymbol : NamespaceOrTypeSymbol, ITypeSymbolInternal
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -47,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> interfacesAndTheirBaseInterfaces;
 
-            internal readonly static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
-                                                new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, EqualsCLRSignatureComparer);
+            internal static readonly MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
+                                                new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, SymbolEqualityComparer.CLRSignature);
 
             // Key is implemented member (method, property, or event), value is implementing member (from the 
             // perspective of this type).  Don't allocate until someone needs it.
@@ -65,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     // PERF: Avoid over-allocation. In many cases, there's only 1 entry and we don't expect concurrent updates.
-                    map = new ConcurrentDictionary<Symbol, SymbolAndDiagnostics>(concurrencyLevel: 1, capacity: 1);
+                    map = new ConcurrentDictionary<Symbol, SymbolAndDiagnostics>(concurrencyLevel: 1, capacity: 1, comparer: SymbolEqualityComparer.ConsiderEverything);
                     return Interlocked.CompareExchange(ref _implementationForInterfaceMemberMap, map, null) ?? map;
                 }
             }
@@ -76,13 +81,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// an error).
             /// </summary>
             internal MultiDictionary<Symbol, Symbol> explicitInterfaceImplementationMap;
-
+#nullable enable
+            internal ImmutableDictionary<MethodSymbol, MethodSymbol>? synthesizedMethodImplMap;
+#nullable disable
             internal bool IsDefaultValue()
             {
                 return allInterfaces.IsDefault &&
                     interfacesAndTheirBaseInterfaces == null &&
                     _implementationForInterfaceMemberMap == null &&
-                    explicitInterfaceImplementationMap == null;
+                    explicitInterfaceImplementationMap == null &&
+                    synthesizedMethodImplMap == null;
             }
         }
 
@@ -114,21 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return info;
         }
 
-        internal static readonly EqualityComparer<TypeSymbol> EqualsConsiderEverything = new TypeSymbolComparer(TypeCompareKind.ConsiderEverything);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringTupleNamesAndNullability = new TypeSymbolComparer(TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        /// <summary>
-        /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
-        /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicTupleNamesAndNullabilityComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringNullableComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
-                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-
-        internal static readonly EqualityComparer<TypeSymbol> EqualsCLRSignatureComparer = new TypeSymbolComparer(TypeCompareKind.CLRSignatureCompareOptions);
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
@@ -150,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -166,26 +159,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract NamedTypeSymbol BaseTypeNoUseSiteDiagnostics { get; }
 
-        internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = BaseTypeNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
-                result.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                result.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
         }
 
-        internal NamedTypeSymbol BaseTypeOriginalDefinition(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal NamedTypeSymbol BaseTypeOriginalDefinition(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = BaseTypeNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
                 result = result.OriginalDefinition;
-                result.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                result.AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
@@ -215,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<NamedTypeSymbol> AllInterfacesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<NamedTypeSymbol> AllInterfacesWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = AllInterfacesNoUseSiteDiagnostics;
 
@@ -224,13 +217,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             do
             {
-                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             }
             while ((object)current != null);
 
             foreach (var iface in result)
             {
-                iface.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                iface.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
@@ -247,15 +240,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal TypeSymbol EffectiveType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal TypeSymbol EffectiveType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return this.IsTypeParameter() ? ((TypeParameterSymbol)this).EffectiveBaseClass(ref useSiteDiagnostics) : this;
+            return this.IsTypeParameter() ? ((TypeParameterSymbol)this).EffectiveBaseClass(ref useSiteInfo) : this;
         }
 
         /// <summary>
         /// Returns true if this type derives from a given type.
         /// </summary>
-        internal bool IsDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(!type.IsTypeParameter());
@@ -265,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+            var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             while ((object)t != null)
             {
                 if (type.Equals(t, comparison))
@@ -273,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             }
 
             return false;
@@ -282,9 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if this type is equal or derives from a given type.
         /// </summary>
-        internal bool IsEqualToOrDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsEqualToOrDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return this.Equals(type, comparison) || this.IsDerivedFrom(type, comparison, ref useSiteDiagnostics);
+            return this.Equals(type, comparison) || this.IsDerivedFrom(type, comparison, ref useSiteInfo);
         }
 
         /// <summary>
@@ -296,22 +289,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// What kind of comparison to use? 
         /// You can ignore custom modifiers, ignore the distinction between object and dynamic, or ignore tuple element names differences.
         /// </param>
-        /// <param name="isValueTypeOverrideOpt">
-        /// A map from a type parameter symbol to a boolean value that should be used as a replacement for a value returned by
-        /// <see cref="TypeParameterSymbol.IsValueType"/> property. Used when accessing the property for a type parameter symbol
-        /// that has an entry in the map is not safe and can cause a cycle.  
-        /// </param>
         /// <returns>True if the types are equivalent.</returns>
-        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind)
         {
             return ReferenceEquals(this, t2);
         }
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {
-            var t2 = obj as TypeSymbol;
-            if ((object)t2 == null) return false;
-            return this.Equals(t2, TypeCompareKind.ConsiderEverything);
+            var t2 = other as TypeSymbol;
+            if (t2 is null)
+            {
+                return false;
+            }
+            return this.Equals(t2, compareKind);
         }
 
         /// <summary>
@@ -321,28 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             return RuntimeHelpers.GetHashCode(this);
-        }
-
-        internal sealed class TypeSymbolComparer : EqualityComparer<TypeSymbol>
-        {
-            private readonly TypeCompareKind _comparison;
-
-            public TypeSymbolComparer(TypeCompareKind comparison)
-            {
-                _comparison = comparison;
-            }
-
-            public override int GetHashCode(TypeSymbol obj)
-            {
-                return (object)obj == null ? 0 : obj.GetHashCode();
-            }
-
-            public override bool Equals(TypeSymbol x, TypeSymbol y)
-            {
-                return
-                    (object)x == null ? (object)y == null :
-                    x.Equals(y, _comparison);
-            }
         }
 
         protected virtual ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
@@ -368,39 +337,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>();
+            var visited = new HashSet<NamedTypeSymbol>(SymbolEqualityComparer.ConsiderEverything);
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
                 var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 for (int i = interfaces.Length - 1; i >= 0; i--)
                 {
-                    AddAllInterfaces(interfaces[i], visited, result);
+                    addAllInterfaces(interfaces[i], visited, result);
                 }
             }
 
             result.ReverseContents();
             return result.ToImmutableAndFree();
-        }
 
-        private static void AddAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
-        {
-            if (visited.Add(@interface))
+            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
             {
-                ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
-                for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                if (visited.Add(@interface))
                 {
-                    var baseInterface = baseInterfaces[i];
-                    AddAllInterfaces(baseInterface, visited, result);
-                }
+                    ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
+                    for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                    {
+                        var baseInterface = baseInterfaces[i];
+                        addAllInterfaces(baseInterface, visited, result);
+                    }
 
-                result.Add(@interface);
+                    result.Add(@interface);
+                }
             }
         }
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements, plus the base interfaces
-        /// of all such types. Keys are compared using <see cref="EqualsCLRSignatureComparer"/>,
+        /// of all such types. Keys are compared using <see cref="SymbolEqualityComparer.CLRSignature"/>,
         /// values are distinct interfaces corresponding to the key, according to <see cref="TypeCompareKind.ConsiderEverything"/> rules.
         /// </summary>
         /// <remarks>
@@ -428,13 +397,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics;
 
             foreach (var iface in result.Keys)
             {
-                iface.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                iface.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
@@ -445,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // indirectly.
         private static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> MakeInterfacesAndTheirBaseInterfaces(ImmutableArray<NamedTypeSymbol> declaredInterfaces)
         {
-            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsCLRSignatureComparer);
+            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, SymbolEqualityComparer.CLRSignature, SymbolEqualityComparer.ConsiderEverything);
             foreach (var @interface in declaredInterfaces)
             {
                 if (resultBuilder.Add(@interface, @interface))
@@ -484,10 +453,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsInterfaceType())
             {
-                return FindMostSpecificImplementation(interfaceMember, (NamedTypeSymbol)this);
+                if (interfaceMember.IsStatic)
+                {
+                    return null;
+                }
+
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return FindMostSpecificImplementation(interfaceMember, (NamedTypeSymbol)this, ref discardedUseSiteInfo);
             }
 
-            return FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMember).Symbol;
+            return FindImplementationForInterfaceMemberInNonInterface(interfaceMember);
         }
 
         /// <summary>
@@ -532,14 +507,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets corresponding primitive type code for this type declaration.
         /// </summary>
         internal Microsoft.Cci.PrimitiveTypeCode PrimitiveTypeCode
-        {
-            get
+            => TypeKind switch
             {
-                return this.IsPointerType()
-                    ? Microsoft.Cci.PrimitiveTypeCode.Pointer
-                    : SpecialTypes.GetTypeCode(SpecialType);
-            }
-        }
+                TypeKind.Pointer => Microsoft.Cci.PrimitiveTypeCode.Pointer,
+                TypeKind.FunctionPointer => Microsoft.Cci.PrimitiveTypeCode.FunctionPointer,
+                _ => SpecialTypes.GetTypeCode(SpecialType)
+            };
 
         #region Use-Site Diagnostics
 
@@ -559,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
+                DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
                 return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
@@ -585,54 +558,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsTupleType => false;
 
         /// <summary>
-        /// Verify if the given type can be used to back a tuple type 
-        /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        /// True if the type represents a native integer. In C#, the types represented
+        /// by language keywords 'nint' and 'nuint'.
         /// </summary>
-        /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
-        /// <returns></returns>
-        public virtual bool IsTupleCompatible(out int tupleCardinality)
-        {
-            tupleCardinality = 0;
-            return false;
-        }
-
-        /// <summary>
-        /// Verify if the given type can be used to back a tuple type. 
-        /// </summary>
-        public bool IsTupleCompatible()
-        {
-            int countOfItems;
-            return IsTupleCompatible(out countOfItems);
-        }
+        internal virtual bool IsNativeIntegerType => false;
 
         /// <summary>
         /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
         /// with the given cardinality. 
         /// </summary>
-        public bool IsTupleOrCompatibleWithTupleOfCardinality(int targetCardinality)
+        internal bool IsTupleTypeOfCardinality(int targetCardinality)
         {
             if (IsTupleType)
             {
                 return TupleElementTypesWithAnnotations.Length == targetCardinality;
             }
 
-            int countOfItems;
-            return IsTupleCompatible(out countOfItems) && countOfItems == targetCardinality;
-        }
-
-        /// <summary>
-        /// If this is a tuple type symbol, returns the symbol for its underlying type.
-        /// Otherwise, returns null.
-        /// The type argument corresponding to the type of the extension field (VT[8].Rest),
-        /// which is at the 8th (one based) position is always a symbol for another tuple, 
-        /// rather than its underlying type.
-        /// </summary>
-        public virtual NamedTypeSymbol TupleUnderlyingType
-        {
-            get
-            {
-                return null;
-            }
+            return false;
         }
 
         /// <summary>
@@ -651,6 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public virtual ImmutableArray<FieldSymbol> TupleElements => default(ImmutableArray<FieldSymbol>);
 
+#nullable enable
         /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and
         /// some struct types).
@@ -658,15 +601,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// See Type::computeManagedType.
         /// </remarks>
-        internal bool IsManagedType => ManagedKind == ManagedKind.Managed;
+        internal bool IsManagedType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => GetManagedKind(ref useSiteInfo) == ManagedKind.Managed;
+
+        internal bool IsManagedTypeNoUseSiteDiagnostics
+        {
+            get
+            {
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return IsManagedType(ref discardedUseSiteInfo);
+            }
+        }
 
         /// <summary>
         /// Indicates whether a type is managed or not (i.e. you can take a pointer to it).
         /// Contains additional cases to help implement FeatureNotAvailable diagnostics.
         /// </summary>
-        internal abstract ManagedKind ManagedKind { get; }
+        internal abstract ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
-        bool ITypeSymbol.IsUnmanagedType => !IsManagedType;
+        internal ManagedKind ManagedKindNoUseSiteDiagnostics
+        {
+            get
+            {
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return GetManagedKind(ref discardedUseSiteInfo);
+            }
+        }
+#nullable disable
 
         internal bool NeedsNullableAttribute()
         {
@@ -684,13 +644,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SetNullabilityForReferenceTypes(s_setUnknownNullability);
         }
 
-        private readonly static Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
+        private static readonly Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>
-        /// Merges nested nullability from an otherwise identical type.
+        /// Merges features of the type with another type where there is an identity conversion between them.
+        /// The features to be merged are
+        /// object vs dynamic (dynamic wins), tuple names (dropped in case of conflict), and nullable
+        /// annotations (e.g. in type arguments).
         /// </summary>
-        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance);
+        internal abstract TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance);
 
         /// <summary>
         /// Returns true if the type may contain embedded references
@@ -702,84 +665,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool IsReadOnly { get; }
 
-        #region ITypeSymbol Members
-
-        INamedTypeSymbol ITypeSymbol.BaseType
-        {
-            get
-            {
-                return this.BaseTypeNoUseSiteDiagnostics;
-            }
-        }
-
-        ImmutableArray<INamedTypeSymbol> ITypeSymbol.Interfaces
-        {
-            get
-            {
-                return StaticCast<INamedTypeSymbol>.From(this.InterfacesNoUseSiteDiagnostics());
-            }
-        }
-
-        ImmutableArray<INamedTypeSymbol> ITypeSymbol.AllInterfaces
-        {
-            get
-            {
-                return StaticCast<INamedTypeSymbol>.From(this.AllInterfacesNoUseSiteDiagnostics);
-            }
-        }
-
-        bool ITypeSymbol.IsReferenceType
-        {
-            get
-            {
-                return this.IsReferenceType;
-            }
-        }
-
-        bool ITypeSymbol.IsValueType
-        {
-            get
-            {
-                return this.IsValueType;
-            }
-        }
-
-        ITypeSymbol ITypeSymbol.OriginalDefinition
-        {
-            get
-            {
-                return this.OriginalDefinition;
-            }
-        }
-
-        TypeKind ITypeSymbol.TypeKind
-        {
-            get
-            {
-                return TypeKind;
-            }
-        }
-
-        ISymbol ITypeSymbol.FindImplementationForInterfaceMember(ISymbol interfaceMember)
-        {
-            return interfaceMember is Symbol
-                ? FindImplementationForInterfaceMember((Symbol)interfaceMember)
-                : null;
-        }
-
-        /// <summary>
-        /// Is this a symbol for a Tuple.
-        /// </summary>
-        bool ITypeSymbol.IsTupleType => this.IsTupleType;
-
         public string ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToDisplayString(this, topLevelNullability, format);
+            return SymbolDisplay.ToDisplayString((ITypeSymbol)ISymbol, topLevelNullability, format);
         }
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToDisplayParts(this, topLevelNullability, format);
+            return SymbolDisplay.ToDisplayParts((ITypeSymbol)ISymbol, topLevelNullability, format);
         }
 
         public string ToMinimalDisplayString(
@@ -788,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int position,
             SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToMinimalDisplayString(this, topLevelNullability, semanticModel, position, format);
+            return SymbolDisplay.ToMinimalDisplayString((ITypeSymbol)ISymbol, topLevelNullability, semanticModel, position, format);
         }
 
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
@@ -797,14 +690,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int position,
             SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToMinimalDisplayParts(this, topLevelNullability, semanticModel, position, format);
+            return SymbolDisplay.ToMinimalDisplayParts((ITypeSymbol)ISymbol, topLevelNullability, semanticModel, position, format);
         }
-
-        #endregion
 
         #region Interface member checks
 
-        protected SymbolAndDiagnostics FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(Symbol interfaceMember)
+        /// <summary>
+        /// Locate implementation of the <paramref name="interfaceMember"/> in context of the current type.
+        /// The method is using cache to optimize subsequent calls for the same <paramref name="interfaceMember"/>.
+        /// </summary>
+        /// <param name="interfaceMember">Member for which an implementation should be found.</param>
+        /// <param name="ignoreImplementationInInterfacesIfResultIsNotReady">
+        /// The process of looking up an implementation for an accessor can involve figuring out how corresponding event/property is implemented,
+        /// <see cref="CheckForImplementationOfCorrespondingPropertyOrEvent"/>. And the process of looking up an implementation for a property can
+        /// involve figuring out how corresponding accessors are implemented, <see cref="FindMostSpecificImplementationInInterfaces"/>. This can 
+        /// lead to cycles, which could be avoided if we ignore the presence of implementations in interfaces for the purpose of
+        /// <see cref="CheckForImplementationOfCorrespondingPropertyOrEvent"/>. Fortunately, logic in it allows us to ignore the presence of
+        /// implementations in interfaces and we use that.
+        /// When the value of this parameter is true and the result that takes presence of implementations in interfaces into account is not
+        /// available from the cache, the lookup will be performed ignoring the presence of implementations in interfaces. Otherwise, result from
+        /// the cache is returned.
+        /// When the value of the parameter is false, the result from the cache is returned, or calculated, taking presence of implementations
+        /// in interfaces into account and then cached.
+        /// This means that:
+        ///  - A symbol from an interface can still be returned even when <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> is true.
+        ///    A subsequent call with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> false will return the same value. 
+        ///  - If symbol from a non-interface is returned when <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> is true. A subsequent
+        ///    call with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> false will return the same value.
+        ///  - If no symbol is returned for <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> true. A subsequent call with
+        ///    <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> might return a symbol, but that symbol guaranteed to be from an interface.
+        ///  - If the first request is done with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> false. A subsequent call
+        ///    is guaranteed to return the same result regardless of <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> value.
+        /// </param>
+        internal SymbolAndDiagnostics FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(Symbol interfaceMember, bool ignoreImplementationInInterfacesIfResultIsNotReady = false)
         {
             Debug.Assert((object)interfaceMember != null);
             Debug.Assert(!this.IsInterfaceType());
@@ -839,8 +757,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return result;
                     }
 
-                    result = ComputeImplementationAndDiagnosticsForInterfaceMember(interfaceMember);
-                    map.TryAdd(interfaceMember, result);
+                    result = ComputeImplementationAndDiagnosticsForInterfaceMember(interfaceMember, ignoreImplementationInInterfaces: ignoreImplementationInInterfacesIfResultIsNotReady,
+                                                                                   out bool implementationInInterfacesMightChangeResult);
+
+                    Debug.Assert(ignoreImplementationInInterfacesIfResultIsNotReady || !implementationInInterfacesMightChangeResult);
+                    Debug.Assert(!implementationInInterfacesMightChangeResult || result.Symbol is null);
+                    if (!implementationInInterfacesMightChangeResult)
+                    {
+                        map.TryAdd(interfaceMember, result);
+                    }
                     return result;
 
                 default:
@@ -848,10 +773,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SymbolAndDiagnostics ComputeImplementationAndDiagnosticsForInterfaceMember(Symbol interfaceMember)
+        internal Symbol FindImplementationForInterfaceMemberInNonInterface(Symbol interfaceMember, bool ignoreImplementationInInterfacesIfResultIsNotReady = false)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
-            var implementingMember = ComputeImplementationForInterfaceMember(interfaceMember, this, diagnostics);
+            return FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMember, ignoreImplementationInInterfacesIfResultIsNotReady).Symbol;
+        }
+
+        private SymbolAndDiagnostics ComputeImplementationAndDiagnosticsForInterfaceMember(Symbol interfaceMember, bool ignoreImplementationInInterfaces, out bool implementationInInterfacesMightChangeResult)
+        {
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: this.DeclaringCompilation is object);
+            var implementingMember = ComputeImplementationForInterfaceMember(interfaceMember, this, diagnostics, ignoreImplementationInInterfaces, out implementationInInterfacesMightChangeResult);
             var implementingMemberAndDiagnostics = new SymbolAndDiagnostics(implementingMember, diagnostics.ToReadOnlyAndFree());
             return implementingMemberAndDiagnostics;
         }
@@ -865,8 +795,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="interfaceMember">A non-null implementable member on an interface type.</param>
         /// <param name="implementingType">The type implementing the interface property (usually "this").</param>
         /// <param name="diagnostics">Bag to which to add diagnostics.</param>
+        /// <param name="ignoreImplementationInInterfaces">Do not consider implementation in an interface as a valid candidate for the purpose of this computation.</param>
+        /// <param name="implementationInInterfacesMightChangeResult">
+        /// Returns true when <paramref name="ignoreImplementationInInterfaces"/> is true, the method fails to locate an implementation and an implementation in
+        /// an interface, if any (its presence is not checked), could potentially be a candidate. Returns false otherwise.
+        /// When true is returned, a different call with <paramref name="ignoreImplementationInInterfaces"/> false might return a symbol. That symbol, if any,
+        /// is guaranteed to be from an interface.
+        /// This parameter is used to optimize caching in <see cref="FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics"/>.
+        /// </param>
         /// <returns>The implementing property or null, if there isn't one.</returns>
-        private static Symbol ComputeImplementationForInterfaceMember(Symbol interfaceMember, TypeSymbol implementingType, DiagnosticBag diagnostics)
+        private static Symbol ComputeImplementationForInterfaceMember(Symbol interfaceMember, TypeSymbol implementingType, BindingDiagnosticBag diagnostics,
+                                                                      bool ignoreImplementationInInterfaces, out bool implementationInInterfacesMightChangeResult)
         {
             Debug.Assert(!implementingType.IsInterfaceType());
             Debug.Assert(interfaceMember.Kind == SymbolKind.Method || interfaceMember.Kind == SymbolKind.Property || interfaceMember.Kind == SymbolKind.Event);
@@ -891,15 +830,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // 
             // NOTE: The batch compiler is not affected by this discrepancy, since compilations don't call these
             // APIs on symbols from other compilations.
-            bool implementingTypeIsFromSomeCompilation = implementingType.Dangerous_IsFromSomeCompilation;
+            bool implementingTypeIsFromSomeCompilation = false;
 
             Symbol implicitImpl = null;
             Symbol closestMismatch = null;
-            bool canBeImplementedImplicitly = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor();
-            TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == true
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            bool canBeImplementedImplicitlyInCSharp9 = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor();
+            TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == false
+            bool implementingTypeImplementsInterface = false;
+            CSharpCompilation compilation = implementingType.DeclaringCompilation;
+            var useSiteInfo = compilation is object ? new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly) : CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 
-            for (TypeSymbol currType = implementingType; (object)currType != null; currType = currType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            for (TypeSymbol currType = implementingType; (object)currType != null; currType = currType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 // NOTE: In the case of PE symbols, it is possible to see an explicit implementation
                 // on a type that does not declare the corresponding interface (or one of its
@@ -910,41 +851,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MultiDictionary<Symbol, Symbol>.ValueSet explicitImpl = currType.GetExplicitImplementationForInterfaceMember(interfaceMember);
                 if (explicitImpl.Count == 1)
                 {
+                    implementationInInterfacesMightChangeResult = false;
                     return explicitImpl.Single();
                 }
                 else if (explicitImpl.Count > 1)
                 {
-                    diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                    if ((object)currType == implementingType || implementingTypeImplementsInterface)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                    }
+
+                    implementationInInterfacesMightChangeResult = false;
                     return null;
                 }
 
-                // WORKAROUND: see comment on method.
-                // https://github.com/dotnet/roslyn/issues/34452: Is this workaround still relevant? Do we need it when we are looking
-                //                                                for implementations in interfaces?
-                if (IsExplicitlyImplementedViaAccessors(interfaceMember, currType, out Symbol currTypeExplicitImpl))
+                bool checkPendingExplicitImplementations = ((object)currType != implementingType || !currType.IsDefinition);
+
+                if (checkPendingExplicitImplementations && interfaceMember is MethodSymbol interfaceMethod &&
+                    currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).ContainsKey(interfaceType))
                 {
+                    // Check for implementations that are going to be explicit once types are emitted
+                    MethodSymbol bodyOfSynthesizedMethodImpl = currType.GetBodyOfSynthesizedInterfaceMethodImpl(interfaceMethod);
+
+                    if (bodyOfSynthesizedMethodImpl is object)
+                    {
+                        implementationInInterfacesMightChangeResult = false;
+                        return bodyOfSynthesizedMethodImpl;
+                    }
+                }
+
+                if (IsExplicitlyImplementedViaAccessors(checkPendingExplicitImplementations, interfaceMember, currType, ref useSiteInfo, out Symbol currTypeExplicitImpl))
+                {
+                    // We are looking for a property or event implementation and found an explicit implementation
+                    // for its accessor(s) in this type. Stop the process and return event/property associated
+                    // with the accessor(s), if any.
+                    implementationInInterfacesMightChangeResult = false;
                     // NOTE: may be null.
                     return currTypeExplicitImpl;
                 }
 
                 if (!seenTypeDeclaringInterface ||
-                    (!canBeImplementedImplicitly && (object)implementingBaseOpt == null))
+                    (!canBeImplementedImplicitlyInCSharp9 && (object)implementingBaseOpt == null))
                 {
-                    if (currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).ContainsKey(interfaceType))
+                    if (currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).ContainsKey(interfaceType))
                     {
-                        seenTypeDeclaringInterface = true;
+                        if (!seenTypeDeclaringInterface)
+                        {
+                            implementingTypeIsFromSomeCompilation = currType.OriginalDefinition.ContainingModule is not PEModuleSymbol;
+                            seenTypeDeclaringInterface = true;
+                        }
 
-                        if (!canBeImplementedImplicitly && (object)implementingBaseOpt == null && (object)currType != implementingType)
+                        if ((object)currType == implementingType)
+                        {
+                            implementingTypeImplementsInterface = true;
+                        }
+                        else if (!canBeImplementedImplicitlyInCSharp9 && (object)implementingBaseOpt == null)
                         {
                             implementingBaseOpt = currType;
                         }
                     }
                 }
 
-
                 // We want the implementation from the most derived type at or above the first one to
                 // include the interface (or a subinterface) in its interface list
-                if (seenTypeDeclaringInterface)
+                if (seenTypeDeclaringInterface &&
+                    (!interfaceMember.IsStatic || implementingTypeIsFromSomeCompilation))
                 {
                     //pass 2: check for implicit impls (name must match)
                     Symbol currTypeImplicitImpl;
@@ -970,68 +941,117 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            Debug.Assert(!canBeImplementedImplicitly || (object)implementingBaseOpt == null);
+            Debug.Assert(!canBeImplementedImplicitlyInCSharp9 || (object)implementingBaseOpt == null);
+
+            bool tryDefaultInterfaceImplementation = !interfaceMember.IsStatic;
 
             // Dev10 has some extra restrictions and extra wiggle room when finding implicit
             // implementations for interface accessors.  Perform some extra checks and possibly
             // update the result (i.e. implicitImpl).
             if (interfaceMember.IsAccessor())
             {
-                // https://github.com/dotnet/roslyn/issues/34453: Do we need to adjust behavior of this function in any way?
+                Symbol originalImplicitImpl = implicitImpl;
                 CheckForImplementationOfCorrespondingPropertyOrEvent((MethodSymbol)interfaceMember, implementingType, implementingTypeIsFromSomeCompilation, ref implicitImpl);
-            }
 
-            if ((object)implicitImpl == null && seenTypeDeclaringInterface)
-            {
-                // Check for default interface implementations
-                implicitImpl = FindMostSpecificImplementationInInterfaces(interfaceMember, implementingType, ref useSiteDiagnostics, diagnostics);
-            }
-
-#if !DEBUG
-            // Don't optimize in DEBUG for better coverage for the GetInterfaceLocation function. 
-            if (useSiteDiagnostics != null)
-#endif
-            {
-                diagnostics.Add(GetInterfaceLocation(interfaceMember, implementingType), useSiteDiagnostics);
-            }
-
-            if ((object)implicitImpl != null)
-            {
-                if (!canBeImplementedImplicitly && !implicitImpl.ContainingType.IsInterface)
+                // If we discarded the candidate, we don't want default interface implementation to take over later, since runtime might still use the discarded candidate.
+                if (originalImplicitImpl is object && implicitImpl is null)
                 {
-                    if (interfaceMember.Kind == SymbolKind.Method &&
-                        (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
-                                        implementingType, interfaceMember, implicitImpl);
-                    }
+                    tryDefaultInterfaceImplementation = false;
+                }
+            }
+
+            Symbol defaultImpl = null;
+
+            if ((object)implicitImpl == null && seenTypeDeclaringInterface && tryDefaultInterfaceImplementation)
+            {
+                if (ignoreImplementationInInterfaces)
+                {
+                    implementationInInterfacesMightChangeResult = true;
                 }
                 else
                 {
-                    ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
+                    // Check for default interface implementations
+                    defaultImpl = FindMostSpecificImplementationInInterfaces(interfaceMember, implementingType, ref useSiteInfo, diagnostics);
+                    implementationInInterfacesMightChangeResult = false;
                 }
             }
-            else if ((object)closestMismatch != null)
+            else
             {
-                Debug.Assert(interfaceMember.DeclaredAccessibility == Accessibility.Public);
-                Debug.Assert(!interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor());
-                ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
+                implementationInInterfacesMightChangeResult = false;
+            }
+
+            diagnostics.Add(
+#if !DEBUG
+                // Don't optimize in DEBUG for better coverage for the GetInterfaceLocation function. 
+                useSiteInfo.Diagnostics is null || !implementingTypeImplementsInterface ? Location.None :
+#endif
+                GetInterfaceLocation(interfaceMember, implementingType),
+                useSiteInfo);
+
+            if (defaultImpl is object)
+            {
+                if (implementingTypeImplementsInterface)
+                {
+                    ReportDefaultInterfaceImplementationMatchDiagnostics(interfaceMember, implementingType, defaultImpl, diagnostics);
+                }
+
+                return defaultImpl;
+            }
+
+            if (implementingTypeImplementsInterface)
+            {
+                if ((object)implicitImpl != null)
+                {
+                    if (!canBeImplementedImplicitlyInCSharp9)
+                    {
+                        if (interfaceMember.Kind == SymbolKind.Method &&
+                            (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
+                        {
+                            LanguageVersion requiredVersion = MessageID.IDS_FeatureImplicitImplementationOfNonPublicMembers.RequiredVersion();
+                            LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
+                            if (requiredVersion > availableVersion)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
+                                                implementingType, interfaceMember, implicitImpl,
+                                                availableVersion.GetValueOrDefault().ToDisplayString(), new CSharpRequiredLanguageVersion(requiredVersion));
+                            }
+                        }
+                    }
+
+                    ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
+                }
+                else if ((object)closestMismatch != null)
+                {
+                    ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
+                }
             }
 
             return implicitImpl;
         }
 
         private static Symbol FindMostSpecificImplementationInInterfaces(Symbol interfaceMember, TypeSymbol implementingType,
-                                                                         ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-                                                                         DiagnosticBag diagnostics)
+                                                                         ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                                                                         BindingDiagnosticBag diagnostics)
         {
-            Symbol implicitImpl = FindMostSpecificImplementationInBases(interfaceMember,
-                                                                        implementingType,
-                                                                        ref useSiteDiagnostics, out Symbol conflict1, out Symbol conflict2);
+            Debug.Assert(!implementingType.IsInterfaceType());
+            Debug.Assert(!interfaceMember.IsStatic);
+
+            // If we are dealing with a property or event and an implementation of at least one accessor is not from an interface, it 
+            // wouldn't be right to say that the event/property is implemented in an interface because its accessor isn't.
+            (MethodSymbol interfaceAccessor1, MethodSymbol interfaceAccessor2) = GetImplementableAccessors(interfaceMember);
+
+            if (stopLookup(interfaceAccessor1, implementingType) || stopLookup(interfaceAccessor2, implementingType))
+            {
+                return null;
+            }
+
+            Symbol defaultImpl = FindMostSpecificImplementationInBases(interfaceMember,
+                                                                       implementingType,
+                                                                       ref useSiteInfo, out Symbol conflict1, out Symbol conflict2);
 
             if ((object)conflict1 != null)
             {
-                Debug.Assert((object)implicitImpl == null);
+                Debug.Assert((object)defaultImpl == null);
                 Debug.Assert((object)conflict2 != null);
                 diagnostics.Add(ErrorCode.ERR_MostSpecificImplementationIsNotFound, GetInterfaceLocation(interfaceMember, implementingType),
                                 interfaceMember, conflict1, conflict2);
@@ -1039,24 +1059,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 Debug.Assert(((object)conflict2 == null));
-                // https://github.com/dotnet/roslyn/issues/34453: We might need to do extra consistency check for events/properties and their 
-                //                                                accessors. Need to verify if what CheckForImplementationOfCorrespondingPropertyOrEvent
-                //                                                is doing should be applicable here as well.
             }
 
-            return implicitImpl;
+            return defaultImpl;
+
+            static bool stopLookup(MethodSymbol interfaceAccessor, TypeSymbol implementingType)
+            {
+                if (interfaceAccessor is null)
+                {
+                    return false;
+                }
+
+                SymbolAndDiagnostics symbolAndDiagnostics = implementingType.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceAccessor);
+
+                if (symbolAndDiagnostics.Symbol is object)
+                {
+                    return !symbolAndDiagnostics.Symbol.ContainingType.IsInterface;
+                }
+
+                // It is still possible that we actually looked for the accessor in interfaces, but failed due to an ambiguity.
+                // Let's try to look for a property to improve diagnostics in this scenario.
+                return !symbolAndDiagnostics.Diagnostics.Diagnostics.Any(d => d.Code == (int)ErrorCode.ERR_MostSpecificImplementationIsNotFound);
+            }
         }
 
-        private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface)
+        private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             MultiDictionary<Symbol, Symbol>.ValueSet implementingMember = FindImplementationInInterface(interfaceMember, implementingInterface);
 
             switch (implementingMember.Count)
             {
                 case 0:
+                    (MethodSymbol interfaceAccessor1, MethodSymbol interfaceAccessor2) = GetImplementableAccessors(interfaceMember);
+
+                    // If interface actually implements an event or property accessor, but doesn't implement the event/property,
+                    // do not look for its implementation in bases.
+                    if ((interfaceAccessor1 is object && FindImplementationInInterface(interfaceAccessor1, implementingInterface).Count != 0) ||
+                        (interfaceAccessor2 is object && FindImplementationInInterface(interfaceAccessor2, implementingInterface).Count != 0))
+                    {
+                        return null;
+                    }
+
                     return FindMostSpecificImplementationInBases(interfaceMember, implementingInterface,
-                                                                 ref useSiteDiagnostics,
+                                                                 ref useSiteInfo,
                                                                  out var _, out var _);
                 case 1:
                     {
@@ -1082,124 +1127,238 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static Symbol FindMostSpecificImplementationInBases(
             Symbol interfaceMember,
             TypeSymbol implementingType,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             out Symbol conflictingImplementation1,
             out Symbol conflictingImplementation2)
         {
-            var implementations = ArrayBuilder<(MultiDictionary<Symbol, Symbol>.ValueSet MethodSet, MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> Bases)>.GetInstance();
+            ImmutableArray<NamedTypeSymbol> allInterfaces = implementingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
 
-            foreach (var interfaceType in implementingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            if (allInterfaces.IsEmpty)
             {
-                if (!interfaceType.IsInterface)
+                conflictingImplementation1 = null;
+                conflictingImplementation2 = null;
+                return null;
+            }
+
+            // Properties or events can be implemented in an unconventional manner, i.e. implementing accessors might not be tied to a property/event.
+            // If we simply look for a more specific implementing property/event, we might find one with not most specific implementing accessors.
+            // Returning a property/event like that would be incorrect because runtime will use most specific accessor, or it will fail because there will
+            // be an ambiguity for the accessor implementation.
+            // So, for events and properties we look for most specific implementation of corresponding accessors and then try to tie them back to
+            // an event/property, if any.
+            (MethodSymbol interfaceAccessor1, MethodSymbol interfaceAccessor2) = GetImplementableAccessors(interfaceMember);
+
+            if (interfaceAccessor1 is null && interfaceAccessor2 is null)
+            {
+                return findMostSpecificImplementationInBases(interfaceMember, allInterfaces, ref useSiteInfo, out conflictingImplementation1, out conflictingImplementation2);
+            }
+
+            Symbol accessorImpl1 = findMostSpecificImplementationInBases(interfaceAccessor1 ?? interfaceAccessor2, allInterfaces, ref useSiteInfo,
+                                                                         out Symbol conflictingAccessorImplementation11, out Symbol conflictingAccessorImplementation12);
+
+            if (accessorImpl1 is null && conflictingAccessorImplementation11 is null) // implementation of accessor is not found
+            {
+                conflictingImplementation1 = null;
+                conflictingImplementation2 = null;
+                return null;
+            }
+
+            if (interfaceAccessor1 is null || interfaceAccessor2 is null)
+            {
+                if (accessorImpl1 is object)
                 {
-                    // this code is reachable in error situations
-                    continue;
+                    conflictingImplementation1 = null;
+                    conflictingImplementation2 = null;
+                    return findImplementationInInterface(interfaceMember, accessorImpl1);
                 }
 
-                MultiDictionary<Symbol, Symbol>.ValueSet candidate = FindImplementationInInterface(interfaceMember, interfaceType);
+                conflictingImplementation1 = findImplementationInInterface(interfaceMember, conflictingAccessorImplementation11);
+                conflictingImplementation2 = findImplementationInInterface(interfaceMember, conflictingAccessorImplementation12);
 
-                if (candidate.Count == 0)
+                if ((conflictingImplementation1 is null) != (conflictingImplementation2 is null))
                 {
-                    continue;
+                    conflictingImplementation1 = null;
+                    conflictingImplementation2 = null;
                 }
 
-                for (int i = 0; i < implementations.Count; i++)
-                {
-                    (MultiDictionary<Symbol, Symbol>.ValueSet methodSet, MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> bases) = implementations[i];
-                    Symbol previous = methodSet.First();
-                    NamedTypeSymbol previousContainingType = previous.ContainingType;
+                return null;
+            }
 
-                    if (previousContainingType.Equals(interfaceType, TypeCompareKind.CLRSignatureCompareOptions))
+            Symbol accessorImpl2 = findMostSpecificImplementationInBases(interfaceAccessor2, allInterfaces, ref useSiteInfo,
+                                                                         out Symbol conflictingAccessorImplementation21, out Symbol conflictingAccessorImplementation22);
+
+            if ((accessorImpl2 is null && conflictingAccessorImplementation21 is null) || // implementation of accessor is not found
+                (accessorImpl1 is null) != (accessorImpl2 is null)) // there is most specific implementation for one accessor and an ambiguous implementation for the other accessor. 
+            {
+                conflictingImplementation1 = null;
+                conflictingImplementation2 = null;
+                return null;
+            }
+
+            if (accessorImpl1 is object)
+            {
+                conflictingImplementation1 = null;
+                conflictingImplementation2 = null;
+                return findImplementationInInterface(interfaceMember, accessorImpl1, accessorImpl2);
+            }
+
+            conflictingImplementation1 = findImplementationInInterface(interfaceMember, conflictingAccessorImplementation11, conflictingAccessorImplementation21);
+            conflictingImplementation2 = findImplementationInInterface(interfaceMember, conflictingAccessorImplementation12, conflictingAccessorImplementation22);
+
+            if ((conflictingImplementation1 is null) != (conflictingImplementation2 is null))
+            {
+                // One pair of conflicting accessors can be tied to an event/property, but the other cannot be tied to an event/property.
+                // Dropping conflict information since it only affects diagnostic.
+                conflictingImplementation1 = null;
+                conflictingImplementation2 = null;
+            }
+
+            return null;
+
+            static Symbol findImplementationInInterface(Symbol interfaceMember, Symbol inplementingAccessor1, Symbol implementingAccessor2 = null)
+            {
+                NamedTypeSymbol implementingInterface = inplementingAccessor1.ContainingType;
+
+                if (implementingAccessor2 is object && !implementingInterface.Equals(implementingAccessor2.ContainingType, TypeCompareKind.ConsiderEverything))
+                {
+                    // Implementing accessors are from different types, they cannot be tied to the same event/property.
+                    return null;
+                }
+
+                MultiDictionary<Symbol, Symbol>.ValueSet implementingMember = FindImplementationInInterface(interfaceMember, implementingInterface);
+
+                switch (implementingMember.Count)
+                {
+                    case 1:
+                        return implementingMember.Single();
+                    default:
+                        return null;
+                }
+            }
+
+            static Symbol findMostSpecificImplementationInBases(
+                Symbol interfaceMember,
+                ImmutableArray<NamedTypeSymbol> allInterfaces,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                out Symbol conflictingImplementation1,
+                out Symbol conflictingImplementation2)
+            {
+                var implementations = ArrayBuilder<(MultiDictionary<Symbol, Symbol>.ValueSet MethodSet, MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> Bases)>.GetInstance();
+
+                foreach (var interfaceType in allInterfaces)
+                {
+                    if (!interfaceType.IsInterface)
                     {
-                        // Last equivalent match wins
-                        implementations[i] = (candidate, bases);
-                        candidate = default;
-                        break;
+                        // this code is reachable in error situations
+                        continue;
                     }
 
-                    if (bases == null)
+                    MultiDictionary<Symbol, Symbol>.ValueSet candidate = FindImplementationInInterface(interfaceMember, interfaceType);
+
+                    if (candidate.Count == 0)
                     {
-                        Debug.Assert(implementations.Count == 1);
-                        bases = previousContainingType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
-                        implementations[i] = (methodSet, bases);
+                        continue;
                     }
 
-                    if (bases.ContainsKey(interfaceType))
+                    for (int i = 0; i < implementations.Count; i++)
                     {
-                        // Previous candidate is more specific
-                        candidate = default;
-                        break;
-                    }
-                }
+                        (MultiDictionary<Symbol, Symbol>.ValueSet methodSet, MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> bases) = implementations[i];
+                        Symbol previous = methodSet.First();
+                        NamedTypeSymbol previousContainingType = previous.ContainingType;
 
-                if (candidate.Count == 0)
-                {
-                    continue;
-                }
-
-                if (implementations.Count != 0)
-                {
-                    MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> bases = interfaceType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
-
-                    for (int i = implementations.Count - 1; i >= 0; i--)
-                    {
-                        if (bases.ContainsKey(implementations[i].MethodSet.First().ContainingType))
+                        if (previousContainingType.Equals(interfaceType, TypeCompareKind.CLRSignatureCompareOptions))
                         {
-                            // new candidate is more specific
-                            implementations.RemoveAt(i);
+                            // Last equivalent match wins
+                            implementations[i] = (candidate, bases);
+                            candidate = default;
+                            break;
+                        }
+
+                        if (bases == null)
+                        {
+                            Debug.Assert(implementations.Count == 1);
+                            bases = previousContainingType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                            implementations[i] = (methodSet, bases);
+                        }
+
+                        if (bases.ContainsKey(interfaceType))
+                        {
+                            // Previous candidate is more specific
+                            candidate = default;
+                            break;
                         }
                     }
 
-                    implementations.Add((candidate, bases));
-                }
-                else
-                {
-                    implementations.Add((candidate, null));
-                }
-            }
-
-            Symbol result;
-
-            switch (implementations.Count)
-            {
-                case 0:
-                    result = null;
-                    conflictingImplementation1 = null;
-                    conflictingImplementation2 = null;
-                    break;
-                case 1:
-                    MultiDictionary<Symbol, Symbol>.ValueSet methodSet = implementations[0].MethodSet;
-                    switch (methodSet.Count)
+                    if (candidate.Count == 0)
                     {
-                        case 1:
-                            result = methodSet.Single();
-                            if (result.IsAbstract)
-                            {
-                                result = null;
-                            }
-                            break;
-                        default:
-                            result = null;
-                            break;
+                        continue;
                     }
 
-                    conflictingImplementation1 = null;
-                    conflictingImplementation2 = null;
-                    break;
-                default:
-                    result = null;
-                    conflictingImplementation1 = implementations[0].MethodSet.First();
-                    conflictingImplementation2 = implementations[1].MethodSet.First();
-                    break;
-            }
+                    if (implementations.Count != 0)
+                    {
+                        MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> bases = interfaceType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
 
-            implementations.Free();
-            return result;
+                        for (int i = implementations.Count - 1; i >= 0; i--)
+                        {
+                            if (bases.ContainsKey(implementations[i].MethodSet.First().ContainingType))
+                            {
+                                // new candidate is more specific
+                                implementations.RemoveAt(i);
+                            }
+                        }
+
+                        implementations.Add((candidate, bases));
+                    }
+                    else
+                    {
+                        implementations.Add((candidate, null));
+                    }
+                }
+
+                Symbol result;
+
+                switch (implementations.Count)
+                {
+                    case 0:
+                        result = null;
+                        conflictingImplementation1 = null;
+                        conflictingImplementation2 = null;
+                        break;
+                    case 1:
+                        MultiDictionary<Symbol, Symbol>.ValueSet methodSet = implementations[0].MethodSet;
+                        switch (methodSet.Count)
+                        {
+                            case 1:
+                                result = methodSet.Single();
+                                if (result.IsAbstract)
+                                {
+                                    result = null;
+                                }
+                                break;
+                            default:
+                                result = null;
+                                break;
+                        }
+
+                        conflictingImplementation1 = null;
+                        conflictingImplementation2 = null;
+                        break;
+                    default:
+                        result = null;
+                        conflictingImplementation1 = implementations[0].MethodSet.First();
+                        conflictingImplementation2 = implementations[1].MethodSet.First();
+                        break;
+                }
+
+                implementations.Free();
+                return result;
+            }
         }
 
         internal static MultiDictionary<Symbol, Symbol>.ValueSet FindImplementationInInterface(Symbol interfaceMember, NamedTypeSymbol interfaceType)
         {
             Debug.Assert(interfaceType.IsInterface);
+            Debug.Assert(!interfaceMember.IsStatic);
 
             NamedTypeSymbol containingType = interfaceMember.ContainingType;
             if (containingType.Equals(interfaceType, TypeCompareKind.CLRSignatureCompareOptions))
@@ -1220,26 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return interfaceType.GetExplicitImplementationForInterfaceMember(interfaceMember);
         }
 
-        /// <summary>
-        /// Since dev11 didn't expose a symbol API, it had the luxury of being able to accept a base class's claim that 
-        /// it implements an interface.  Roslyn, on the other hand, needs to be able to point to an implementing symbol
-        /// for each interface member.
-        /// 
-        /// DevDiv #718115 was triggered by some unusual metadata in a Microsoft reference assembly (Silverlight System.Windows.dll).
-        /// The issue was that a type explicitly implemented the accessors of an interface event, but did not tie them together with
-        /// an event declaration.  To make matters worse, it declared its own protected event with the same name as the interface
-        /// event (presumably to back the explicit implementation).  As a result, when Roslyn was asked to find the implementing member
-        /// for the interface event, it found the protected event and reported an appropriate diagnostic.  Would it should have done
-        /// (and does do now) is recognize that no event associated with the accessors explicitly implementing the interface accessors
-        /// and returned null.
-        /// 
-        /// We resolved this issue by introducing a new step into the interface mapping algorithm: after failing to find an explicit
-        /// implementation in a type, but before searching for an implicit implementation in that type, check for an explicit implementation
-        /// of an associated accessor.  If there is such an implementation, then immediately return the associated property or event,
-        /// even if it is null.  That is, never attempt to find an implicit implementation for an interface property or event with an
-        /// explicitly implemented accessor.
-        /// </summary>
-        private static bool IsExplicitlyImplementedViaAccessors(Symbol interfaceMember, TypeSymbol currType, out Symbol implementingMember)
+        private static (MethodSymbol interfaceAccessor1, MethodSymbol interfaceAccessor2) GetImplementableAccessors(Symbol interfaceMember)
         {
             MethodSymbol interfaceAccessor1;
             MethodSymbol interfaceAccessor2;
@@ -1262,16 +1402,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 default:
                     {
-                        implementingMember = null;
-                        return false;
+                        interfaceAccessor1 = null;
+                        interfaceAccessor2 = null;
+                        break;
                     }
             }
+
+            if (!interfaceAccessor1.IsImplementable())
+            {
+                interfaceAccessor1 = null;
+            }
+
+            if (!interfaceAccessor2.IsImplementable())
+            {
+                interfaceAccessor2 = null;
+            }
+
+            return (interfaceAccessor1, interfaceAccessor2);
+        }
+
+        /// <summary>
+        /// Since dev11 didn't expose a symbol API, it had the luxury of being able to accept a base class's claim that 
+        /// it implements an interface.  Roslyn, on the other hand, needs to be able to point to an implementing symbol
+        /// for each interface member.
+        /// 
+        /// DevDiv #718115 was triggered by some unusual metadata in a Microsoft reference assembly (Silverlight System.Windows.dll).
+        /// The issue was that a type explicitly implemented the accessors of an interface event, but did not tie them together with
+        /// an event declaration.  To make matters worse, it declared its own protected event with the same name as the interface
+        /// event (presumably to back the explicit implementation).  As a result, when Roslyn was asked to find the implementing member
+        /// for the interface event, it found the protected event and reported an appropriate diagnostic.  What it should have done
+        /// (and does do now) is recognize that no event associated with the accessors explicitly implementing the interface accessors
+        /// and returned null.
+        /// 
+        /// We resolved this issue by introducing a new step into the interface mapping algorithm: after failing to find an explicit
+        /// implementation in a type, but before searching for an implicit implementation in that type, check for an explicit implementation
+        /// of an associated accessor.  If there is such an implementation, then immediately return the associated property or event,
+        /// even if it is null.  That is, never attempt to find an implicit implementation for an interface property or event with an
+        /// explicitly implemented accessor.
+        /// </summary>
+        private static bool IsExplicitlyImplementedViaAccessors(bool checkPendingExplicitImplementations, Symbol interfaceMember, TypeSymbol currType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Symbol implementingMember)
+        {
+            (MethodSymbol interfaceAccessor1, MethodSymbol interfaceAccessor2) = GetImplementableAccessors(interfaceMember);
 
             Symbol associated1;
             Symbol associated2;
 
-            if (TryGetExplicitImplementationAssociatedPropertyOrEvent(interfaceAccessor1, currType, out associated1) |  // NB: not ||
-                TryGetExplicitImplementationAssociatedPropertyOrEvent(interfaceAccessor2, currType, out associated2))
+            if (TryGetExplicitImplementationAssociatedPropertyOrEvent(checkPendingExplicitImplementations, interfaceAccessor1, currType, ref useSiteInfo, out associated1) |  // NB: not ||
+                TryGetExplicitImplementationAssociatedPropertyOrEvent(checkPendingExplicitImplementations, interfaceAccessor2, currType, ref useSiteInfo, out associated2))
             {
                 // If there's more than one associated property/event, don't do anything special - just let the algorithm
                 // fail in the usual way.
@@ -1283,20 +1460,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // If we haven't then there is no implementation.  We need this check to match dev11 in some edge cases
                     // (e.g. IndexerTests.AmbiguousExplicitIndexerImplementation).  Such cases already fail
                     // to roundtrip correctly, so it's not important to check for a particular compilation.
-                    if ((object)implementingMember != null && implementingMember.Dangerous_IsFromSomeCompilation)
+                    if ((object)implementingMember != null && implementingMember.OriginalDefinition.ContainingModule is not PEModuleSymbol && implementingMember.IsExplicitInterfaceImplementation())
                     {
                         implementingMember = null;
                     }
-
-                    return true;
                 }
+                else
+                {
+                    implementingMember = null;
+                }
+
+                return true;
             }
 
             implementingMember = null;
             return false;
         }
 
-        private static bool TryGetExplicitImplementationAssociatedPropertyOrEvent(MethodSymbol interfaceAccessor, TypeSymbol currType, out Symbol associated)
+        private static bool TryGetExplicitImplementationAssociatedPropertyOrEvent(bool checkPendingExplicitImplementations, MethodSymbol interfaceAccessor, TypeSymbol currType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Symbol associated)
         {
             if ((object)interfaceAccessor != null)
             {
@@ -1310,6 +1491,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ? ((MethodSymbol)implementation).AssociatedSymbol
                         : null;
                     return true;
+                }
+
+                if (checkPendingExplicitImplementations &&
+                    currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).ContainsKey(interfaceAccessor.ContainingType))
+                {
+                    // Check for implementations that are going to be explicit once types are emitted
+                    MethodSymbol bodyOfSynthesizedMethodImpl = currType.GetBodyOfSynthesizedInterfaceMethodImpl(interfaceAccessor);
+
+                    if (bodyOfSynthesizedMethodImpl is object)
+                    {
+                        associated = bodyOfSynthesizedMethodImpl.AssociatedSymbol;
+                        return true;
+                    }
                 }
             }
 
@@ -1327,14 +1521,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If there is no corresponding accessor on the implementation of the corresponding interface
         /// property/event and we found an accessor, then the accessor we found is invalid, so clear it.
         /// </summary>
-        private static void CheckForImplementationOfCorrespondingPropertyOrEvent(MethodSymbol interfaceMethod, TypeSymbol implementingType, bool implementingTypeIsFromSomeCompilation, ref Symbol implicitImpl)
+        private static void CheckForImplementationOfCorrespondingPropertyOrEvent(MethodSymbol interfaceMethod, TypeSymbol implementingType, bool implementingTypeIsFromSomeCompilation,
+                                                                                 ref Symbol implicitImpl)
         {
+            Debug.Assert(!implementingType.IsInterfaceType());
             Debug.Assert(interfaceMethod.IsAccessor());
 
             Symbol associatedInterfacePropertyOrEvent = interfaceMethod.AssociatedSymbol;
-            Symbol implementingPropertyOrEvent = implementingType.FindImplementationForInterfaceMember(associatedInterfacePropertyOrEvent); // NB: uses cache
+
+            // Do not make any adjustments based on presence of default interface implementation for the property or event.
+            // We don't want an addition of default interface implementation to change an error situation to success for
+            // scenarios where the default interface implementation wouldn't actually be used at runtime.
+            // When we find an implicit implementation candidate, we don't want to not discard it if we would discard it when
+            // default interface implementation was missing. Why would presence of default interface implementation suddenly
+            // make the candidate suiatable to implement the interface? Also, if we discard the candidate, we don't want default interface 
+            // implementation to take over later, since runtime might still use the discarded candidate.
+            // When we don't find any implicit implementation candidate, returning accessor of default interface implementation
+            // doesn't actually help much because we would find it anyway (it is implemented explicitly).
+            Symbol implementingPropertyOrEvent = implementingType.FindImplementationForInterfaceMemberInNonInterface(associatedInterfacePropertyOrEvent,
+                                                                                                                     ignoreImplementationInInterfacesIfResultIsNotReady: true); // NB: uses cache
+
             MethodSymbol correspondingImplementingAccessor = null;
-            if ((object)implementingPropertyOrEvent != null)
+            if ((object)implementingPropertyOrEvent != null && !implementingPropertyOrEvent.ContainingType.IsInterface)
             {
                 switch (interfaceMethod.MethodKind)
                 {
@@ -1382,6 +1590,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     interfaceMethod.TypeParameters,
                     interfaceMethod.Parameters,
                     interfaceMethod.RefKind,
+                    interfaceMethod.IsInitOnly,
+                    interfaceMethod.IsStatic,
                     interfaceMethod.ReturnTypeWithAnnotations,
                     interfaceMethod.RefCustomModifiers,
                     interfaceMethod.ExplicitInterfaceImplementations);
@@ -1394,42 +1604,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private static void ReportDefaultInterfaceImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, BindingDiagnosticBag diagnostics)
+        {
+            if (interfaceMember.Kind == SymbolKind.Method && implementingType.ContainingModule != implicitImpl.ContainingModule)
+            {
+                // The default implementation is coming from a different module, which means that we probably didn't check
+                // for the required runtime capability or language version
+
+                LanguageVersion requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
+                LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
+                if (requiredVersion > availableVersion)
+                {
+                    diagnostics.Add(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember,
+                                    GetInterfaceLocation(interfaceMember, implementingType),
+                                    implicitImpl, interfaceMember, implementingType,
+                                    MessageID.IDS_DefaultInterfaceImplementation.Localize(),
+                                    availableVersion.GetValueOrDefault().ToDisplayString(),
+                                    new CSharpRequiredLanguageVersion(requiredVersion));
+                }
+
+                if (!implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
+                                    GetInterfaceLocation(interfaceMember, implementingType),
+                                    implicitImpl, interfaceMember, implementingType);
+                }
+            }
+        }
+
         /// <summary>
         /// These diagnostics are for members that do implicitly implement an interface member, but do so
         /// in an undesirable way.
         /// </summary>
-        private static void ReportImplicitImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, DiagnosticBag diagnostics)
+        private static void ReportImplicitImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, BindingDiagnosticBag diagnostics)
         {
-            if (implicitImpl.ContainingType.IsInterface)
-            {
-                if (interfaceMember.Kind == SymbolKind.Method && implementingType.ContainingModule != implicitImpl.ContainingModule)
-                {
-                    // The default implementation is coming from a different module, which means that we probably didn't check
-                    // for the required runtime capability or language version
-
-                    LanguageVersion requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
-                    LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
-                    if (requiredVersion > availableVersion)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember,
-                                        GetInterfaceLocation(interfaceMember, implementingType),
-                                        implicitImpl, interfaceMember, implementingType,
-                                        MessageID.IDS_DefaultInterfaceImplementation.Localize(),
-                                        availableVersion.GetValueOrDefault().ToDisplayString(),
-                                        new CSharpRequiredLanguageVersion(requiredVersion));
-                    }
-
-                    if (!implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
-                                        GetInterfaceLocation(interfaceMember, implementingType),
-                                        implicitImpl, interfaceMember, implementingType);
-                    }
-                }
-
-                return;
-            }
-
             bool reportedAnError = false;
 
             if (interfaceMember.Kind == SymbolKind.Method)
@@ -1455,6 +1663,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // CS0629: Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'
                         diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMethod, implementingType);
                     }
+                    else if (implicitImplMethod.IsStatic && implicitImplMethod.MethodKind == MethodKind.Ordinary && implicitImplMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is not null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMethod, implementingType);
+                    }
                     else if (ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics))
                     {
                         reportedAnError = true;
@@ -1469,9 +1681,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 reportedAnError = true;
             }
 
-            if (!reportedAnError)
+            if (!reportedAnError && implementingType.DeclaringCompilation != null)
             {
-                CheckNullableReferenceTypeMismatchOnImplementingMember(implicitImpl, interfaceMember, false, diagnostics);
+                CheckNullableReferenceTypeMismatchOnImplementingMember(implementingType, implicitImpl, interfaceMember, isExplicit: false, diagnostics);
             }
 
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.
@@ -1492,62 +1704,147 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+
+            if (implicitImpl.IsStatic && !implementingType.ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+            {
+                diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember,
+                                GetInterfaceLocation(interfaceMember, implementingType),
+                                implicitImpl, interfaceMember, implementingType);
+            }
         }
 
-        internal static void CheckNullableReferenceTypeMismatchOnImplementingMember(Symbol implementingMember, Symbol interfaceMember, bool isExplicit, DiagnosticBag diagnostics)
+        internal static void CheckNullableReferenceTypeMismatchOnImplementingMember(TypeSymbol implementingType, Symbol implementingMember, Symbol interfaceMember, bool isExplicit, BindingDiagnosticBag diagnostics)
         {
-            CSharpCompilation compilation;
-
-            if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
-                !implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor() &&
-                (compilation = implementingMember.DeclaringCompilation) != null)
+            if (!implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor())
             {
-                Symbol implementedMember;
-                MethodSymbol implementedMethod;
+                CSharpCompilation compilation = implementingType.DeclaringCompilation;
 
-                if (implementingMember.Kind == SymbolKind.Method && (implementedMethod = (MethodSymbol)interfaceMember).IsGenericMethod)
+                if (interfaceMember.Kind == SymbolKind.Event)
                 {
-                    implementedMember = implementedMethod.Construct(((MethodSymbol)implementingMember).TypeArgumentsWithAnnotations);
+                    var implementingEvent = (EventSymbol)implementingMember;
+                    var implementedEvent = (EventSymbol)interfaceMember;
+                    SourceMemberContainerTypeSymbol.CheckValidNullableEventOverride(compilation, implementedEvent, implementingEvent,
+                                                                                    diagnostics,
+                                                                                    (diagnostics, implementedEvent, implementingEvent, arg) =>
+                                                                                    {
+                                                                                        if (arg.isExplicit)
+                                                                                        {
+                                                                                            diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation,
+                                                                                                            implementingEvent.Locations[0], new FormattedSymbol(implementedEvent, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation,
+                                                                                                            GetImplicitImplementationDiagnosticLocation(implementedEvent, arg.implementingType, implementingEvent),
+                                                                                                            new FormattedSymbol(implementingEvent, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                                                                            new FormattedSymbol(implementedEvent, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                                                        }
+                                                                                    },
+                                                                                    (implementingType, isExplicit));
                 }
                 else
                 {
-                    implementedMember = interfaceMember;
-                }
+                    ReportMismatchInReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
+                        (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
+                        {
+                            if (arg.isExplicit)
+                            {
+                                // We use ConstructedFrom symbols here and below to not leak methods with Ignored annotations in type arguments
+                                // into diagnostics
+                                diagnostics.Add(topLevel ?
+                                                    ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
+                                                implementingMethod.Locations[0], new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                            }
+                            else
+                            {
+                                diagnostics.Add(topLevel ?
+                                                    ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
+                                                GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
+                                                new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                            }
+                        };
 
-                TypeWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
-                TypeWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
+                    ReportMismatchInParameterType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
+                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, topLevel, arg) =>
+                        {
+                            if (arg.isExplicit)
+                            {
+                                diagnostics.Add(topLevel ?
+                                                    ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
+                                                implementingMethod.Locations[0],
+                                                new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
+                                                new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                            }
+                            else
+                            {
+                                diagnostics.Add(topLevel ?
+                                                    ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
+                                                GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
+                                                new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
+                                                new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                            }
+                        };
 
-                if (!implementingMemberType.Equals(implementedMemberType,
-                                                   TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)) &&
-                    implementingMemberType.Equals(implementedMemberType, TypeCompareKind.AllIgnoreOptions))
-                {
-                    diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
-                                        (isExplicit ?
-                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation :
-                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation) :
-                                        (isExplicit ?
-                                            ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation :
-                                            ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation),
-                                    implementingMember.Locations[0], new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
-                }
-
-                ImmutableArray<ParameterSymbol> implementingParameters = implementingMember.GetParameters();
-                ImmutableArray<ParameterSymbol> implementedParameters = implementedMember.GetParameters();
-
-                for (int i = 0; i < implementingParameters.Length; i++)
-                {
-                    var implementedParameterType = implementedParameters[i].TypeWithAnnotations;
-
-                    if (!implementingParameters[i].TypeWithAnnotations.Equals(implementedParameterType,
-                                                               TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)) &&
-                        implementingParameters[i].TypeWithAnnotations.Equals(implementedParameterType, TypeCompareKind.AllIgnoreOptions))
+                    switch (interfaceMember.Kind)
                     {
-                        diagnostics.Add(isExplicit ?
-                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation :
-                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
-                                        implementingMember.Locations[0],
-                                        new FormattedSymbol(implementingParameters[i], SymbolDisplayFormat.ShortFormat),
-                                        new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                        case SymbolKind.Property:
+                            var implementingProperty = (PropertySymbol)implementingMember;
+                            var implementedProperty = (PropertySymbol)interfaceMember;
+                            if (implementedProperty.GetMethod.IsImplementable())
+                            {
+                                MethodSymbol implementingGetMethod = implementingProperty.GetOwnOrInheritedGetMethod();
+                                SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                                    compilation,
+                                    implementedProperty.GetMethod,
+                                    implementingGetMethod,
+                                    diagnostics,
+                                    reportMismatchInReturnType,
+                                    // Don't check parameters on the getter if there is a setter
+                                    // because they will be a subset of the setter
+                                    (!implementedProperty.SetMethod.IsImplementable() ||
+                                        implementingGetMethod?.AssociatedSymbol != implementingProperty ||
+                                        implementingProperty.GetOwnOrInheritedSetMethod()?.AssociatedSymbol != implementingProperty) ? reportMismatchInParameterType : null,
+                                    (implementingType, isExplicit));
+                            }
+
+                            if (implementedProperty.SetMethod.IsImplementable())
+                            {
+                                SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                                    compilation,
+                                    implementedProperty.SetMethod,
+                                    implementingProperty.GetOwnOrInheritedSetMethod(),
+                                    diagnostics,
+                                    null,
+                                    reportMismatchInParameterType,
+                                    (implementingType, isExplicit));
+                            }
+                            break;
+                        case SymbolKind.Method:
+                            var implementingMethod = (MethodSymbol)implementingMember;
+                            var implementedMethod = (MethodSymbol)interfaceMember;
+
+                            if (implementedMethod.IsGenericMethod)
+                            {
+                                implementedMethod = implementedMethod.Construct(TypeMap.TypeParametersAsTypeSymbolsWithIgnoredAnnotations(implementingMethod.TypeParameters));
+                            }
+
+                            SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                                compilation,
+                                implementedMethod,
+                                implementingMethod,
+                                diagnostics,
+                                reportMismatchInReturnType,
+                                reportMismatchInParameterType,
+                                (implementingType, isExplicit));
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);
                     }
                 }
             }
@@ -1556,19 +1853,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// These diagnostics are for members that almost, but not actually, implicitly implement an interface member.
         /// </summary>
-        private static void ReportImplicitImplementationMismatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol closestMismatch, DiagnosticBag diagnostics)
+        private static void ReportImplicitImplementationMismatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol closestMismatch, BindingDiagnosticBag diagnostics)
         {
             // Determine  a better location for diagnostic squiggles.  Squiggle the interface rather than the class.
             Location interfaceLocation = GetInterfaceLocation(interfaceMember, implementingType);
 
-            if (closestMismatch.IsStatic)
+            if (closestMismatch.IsStatic != interfaceMember.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, interfaceLocation, implementingType, interfaceMember, closestMismatch);
+                diagnostics.Add(closestMismatch.IsStatic ? ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic : ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic,
+                                interfaceLocation, implementingType, interfaceMember, closestMismatch);
             }
             else if (closestMismatch.DeclaredAccessibility != Accessibility.Public)
             {
                 ErrorCode errorCode = interfaceMember.IsAccessor() ? ErrorCode.ERR_UnimplementedInterfaceAccessor : ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic;
                 diagnostics.Add(errorCode, interfaceLocation, implementingType, interfaceMember, closestMismatch);
+            }
+            else if (HaveInitOnlyMismatch(interfaceMember, closestMismatch))
+            {
+                diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, interfaceLocation, implementingType, interfaceMember, closestMismatch);
             }
             else //return ref kind or type doesn't match
             {
@@ -1607,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 DiagnosticInfo useSiteDiagnostic;
                 if ((object)interfaceMemberReturnType != null &&
-                    (useSiteDiagnostic = interfaceMemberReturnType.GetUseSiteDiagnostic()) != null &&
+                    (useSiteDiagnostic = interfaceMemberReturnType.GetUseSiteInfo().DiagnosticInfo) != null &&
                     useSiteDiagnostic.DefaultSeverity == DiagnosticSeverity.Error)
                 {
                     diagnostics.Add(useSiteDiagnostic, interfaceLocation);
@@ -1621,6 +1923,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberReturnType);
                 }
             }
+        }
+
+        internal static bool HaveInitOnlyMismatch(Symbol one, Symbol other)
+        {
+            if (!(one is MethodSymbol oneMethod))
+            {
+                return false;
+            }
+
+            if (!(other is MethodSymbol otherMethod))
+            {
+                return false;
+            }
+
+            return oneMethod.IsInitOnly != otherMethod.IsInitOnly;
         }
 
         /// <summary>
@@ -1637,10 +1954,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 snt = implementingType as SourceMemberContainerTypeSymbol;
             }
 
-            return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+            return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations.FirstOrNone();
         }
 
-        private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, DiagnosticBag diagnostics)
+        private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(interfaceMethod.Arity == implicitImpl.Arity);
 
@@ -1724,10 +2041,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             implicitImpl = null;
             closeMismatch = null;
 
+            bool? isOperator = null;
+
+            if (interfaceMember is MethodSymbol interfaceMethod)
+            {
+                isOperator = interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
+            }
+
             foreach (Symbol member in currType.GetMembers(interfaceMember.Name))
             {
                 if (member.Kind == interfaceMember.Kind)
                 {
+                    if (isOperator.HasValue &&
+                        (((MethodSymbol)member).MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion) != isOperator.GetValueOrDefault())
+                    {
+                        continue;
+                    }
+
                     if (IsInterfaceMemberImplementation(member, interfaceMember, implementingTypeIsFromSomeCompilation))
                     {
                         implicitImpl = member;
@@ -1735,11 +2065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     // If we haven't found a match, do a weaker comparison that ignores static-ness, accessibility, and return type.
-                    // But do this only if interface member is public because language doesn't allow implicit implementations for
-                    // non-public members and, since candidate's signature doesn't match, runtime will never pick it up either. 
-                    else if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation &&
-                             interfaceMember.DeclaredAccessibility == Accessibility.Public &&
-                             !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor())
+                    else if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation)
                     {
                         // We can ignore custom modifiers here, because our goal is to improve the helpfulness
                         // of an error we're already giving, rather than to generate a new error.
@@ -1781,7 +2107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private static bool IsInterfaceMemberImplementation(Symbol candidateMember, Symbol interfaceMember, bool implementingTypeIsFromSomeCompilation)
         {
-            if (candidateMember.DeclaredAccessibility != Accessibility.Public || candidateMember.IsStatic)
+            if (candidateMember.DeclaredAccessibility != Accessibility.Public || candidateMember.IsStatic != interfaceMember.IsStatic)
+            {
+                return false;
+            }
+            else if (HaveInitOnlyMismatch(candidateMember, interfaceMember))
             {
                 return false;
             }
@@ -1833,6 +2163,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return map;
         }
+
+#nullable enable
+        /// <summary>
+        /// If implementation of an interface method <paramref name="interfaceMethod"/> will be accompanied with 
+        /// a MethodImpl entry in metadata, information about which isn't already exposed through
+        /// <see cref="MethodSymbol.ExplicitInterfaceImplementations"/> API, this method returns the "Body" part
+        /// of the MethodImpl entry, i.e. the method that implements the <paramref name="interfaceMethod"/>.
+        /// Some of the MethodImpl entries could require synthetic forwarding methods. In such cases,
+        /// the result is the method that the language considers to implement the <paramref name="interfaceMethod"/>,
+        /// rather than the forwarding method. In other words, it is the method that the forwarding method forwards to.
+        /// </summary>
+        /// <param name="interfaceMethod">The interface method that is going to be implemented by using synthesized MethodImpl entry.</param>
+        /// <returns></returns>
+        protected MethodSymbol? GetBodyOfSynthesizedInterfaceMethodImpl(MethodSymbol interfaceMethod)
+        {
+            var info = this.GetInterfaceInfo();
+            if (info == s_noInterfaces)
+            {
+                return null;
+            }
+
+            if (info.synthesizedMethodImplMap == null)
+            {
+                Interlocked.CompareExchange(ref info.synthesizedMethodImplMap, makeSynthesizedMethodImplMap(), null);
+            }
+
+            if (info.synthesizedMethodImplMap.TryGetValue(interfaceMethod, out MethodSymbol? result))
+            {
+                return result;
+            }
+
+            return null;
+
+            ImmutableDictionary<MethodSymbol, MethodSymbol> makeSynthesizedMethodImplMap()
+            {
+                var map = ImmutableDictionary.CreateBuilder<MethodSymbol, MethodSymbol>(ExplicitInterfaceImplementationTargetMemberEqualityComparer.Instance);
+                foreach ((MethodSymbol body, MethodSymbol implemented) in this.SynthesizedInterfaceMethodImpls())
+                {
+                    map.Add(implemented, body);
+                }
+
+                return map.ToImmutable();
+            }
+        }
+
+        /// <summary>
+        /// Returns information about interface method implementations that will be accompanied with 
+        /// MethodImpl entries in metadata, information about which isn't already exposed through
+        /// <see cref="MethodSymbol.ExplicitInterfaceImplementations"/> API. The "Body" is the method that
+        /// implements the interface method "Implemented". 
+        /// Some of the MethodImpl entries could require synthetic forwarding methods. In such cases,
+        /// the "Body" is the method that the language considers to implement the interface method,
+        /// the "Implemented", rather than the forwarding method. In other words, it is the method that 
+        /// the forwarding method forwards to.
+        /// </summary>
+        internal abstract IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls();
+#nullable disable
 
         protected class ExplicitInterfaceImplementationTargetMemberEqualityComparer : IEqualityComparer<Symbol>
         {
@@ -1930,15 +2317,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+#nullable enable
+        public static bool Equals(TypeSymbol? left, TypeSymbol? right, TypeCompareKind comparison)
         {
             if (left is null)
             {
                 return right is null;
             }
 
-            return left.Equals(right, comparison, isValueTypeOverrideOpt);
+            return left.Equals(right, comparison);
         }
+#nullable disable
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(TypeSymbol left, TypeSymbol right)
@@ -1963,5 +2352,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator !=(TypeSymbol left, Symbol right)
             => throw ExceptionUtilities.Unreachable;
+
+        internal ITypeSymbol GetITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
+        {
+            if (nullableAnnotation == DefaultNullableAnnotation)
+            {
+                return (ITypeSymbol)this.ISymbol;
+            }
+
+            return CreateITypeSymbol(nullableAnnotation);
+        }
+
+        internal CodeAnalysis.NullableAnnotation DefaultNullableAnnotation => NullableAnnotationExtensions.ToPublicAnnotation(this, NullableAnnotation.Oblivious);
+
+        protected abstract ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation);
+
+        TypeKind ITypeSymbolInternal.TypeKind => this.TypeKind;
+
+        SpecialType ITypeSymbolInternal.SpecialType => this.SpecialType;
+
+        bool ITypeSymbolInternal.IsReferenceType => this.IsReferenceType;
+
+        bool ITypeSymbolInternal.IsValueType => this.IsValueType;
+
+        ITypeSymbol ITypeSymbolInternal.GetITypeSymbol()
+        {
+            return GetITypeSymbol(DefaultNullableAnnotation);
+        }
+
+        internal abstract bool IsRecord { get; }
+
+        internal abstract bool IsRecordStruct { get; }
     }
 }

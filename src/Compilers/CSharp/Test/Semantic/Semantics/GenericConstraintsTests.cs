@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -1824,9 +1828,9 @@ public class Test2
             var c = CreateCompilation("public class Test<T> where T : class, unmanaged {}");
 
             c.VerifyDiagnostics(
-                // (1,39): error CS8380: The 'unmanaged' constraint must come before any other constraints
+                // (1,39): error CS0449: The 'unmanaged' constraint cannot be combined with the 'class' constraint
                 // public class Test<T> where T : class, unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 39));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 39));
 
             var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
@@ -1842,9 +1846,9 @@ public class Test2
             var c = CreateCompilation("public class Test<T> where T : struct, unmanaged {}");
 
             c.VerifyDiagnostics(
-                // (1,40): error CS8380: The 'unmanaged' constraint must come before any other constraints
+                // (1,40): error CS0449: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
                 // public class Test<T> where T : struct, unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 40));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 40));
 
             var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
@@ -1879,7 +1883,7 @@ public class Test2
             CreateCompilation("public class Test<T> where T : System.Exception, unmanaged { }").VerifyDiagnostics(
                 // (1,50): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : System.Exception, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 50));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 50));
         }
 
         [Fact]
@@ -1888,7 +1892,7 @@ public class Test2
             CreateCompilation("public class Test<T> where T : System.Enum, System.IDisposable, unmanaged { }").VerifyDiagnostics(
                 // (1,65): error CS8376: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : System.Enum, System.IDisposable, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 65));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 65));
         }
 
         [Fact]
@@ -1914,7 +1918,7 @@ public class Test2
             CreateCompilation("public class Test<T, U> where T : U, unmanaged { }").VerifyDiagnostics(
                 // (1,38): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T, U> where T : U, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 38));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 38));
         }
 
         [Fact]
@@ -2736,7 +2740,7 @@ class Test
             CreateCompilation(@"
 namespace hidden
 {
-    class unmanaged
+    class @unmanaged
     {
         public void Print()
         {
@@ -2874,8 +2878,8 @@ unsafe public class Test
             var value = ((VariableDeclaratorSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.VariableDeclarator)).Initializer.Value;
             Assert.Equal("M<int>()", value.ToFullString());
 
-            var symbol = (MethodSymbol)model.GetSymbolInfo(value).Symbol;
-            Assert.Equal("System.Int32*", symbol.ReturnTypeWithAnnotations.ToTestDisplayString());
+            var symbol = (IMethodSymbol)model.GetSymbolInfo(value).Symbol;
+            Assert.Equal("System.Int32*", symbol.ReturnType.ToTestDisplayString());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -2897,7 +2901,7 @@ class Test<U> where U : unmanaged
         public void UnmanagedConstraints_UnmanagedAsTypeConstraintName()
         {
             CreateCompilation(@"
-class Test<unmanaged> where unmanaged : System.IDisposable
+class Test<@unmanaged> where unmanaged : System.IDisposable
 {
     void M<T>(T arg) where T : unmanaged
     {
@@ -3134,11 +3138,11 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var inferredMethod = (IMethodSymbol)model.GetSymbolInfo(call).Symbol;
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
-            Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
+            Assert.Equal(declaredMethod.GetPublicSymbol(), inferredMethod);
+            Assert.Equal(declaredMethod.TypeParameters.Single().GetPublicSymbol(), inferredMethod.TypeArguments.Single());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3164,11 +3168,11 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var inferredMethod = (IMethodSymbol)model.GetSymbolInfo(call).Symbol;
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
-            Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
+            Assert.Equal(declaredMethod.GetPublicSymbol(), inferredMethod.ConstructedFrom());
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3190,11 +3194,11 @@ unsafe class C
             var model = compilation.GetSemanticModel(tree);
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var inferredMethod = (IMethodSymbol)model.GetSymbolInfo(call).Symbol;
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
-            Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
+            Assert.Equal(declaredMethod.GetPublicSymbol(), inferredMethod);
+            Assert.Equal(declaredMethod.TypeParameters.Single().GetPublicSymbol(), inferredMethod.TypeArguments.Single());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3219,11 +3223,11 @@ unsafe class C
             var model = compilation.GetSemanticModel(tree);
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var inferredMethod = (IMethodSymbol)model.GetSymbolInfo(call).Symbol;
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
-            Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
+            Assert.Equal(declaredMethod.GetPublicSymbol(), inferredMethod.ConstructedFrom());
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3409,18 +3413,18 @@ public class C
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (16,18): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (16,18): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         MyStruct<InnerStruct<int>> myStruct;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "InnerStruct<int>").WithArguments("unmanaged constructed types").WithLocation(16, 18),
-                // (17,12): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "InnerStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(16, 18),
+                // (17,12): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         M2(&myStruct);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&myStruct").WithArguments("unmanaged constructed types").WithLocation(17, 12),
-                // (20,27): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&myStruct").WithArguments("unmanaged constructed types", "8.0").WithLocation(17, 12),
+                // (20,55): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct<InnerStruct<int>>*").WithArguments("unmanaged constructed types").WithLocation(20, 27),
-                // (20,55): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(20, 55),
+                // (20,55): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ms").WithArguments("unmanaged constructed types").WithLocation(20, 55));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(20, 55));
         }
 
         [Fact]
@@ -3456,9 +3460,9 @@ public class C
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (16,18): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (16,18): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         MyStruct<InnerStruct<int>> myStruct = default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "InnerStruct<int>").WithArguments("unmanaged constructed types").WithLocation(16, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "InnerStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(16, 18)
                 );
         }
 
@@ -3490,9 +3494,9 @@ public class C
                     // (12,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<U>')
                     //         M2<U>(&myStruct);
                     Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<U>").WithLocation(12, 15),
-                    // (15,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<V>')
+                    // (15,43): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<V>')
                     //     public unsafe void M2<V>(MyStruct<V>* ms) { }
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<V>*").WithArguments("MyStruct<V>").WithLocation(15, 30),
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "ms").WithArguments("MyStruct<V>").WithLocation(15, 43),
                     // (15,43): error CS8377: The type 'V' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
                     //     public unsafe void M2<V>(MyStruct<V>* ms) { }
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ms").WithArguments("MyStruct<T>", "T", "V").WithLocation(15, 43));
@@ -3523,9 +3527,9 @@ public class C
                     // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
                     //         M2(&myStruct);
                     Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12),
-                    // (15,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    // (15,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
                     //     public unsafe void M2(MyStruct<string>* ms) { }
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<string>*").WithArguments("MyStruct<string>").WithLocation(15, 27));
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "ms").WithArguments("MyStruct<string>").WithLocation(15, 45));
         }
 
         [Fact]
@@ -3544,8 +3548,8 @@ public unsafe struct YourStruct<T> where T : unmanaged
 ";
             var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3564,8 +3568,8 @@ public unsafe struct YourStruct
 ";
             var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
 
         }
 
@@ -3589,8 +3593,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
 
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3619,8 +3623,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public MyStruct<T> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("YourStruct<T>.field", "MyStruct<T>").WithLocation(9, 24));
 
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3644,8 +3648,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
 
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3672,8 +3676,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
 
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3700,8 +3704,8 @@ public struct YourStruct<T> where T : unmanaged
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
 
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
-            Assert.True(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3783,8 +3787,8 @@ public struct Z
             var compilation = CreateCompilation(code);
             compilation.VerifyDiagnostics();
 
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("X").IsManagedType);
-            Assert.False(compilation.GetMember<NamedTypeSymbol>("Z").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("X").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("Z").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3804,9 +3808,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (9,19): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,19): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var ptr = &ms;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&ms").WithArguments("unmanaged constructed types").WithLocation(9, 19)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 19)
                 );
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
@@ -3834,12 +3838,12 @@ public class MyClass
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (12,16): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,16): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         fixed (MyStruct<int>* ptr = &c.ms)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct<int>*").WithArguments("unmanaged constructed types").WithLocation(12, 16),
-                // (12,37): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 16),
+                // (12,37): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         fixed (MyStruct<int>* ptr = &c.ms)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&c.ms").WithArguments("unmanaged constructed types").WithLocation(12, 37));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&c.ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 37));
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -3860,9 +3864,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (8,20): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,20): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var size = sizeof(MyStruct<int>);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(MyStruct<int>)").WithArguments("unmanaged constructed types").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "sizeof(MyStruct<int>)").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 20)
                 );
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
@@ -3884,9 +3888,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (8,19): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,19): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var arr = stackalloc[] { new MyStruct<int>() };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc[] { new MyStruct<int>() }").WithArguments("unmanaged constructed types").WithLocation(8, 19));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc[] { new MyStruct<int>() }").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 19));
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -3907,9 +3911,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (8,30): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,30): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var arr = stackalloc MyStruct<int>[4];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct<int>").WithArguments("unmanaged constructed types").WithLocation(8, 30));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 30));
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -3930,9 +3934,36 @@ public unsafe struct OtherStruct
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (9,12): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,27): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public MyStruct<int>* ms;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct<int>*").WithArguments("unmanaged constructed types").WithLocation(9, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 27)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericNestedStructPointerFieldRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public struct InnerStruct
+    {
+        public T field;
+    }
+}
+
+public unsafe struct OtherStruct
+{
+    public MyStruct<int>.InnerStruct* ms;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (12,39): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     public MyStruct<int>.InnerStruct* ms;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 39)
                 );
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
@@ -3960,12 +3991,12 @@ public class C
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (13,9): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,9): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         M<MyStruct>();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M<MyStruct>").WithArguments("unmanaged constructed types").WithLocation(13, 9),
-                // (14,9): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct>").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 9),
+                // (14,9): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         M<(int, int)>();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M<(int, int)>").WithArguments("unmanaged constructed types").WithLocation(14, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<(int, int)>").WithArguments("unmanaged constructed types", "8.0").WithLocation(14, 9)
                 );
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
@@ -3997,9 +4028,9 @@ public class C
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (13,9): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,9): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         M<MyStruct<U>>();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M<MyStruct<U>>").WithArguments("unmanaged constructed types").WithLocation(13, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct<U>>").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 9),
                 // (18,9): error CS8377: The type 'MyStruct<V>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
                 //         M<MyStruct<V>>();
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<MyStruct<V>>").WithArguments("C.M<T>()", "T", "MyStruct<V>").WithLocation(18, 9)
@@ -4121,6 +4152,113 @@ public class MyClass
                     //         fixed (int* ptr = &ms.field)
                     Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&ms.field").WithLocation(12, 27)
                 );
+        }
+
+        [Fact, WorkItem(45141, "https://github.com/dotnet/roslyn/issues/45141")]
+        public void CannotCombineDiagnostics()
+        {
+            var comp = CreateCompilation(@"
+class C1<T1> where T1 : class, struct, unmanaged, notnull
+{
+    void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+}
+class C2<T1> where T1 : struct, class, unmanaged, notnull
+{
+    void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+}
+class C3<T1> where T1 : class, class
+{
+    void M3<T2>() where T2 : class, class {}
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (2,32): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C1<T1> where T1 : class, struct, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(2, 32),
+                // (2,40): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C1<T1> where T1 : class, struct, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(2, 40),
+                // (2,51): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C1<T1> where T1 : class, struct, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(2, 51),
+                // (4,37): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(4, 37),
+                // (4,45): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(4, 45),
+                // (4,56): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(4, 56),
+                // (6,33): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C2<T1> where T1 : struct, class, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(6, 33),
+                // (6,40): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C2<T1> where T1 : struct, class, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(6, 40),
+                // (6,51): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C2<T1> where T1 : struct, class, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(6, 51),
+                // (8,38): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(8, 38),
+                // (8,45): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(8, 45),
+                // (8,56): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(8, 56),
+                // (10,32): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C3<T1> where T1 : class, class
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(10, 32),
+                // (12,37): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M3<T2>() where T2 : class, class {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(12, 37)
+            );
+        }
+
+        [Fact, WorkItem(45141, "https://github.com/dotnet/roslyn/issues/45141")]
+        public void CannotCombineDiagnostics_InheritedClassStruct()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public virtual void M<T1>() where T1 : class {}
+}
+class D : C
+{
+    public override void M<T1>() where T1 : C, class, struct {}
+}
+class E
+{
+    public virtual void M<T2>() where T2 : struct {}
+}
+class F : E
+{
+    public override void M<T2>() where T2 : E, struct, class {}
+}
+class G
+{
+    public virtual void M<T3>() where T3 : unmanaged {}
+}
+class H : G
+{
+    public override void M<T3>() where T3 : G, unmanaged, struct {}
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M<T1>() where T1 : C, class, struct {}
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "C").WithLocation(8, 45),
+                // (16,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M<T2>() where T2 : E, struct, class {}
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "E").WithLocation(16, 45),
+                // (24,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M<T3>() where T3 : G, unmanaged, struct {}
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "G").WithLocation(24, 45)
+            );
         }
     }
 }

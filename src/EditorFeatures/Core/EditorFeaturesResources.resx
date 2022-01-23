@@ -267,9 +267,6 @@
   <data name="Given_Workspace_doesn_t_support_Undo" xml:space="preserve">
     <value>Given Workspace doesn't support Undo</value>
   </data>
-  <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
-    <value>Document must be contained in the workspace that created this service</value>
-  </data>
   <data name="Searching" xml:space="preserve">
     <value>Searching...</value>
   </data>
@@ -366,9 +363,6 @@
   <data name="Preview_Warning" xml:space="preserve">
     <value>Preview Warning</value>
   </data>
-  <data name="from_metadata" xml:space="preserve">
-    <value>from metadata</value>
-  </data>
   <data name="Automatic_Line_Ender" xml:space="preserve">
     <value>Automatic Line Ender</value>
   </data>
@@ -393,6 +387,12 @@
   <data name="You_cannot_rename_this_element" xml:space="preserve">
     <value>You cannot rename this element.</value>
   </data>
+  <data name="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file" xml:space="preserve">
+    <value>You cannot rename this element because it is contained in a read-only file.</value>
+  </data>
+  <data name="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to" xml:space="preserve">
+    <value>You cannot rename this element because it is in a location that cannot be navigated to.</value>
+  </data>
   <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
     <value>Please resolve errors in your code before renaming this element.</value>
   </data>
@@ -413,9 +413,6 @@
   </data>
   <data name="Format_Token" xml:space="preserve">
     <value>Format Token</value>
-  </data>
-  <data name="Smart_Indenting" xml:space="preserve">
-    <value>Smart Indenting</value>
   </data>
   <data name="Find_References" xml:space="preserve">
     <value>Find References</value>
@@ -582,9 +579,6 @@
   <data name="Peek" xml:space="preserve">
     <value>Peek</value>
   </data>
-  <data name="symbol_cannot_be_a_namespace" xml:space="preserve">
-    <value>'symbol' cannot be a namespace.</value>
-  </data>
   <data name="Apply1" xml:space="preserve">
     <value>_Apply</value>
   </data>
@@ -703,9 +697,6 @@ Do you want to proceed?</value>
   <data name="Brace_Completion" xml:space="preserve">
     <value>Brace Completion</value>
   </data>
-  <data name="Fix_all_occurrences_in" xml:space="preserve">
-    <value>Fix all occurrences in</value>
-  </data>
   <data name="Cannot_apply_operation_while_a_rename_session_is_active" xml:space="preserve">
     <value>Cannot apply operation while a rename session is active.</value>
   </data>
@@ -724,8 +715,14 @@ Do you want to proceed?</value>
   <data name="Locating_implementations" xml:space="preserve">
     <value>Locating implementations...</value>
   </data>
+  <data name="Locating_bases" xml:space="preserve">
+    <value>Locating bases...</value>
+  </data>
   <data name="Go_To_Implementation" xml:space="preserve">
     <value>Go To Implementation</value>
+  </data>
+  <data name="Go_To_Base" xml:space="preserve">
+    <value>Go To Base</value>
   </data>
   <data name="The_symbol_has_no_implementations" xml:space="preserve">
     <value>The symbol has no implementations.</value>
@@ -754,9 +751,9 @@ Do you want to proceed?</value>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
   </data>
-  <data name="An_inline_rename_session_is_active" xml:space="preserve">
-    <value>An inline rename session is active</value>
-    <comment>For screenreaders</comment>
+  <data name="An_inline_rename_session_is_active_for_identifier_0" xml:space="preserve">
+    <value>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</value>
+    <comment>For screenreaders. {0} is the identifier being renamed.</comment>
   </data>
   <data name="Inline_Rename_Conflict" xml:space="preserve">
     <value>Inline Rename Conflict</value>
@@ -886,13 +883,172 @@ Do you want to proceed?</value>
   <data name="Operator_Overloaded" xml:space="preserve">
     <value>Operator - Overloaded</value>
   </data>
-  <data name="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail" xml:space="preserve">
-    <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
+  <data name="Waiting_for_background_work_to_finish" xml:space="preserve">
+    <value>Waiting for background work to finish...</value>
   </data>
   <data name="The_symbol_has_no_base" xml:space="preserve">
     <value>The symbol has no base.</value>
   </data>
   <data name="_0_bases" xml:space="preserve">
     <value>'{0}' bases</value>
+  </data>
+  <data name="Rename_symbols_file" xml:space="preserve">
+    <value>Rename symbol's _file</value>
+    <comment>Indicates that the file a symbol is defined in will also be renamed</comment>
+  </data>
+  <data name="Rename_file_partial_type" xml:space="preserve">
+    <value>Rename _file (not allowed on partial types)</value>
+    <comment>Disabled text status for file rename</comment>
+  </data>
+  <data name="Rename_file_name_doesnt_match" xml:space="preserve">
+    <value>Rename _file (type does not match file name)</value>
+  </data>
+  <data name="Toggle_Block_Comment" xml:space="preserve">
+    <value>Toggle Block Comment</value>
+  </data>
+  <data name="Toggling_block_comment" xml:space="preserve">
+    <value>Toggling block comment...</value>
+  </data>
+  <data name="Toggle_Line_Comment" xml:space="preserve">
+    <value>Toggle Line Comment</value>
+  </data>
+  <data name="Toggling_line_comment" xml:space="preserve">
+    <value>Toggling line comment...</value>
+  </data>
+  <data name="Expander_display_text" xml:space="preserve">
+    <value>items from unimported namespaces</value>
+  </data>
+  <data name="Expander_image_element" xml:space="preserve">
+    <value>Expander</value>
+  </data>
+  <data name="Split_comment" xml:space="preserve">
+    <value>Split comment</value>
+  </data>
+  <data name="_0_implemented_members" xml:space="preserve">
+    <value>'{0}' implemented members</value>
+  </data>
+  <data name="external" xml:space="preserve">
+    <value>(external)</value>
+  </data>
+  <data name="Inline_Hints" xml:space="preserve">
+    <value>Inline Hints</value>
+  </data>
+  <data name="User_Types_Records" xml:space="preserve">
+    <value>User Types - Records</value>
+  </data>
+  <data name="User_Types_Record_Structs" xml:space="preserve">
+    <value>User Types - Record Structs</value>
+  </data>
+  <data name="Get_help_for_0" xml:space="preserve">
+    <value>Get help for '{0}'</value>
+  </data>
+  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
+    <value>Get help for '{0}' from Bing</value>
+  </data>
+  <data name="Gathering_Suggestions_0" xml:space="preserve">
+    <value>Gathering Suggestions - '{0}'</value>
+  </data>
+  <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
+    <value>Gathering Suggestions - Waiting for the solution to fully load</value>
+  </data>
+  <data name="Reassigned_variable" xml:space="preserve">
+    <value>Reassigned variable</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Do_not_prefer_this_or_Me" xml:space="preserve">
+    <value>Do not prefer 'this.' or 'Me.'</value>
+  </data>
+  <data name="In_arithmetic_binary_operators" xml:space="preserve">
+    <value>In arithmetic operators</value>
+  </data>
+  <data name="In_other_binary_operators" xml:space="preserve">
+    <value>In other binary operators</value>
+  </data>
+  <data name="In_relational_binary_operators" xml:space="preserve">
+    <value>In relational operators</value>
+  </data>
+  <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
+    <value>Prefer 'is null' for reference equality checks</value>
+  </data>
+  <data name="Prefer_this_or_Me" xml:space="preserve">
+    <value>Prefer 'this.' or 'Me.'</value>
+  </data>
+  <data name="Qualify_event_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify event access with 'this' or 'Me'</value>
+  </data>
+  <data name="Qualify_field_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify field access with 'this' or 'Me'</value>
+  </data>
+  <data name="Qualify_method_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify method access with 'this' or 'Me'</value>
+  </data>
+  <data name="Qualify_property_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify property access with 'this' or 'Me'</value>
+  </data>
+  <data name="Indentation_Size" xml:space="preserve">
+    <value>Indentation Size</value>
+  </data>
+  <data name="Insert_Final_Newline" xml:space="preserve">
+    <value>Insert Final Newline</value>
+  </data>
+  <data name="New_Line" xml:space="preserve">
+    <value>New Line</value>
+  </data>
+  <data name="Tab_Size" xml:space="preserve">
+    <value>Tab Size</value>
+  </data>
+  <data name="Use_Tabs" xml:space="preserve">
+    <value>Use Tabs</value>
+  </data>
+  <data name="Regex_Comment" xml:space="preserve">
+    <value>Regex - Comment</value>
+  </data>
+  <data name="Regex_Character_Class" xml:space="preserve">
+    <value>Regex - Character Class</value>
+  </data>
+  <data name="Regex_Alternation" xml:space="preserve">
+    <value>Regex - Alternation</value>
+  </data>
+  <data name="Regex_Anchor" xml:space="preserve">
+    <value>Regex - Anchor</value>
+  </data>
+  <data name="Regex_Quantifier" xml:space="preserve">
+    <value>Regex - Quantifier</value>
+  </data>
+  <data name="Regex_SelfEscapedCharacter" xml:space="preserve">
+    <value>Regex - Self Escaped Character</value>
+  </data>
+  <data name="Regex_Grouping" xml:space="preserve">
+    <value>Regex - Grouping</value>
+  </data>
+  <data name="Regex_Text" xml:space="preserve">
+    <value>Regex - Text</value>
+  </data>
+  <data name="Regex_OtherEscape" xml:space="preserve">
+    <value>Regex - Other Escape</value>
+  </data>
+  <data name="Inline_Diagnostics_Error" xml:space="preserve">
+    <value>Inline Diagnostics - Error</value>
+  </data>
+  <data name="Inline_Diagnostics_Rude_Edit" xml:space="preserve">
+    <value>Inline Diagnostics - Rude Edit</value>
+  </data>
+  <data name="Inline_Diagnostics_Warning" xml:space="preserve">
+    <value>Inline Diagnostics - Warning</value>
+  </data>
+  <data name="Execute_Suggested_Action" xml:space="preserve">
+    <value>Execute Suggested Action</value>
+  </data>
+  <data name="Language_client_initialization_failed" xml:space="preserve">
+    <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
+    <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
+  </data>
+  <data name="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects" xml:space="preserve">
+    <value>The results may be incomplete due to the solution still loading projects.</value>
   </data>
 </root>

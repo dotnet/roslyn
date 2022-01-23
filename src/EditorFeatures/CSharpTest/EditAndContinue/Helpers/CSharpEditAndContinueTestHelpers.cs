@@ -1,50 +1,33 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
+namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     internal sealed class CSharpEditAndContinueTestHelpers : EditAndContinueTestHelpers
     {
-        private readonly ImmutableArray<PortableExecutableReference> _fxReferences;
+        private readonly CSharpEditAndContinueAnalyzer _analyzer;
 
-        internal static readonly CSharpEditAndContinueTestHelpers Instance = new CSharpEditAndContinueTestHelpers(
-            ImmutableArray.Create(TestReferences.NetFx.v4_0_30319_17626.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core));
-
-        internal static CSharpEditAndContinueTestHelpers Instance40 => new CSharpEditAndContinueTestHelpers(
-            ImmutableArray.Create(TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core));
-
-        internal static CSharpEditAndContinueTestHelpers InstanceMinAsync => new CSharpEditAndContinueTestHelpers(
-            ImmutableArray.Create(TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync));
-
-        private static readonly CSharpEditAndContinueAnalyzer s_analyzer = new CSharpEditAndContinueAnalyzer();
-
-        public CSharpEditAndContinueTestHelpers(ImmutableArray<PortableExecutableReference> fxReferences)
+        public CSharpEditAndContinueTestHelpers(Action<SyntaxNode> faultInjector = null)
         {
-            _fxReferences = fxReferences;
+            _analyzer = new CSharpEditAndContinueAnalyzer(faultInjector);
         }
 
-        public override AbstractEditAndContinueAnalyzer Analyzer { get { return s_analyzer; } }
-
-        public override Compilation CreateLibraryCompilation(string name, IEnumerable<SyntaxTree> trees)
-        {
-            return CSharpCompilation.Create("New", trees, _fxReferences, TestOptions.UnsafeReleaseDll);
-        }
-
-        public override SyntaxTree ParseText(string source)
-        {
-            return SyntaxFactory.ParseSyntaxTree(source);
-        }
+        public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
+        public override string LanguageName => LanguageNames.CSharp;
+        public override TreeComparer<SyntaxNode> TopSyntaxComparer => SyntaxComparer.TopLevel;
 
         public override SyntaxNode FindNode(SyntaxNode root, TextSpan span)
         {

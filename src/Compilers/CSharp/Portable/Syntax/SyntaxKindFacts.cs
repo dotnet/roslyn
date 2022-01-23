@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 
@@ -90,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LoadKeyword:
                 case SyntaxKind.NullableKeyword:
                 case SyntaxKind.EnableKeyword:
+                case SyntaxKind.WarningsKeyword:
+                case SyntaxKind.AnnotationsKeyword:
                     return true;
                 default:
                     return false;
@@ -117,6 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DisableKeyword:
                 case SyntaxKind.RestoreKeyword:
                 case SyntaxKind.EnableKeyword:
+                case SyntaxKind.WarningsKeyword:
+                case SyntaxKind.AnnotationsKeyword:
                     return false;
                 default:
                     return IsPreprocessorKeyword(kind);
@@ -137,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsPunctuation(SyntaxKind kind)
         {
-            return kind >= SyntaxKind.TildeToken && kind <= SyntaxKind.PercentEqualsToken;
+            return kind >= SyntaxKind.TildeToken && kind <= SyntaxKind.QuestionQuestionEqualsToken;
         }
 
         public static bool IsLanguagePunctuation(SyntaxKind kind)
@@ -241,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ErrorDirectiveTrivia:
                 case SyntaxKind.WarningDirectiveTrivia:
                 case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.LineSpanDirectiveTrivia:
                 case SyntaxKind.PragmaWarningDirectiveTrivia:
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:
@@ -303,25 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullableType:
                 case SyntaxKind.PredefinedType:
                 case SyntaxKind.TupleType:
+                case SyntaxKind.FunctionPointerType:
                     return true;
                 default:
                     return IsName(kind);
-            }
-        }
-
-        public static bool IsTypeDeclaration(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.DelegateDeclaration:
-                case SyntaxKind.EnumDeclaration:
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                    return true;
-
-                default:
-                    return false;
             }
         }
 
@@ -343,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
+        public static bool IsTypeDeclaration(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -352,12 +344,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
-                case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return true;
+
                 default:
                     return false;
             }
         }
+
+        public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
+            => IsTypeDeclaration(kind) ||
+               kind == SyntaxKind.NamespaceDeclaration ||
+               kind == SyntaxKind.FileScopedNamespaceDeclaration;
 
         public static bool IsAnyUnaryExpression(SyntaxKind token)
         {
@@ -729,6 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.GetAccessorDeclaration;
                 case SyntaxKind.SetKeyword:
                     return SyntaxKind.SetAccessorDeclaration;
+                case SyntaxKind.InitKeyword:
+                    return SyntaxKind.InitAccessorDeclaration;
                 case SyntaxKind.AddKeyword:
                     return SyntaxKind.AddAccessorDeclaration;
                 case SyntaxKind.RemoveKeyword:
@@ -744,6 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                     return true;
@@ -758,6 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetKeyword:
                 case SyntaxKind.SetKeyword:
+                case SyntaxKind.InitKeyword:
                 case SyntaxKind.AddKeyword:
                 case SyntaxKind.RemoveKeyword:
                     return true;
@@ -794,6 +797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.StructDeclaration;
                 case SyntaxKind.InterfaceKeyword:
                     return SyntaxKind.InterfaceDeclaration;
+                case SyntaxKind.RecordKeyword:
+                    return SyntaxKind.RecordDeclaration;
                 default:
                     return SyntaxKind.None;
             }
@@ -1059,6 +1064,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.NullableKeyword;
                 case "enable":
                     return SyntaxKind.EnableKeyword;
+                case "warnings":
+                    return SyntaxKind.WarningsKeyword;
+                case "annotations":
+                    return SyntaxKind.AnnotationsKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1066,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.WhenKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnmanagedKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1111,6 +1120,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WhenKeyword:
                 case SyntaxKind.UnderscoreToken:
                 case SyntaxKind.VarKeyword:
+                case SyntaxKind.OrKeyword:
+                case SyntaxKind.AndKeyword:
+                case SyntaxKind.NotKeyword:
+                case SyntaxKind.WithKeyword:
+                case SyntaxKind.InitKeyword:
+                case SyntaxKind.RecordKeyword:
+                case SyntaxKind.ManagedKeyword:
+                case SyntaxKind.UnmanagedKeyword:
                     return true;
                 default:
                     return false;
@@ -1214,6 +1231,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.UnderscoreToken;
                 case "var":
                     return SyntaxKind.VarKeyword;
+                case "and":
+                    return SyntaxKind.AndKeyword;
+                case "or":
+                    return SyntaxKind.OrKeyword;
+                case "not":
+                    return SyntaxKind.NotKeyword;
+                case "with":
+                    return SyntaxKind.WithKeyword;
+                case "init":
+                    return SyntaxKind.InitKeyword;
+                case "record":
+                    return SyntaxKind.RecordKeyword;
+                case "managed":
+                    return SyntaxKind.ManagedKeyword;
+                case "unmanaged":
+                    return SyntaxKind.UnmanagedKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1351,6 +1384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "??=";
                 case SyntaxKind.DotDotToken:
                     return "..";
+                case SyntaxKind.ExclamationExclamationToken:
+                    return "!!";
 
                 // Keywords
                 case SyntaxKind.BoolKeyword:
@@ -1551,6 +1586,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "nullable";
                 case SyntaxKind.EnableKeyword:
                     return "enable";
+                case SyntaxKind.WarningsKeyword:
+                    return "warnings";
+                case SyntaxKind.AnnotationsKeyword:
+                    return "annotations";
 
                 // contextual keywords
                 case SyntaxKind.YieldKeyword:
@@ -1629,6 +1668,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "_";
                 case SyntaxKind.VarKeyword:
                     return "var";
+                case SyntaxKind.AndKeyword:
+                    return "and";
+                case SyntaxKind.OrKeyword:
+                    return "or";
+                case SyntaxKind.NotKeyword:
+                    return "not";
+                case SyntaxKind.WithKeyword:
+                    return "with";
+                case SyntaxKind.InitKeyword:
+                    return "init";
+                case SyntaxKind.RecordKeyword:
+                    return "record";
+                case SyntaxKind.ManagedKeyword:
+                    return "managed";
+                case SyntaxKind.UnmanagedKeyword:
+                    return "unmanaged";
                 default:
                     return string.Empty;
             }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -90,6 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _methods = getMethods(currentFrame, this);
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw ExceptionUtilities.Unreachable;
+
         internal ImmutableArray<MethodSymbol> Methods
         {
             get { return _methods; }
@@ -167,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // Should not be requesting generated members
             // by name other than constructors.
             Debug.Assert((name == WellKnownMemberNames.InstanceConstructorName) || (name == WellKnownMemberNames.StaticConstructorName));
-            return this.GetMembers().WhereAsArray(m => m.Name == name);
+            return this.GetMembers().WhereAsArray((m, name) => m.Name == name, name);
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
@@ -233,6 +240,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override bool IsSerializable
         {
             get { return false; }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return true; }
         }
 
         internal override TypeLayout Layout
@@ -332,6 +344,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
+        internal override bool IsInterpolatedStringHandlerType => false;
+
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)
         {
@@ -341,6 +362,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 Debug.Assert((object)typeParameter.ContainingSymbol == (object)container);
                 Debug.Assert(typeParameter.Ordinal == i);
             }
+        }
+
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
     }
 }

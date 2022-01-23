@@ -1,10 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -111,7 +119,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             out TSyntax expression)
             where TSyntax : SyntaxNode
         {
-            var token = syntaxFacts.FindTokenOnLeftOfPosition(root, position);
+            var token = root.FindTokenOnLeftOfPosition(position);
             if (triggerReason == SignatureHelpTriggerReason.TypeCharCommand)
             {
                 if (isTriggerToken(token) &&
@@ -132,7 +140,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(root.SyntaxTree, position, cancellationToken))
                 {
                     expression = token.Parent?.AncestorsAndSelf()
-                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunction(n))
+                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunctionExpression(n))
                         .OfType<TSyntax>()
                         .SkipWhile(syntax => !isArgumentListToken(syntax, token))
                         .FirstOrDefault();
@@ -142,6 +150,48 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
             expression = null;
             return false;
+        }
+
+        public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
+            Document document, SyntaxNode initializer, SignatureHelpOptions options, CancellationToken cancellationToken)
+        {
+            if (initializer == null || initializer.Parent == null)
+            {
+                return default;
+            }
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
+            var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
+            if (ienumerableType == null)
+            {
+                return default;
+            }
+
+            // get the regular signature help items
+            var parentOperation = semanticModel.GetOperation(initializer.Parent, cancellationToken) as IObjectOrCollectionInitializerOperation;
+            var parentType = parentOperation?.Type;
+            if (parentType == null)
+            {
+                return default;
+            }
+
+            if (!parentType.AllInterfaces.Contains(ienumerableType))
+            {
+                return default;
+            }
+
+            var position = initializer.SpanStart;
+            var addSymbols = semanticModel.LookupSymbols(
+                position, parentType, WellKnownMemberNames.CollectionInitializerAddMethodName, includeReducedExtensionMethods: true);
+
+            var addMethods = addSymbols.OfType<IMethodSymbol>()
+                                       .Where(m => m.Parameters.Length >= 1)
+                                       .ToImmutableArray()
+                                       .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+                                       .Sort(semanticModel, position);
+
+            return addMethods;
         }
     }
 }

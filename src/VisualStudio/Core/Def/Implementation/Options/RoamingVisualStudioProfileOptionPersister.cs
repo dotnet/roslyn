@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -11,12 +12,9 @@ using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
@@ -24,14 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// Serializes settings marked with <see cref="RoamingProfileStorageLocation"/> to and from the user's roaming profile.
     /// </summary>
-    [Export(typeof(IOptionPersister))]
-    internal sealed class RoamingVisualStudioProfileOptionPersister : ForegroundThreadAffinitizedObject, IOptionPersister
+    internal sealed class RoamingVisualStudioProfileOptionPersister : IOptionPersister
     {
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
         private class SVsSettingsPersistenceManager { };
 
-        private readonly ISettingsManager _settingManager;
+        private readonly ISettingsManager? _settingManager;
         private readonly IGlobalOptionService _globalOptionService;
 
         /// <summary>
@@ -39,18 +36,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// if a later change happens, we know to refresh that value. This is synchronized with monitor locks on
         /// <see cref="_optionsToMonitorForChangesGate" />.
         /// </summary>
-        private readonly Dictionary<string, List<OptionKey>> _optionsToMonitorForChanges = new Dictionary<string, List<OptionKey>>();
-        private readonly object _optionsToMonitorForChangesGate = new object();
+        private readonly Dictionary<string, List<OptionKey>> _optionsToMonitorForChanges = new();
+        private readonly object _optionsToMonitorForChangesGate = new();
 
-        /// <remarks>We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.</remarks>
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RoamingVisualStudioProfileOptionPersister(IThreadingContext threadingContext, IGlobalOptionService globalOptionService, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(threadingContext, assertIsForeground: true) // The GetService call requires being on the UI thread or else it will marshal and risk deadlock
+        /// <remarks>
+        /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
+        /// </remarks>
+        public RoamingVisualStudioProfileOptionPersister(IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
         {
             Contract.ThrowIfNull(globalOptionService);
 
-            _settingManager = (ISettingsManager)serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
+            _settingManager = settingsManager;
             _globalOptionService = globalOptionService;
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
@@ -65,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private System.Threading.Tasks.Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
-            List<OptionKey> optionsToRefresh = null;
+            List<OptionKey>? optionsToRefresh = null;
 
             lock (_optionsToMonitorForChangesGate)
             {
@@ -95,8 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        private object GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)
+        private object? GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)
         {
+            Contract.ThrowIfNull(_settingManager);
+
             // There can be more than 1 roaming location in the order of their priority.
             // When fetching a value, we iterate all of them until we find the first one that exists.
             // When persisting a value, we always use the first location.
@@ -120,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return optionKey.Option.DefaultValue;
         }
 
-        public bool TryFetch(OptionKey optionKey, out object value)
+        public bool TryFetch(OptionKey optionKey, out object? value)
         {
             if (_settingManager == null)
             {
@@ -197,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 // code uses object to hold onto any value which will use boxing on value types.
                 // see boxing on nullable types - https://msdn.microsoft.com/en-us/library/ms228597.aspx
-                return (value is bool) || (value == null);
+                return value is bool or null;
             }
             else if (value != null && optionKey.Option.Type != value.GetType())
             {
@@ -209,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return true;
         }
 
-        private bool DeserializeCodeStyleOption(ref object value, Type type)
+        private static bool DeserializeCodeStyleOption(ref object? value, Type type)
         {
             if (value is string serializedValue)
             {
@@ -243,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public bool TryPersist(OptionKey optionKey, object value)
+        public bool TryPersist(OptionKey optionKey, object? value)
         {
             if (_settingManager == null)
             {
@@ -256,7 +254,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             if (roamingSerialization == null)
             {
-                value = null;
                 return false;
             }
 
@@ -272,9 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {
                 // We store these as strings, so serialize
-                var valueToSerialize = value as NamingStylePreferences;
-
-                if (value != null)
+                if (value is NamingStylePreferences valueToSerialize)
                 {
                     value = valueToSerialize.CreateXElement().ToString();
                 }

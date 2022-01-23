@@ -2,19 +2,89 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">La proprietà di sola inizializzazione '{0}' può essere assegnata solo da un inizializzatore di membro di oggetto oppure in 'Me', 'MyClass' o 'MyBase' in un costruttore di istanza.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">Impossibile accedere a un membro di interfaccia abstract condiviso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="translated">Errore di sintassi della riga di comando: '{0}' non è un valore valido per l'opzione '{1}'. Il valore deve essere espresso nel formato '{2}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Usare la versione {0} o versioni successive del linguaggio per usare commenti dopo il carattere di continuazione di riga.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">Non è possibile incorporare il tipo '{0}' perché contiene un membro non astratto. Provare a impostare la proprietà 'Incorpora tipi di interoperabilità' su false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">La stessa directory ('{0}') non può contenere più file di configurazione dell'analizzatore.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">'{0}' non può eseguire l'override della proprietà di sola inizializzazione '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">Non è possibile implementare la proprietà di sola inizializzazione '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">Non è possibile incorporare il tipo '{0}' perché contiene una nuova astrazione di un membro dell'interfaccia di base. Provare a impostare la proprietà 'Incorpora tipi di interoperabilità' su false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="translated">Il runtime di destinazione non supporta l'implementazione di interfaccia predefinita.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
+        <target state="translated">Il runtime di destinazione non supporta l'accessibilità 'Protected', 'Protected Friend' o 'Private Protected' per un membro di un'interfaccia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">Gli eventi di variabili WithEvents condivise non possono essere gestiti da metodi in un tipo diverso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0} '{1}' non può implementare l'interfaccia '{3}' perché contiene l'abstract condiviso '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">L'attributo 'UnmanagedCallersOnly' non è supportato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">espressione passata come argomento del chiamante</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">commenti dopo la continuazione di riga</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">assegnazione o passaggio di proprietà 'ByRef' con i setter di sola inizializzazione</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -95,10 +165,14 @@
 -warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 -ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
--errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
-                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -189,13 +263,13 @@
 -out:&lt;file&gt;                       Consente di specificare il nome del file di output.
 -target:exe                       Crea un'applicazione console (impostazione predefinita).
                                   Forma breve: -t
--target:winexe                    Crea un'applicazione Windows.
--target:library                   Crea un assembly di librerie.
--target:module                    Crea un modulo che può essere aggiunto a un
+-target:winexe                    Consente di creare un'applicazione Windows.
+-target:library                   Consente di creare un assembly di librerie.
+-target:module                    Consente di creare un modulo che può essere aggiunto a un
                                    assembly.
--target:appcontainerexe           Crea un'applicazione Windows che viene eseguita in
+-target:appcontainerexe           Consente di creare un'applicazione Windows che viene eseguita in
                                   AppContainer.
--target:winmdobj                  Crea un file intermedio di metadati di Windows.
+-target:winmdobj                  Consente di creare un file intermedio di metadati di Windows.
 -doc[+|-]                         Genera un file di documentazione XML.
 -doc:&lt;file&gt;                       Genera un file di documentazione XML in &lt;file&gt;.
 -refout:&lt;file&gt;                    Output dell'assembly di riferimento da generare
@@ -204,7 +278,7 @@
 -addmodule:&lt;elenco_file&gt;            Crea un riferimento ai metadati dai moduli specificati.
 -link:&lt;elenco_file&gt;                 Incorpora metadati dall'assembly di interoperabilità
                                   specificato. Forma breve: -l
--recurse:&lt;caratterijolly&gt;               Include tutti i file presenti nella directory corrente
+-recurse:&lt;caratteri_jolly&gt;               Include tutti i file presenti nella directory corrente
                                   e nelle relative sottodirectory in base
                                   ai caratteri jolly specificati.
 -reference:&lt;elenco_file&gt;            Crea un riferimento ai metadati dall'assembly
@@ -212,17 +286,17 @@
 -analyzer:&lt;elenco_file&gt;             Esegue gli analizzatori dall'assembly.
                                   Forma breve: -a
 -additionalfile:&lt;elenco file&gt;       File aggiuntivi che non influiscono
-                                   direttamente sulla generazione del codice ma possono essere usati
-                                  dagli analizzatori per produrre errori o avvisi.
+                              direttamente sulla generazione del codice ma possono essere usati
+                              dagli analizzatori per produrre errori o avvisi.
 
                                   - RISORSE -
--linkresource:&lt;inforisorsa&gt;           Collega il file specificato come
+-linkresource:&lt;info_risorsa&gt;           Collega il file specificato come
                                   risorsa di assembly esterna.
                                   resinfo:&lt;file&gt;[,&lt;nome&gt;[,public|private]]
                                   Forma breve: -linkres
 -nowin32manifest                  Il manifesto predefinito non deve essere incorporato nella
                                   sezione manifesto del file PE di output.
--resource:&lt;inforisorsa&gt;               Aggiunge il file specificato come
+-resource:&lt;info_risorsa&gt;               Aggiunge il file specificato come
                                   risorsa di assembly incorporata.
                                   resinfo:&lt;file&gt;[,&lt;nome&gt;[,public|private]]
                                   Forma breve: -res
@@ -232,7 +306,7 @@
                                   del file PE di output.
 -win32resource:&lt;file&gt;             Consente di specificare un file di risorse Win32 (.res).
 
-                                  - GENERAZIONE CODICE -
+                                  - GENERAZIONE DEL CODICE -
 -optimize[+|-]                    Abilita le ottimizzazioni.
 -removeintchecks[+|-]             Rimuove il controllo dei numeri interi. Per impostazione predefinita, è disattivato.
 -debug[+|-]                       Crea le informazioni di debug.
@@ -246,7 +320,7 @@
 -refonly                          Produce un assembly di riferimento al posto dell'output principale
 -instrument:TestCoverage          Produce un assembly instrumentato per raccogliere
                                   informazioni sul code coverage
--sourcelink:&lt;file&gt;                Informazioni sul collegamento di origine da incorporare nel file PDB.
+-sourcelink:&lt;file&gt;                Informazioni sul collegamento all'origine da incorporare nel file PDB.
 
                                   - ERRORI E AVVISI -
 -nowarn                           Disabilita tutti gli avvisi.
@@ -255,16 +329,20 @@
 -warnaserror[+|-]:&lt;elenco_numeri&gt;   Considera un elenco di avvisi come errori.
 -ruleset:&lt;file&gt;                   Consente di specificare un file di set di regole che disabilita
                                   diagnostica specifica.
--errorlog:&lt;file&gt;                  Consente di specificare un file in cui registrare tutte le diagnostiche del
-                                  compilatore e dell'analizzatore.
+-errorlog:&lt;file&gt;[,version=&lt;versione _SARIF&gt;]         
+                                  Consente di specificare un file in cui registrare tutte le diagnostiche del
+                                  compilatore e dell'analizzatore in formato SARIF.
+                                  versione_SARIF:{1|2|2.1} L'impostazione predefinita è 1. 2 e 2.1
+                                  si riferiscono entrambi a SARIF versione 2.1.0.
 -reportanalyzer                   Restituisce informazioni aggiuntive dell'analizzatore, ad
                                   esempio il tempo di esecuzione.
+-skipanalyzers[+|-]               Ignora l'esecuzione degli analizzatore diagnostici.
 
                                   - LINGUAGGIO -
--define:&lt;elenco_simboli&gt;             Dichiara simboli di compilazione condizionale
+-define:&lt;elenco_simboli&gt;             Dichiara simboli di compilazione condizionale 
                                   globale. elenco_simboli:nome=valore,...
                                   Forma breve: -d
--imports:&lt;elenco_importazioni&gt;            Dichiara importazioni globali per spazi dei nomi in
+-imports:&lt;elenco_importazioni&gt;            Dichiara importazioni globali per spazi dei nomi in 
                                   file di metadati a cui viene fatto riferimento.
                                   elenco_importazioni:spazio dei nomi,...
 -langversion:?                    Visualizza i valori consentiti per la versione del linguaggio
@@ -277,7 +355,7 @@
 -rootnamespace:&lt;stringa&gt;           Consente di specificare lo spazio dei nomi radice per tutte le dichiarazioni
                                   di tipo.
 -optionstrict[+|-]                Attiva la semantica del linguaggio strict.
--optionstrict:custom              Avvisa quando la semantica del linguaggio strict non
+-optionstrict:custom              Avvisa quando la semantica del linguaggio strict non 
                                   viene rispettata.
 -optioncompare:binary             Consente di specificare i confronti fra stringhe binarie.
                                   Impostazione predefinita.
@@ -289,21 +367,21 @@
 -nologo                           Non visualizza le informazioni sul copyright del compilatore.
 -quiet                            Modalità di output non interattiva.
 -verbose                          Visualizza messaggi dettagliati.
--parallel[+|-]                    Compilazione simultanea.
+-parallel[+|-]                Compilazione simultanea.
 -version                          Visualizza il numero di versione del compilatore ed esce.
 
                                   - AVANZATE -
 -baseaddress:&lt;numero&gt;             Indirizzo di base di una libreria o di un modulo
                                   (hex).
--checksumalgorithm:&lt;alg&gt;          Consente di specificare l'algoritmo per calcolare il checksum
+-checksumalgorithm:&lt;alg&gt;          Consente di specificare l'algoritmo per calcolare il checksum 
                                   del file di origine archiviato nel file PDB. I valori supportati sono:
-                                  SHA1 o SHA256 (predefinito).
+                                  SHA1 o SHA256 (impostazione predefinita).
 -codepage:&lt;numero&gt;                Consente di specificare la tabella codici da usare all'apertura dei file
                                   di origine.
 -delaysign[+|-]               Ritarda la firma dell'assembly usando solo la parte pubblica della
                                 chiave con nome sicuro.
 -publicsign[+|-]                  Firma pubblicamente l'assembly usando solo la parte pubblica
-                                  della chiave con nome sicuro.
+                              della chiave con nome sicuro.
 -errorreport:&lt;stringa&gt;             Consente di specificare come gestire gli errori interni del compilatore.
                                   I valori devono essere prompt, send, none o queue
                                   (impostazione predefinita).
@@ -326,23 +404,33 @@
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   Consente di specificare un mapping per i nomi di percorso di origine
                                   visualizzati dal compilatore.
--platform:&lt;stringa&gt;                Limita le piattaforme su cui è possibile seguire questo codice.
+-platform:&lt;stringa&gt;                Limita le piattaforme in cui è possibile eseguire questo codice. 
                                   Il valore deve essere x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred o anycpu (impostazione predefinita).
 -preferreduilang                  Consente di specificare il nome del linguaggio di output preferito.
 -nosdkpath                        Disabilita la ricerca di assembly di librerie standard nel percorso predefinito dell'SDK.
--sdkpath:&lt;percorso&gt;                   Percorso della directory di .NET Framework SDK
+-sdkpath:&lt;percorso&gt;                   Percorso della directory di .NET Framework SDK 
                                   (mscorlib.dll).
 -subsystemversion:&lt;versione&gt;       Consente di specificare la versione del sottosistema del file PE di output.
                                   version:&lt;numero&gt;[.&lt;numero&gt;]
--utf8output[+|-]                  Crea l'output del compilatore con codifica dei caratteri
+-utf8output[+|-]                  Crea l'output del compilatore con codifica dei caratteri 
                                   UTF8.
 @&lt;file&gt;                           Inserisce le impostazioni della riga di comando da un file di testo.
--vbruntime[+|-|*]                 Compila con/senza il runtime di Visual Basic
+-vbruntime[+|-|*]                 Compila con-senza il runtime di Visual Basic 
                                   predefinito.
--vbruntime:&lt;file&gt;                 Compila con il runtime di Visual Basic alternativo
+-vbruntime:&lt;file&gt;                 Compila con il runtime di Visual Basic alternativo 
                                   in &lt;file&gt;.
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">Non ci sono tipi puntatore a funzione in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="translated">Non ci sono tipi Integer nativi in VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -420,6 +508,70 @@
         <target state="translated">L'argomento di tipo non può essere Nothing</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly '{0}' che contiene il tipo '{1}' fa riferimento a .NET Framework, che non è supportato.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly caricato fa riferimento a .NET Framework, che non è supportato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro '{0}' non avrà alcun effetto. È applicato con un nome di parametro non valido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro non avrà alcun effetto. È applicato con un nome di parametro non valido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro '{0}' non avrà alcun effetto perché è autoreferenziale.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">CallerArgumentExpressionAttribute applicato al parametro non avrà alcun effetto perché è autoreferenziale.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Il generatore '{0}' non è riuscito a generare l'origine. Non verrà aggiunto come contributo all'output e potrebbero verificarsi errori di compilazione. Eccezione di tipo '{1}'. Messaggio '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Il generatore dell'analizzatore ha generato l'eccezione seguente:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">Il generatore non è riuscito a generare l'origine.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Non è stato possibile inizializzare il generatore '{0}'. Non verrà aggiunto come contributo all'output e potrebbero verificarsi errori di compilazione. Eccezione di tipo '{1}'. Messaggio '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Il generatore dell'analizzatore ha generato l'eccezione seguente:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">Non è stato possibile inizializzare il generatore.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
         <source>Wrong number of type arguments</source>
         <target state="translated">Il numero di argomenti di tipo è errato</target>
@@ -427,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_FileNotFound">
         <source>file '{0}' could not be found</source>
-        <target state="translated">Il file '{0}' non è stato trovato.</target>
+        <target state="translated">Il file '{0}' non è stato trovato</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoResponseFile">
@@ -745,6 +897,11 @@
         <target state="translated">Il carattere non è valido.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="translated">è stato specificato l'argomento stdin '-', ma l'input non è stato reindirizzato dal flusso di input standard.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
         <source>Option Strict On prohibits operands of type Object for operator '{0}'.</source>
         <target state="translated">Option Strict On non ammette operandi di tipo Object per l'operatore '{0}'.</target>
@@ -757,7 +914,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodBodyNotAtLineStart">
         <source>First statement of a method body cannot be on the same line as the method declaration.</source>
-        <target state="translated">La prima istruzione del corpo di un metodo non può essere sulla stessa riga della dichiarazione del metodo.</target>
+        <target state="translated">La prima istruzione di un corpo del metodo non può essere sulla stessa riga della dichiarazione del metodo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MaximumNumberOfErrors">
@@ -1272,7 +1429,7 @@
       </trans-unit>
       <trans-unit id="ERR_DelegateNoInvoke1">
         <source>Delegate class '{0}' has no Invoke method, so an expression of this type cannot be the target of a method call.</source>
-        <target state="translated">La classe delegata '{0}' non contiene un metodo Invoke. Un'espressione di questo tipo non può essere la destinazione di una chiamata di metodo.</target>
+        <target state="translated">La classe delegata '{0}' non contiene un metodo Invoke. Un'espressione di questo tipo non può essere la destinazione di una chiamata a un metodo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingIsInTypeOf">
@@ -1505,8 +1662,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">Non è stato possibile creare il modulo '{0}'.</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="translated">Non è stato possibile creare il modulo '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -1531,7 +1688,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvInsideEndsProc">
         <source>Statement cannot appear within a method body. End of method assumed.</source>
-        <target state="translated">L'istruzione non può essere specificata nel corpo di un metodo. Verrà interpretata come fine del metodo.</target>
+        <target state="translated">L'istruzione non può trovarsi in un corpo del metodo. Verrà interpretata come fine del metodo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameAsFunc">
@@ -2085,12 +2242,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoNonNarrowingOverloadCandidates2">
         <source>Overload resolution failed because no accessible '{0}' can be called without a narrowing conversion:{1}</source>
-        <target state="translated">La risoluzione dell'overload non è riuscita perché nessun '{0}' accessibile può essere chiamato senza una conversione verso un tipo di dati più piccolo: {1}</target>
+        <target state="translated">La risoluzione dell'overload non è riuscita perché nessun '{0}' accessibile può essere chiamato senza una conversione che supporta un minor numero di dati: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing3">
         <source>Argument matching parameter '{0}' narrows from '{1}' to '{2}'.</source>
-        <target state="translated">Il parametro '{0}' corrispondente all'argomento viene convertito da '{1}' al tipo di dati più piccolo '{2}'.</target>
+        <target state="translated">Il parametro '{0}' di corrispondenza degli argomenti viene convertito da '{1}' al tipo di dati più piccolo '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMostSpecificOverload2">
@@ -2719,7 +2876,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExecutableAsDeclaration">
         <source>Statement cannot appear outside of a method body.</source>
-        <target state="translated">L'istruzione non può essere specificata all'esterno del corpo di un metodo.</target>
+        <target state="translated">L'istruzione non può essere specificata all'esterno di un corpo del metodo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructureNoDefault1">
@@ -3175,7 +3332,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousWidestType3">
         <source>Type of '{0}' is ambiguous because the loop bounds and the step clause do not convert to the same type.</source>
-        <target state="translated">{0}' è di tipo ambiguo perché i limiti del ciclo e la clausola step non eseguono la conversione nello stesso tipo.</target>
+        <target state="translated">'{0}' è di tipo ambiguo perché i limiti del ciclo e la clausola step non eseguono la conversione nello stesso tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedAssignmentOperatorInInit">
@@ -3215,7 +3372,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParameterizedPropertyInAggrInit1">
         <source>Property '{0}' cannot be initialized in an object initializer expression because it requires arguments.</source>
-        <target state="translated">Non è possibile inizializzare la proprietà '{0}' in un'espressione dell'inizializzatore di oggetti perché richiede che vengano specificati gli argomenti.</target>
+        <target state="translated">Non è possibile inizializzare la proprietà '{0}' in un'espressione dell'inizializzatore di oggetto perché richiede che vengano specificati gli argomenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoZeroCountArgumentInitCandidates1">
@@ -3235,7 +3392,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">Il carattere di continuazione di riga '_' deve essere preceduto da almeno uno spazio vuoto e deve essere l'ultimo carattere della riga.</target>
+        <target state="translated">Il carattere di continuazione di riga '_' deve essere preceduto da almeno uno spazio vuoto e deve essere seguito da un commento oppure il carattere '_' deve essere ultimo carattere della riga.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -4095,7 +4252,7 @@
       </trans-unit>
       <trans-unit id="ERR_SynthMemberShadowsMustOverride5">
         <source>'{0}', implicitly declared for {1} '{2}', cannot shadow a 'MustOverride' method in the base {3} '{4}'.</source>
-        <target state="translated">'{0}, dichiarato in modo implicito per {1} '{2}', non può nascondere un metodo 'MustOverride' nell'elemento {3} base '{4}'.</target>
+        <target state="translated">'{0}', dichiarato in modo implicito per {1} '{2}', non può nascondere un metodo 'MustOverride' nell'elemento {3} base '{4}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotOverrideInAccessibleMember">
@@ -4725,7 +4882,7 @@
       </trans-unit>
       <trans-unit id="ERR_ForEachAmbiguousIEnumerable1">
         <source>'For Each' on type '{0}' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.</source>
-        <target state="translated">'For Each' sul tipo '{0}' è ambiguo perché il tipo implementa più creazioni di istanza di 'System.Collections.Generic.IEnumerable(Of T)'.</target>
+        <target state="translated">'For Each' sul tipo '{0}' è ambiguo perché il tipo implementa più creazioni di un'istanza di 'System.Collections.Generic.IEnumerable(Of T)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsNotOperatorGenericParam1">
@@ -4822,7 +4979,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDisallowedForStructConstr1">
         <source>'System.Nullable' does not satisfy the 'Structure' constraint for type parameter '{0}'. Only non-nullable 'Structure' types are allowed.</source>
-        <target state="translated">'System.Nullable' non soddisfa il vincolo 'Structure' per il parametro di tipo '{0}'. Sono consentiti solo i tipi 'Structure' non nullable.</target>
+        <target state="translated">'System.Nullable' non soddisfa il vincolo 'Structure' per il parametro di tipo '{0}'. Sono consentiti solo i tipi 'Structure' che non ammettono i valori Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingDirectConstraints3">
@@ -5192,7 +5349,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion">
         <source>Cannot infer a common type for the second and third operands of the 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">Non è possibile dedurre un tipo comune per il secondo e il terzo operando dell'operatore 'If'. Uno deve avere una conversione Widening nell'altro.</target>
+        <target state="translated">Non è possibile dedurre un tipo comune per il secondo e il terzo operando dell'operatore 'If'. Uno deve avere una conversione che supporta un maggior numero di dati rispetto all'altro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
@@ -5212,7 +5369,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalOperandInIIFConversion2">
         <source>Cannot infer a common type for the first and second operands of the binary 'If' operator. One must have a widening conversion to the other.</source>
-        <target state="translated">Non è possibile dedurre un tipo comune per il primo e il secondo operando dell'operatore 'If'. Uno deve avere una conversione Widening nell'altro.</target>
+        <target state="translated">Non è possibile dedurre un tipo comune per il primo e il secondo operando dell'operatore 'If'. Uno deve avere una conversione che supporta un maggior numero di dati rispetto all'altro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullTypeInCCExpression">
@@ -5444,7 +5601,7 @@
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingTypeInferenceFails">
         <source>Type arguments could not be inferred from the delegate.</source>
-        <target state="translated">Non è possibile dedurre argomenti di tipo dal delegato.</target>
+        <target state="translated">Non è stato possibile dedurre gli argomenti di tipo dal delegato.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyArgs">
@@ -5571,7 +5728,7 @@
       </trans-unit>
       <trans-unit id="ERR_QueryAnonymousTypeFieldNameInference">
         <source>Range variable name can be inferred only from a simple or qualified name with no arguments.</source>
-        <target state="translated">Il nome della variabile di intervallo può essere dedotto solo da un nome semplice o completo senza argomenti.</target>
+        <target state="translated">Il nome di variabile di intervallo può essere dedotto solo da un nome semplice o completo senza argomenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryDuplicateAnonTypeMemberName1">
@@ -5641,7 +5798,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeCharOnAggregation">
         <source>Aggregate function name cannot be used with a type character.</source>
-        <target state="translated">Non è possibile usare il nome della funzione di aggregazione con un carattere tipo.</target>
+        <target state="translated">Non è possibile usare il nome della funzione aggregata con un carattere tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedOn">
@@ -5756,92 +5913,92 @@
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailure1">
         <source>Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo. Per provare a correggere l'errore, specificare i tipi di dati in modo esplicito.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo da questi argomenti. Per correggere l'errore, provare a specificare i tipi di dati in modo esplicito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailure2">
         <source>Data type(s) of the type parameter(s) in method '{0}' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}'. Per provare a correggere l'errore, specificare i tipi di dati in modo esplicito.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' da questi argomenti. Per correggere l'errore, provare a specificare i tipi di dati in modo esplicito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailure3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}'. Per provare a correggere l'errore, specificare i tipi di dati in modo esplicito.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' da questi argomenti. Per correggere l'errore, provare a specificare i tipi di dati in modo esplicito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicit1">
         <source>Data type(s) of the type parameter(s) cannot be inferred from these arguments.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo da questi argomenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicit2">
         <source>Data type(s) of the type parameter(s) in method '{0}' cannot be inferred from these arguments.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}'.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' da questi argomenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicit3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}'.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' da questi argomenti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureAmbiguous1">
         <source>Data type(s) of the type parameter(s) cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo perché sono possibili più tipi. Per provare a correggere l'errore, specificare i tipi di dati in modo esplicito.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo da questi argomenti perché sono possibili più tipi. Per correggere l'errore, provare a specificare i tipi di dati in modo esplicito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureAmbiguous2">
         <source>Data type(s) of the type parameter(s) in method '{0}' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' perché sono possibili più tipi. Per provare a correggere l'errore, specificare i tipi di dati in modo esplicito.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' da questi argomenti perché sono possibili più tipi. Per correggere l'errore, provare a specificare i tipi di dati in modo esplicito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureAmbiguous3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' perché sono possibili più tipi. Per provare a correggere l'errore, specificare i tipi di dati in modo esplicito.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' da questi argomenti perché sono possibili più tipi. Per correggere l'errore, provare a specificare i tipi di dati in modo esplicito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitAmbiguous1">
         <source>Data type(s) of the type parameter(s) cannot be inferred from these arguments because more than one type is possible.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo perché sono possibili più tipi.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo da questi argomenti perché sono possibili più tipi.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitAmbiguous2">
         <source>Data type(s) of the type parameter(s) in method '{0}' cannot be inferred from these arguments because more than one type is possible.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' perché sono possibili più tipi.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' da questi argomenti perché sono possibili più tipi.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitAmbiguous3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments because more than one type is possible.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' perché sono possibili più tipi.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' da questi argomenti perché sono possibili più tipi.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoBest1">
         <source>Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo perché non vengono convertiti nello stesso tipo. Per provare a correggere l'errore, specificare i tipi di dati in modo esplicito.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo da questi argomenti perché non vengono convertiti nello stesso tipo. Per correggere l'errore, provare a specificare i tipi di dati in modo esplicito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoBest2">
         <source>Data type(s) of the type parameter(s) in method '{0}' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' perché non vengono convertiti nello stesso tipo. Per provare a correggere l'errore, specificare i tipi di dati in modo esplicito.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' da questi argomenti perché non vengono convertiti nello stesso tipo. Per correggere l'errore, provare a specificare i tipi di dati in modo esplicito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoBest3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' perché non vengono convertiti nello stesso tipo. Per provare a correggere l'errore, specificare i tipi di dati in modo esplicito.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' da questi argomenti perché non vengono convertiti nello stesso tipo. Per correggere l'errore, provare a specificare i tipi di dati in modo esplicito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitNoBest1">
         <source>Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo perché non vengono convertiti nello stesso tipo.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo da questi argomenti perché non vengono convertiti nello stesso tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitNoBest2">
         <source>Data type(s) of the type parameter(s) in method '{0}' cannot be inferred from these arguments because they do not convert to the same type.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' perché non vengono convertiti nello stesso tipo.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' da questi argomenti perché non vengono convertiti nello stesso tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitNoBest3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments because they do not convert to the same type.</source>
-        <target state="translated">Non è possibile dedurre da questi argomenti i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' perché non vengono convertiti nello stesso tipo.</target>
+        <target state="translated">Non è possibile dedurre i tipi di dati dei parametri di tipo nel metodo '{0}' dell'estensione definito in '{1}' da questi argomenti perché non vengono convertiti nello stesso tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingMismatchStrictOff2">
@@ -5876,7 +6033,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing2">
         <source>Argument matching parameter '{0}' narrows to '{1}'.</source>
-        <target state="translated">Il parametro '{0}' corrispondente all'argomento viene convertito in '{1}'.</target>
+        <target state="translated">Il parametro '{0}' di corrispondenza degli argomenti viene convertito in '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadCandidate1">
@@ -6158,7 +6315,7 @@
       </trans-unit>
       <trans-unit id="WRN_NonCLSMemberInCLSInterface1">
         <source>Non CLS-compliant '{0}' is not allowed in a CLS-compliant interface.</source>
-        <target state="translated">{0}' non conforme a CLS non è consentito in un'interfaccia conforme a CLS.</target>
+        <target state="translated">'{0}' non conforme a CLS non è consentito in un'interfaccia conforme a CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NonCLSMemberInCLSInterface1_Title">
@@ -6728,7 +6885,7 @@
       </trans-unit>
       <trans-unit id="WRN_EqualToLiteralNothing">
         <source>This expression will always evaluate to Nothing (due to null propagation from the equals operator). To check if the value is null consider using 'Is Nothing'.</source>
-        <target state="translated">Questa espressione restituirà sempre Nothing a causa della propagazione Null dall'operatore Equals. Per verificare se il valore è Null, provare a usare 'IsNot Nothing'.</target>
+        <target state="translated">Questa espressione restituirà sempre Nothing a causa della propagazione di valori Null dall'operatore Equals. Per verificare se il valore è Null, provare a usare 'IsNot Nothing'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualToLiteralNothing_Title">
@@ -6738,7 +6895,7 @@
       </trans-unit>
       <trans-unit id="WRN_NotEqualToLiteralNothing">
         <source>This expression will always evaluate to Nothing (due to null propagation from the equals operator). To check if the value is not null consider using 'IsNot Nothing'.</source>
-        <target state="translated">Questa espressione restituirà sempre Nothing a causa della propagazione Null dall'operatore Equals. Per verificare se il valore non è Null, provare a usare 'IsNot Nothing'.</target>
+        <target state="translated">Questa espressione restituirà sempre Nothing a causa della propagazione di valori Null dall'operatore Equals. Per verificare se il valore non è Null, provare a usare 'IsNot Nothing'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NotEqualToLiteralNothing_Title">
@@ -7390,7 +7547,7 @@
       </trans-unit>
       <trans-unit id="ERR_PublicSignNoKey">
         <source>Public sign was specified and requires a public key, but no public key was specified</source>
-        <target state="translated">È stata specificata la firma pubblica per la quale è necessaria una chiave pubblica, che però non è stata specificata.</target>
+        <target state="translated">È stata specificata la firma pubblica per la quale è necessaria una chiave pubblica, che però non è stata specificata</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PublicSignNetModule">
@@ -7995,7 +8152,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidLambdaModifier">
         <source>'Only the 'Async' or 'Iterator' modifier is valid on a lambda.</source>
-        <target state="translated">'In un'espressione lambda sono validi solo modificatori 'Async' o 'Iterator'.</target>
+        <target state="translated">In un'espressione lambda sono validi solo modificatori 'Async' o 'Iterator'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInNonAsyncMethod">
@@ -8310,7 +8467,7 @@
       </trans-unit>
       <trans-unit id="WRN_ConflictingMachineAssembly_Title">
         <source>Referenced assembly targets a different processor</source>
-        <target state="translated">L'assembly di riferimento ha come destinazione un processore diverso.</target>
+        <target state="translated">L'assembly di riferimento ha come destinazione un processore diverso</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CryptoHashFailed">
@@ -8430,7 +8587,7 @@
       </trans-unit>
       <trans-unit id="IDS_TheSystemCannotFindThePathSpecified">
         <source>The system cannot find the path specified</source>
-        <target state="translated">Il percorso specificato non è stato trovato.</target>
+        <target state="translated">Il percorso specificato non è stato trovato</target>
         <note />
       </trans-unit>
       <trans-unit id="ThereAreNoPointerTypesInVB">
@@ -8759,8 +8916,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">La lunghezza della costante di stringa supera il limite di memoria corrente. Provare a dividere la stringa in più costanti.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="translated">La lunghezza della costante di stringa risultante dalla concatenazione supera il valore di System.Int32.MaxValue. Provare a dividere la stringa in più costanti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -9105,7 +9262,17 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">Il nome file '{0}' è vuoto, contiene caratteri non validi, include una specifica di unità senza percorso assoluto oppure è troppo lungo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB">
+        <source>'{0}' is not supported in VB.</source>
+        <target state="translated">'{0}' non è supportato in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
+        <source>Attribute is not supported in VB</source>
+        <target state="translated">L'attributo non è supportato in VB</target>
         <note />
       </trans-unit>
     </body>

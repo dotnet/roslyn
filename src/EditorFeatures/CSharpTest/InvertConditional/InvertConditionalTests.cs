@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.InvertConditional;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
@@ -149,15 +154,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertConditional
 }");
         }
 
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertConditional)]
-        public async Task TestMissingAfterCondition()
+        public async Task TestAfterCondition()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool x, int a, int b)
     {
         var c = x ? a [||]: b;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, int b)
+    {
+        var c = !x ? b : a;
     }
 }");
         }

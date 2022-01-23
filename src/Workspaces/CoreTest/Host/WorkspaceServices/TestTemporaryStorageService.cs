@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Composition;
@@ -9,27 +13,23 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Persistence
 {
-    [ExportWorkspaceService(typeof(ITemporaryStorageService), "NotKeptAlive"), Shared]
+    [ExportWorkspaceService(typeof(ITemporaryStorageService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal sealed class TestTemporaryStorageService : ITemporaryStorageService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestTemporaryStorageService()
         {
         }
 
-        public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return new StreamStorage();
-        }
+        public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default)
+            => new StreamStorage();
 
-        public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return new TextStorage();
-        }
+        public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default)
+            => new TextStorage();
 
         internal class StreamStorage : ITemporaryStreamStorage
         {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
                 s_DisposalCount++;
             }
 
-            public Stream ReadStream(CancellationToken cancellationToken = default(CancellationToken))
+            public Stream ReadStream(CancellationToken cancellationToken = default)
             {
                 if (_stream == null)
                 {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
                 return _stream;
             }
 
-            public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default(CancellationToken))
+            public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
             {
                 if (_stream == null)
                 {
@@ -66,14 +66,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
                 return Task.FromResult((Stream)_stream);
             }
 
-            public void WriteStream(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+            public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
                 stream.CopyTo(newStream);
                 _stream = newStream;
             }
 
-            public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+            public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
@@ -95,23 +95,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
                 s_DisposalCount++;
             }
 
-            public SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return SourceText.From(_text, _encoding);
-            }
+            public SourceText ReadText(CancellationToken cancellationToken = default)
+                => SourceText.From(_text, _encoding);
 
-            public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return Task.FromResult(ReadText(cancellationToken));
-            }
+            public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
+                => Task.FromResult(ReadText(cancellationToken));
 
-            public void WriteText(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
+            public void WriteText(SourceText text, CancellationToken cancellationToken = default)
             {
                 _text = text.ToString();
                 _encoding = text.Encoding;
             }
 
-            public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
+            public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
             {
                 WriteText(text, cancellationToken);
                 return Task.CompletedTask;

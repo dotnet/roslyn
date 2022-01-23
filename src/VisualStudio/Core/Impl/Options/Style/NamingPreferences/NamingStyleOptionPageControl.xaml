@@ -73,7 +73,8 @@
             SelectionUnit="FullRow"
             HorizontalAlignment="Stretch"
             SelectionChanged="CodeStyleMembers_SelectionChanged"
-            Style="{StaticResource ResourceKey=DataGridStyle}">
+            Style="{StaticResource ResourceKey=DataGridStyle}"
+            AutomationProperties.Name="{Binding CodeStyleMembersAutomationText}">
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
                     <Setter Property="MinHeight" Value="26"/>
@@ -121,13 +122,14 @@
                             <StackPanel Orientation="Horizontal">
                                 <Button Name="UpButton" 
                                         AutomationProperties.Name="{Binding MoveUpAutomationText}"
-                                        Height="24" Width="24"
+                                        MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                        MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
                                         IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
                                         Margin="5 0 0 0"
                                         Command="{StaticResource MoveUp}">
                                     <imaging:CrispImage Name="UpArrowImage" 
-                                            Height="16" 
-                                            Width="16" 
+                                            MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                            MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
                                             Moniker="{x:Static imagecatalog:KnownMonikers.MoveUp}" 
                                             Grayscale="{Binding IsEnabled, ElementName=UpButton, Converter={StaticResource NegateBooleanConverter}}"/>
                                 </Button>
@@ -135,12 +137,13 @@
                                         AutomationProperties.Name="{Binding MoveDownAutomationText}"
                                         IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
                                         AutomationProperties.AutomationId="Down"
-                                        Height="24" Width="24"
+                                        MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                        MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
                                         Margin="5 0 5 0"
                                         Command="{StaticResource MoveDown}">
                                     <imaging:CrispImage Name="DownArrowImage" 
-                                            Height="16" 
-                                            Width="16" 
+                                            MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                            MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
                                             Moniker="{x:Static imagecatalog:KnownMonikers.MoveDown}" 
                                             Grayscale="{Binding IsEnabled, ElementName=DownButton, Converter={StaticResource NegateBooleanConverter}}"/>
                                 </Button>
@@ -155,7 +158,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <ComboBox
-                                Height="22"
+                                MinHeight="22"
                                 ItemsSource="{Binding Specifications}"
                                 DisplayMemberPath="Name"
                                 SelectedItem="{Binding SelectedSpecification, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
@@ -179,7 +182,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <ComboBox
-                                    Height="22"
+                                    MinHeight="22"
                                     ItemsSource="{Binding NamingStyles}"
                                     DisplayMemberPath="Name"
                                     SelectedItem="{Binding SelectedStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
@@ -203,7 +206,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <ComboBox
-                                    Height="22"
+                                    MinHeight="22"
                                     ItemsSource="{Binding NotificationPreferences}"
                                     SelectedItem="{Binding SelectedNotificationPreference,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     Visibility="{Binding NotificationsAvailable, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -218,8 +221,8 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <imaging:CrispImage Height="16" 
-                                                                Width="16" 
+                                            <imaging:CrispImage MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                                                MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
                                                                 Moniker="{Binding Moniker}"
                                                                 Grid.Column="0"/>
                                             <TextBlock Margin="5, 0, 0, 0" 
@@ -242,8 +245,8 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Click="RemoveButton_Click"
-                                    Height="16" 
-                                    Width="16" 
+                                    MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                    MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
                                     Margin="5, 0, 0, 0"
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Center"
@@ -262,14 +265,15 @@
             <StackPanel Orientation="Horizontal"
                         Margin="7">
                 <Button Name="AddButton" 
-                        Click="AddButton_Click" 
+                        Click="AddButton_Click"
                         AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.AddRuleAutomationText}"
                         AutomationProperties.AutomationId="Add"
-                        Height="24" Width="24"
+                        MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                        MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
                         Margin="0 0 0 0">
                     <imaging:CrispImage Name="AddButtonImage"
-                                        Height="16" 
-                                        Width="16"
+                                        MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                        MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
                                         Moniker="{x:Static imagecatalog:KnownMonikers.Add}" />
                 </Button>
                 <vs:DialogButton Margin="7 0 0 0" Content="{Binding Path=ManageSpecificationsButtonText}" Click="ManageSpecificationsButton_Click"/>

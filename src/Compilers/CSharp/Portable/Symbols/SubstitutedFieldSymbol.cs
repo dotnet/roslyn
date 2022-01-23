@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -24,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyType == null)
             {
-                var type = _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.GetFieldType(fieldsBeingBound));
+                var type = _containingType.TypeSubstitution.SubstituteType(OriginalDefinition.GetFieldType(fieldsBeingBound));
                 Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
             }
 
@@ -52,6 +56,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _underlyingField;
+            }
+        }
+
+        public override bool IsImplicitlyDeclared
+        {
+            get
+            {
+                if (this.ContainingType.IsTupleType && this.IsDefaultTupleElement)
+                {
+                    // To improve backwards compatibility with earlier implementation of tuples,
+                    // we pretend that default tuple element fields are implicitly declared, despite having locations
+                    return true;
+                }
+
+                return base.IsImplicitlyDeclared;
             }
         }
 
@@ -84,20 +103,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(OriginalDefinition.FixedImplementationType(emitModule)).Type;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {
                 return true;
             }
 
-            var other = obj as SubstitutedFieldSymbol;
-            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) && OriginalDefinition == other.OriginalDefinition;
+            var other = obj as FieldSymbol;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other.ContainingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_containingType, OriginalDefinition.GetHashCode());
+            var code = this.OriginalDefinition.GetHashCode();
+
+            // If the containing type of the original definition is the same as our containing type
+            // it's possible that we will compare equal to the original definition under certain conditions 
+            // (e.g, ignoring nullability) and want to retain the same hashcode. As such only make
+            // the containing type part of the hashcode when we know equality isn't possible
+            var containingHashCode = _containingType.GetHashCode();
+            if (containingHashCode != this.OriginalDefinition.ContainingType.GetHashCode())
+            {
+                code = Hash.Combine(containingHashCode, code);
+            }
+
+            return code;
         }
     }
 }

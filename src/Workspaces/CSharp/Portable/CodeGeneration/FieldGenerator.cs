@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
@@ -47,10 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static CompilationUnitSyntax AddFieldTo(
             CompilationUnitSyntax destination,
             IFieldSymbol field,
-            CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            CSharpCodeGenerationOptions options,
+            IList<bool>? availableIndices,
+            CancellationToken cancellationToken)
         {
-            var declaration = GenerateFieldDeclaration(field, CodeGenerationDestination.CompilationUnit, options);
+            var declaration = GenerateFieldDeclaration(field, options, cancellationToken);
 
             // Place the field after the last field or const, or at the start of the type
             // declaration.
@@ -62,39 +67,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddFieldTo(
             TypeDeclarationSyntax destination,
             IFieldSymbol field,
-            CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            CSharpCodeGenerationOptions options,
+            IList<bool>? availableIndices,
+            CancellationToken cancellationToken)
         {
-            var declaration = GenerateFieldDeclaration(field, GetDestination(destination), options);
+            var declaration = GenerateFieldDeclaration(field, options, cancellationToken);
 
             // Place the field after the last field or const, or at the start of the type
             // declaration.
             var members = Insert(destination.Members, declaration, options, availableIndices,
                 after: m => LastField(m, declaration), before: FirstMember);
 
-            return AddMembersTo(destination, members);
+            return AddMembersTo(destination, members, cancellationToken);
         }
 
         public static FieldDeclarationSyntax GenerateFieldDeclaration(
-            IFieldSymbol field, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IFieldSymbol field, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<VariableDeclaratorSyntax>(field, options);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<FieldDeclarationSyntax>(field, options);
             if (reusableSyntax != null)
             {
-                if (reusableSyntax.Parent is VariableDeclarationSyntax variableDeclaration)
-                {
-                    var newVariableDeclaratorsList = new SeparatedSyntaxList<VariableDeclaratorSyntax>().Add(reusableSyntax);
-                    var newVariableDeclaration = variableDeclaration.WithVariables(newVariableDeclaratorsList);
-                    if (variableDeclaration.Parent is FieldDeclarationSyntax fieldDecl)
-                    {
-                        return fieldDecl.WithDeclaration(newVariableDeclaration);
-                    }
-                }
+                return reusableSyntax;
             }
 
-            var initializerNode = CodeGenerationFieldInfo.GetInitializer(field) as ExpressionSyntax;
-
-            var initializer = initializerNode != null
+            var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
                 : GenerateEqualsValue(field);
 
@@ -107,10 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, options));
+                ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, options, cancellationToken));
         }
 
-        private static EqualsValueClauseSyntax GenerateEqualsValue(IFieldSymbol field)
+        private static EqualsValueClauseSyntax? GenerateEqualsValue(IFieldSymbol field)
         {
             if (field.HasConstantValue)
             {
@@ -121,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return null;
         }
 
-        private static SyntaxTokenList GenerateModifiers(IFieldSymbol field, CodeGenerationOptions options)
+        private static SyntaxTokenList GenerateModifiers(IFieldSymbol field, CSharpCodeGenerationOptions options)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 

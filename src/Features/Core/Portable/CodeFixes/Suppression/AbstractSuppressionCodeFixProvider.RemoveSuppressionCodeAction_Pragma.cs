@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -11,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
@@ -21,11 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private class PragmaRemoveAction : RemoveSuppressionCodeAction, IPragmaBasedCodeAction
             {
                 private readonly Document _document;
+                private readonly SyntaxFormattingOptions _options;
                 private readonly SuppressionTargetInfo _suppressionTargetInfo;
 
                 public static PragmaRemoveAction Create(
                     SuppressionTargetInfo suppressionTargetInfo,
                     Document document,
+                    SyntaxFormattingOptions options,
                     Diagnostic diagnostic,
                     AbstractSuppressionCodeFixProvider fixer)
                 {
@@ -33,37 +39,35 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
                     PragmaHelpers.NormalizeTriviaOnTokens(fixer, ref document, ref suppressionTargetInfo);
 
-                    return new PragmaRemoveAction(suppressionTargetInfo, document, diagnostic, fixer);
+                    return new PragmaRemoveAction(suppressionTargetInfo, document, options, diagnostic, fixer);
                 }
 
                 private PragmaRemoveAction(
                     SuppressionTargetInfo suppressionTargetInfo,
                     Document document,
+                    SyntaxFormattingOptions options,
                     Diagnostic diagnostic,
                     AbstractSuppressionCodeFixProvider fixer,
                     bool forFixMultipleContext = false)
                     : base(diagnostic, fixer, forFixMultipleContext)
                 {
                     _document = document;
+                    _options = options;
                     _suppressionTargetInfo = suppressionTargetInfo;
                 }
 
                 public override RemoveSuppressionCodeAction CloneForFixMultipleContext()
-                {
-                    return new PragmaRemoveAction(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
-                }
+                    => new PragmaRemoveAction(_suppressionTargetInfo, _document, _options, _diagnostic, Fixer, forFixMultipleContext: true);
 
                 public override SyntaxTree SyntaxTreeToModify => _suppressionTargetInfo.StartToken.SyntaxTree;
 
-                protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-                {
-                    return await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
+                protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+                    => await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 public async Task<Document> GetChangedDocumentAsync(bool includeStartTokenChange, bool includeEndTokenChange, CancellationToken cancellationToken)
                 {
-                    bool add = false;
-                    bool toggle = false;
+                    var add = false;
+                    var toggle = false;
 
                     int indexOfLeadingPragmaDisableToRemove = -1, indexOfTrailingPragmaEnableToRemove = -1;
                     if (CanRemovePragmaTrivia(_suppressionTargetInfo.StartToken, _diagnostic, Fixer, isStartToken: true, indexOfTriviaToRemove: out indexOfLeadingPragmaDisableToRemove) &&
@@ -81,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
 
                     SyntaxToken getNewStartToken(SyntaxToken startToken, TextSpan currentDiagnosticSpan) => includeStartTokenChange
-                        ? GetNewTokenWithModifiedPragma(startToken, currentDiagnosticSpan, add, toggle, indexOfLeadingPragmaDisableToRemove, isStartToken: true)
+                        ? GetNewTokenWithModifiedPragma(startToken, currentDiagnosticSpan, add, toggle, indexOfLeadingPragmaDisableToRemove, isStartToken: true, cancellationToken)
                         : startToken;
 
                     SyntaxToken getNewEndToken(SyntaxToken endToken, TextSpan currentDiagnosticSpan) => includeEndTokenChange
-                        ? GetNewTokenWithModifiedPragma(endToken, currentDiagnosticSpan, add, toggle, indexOfTrailingPragmaEnableToRemove, isStartToken: false)
+                        ? GetNewTokenWithModifiedPragma(endToken, currentDiagnosticSpan, add, toggle, indexOfTrailingPragmaEnableToRemove, isStartToken: false, cancellationToken)
                         : endToken;
 
                     return await PragmaHelpers.GetChangeDocumentWithPragmaAdjustedAsync(
@@ -151,31 +155,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return false;
                 }
 
-                private SyntaxToken GetNewTokenWithModifiedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool add, bool toggle, int indexOfTriviaToRemoveOrToggle, bool isStartToken)
+                private SyntaxToken GetNewTokenWithModifiedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool add, bool toggle, int indexOfTriviaToRemoveOrToggle, bool isStartToken, CancellationToken cancellationToken)
                 {
                     return add
-                        ? GetNewTokenWithAddedPragma(token, currentDiagnosticSpan, isStartToken)
+                        ? GetNewTokenWithAddedPragma(token, currentDiagnosticSpan, isStartToken, cancellationToken)
                         : GetNewTokenWithRemovedOrToggledPragma(token, indexOfTriviaToRemoveOrToggle, isStartToken, toggle);
                 }
 
-                private SyntaxToken GetNewTokenWithAddedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool isStartToken)
+                private SyntaxToken GetNewTokenWithAddedPragma(SyntaxToken token, TextSpan currentDiagnosticSpan, bool isStartToken, CancellationToken cancellationToken)
                 {
                     if (isStartToken)
                     {
-                        return PragmaHelpers.GetNewStartTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
+                        return PragmaHelpers.GetNewStartTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true, cancellationToken);
                     }
                     else
                     {
-                        return PragmaHelpers.GetNewEndTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true);
+                        return PragmaHelpers.GetNewEndTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true, cancellationToken);
                     }
                 }
 
                 private SyntaxToken GetNewTokenWithRemovedOrToggledPragma(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, bool isStartToken, bool toggle)
-                {
-                    return GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle);
-                }
+                    => GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, Fixer, isStartToken, toggle);
 
-                private static SyntaxToken GetNewTokenWithPragmaUnsuppress(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, bool toggle)
+                private static SyntaxToken GetNewTokenWithPragmaUnsuppress(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, bool toggle)
                 {
                     Contract.ThrowIfFalse(indexOfTriviaToRemoveOrToggle >= 0);
 
@@ -215,10 +217,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public SyntaxToken StartToken_TestOnly => _suppressionTargetInfo.StartToken;
                 public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
-                private SyntaxNode FormatNode(SyntaxNode node)
-                {
-                    return Formatter.Format(node, _document.Project.Solution.Workspace);
-                }
+                private SyntaxNode FormatNode(SyntaxNode node, CancellationToken cancellationToken)
+                    => Formatter.Format(node, _document.Project.Solution.Workspace.Services, _options, cancellationToken);
             }
         }
     }

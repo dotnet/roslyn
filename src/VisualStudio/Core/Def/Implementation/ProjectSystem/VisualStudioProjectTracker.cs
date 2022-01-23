@@ -1,30 +1,33 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+#pragma warning disable IDE0060 // Remove unused parameter - compatibility shim for TypeScript
+
+    [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
     internal sealed partial class VisualStudioProjectTracker
     {
         private readonly Workspace _workspace;
         private readonly VisualStudioProjectFactory _projectFactory;
         internal IThreadingContext ThreadingContext { get; }
 
-        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
-        internal ImmutableArray<AbstractProject> ImmutableProjects => _projects.Values.ToImmutableArray();
-
         internal HostWorkspaceServices WorkspaceServices => _workspace.Services;
 
-        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
-        private readonly Dictionary<ProjectId, AbstractProject> _projects = new Dictionary<ProjectId, AbstractProject>();
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        private readonly Dictionary<ProjectId, AbstractProject> _projects = new();
 
         [Obsolete("This is a compatibility shim; please do not use it.")]
         public VisualStudioProjectTracker(Workspace workspace, VisualStudioProjectFactory projectFactory, IThreadingContext threadingContext)
@@ -35,36 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DocumentProvider = new DocumentProvider();
         }
 
-        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
-        public VisualStudioProjectTracker(IServiceProvider serviceProvider, Workspace workspace)
-        {
-            _workspace = workspace;
-            ThreadingContext = serviceProvider.GetMefService<IThreadingContext>();
-
-            // This is used by Live Share to target their own workspace which is not the standard VS workspace; as a result this shouldn't have a project factory
-            // at all, because that's only targeting the VisualStudioWorkspace.
-            _projectFactory = null;
-
-            // We don't set DocumentProvider, because Live Share creates their own and then sets it later.
-        }
-
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         public DocumentProvider DocumentProvider { get; set; }
 
         public Workspace Workspace => _workspace;
-
-        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
-        public void InitializeProviders(DocumentProvider documentProvider, VisualStudioMetadataReferenceManager metadataReferenceProvider, VisualStudioRuleSetManager ruleSetFileProvider)
-        {
-            DocumentProvider = documentProvider;
-        }
-
-        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
-        public void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
-        {
-            // This shim doesn't expect to get actual things passed to it
-            Debug.Assert(!projects.Any());
-        }
 
         /*
           
@@ -145,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public override ProjectId Id => _id;
         }
 
-        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         public void AddProject(AbstractProject project)
         {
             if (_projectFactory != null)
@@ -154,9 +131,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     AssemblyName = project.AssemblyName,
                     FilePath = project.ProjectFilePath,
+                    Hierarchy = project.Hierarchy,
                     ProjectGuid = project.Guid,
                 };
-                project.VisualStudioProject = _projectFactory.CreateAndAddToWorkspace(project.ProjectSystemName, project.Language, creationInfo);
+                project.VisualStudioProject = this.ThreadingContext.JoinableTaskFactory.Run(() => _projectFactory.CreateAndAddToWorkspaceAsync(
+                    project.ProjectSystemName, project.Language, creationInfo, CancellationToken.None));
                 project.UpdateVisualStudioProjectProperties();
             }
             else

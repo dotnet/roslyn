@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
@@ -21,13 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
-        /// This gate locks manipulation of trackedQueries.
+        /// This gate locks manipulation of <see cref="_trackedQueries"/>.
         /// </summary>
-        private readonly object _gate = new object();
-        private readonly List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>> _trackedQueries = new List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>>();
+        private readonly object _gate = new();
+        private readonly List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>> _trackedQueries = new();
 
         // We update all of our tracked queries when this delay elapses.
-        private ResettableDelay _delay;
+        private ResettableDelay? _delay;
 
         internal GraphQueryManager(Workspace workspace, IAsynchronousOperationListener asyncListener)
         {
@@ -85,9 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-        {
-            EnqueueUpdate();
-        }
+            => EnqueueUpdate();
 
         private void EnqueueUpdate()
         {
@@ -114,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             List<ValueTuple<IGraphContext, List<IGraphQuery>>> liveQueries;
             lock (_gate)
             {
-                liveQueries = _trackedQueries.Select(t => ValueTuple.Create(t.Item1.GetTarget(), t.Item2)).Where(t => t.Item1 != null).ToList();
+                liveQueries = _trackedQueries.Select(t => ValueTuple.Create(t.Item1.GetTarget(), t.Item2)).Where(t => t.Item1 != null).ToList()!;
             }
 
             var solution = _workspace.CurrentSolution;
@@ -150,34 +151,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// <summary>
         /// Populate the graph of the context with the values for the given Solution.
         /// </summary>
-        private static Task PopulateContextGraphAsync(Solution solution, List<IGraphQuery> graphQueries, IGraphContext context)
+        private static async Task PopulateContextGraphAsync(Solution solution, List<IGraphQuery> graphQueries, IGraphContext context)
         {
-            var cancellationToken = context.CancelToken;
-            var graphTasks = graphQueries.Select(q => q.GetGraphAsync(solution, context, cancellationToken)).ToArray();
-            var whenAllTask = Task.WhenAll(graphTasks);
-            return whenAllTask.SafeContinueWith(
-                t => ProcessGraphTasks(t.Result, context),
-                cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
-        }
-
-        private static void ProcessGraphTasks(GraphBuilder[] graphBuilders, IGraphContext context)
-        {
-            // Perform the actual graph transaction 
-            using (var transaction = new GraphTransactionScope())
+            try
             {
-                // Remove any links that may have been added by a previous population. We don't
-                // remove nodes to maintain node identity, matching the behavior of the old
-                // providers.
-                context.Graph.Links.Clear();
+                var cancellationToken = context.CancelToken;
 
-                foreach (var graphBuilder in graphBuilders)
+                // Perform the actual graph transaction 
+                using (var transaction1 = new GraphTransactionScope())
                 {
-                    graphBuilder.ApplyToGraph(context.Graph);
-
-                    context.OutputNodes.AddAll(graphBuilder.CreatedNodes);
+                    // Remove any links that may have been added by a previous population. We don't
+                    // remove nodes to maintain node identity, matching the behavior of the old
+                    // providers.
+                    context.Graph.Links.Clear();
+                    transaction1.Complete();
                 }
 
-                transaction.Complete();
+                foreach (var query in graphQueries)
+                {
+                    var graphBuilder = await query.GetGraphAsync(solution, context, cancellationToken).ConfigureAwait(false);
+
+                    using var transaction2 = new GraphTransactionScope();
+
+                    graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
+                    context.OutputNodes.AddAll(graphBuilder.GetCreatedNodes(cancellationToken));
+
+                    transaction2.Complete();
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Diagnostic))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

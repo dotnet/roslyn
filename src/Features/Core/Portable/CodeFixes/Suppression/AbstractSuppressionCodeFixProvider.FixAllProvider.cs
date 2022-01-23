@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -6,17 +10,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         private class SuppressionFixAllProvider : FixAllProvider
         {
-            public static readonly SuppressionFixAllProvider Instance = new SuppressionFixAllProvider();
+            public static readonly SuppressionFixAllProvider Instance = new();
 
             private SuppressionFixAllProvider()
             {
             }
 
-            public async override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+            public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
             {
                 // currently there's no FixAll support for local suppression, just bail out
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForLocalSuppression(fixAllContext.CodeActionEquivalenceKey))
@@ -24,40 +28,34 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return null;
                 }
 
-                var batchFixer = WellKnownFixAllProviders.BatchFixer;
                 var suppressionFixer = (AbstractSuppressionCodeFixProvider)((WrapperCodeFixProvider)fixAllContext.CodeFixProvider).SuppressionFixProvider;
-                var isGlobalSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey);
-                if (!isGlobalSuppression)
-                {
-                    var isPragmaWarningSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey);
-                    Contract.ThrowIfFalse(isPragmaWarningSuppression || NestedSuppressionCodeAction.IsEquivalenceKeyForRemoveSuppression(fixAllContext.CodeActionEquivalenceKey));
 
-                    batchFixer = isPragmaWarningSuppression ?
-                        new PragmaWarningBatchFixAllProvider(suppressionFixer) :
-                        RemoveSuppressionCodeAction.GetBatchFixer(suppressionFixer);
+                if (NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey))
+                {
+                    // For global suppressions, we defer to the global suppression system to handle directly.
+                    var title = fixAllContext.CodeActionEquivalenceKey;
+                    return fixAllContext.Document != null
+                        ? GlobalSuppressMessageFixAllCodeAction.Create(
+                            title, suppressionFixer, fixAllContext.Document,
+                            await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false))
+                        : GlobalSuppressMessageFixAllCodeAction.Create(
+                            title, suppressionFixer, fixAllContext.Project,
+                            await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false));
                 }
 
-                var title = fixAllContext.CodeActionEquivalenceKey;
-                if (fixAllContext.Document != null)
+                if (NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey))
                 {
-                    var documentsAndDiagnosticsToFixMap =
-                        await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
-
-                    return !isGlobalSuppression
-                        ? await batchFixer.GetFixAsync(
-                            documentsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false)
-                        : GlobalSuppressMessageFixAllCodeAction.Create(title, suppressionFixer, fixAllContext.Document, documentsAndDiagnosticsToFixMap);
+                    var batchFixer = new PragmaWarningBatchFixAllProvider(suppressionFixer);
+                    return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 }
-                else
+
+                if (NestedSuppressionCodeAction.IsEquivalenceKeyForRemoveSuppression(fixAllContext.CodeActionEquivalenceKey))
                 {
-                    var projectsAndDiagnosticsToFixMap =
-                        await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false);
-
-                    return !isGlobalSuppression
-                        ? await batchFixer.GetFixAsync(
-                            projectsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false)
-                        : GlobalSuppressMessageFixAllCodeAction.Create(title, suppressionFixer, fixAllContext.Project, projectsAndDiagnosticsToFixMap);
+                    var batchFixer = RemoveSuppressionCodeAction.GetBatchFixer(suppressionFixer);
+                    return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 }
+
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

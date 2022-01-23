@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,23 +8,35 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using AnalyzerOptions = System.Collections.Immutable.ImmutableDictionary<string, string>;
-using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a single EditorConfig file, see http://editorconfig.org for details about the format.
+    /// Represents a single EditorConfig file, see https://editorconfig.org for details about the format.
     /// </summary>
     public sealed partial class AnalyzerConfig
     {
-        // Matches EditorConfig section header such as "[*.{js,py}]", see http://editorconfig.org for details
+        // Matches EditorConfig section header such as "[*.{js,py}]", see https://editorconfig.org for details
         private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
-        // Matches EditorConfig property such as "indent_style = space", see http://editorconfig.org for details
+        // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
         private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Key that indicates if this config is a global config
+        /// </summary>
+        internal const string GlobalKey = "is_global";
+
+        /// <summary>
+        /// Key that indicates the precedence of this config when <see cref="IsGlobal"/> is true
+        /// </summary>
+        internal const string GlobalLevelKey = "global_level";
+
+        /// <summary>
+        /// Filename that indicates this file is a user provided global config
+        /// </summary>
+        internal const string UserGlobalConfigName = ".globalconfig";
 
         /// <summary>
         /// A set of keys that are reserved for special interpretation for the editorconfig specification.
@@ -34,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// at 2018-04-21 19:37:05Z. New keys may be added to this list in newer versions, but old ones will
         /// not be removed.
         /// </remarks>
-        public static ImmutableHashSet<string> ReservedKeys { get; }
+        internal static ImmutableHashSet<string> ReservedKeys { get; }
             = ImmutableHashSet.CreateRange(Section.PropertiesKeyComparer, new[] {
                 "root",
                 "indent_style",
@@ -50,21 +64,21 @@ namespace Microsoft.CodeAnalysis
         /// A set of values that are reserved for special use for the editorconfig specification
         /// and will always be lower-cased by the parser.
         /// </summary>
-        public static ImmutableHashSet<string> ReservedValues { get; }
+        internal static ImmutableHashSet<string> ReservedValues { get; }
             = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] { "unset" });
 
-        public Section GlobalSection { get; }
+        internal Section GlobalSection { get; }
 
         /// <summary>
         /// The directory the editorconfig was contained in, with all directory separators
         /// replaced with '/'.
         /// </summary>
-        public string NormalizedDirectory { get; }
+        internal string NormalizedDirectory { get; }
 
         /// <summary>
         /// The path passed to <see cref="Parse(string, string)"/> during construction.
         /// </summary>
-        public string PathToFile { get; }
+        internal string PathToFile { get; }
 
         /// <summary>
         /// Comparer for sorting <see cref="AnalyzerConfig"/> files by <see cref="NormalizedDirectory"/> path length.
@@ -72,12 +86,55 @@ namespace Microsoft.CodeAnalysis
         internal static Comparer<AnalyzerConfig> DirectoryLengthComparer { get; } = Comparer<AnalyzerConfig>.Create(
             (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length));
 
-        public ImmutableArray<Section> NamedSections { get; }
+        internal ImmutableArray<Section> NamedSections { get; }
 
         /// <summary>
         /// Gets whether this editorconfig is a topmost editorconfig.
         /// </summary>
-        public bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
+        internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string? val) && val == "true";
+
+        /// <summary>
+        /// Gets whether this editorconfig is a global editorconfig.
+        /// </summary>
+        internal bool IsGlobal => _hasGlobalFileName || GlobalSection.Properties.ContainsKey(GlobalKey);
+
+        /// <summary>
+        /// Get the global level of this config, used to resolve conflicting keys
+        /// </summary>
+        /// <remarks>
+        /// A user can explicitly set the global level via the <see cref="GlobalLevelKey"/>.
+        /// When no global level is explicitly set, we use a heuristic:
+        ///  <list type="bullet">
+        ///     <item><description>
+        ///     Any file matching the <see cref="UserGlobalConfigName"/> is determined to be a user supplied global config and gets a level of 100
+        ///     </description></item>
+        ///     <item><description>
+        ///     Any other file gets a default level of 0
+        ///     </description></item>
+        ///  </list>
+        ///  
+        /// This value is unused when <see cref="IsGlobal"/> is <c>false</c>.
+        /// </remarks>
+        internal int GlobalLevel
+        {
+            get
+            {
+                if (GlobalSection.Properties.TryGetValue(GlobalLevelKey, out string? val) && int.TryParse(val, out int level))
+                {
+                    return level;
+                }
+                else if (_hasGlobalFileName)
+                {
+                    return 100;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+
+        private readonly bool _hasGlobalFileName;
 
         private AnalyzerConfig(
             Section globalSection,
@@ -87,6 +144,7 @@ namespace Microsoft.CodeAnalysis
             GlobalSection = globalSection;
             NamedSections = namedSections;
             PathToFile = pathToFile;
+            _hasGlobalFileName = Path.GetFileName(pathToFile).Equals(UserGlobalConfigName, StringComparison.OrdinalIgnoreCase);
 
             // Find the containing directory and normalize the path separators
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
@@ -97,7 +155,7 @@ namespace Microsoft.CodeAnalysis
         /// Parses an editor config file text located at the given path. No parsing
         /// errors are reported. If any line contains a parse error, it is dropped.
         /// </summary>
-        public static AnalyzerConfig Parse(string text, string pathToFile)
+        public static AnalyzerConfig Parse(string text, string? pathToFile)
         {
             return Parse(SourceText.From(text), pathToFile);
         }
@@ -106,14 +164,14 @@ namespace Microsoft.CodeAnalysis
         /// Parses an editor config file text located at the given path. No parsing
         /// errors are reported. If any line contains a parse error, it is dropped.
         /// </summary>
-        public static AnalyzerConfig Parse(SourceText text, string pathToFile)
+        public static AnalyzerConfig Parse(SourceText text, string? pathToFile)
         {
-            if (!Path.IsPathRooted(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
+            if (pathToFile is null || !Path.IsPathRooted(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
             {
                 throw new ArgumentException("Must be an absolute path to an editorconfig file", nameof(pathToFile));
             }
 
-            Section globalSection = null;
+            Section? globalSection = null;
             var namedSectionBuilder = ImmutableArray.CreateBuilder<Section>();
 
             // N.B. The editorconfig documentation is quite loose on property interpretation.
@@ -178,7 +236,7 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
-            return new AnalyzerConfig(globalSection, namedSectionBuilder.ToImmutable(), pathToFile);
+            return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
 
             void addNewSection()
             {
@@ -213,13 +271,19 @@ namespace Microsoft.CodeAnalysis
         /// Represents a named section of the editorconfig file, which consists of a name followed by a set
         /// of key-value pairs.
         /// </summary>
-        public sealed class Section
+        internal sealed class Section
         {
             /// <summary>
             /// Used to compare <see cref="Name"/>s of sections. Specified by editorconfig to
             /// be a case-sensitive comparison.
             /// </summary>
             public static StringComparison NameComparer { get; } = StringComparison.Ordinal;
+
+            /// <summary>
+            /// Used to compare <see cref="Name"/>s of sections. Specified by editorconfig to
+            /// be a case-sensitive comparison.
+            /// </summary>
+            public static IEqualityComparer<string> NameEqualityComparer { get; } = StringComparer.Ordinal;
 
             /// <summary>
             /// Used to compare keys in <see cref="Properties"/>. The editorconfig spec defines property

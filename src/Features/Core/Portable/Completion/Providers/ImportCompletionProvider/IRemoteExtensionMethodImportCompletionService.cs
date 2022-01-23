@@ -1,0 +1,27 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
+
+namespace Microsoft.CodeAnalysis.Completion.Providers
+{
+    internal interface IRemoteExtensionMethodImportCompletionService
+    {
+        ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
+            PinnedSolutionInfo solutionInfo,
+            DocumentId documentId,
+            int position,
+            string receiverTypeSymbolKeyData,
+            ImmutableArray<string> namespaceInScope,
+            ImmutableArray<string> targetTypesSymbolKeyData,
+            bool forceIndexCreation,
+            bool hideAdvancedMembers,
+            CancellationToken cancellationToken);
+
+        ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
+    }
+}

@@ -1,7 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="Microsoft.Managed.Core.targets"/>
+
+  <PropertyGroup>
+    <!-- .NETCoreApp < 3.0, .NETStandard < 2.1, or any other target framework -->
+    <_MaxSupportedLangVersion Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') AND
+                                         ('$(TargetFrameworkIdentifier)' != '.NETStandard' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '2.1')">7.3</_MaxSupportedLangVersion>
+    
+    <!-- .NETCoreApp < 5.0, .NETStandard == 2.1 -->
+    <_MaxSupportedLangVersion Condition="(('$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0') OR
+                                          ('$(TargetFrameworkIdentifier)' == '.NETStandard' AND '$(_TargetFrameworkVersionWithoutV)' == '2.1')) AND
+                                          '$(_MaxSupportedLangVersion)' == ''">8.0</_MaxSupportedLangVersion>
+
+    <!-- .NETCoreApp == 5.0 -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '5.0' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">9.0</_MaxSupportedLangVersion>
+
+    <!-- .NETCoreApp == 6.0 -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '6.0' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">10.0</_MaxSupportedLangVersion>
+
+    <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
+    <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
+  </PropertyGroup>
 
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);
@@ -49,12 +71,6 @@
       <PdbFile Condition="'$(PdbFile)' == '' AND '$(OutputType)' == 'winmdobj' AND '$(_DebugSymbolsProduced)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
     </PropertyGroup>
 
-    <PropertyGroup>
-      <LangVersion Condition="'$(LangVersion)' == '' AND
-        (('$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(TargetFrameworkVersion)' == 'v3.0') OR
-         ('$(TargetFrameworkIdentifier)' == '.NETStandard' AND '$(TargetFrameworkVersion)' == 'v2.1'))">preview</LangVersion>
-    </PropertyGroup>
-
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
     <Csc Condition="'%(_CoreCompileResourceInputs.WithCulture)' != 'true'"
          AdditionalLibPaths="$(AdditionalLibPaths)"
@@ -84,6 +100,7 @@
          ErrorReport="$(ErrorReport)"
          Features="$(Features)"
          FileAlignment="$(FileAlignment)"
+         GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"
          GenerateFullPaths="$(GenerateFullPaths)"
          HighEntropyVA="$(HighEntropyVA)"
          Instrument="$(Instrument)"
@@ -115,6 +132,7 @@
          ResponseFiles="$(CompilerResponseFile)"
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
          SharedCompilationId="$(SharedCompilationId)"
+         SkipAnalyzers="$(_SkipAnalyzers)"
          SkipCompilerExecution="$(SkipCompilerExecution)"
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"

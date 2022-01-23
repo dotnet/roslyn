@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -13,15 +15,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Implements IDisposable
 
             Private ReadOnly _workspace As TestWorkspace
+            Private ReadOnly _visualStudioWorkspace As VisualStudioWorkspace
             Private ReadOnly _libraryManager As AbstractObjectBrowserLibraryManager
 
-            Sub New(workspace As TestWorkspace, libraryManager As AbstractObjectBrowserLibraryManager)
+            Public Sub New(workspace As TestWorkspace, visualStudioWorkspace As VisualStudioWorkspace, libraryManager As AbstractObjectBrowserLibraryManager)
                 _workspace = workspace
+                _visualStudioWorkspace = visualStudioWorkspace
                 _libraryManager = libraryManager
             End Sub
 
             Public Sub Dispose() Implements IDisposable.Dispose
                 _libraryManager.Dispose()
+                _visualStudioWorkspace.Dispose()
                 _workspace.Dispose()
             End Sub
 

@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="translated">Preferências de disposição</target>
+        <target state="translated">Preferências de quebra de linha</target>
         <note />
       </trans-unit>
     </body>

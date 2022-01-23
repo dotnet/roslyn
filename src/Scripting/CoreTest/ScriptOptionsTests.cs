@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -249,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         public void WithOptimizationLevel_SetsOptimizationLevel(OptimizationLevel optimizationLevel)
         {
             Assert.Equal(ScriptOptions.Default.WithOptimizationLevel(optimizationLevel).OptimizationLevel, optimizationLevel);
-            Assert.Equal(ScriptOptions.Default.OptimizationLevel, OptimizationLevel.Debug);
+            Assert.Equal(OptimizationLevel.Debug, ScriptOptions.Default.OptimizationLevel);
         }
 
         [Theory]
@@ -280,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         public void WithWarningLevel_SetsWarningLevel(int warningLevel)
         {
             Assert.Equal(ScriptOptions.Default.WithWarningLevel(warningLevel).WarningLevel, warningLevel);
-            Assert.Equal(ScriptOptions.Default.WarningLevel, 4);
+            Assert.Equal(4, ScriptOptions.Default.WarningLevel);
         }
 
         [Theory]

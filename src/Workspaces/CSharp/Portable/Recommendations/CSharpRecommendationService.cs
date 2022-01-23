@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Recommendations;
@@ -13,16 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
     internal class CSharpRecommendationService : AbstractRecommendationService<CSharpSyntaxContext>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpRecommendationService()
         {
         }
 
-        protected override Task<CSharpSyntaxContext> CreateContext(
-            Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => Task.FromResult(CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken));
+        protected override CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+            => CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
 
-        protected override AbstractRecommendationServiceRunner<CSharpSyntaxContext> CreateRunner(
-            CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
+        protected override AbstractRecommendationServiceRunner<CSharpSyntaxContext> CreateRunner(CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
             => new CSharpRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken);
     }
 }

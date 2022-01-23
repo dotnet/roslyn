@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -816,7 +816,7 @@
     <value>'Sub New' cannot be declared 'Partial'.</value>
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
-    <value>Failed to emit module '{0}'.</value>
+    <value>Failed to emit module '{0}': {1}</value>
   </data>
   <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
@@ -1253,6 +1253,9 @@
   <data name="ERR_DuplicatePrefix" xml:space="preserve">
     <value>XML namespace prefix '{0}' is already declared.</value>
   </data>
+  <data name="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected" xml:space="preserve">
+    <value>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</value>
+  </data>
   <data name="ERR_StrictDisallowsLateBinding" xml:space="preserve">
     <value>Option Strict On disallows late binding.</value>
   </data>
@@ -1297,6 +1300,9 @@
   </data>
   <data name="ERR_SharedEventNeedsSharedHandler" xml:space="preserve">
     <value>Events of shared WithEvents variables cannot be handled by non-shared methods.</value>
+  </data>
+  <data name="ERR_SharedEventNeedsHandlerInTheSameType" xml:space="preserve">
+    <value>Events of shared WithEvents variables cannot be handled by methods in a different type.</value>
   </data>
   <data name="ERR_ExpectedMinus" xml:space="preserve">
     <value>'-' expected.</value>
@@ -4976,8 +4982,14 @@
   <data name="ThereAreNoPointerTypesInVB" xml:space="preserve">
     <value>There are no pointer types in VB.</value>
   </data>
+  <data name="ThereAreNoFunctionPointerTypesInVB" xml:space="preserve">
+    <value>There are no function pointer types in VB.</value>
+  </data>
   <data name="ThereIsNoDynamicTypeInVB" xml:space="preserve">
     <value>There is no dynamic type in VB.</value>
+  </data>
+  <data name="ThereAreNoNativeIntegerTypesInVB" xml:space="preserve">
+    <value>There are no native integer types in VB.</value>
   </data>
   <data name="VariableSyntaxNotWithinSyntaxTree" xml:space="preserve">
     <value>variableSyntax not within syntax tree</value>
@@ -5130,10 +5142,14 @@
 -warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 -ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
--errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
-                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -5331,7 +5347,7 @@
     <value>Unused import statement</value>
   </data>
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
-    <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
+    <value>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</value>
   </data>
   <data name="ERR_LanguageVersion" xml:space="preserve">
     <value>Visual Basic {0} does not support {1}.</value>
@@ -5545,5 +5561,93 @@
   </data>
   <data name="ERR_MultipleAnalyzerConfigsInSameDir" xml:space="preserve">
     <value>Multiple analyzer config files cannot be in the same directory ('{0}').</value>
+  </data>
+  <data name="ERR_DefaultInterfaceImplementationInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="ERR_BadSwitchValue" xml:space="preserve">
+    <value>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation" xml:space="preserve">
+    <value>Target runtime doesn't support default interface implementation.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
+    <value>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</value>
+  </data>
+  <data name="WRN_AttributeNotSupportedInVB" xml:space="preserve">
+    <value>'{0}' is not supported in VB.</value>
+  </data>
+  <data name="WRN_AttributeNotSupportedInVB_Title" xml:space="preserve">
+    <value>Attribute is not supported in VB</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
+    <value>Generator failed to generate source.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
+    <value>Generator failed to initialize.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesFramework" xml:space="preserve">
+    <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+    <comment>{1} is the type that was loaded, {0} is the containing assembly.</comment>
+  </data>
+  <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
+    <value>The loaded assembly references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
+    <value>assigning to or passing 'ByRef' properties with init-only setters</value>
+  </data>
+  <data name="ERR_AssignmentInitOnly" xml:space="preserve">
+    <value>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</value>
+  </data>
+  <data name="ERR_OverridingInitOnlyProperty" xml:space="preserve">
+    <value>'{0}' cannot override init-only '{1}'.</value>
+  </data>
+  <data name="ERR_PropertyDoesntImplementInitOnly" xml:space="preserve">
+    <value>Init-only '{0}' cannot be implemented.</value>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyNotSupported" xml:space="preserve">
+    <value>'UnmanagedCallersOnly' attribute is not supported.</value>
+  </data>
+  <data name="FEATURE_CallerArgumentExpression" xml:space="preserve">
+    <value>caller argument expression</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
+  <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
+    <value>A shared abstract interface member cannot be accessed.</value>
+  </data>
+  <data name="ERR_UnimplementedSharedMember" xml:space="preserve">
+    <value>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</value>
   </data>
 </root>

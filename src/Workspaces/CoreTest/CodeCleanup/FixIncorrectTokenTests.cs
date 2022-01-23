@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -771,9 +775,7 @@ End Module
         }
 
         private static string FixLineEndings(string text)
-        {
-            return text.Replace("\r\n", "\n").Replace("\n", "\r\n");
-        }
+            => text.Replace("\r\n", "\n").Replace("\n", "\r\n");
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
@@ -784,7 +786,7 @@ End Module
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.FixIncorrectTokens || p.Name == PredefinedCodeCleanupProviderNames.Format);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.FixIncorrectTokens or PredefinedCodeCleanupProviderNames.Format);
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 
@@ -797,7 +799,7 @@ End Module
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+            return project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
     }

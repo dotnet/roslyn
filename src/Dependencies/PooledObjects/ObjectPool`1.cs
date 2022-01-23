@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // define TRACE_LEAKS to get additional diagnostics that can lead to the leak sources. note: it will
 // make everything about 2-3x slower
@@ -16,10 +18,14 @@ using System.Threading;
 
 #if DETECT_LEAKS
 using System.Runtime.CompilerServices;
-
 #endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
+#if NET20
+    internal delegate TReturn Func<TArg, TReturn>(TArg arg);
+#endif
+
     /// <summary>
     /// Generic implementation of object pooling pattern with predefined pool size limit. The main
     /// purpose is that limited number of frequently used objects can be kept in the pool for
@@ -42,7 +48,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         [DebuggerDisplay("{Value,nq}")]
         private struct Element
         {
-            internal T Value;
+            internal T? Value;
         }
 
         /// <remarks>
@@ -53,7 +59,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         // Storage for the pool objects. The first item is stored in a dedicated field because we
         // expect to be able to satisfy most requests from it.
-        private T _firstItem;
+        private T? _firstItem;
         private readonly Element[] _items;
 
         // factory is stored for the lifetime of the pool. We will call this only when pool needs to
@@ -113,6 +119,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _items = new Element[size - 1];
         }
 
+        internal ObjectPool(Func<ObjectPool<T>, T> factory, int size)
+        {
+            Debug.Assert(size >= 1);
+            _factory = () => factory(this);
+            _items = new Element[size - 1];
+        }
+
         private T CreateInstance()
         {
             var inst = _factory();
@@ -133,7 +146,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             // Note that the initial read is optimistically not synchronized. That is intentional. 
             // We will interlock only when we have a candidate. in a worst case we may miss some
             // recently returned objects. Not a big deal.
-            T inst = _firstItem;
+            var inst = _firstItem;
             if (inst == null || inst != Interlocked.CompareExchange(ref _firstItem, null, inst))
             {
                 inst = AllocateSlow();
@@ -155,12 +168,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             var items = _items;
 
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
                 // Note that the initial read is optimistically not synchronized. That is intentional. 
                 // We will interlock only when we have a candidate. in a worst case we may miss some
                 // recently returned objects. Not a big deal.
-                T inst = items[i].Value;
+                var inst = items[i].Value;
                 if (inst != null)
                 {
                     if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
@@ -202,7 +215,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private void FreeSlow(T obj)
         {
             var items = _items;
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
                 if (items[i].Value == null)
                 {
@@ -224,7 +237,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// return a larger array to the pool than was originally allocated.
         /// </summary>
         [Conditional("DEBUG")]
-        internal void ForgetTrackedObject(T old, T replacement = null)
+        internal void ForgetTrackedObject(T old, T? replacement = null)
         {
 #if DETECT_LEAKS
             LeakTracker tracker;
@@ -264,7 +277,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             Debug.Assert(_firstItem != obj, "freeing twice?");
 
             var items = _items;
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
                 var value = items[i].Value;
                 if (value == null)

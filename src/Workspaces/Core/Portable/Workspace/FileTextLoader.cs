@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -10,44 +10,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal static class FileTextLoaderOptions
-    {
-        /// <summary>
-        /// Hidden registry key to control maximum size of a text file we will read into memory. 
-        /// we have this option to reduce a chance of OOM when user adds massive size files to the solution.
-        /// Default threshold is 100MB which came from some internal data on big files and some discussion.
-        /// 
-        /// User can override default value by setting DWORD value on FileLengthThreshold in 
-        /// "[VS HIVE]\Roslyn\Internal\Performance\Text"
-        /// </summary>
-        internal static readonly Option<long> FileLengthThreshold = new Option<long>(nameof(FileTextLoaderOptions), nameof(FileLengthThreshold), defaultValue: 100 * 1024 * 1024,
-            storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\Text\FileLengthThreshold"));
-    }
-
-    [ExportOptionProvider, Shared]
-    internal class FileTextLoaderOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        public FileTextLoaderOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            FileTextLoaderOptions.FileLengthThreshold);
-    }
-
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class FileTextLoader : TextLoader
     {
-        private readonly string _path;
-        private readonly Encoding _defaultEncoding;
+        /// <summary>
+        /// Absolute path of the file.
+        /// </summary>
+        public string Path { get; }
+
+        /// <summary>
+        /// Specifies an encoding to be used if the actual encoding of the file 
+        /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
+        /// If <c>null</c> auto-detect heuristics are used to determine the encoding. 
+        /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
+        /// </summary>
+        public Encoding? DefaultEncoding { get; }
 
         /// <summary>
         /// Creates a content loader for specified file.
@@ -60,37 +42,26 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
-        public FileTextLoader(string path, Encoding defaultEncoding)
+        public FileTextLoader(string path, Encoding? defaultEncoding)
         {
             CompilerPathUtilities.RequireAbsolutePath(path, "path");
 
-            _path = path;
-            _defaultEncoding = defaultEncoding;
+            Path = path;
+            DefaultEncoding = defaultEncoding;
         }
 
         /// <summary>
-        /// Absolute path of the file.
+        /// We have this limit on file size to reduce a chance of OOM when user adds massive files to the solution (often by accident).
+        /// The threshold is 100MB which came from some internal data on big files and some discussion.
         /// </summary>
-        public string Path
-        {
-            get { return _path; }
-        }
+        internal virtual int MaxFileLength => 100 * 1024 * 1024;
 
-        /// <summary>
-        /// Specifies an encoding to be used if the actual encoding of the file 
-        /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
-        /// If <c>null</c> auto-detect heuristics are used to determine the encoding. 
-        /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
-        /// </summary>
-        public Encoding DefaultEncoding
-        {
-            get { return _defaultEncoding; }
-        }
+        internal sealed override string FilePath => Path;
 
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
         {
-            var factory = workspace.Services.GetService<ITextFactoryService>();
-            return factory.CreateText(stream, _defaultEncoding);
+            var factory = workspace.Services.GetRequiredService<ITextFactoryService>();
+            return factory.CreateText(stream, DefaultEncoding);
         }
 
         /// <summary>
@@ -100,9 +71,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidDataException"></exception>
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
-            ValidateFileLength(workspace, _path);
+            ValidateFileLength(Path);
 
-            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
 
             TextAndVersion textAndVersion;
 
@@ -172,27 +143,25 @@ namespace Microsoft.CodeAnalysis
             // this logic. This is tracked by https://github.com/dotnet/corefx/issues/6007, at least in
             // corefx. We also open the file for reading with FileShare mode read/write/delete so that
             // we do not lock this file.
-            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, useAsync: true)))
+            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, useAsync: true)))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
 
                 // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
                 // but probably not for command line case where it doesn't use more sophisticated services.
-                using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false))
-                {
-                    var text = CreateText(readStream, workspace);
-                    textAndVersion = TextAndVersion.Create(text, version, _path);
-                }
+                using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var text = CreateText(readStream, workspace);
+                textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 
             // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
             // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
             // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
             // and reload the file.
-            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var newLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
-                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, _path);
+                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, Path);
                 throw new IOException(message);
             }
 
@@ -206,28 +175,28 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidDataException"></exception>
         internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
-            ValidateFileLength(workspace, _path);
+            ValidateFileLength(Path);
 
-            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
 
             TextAndVersion textAndVersion;
 
             // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
-            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: false)))
+            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: false)))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
                 var text = CreateText(stream, workspace);
-                textAndVersion = TextAndVersion.Create(text, version, _path);
+                textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 
             // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
             // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
             // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
             // and reload the file.
-            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var newLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
-                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, _path);
+                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, Path);
                 throw new IOException(message);
             }
 
@@ -235,11 +204,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private string GetDebuggerDisplay()
-        {
-            return nameof(Path) + " = " + Path;
-        }
+            => nameof(Path) + " = " + Path;
 
-        private static void ValidateFileLength(Workspace workspace, string path)
+        private void ValidateFileLength(string path)
         {
             // Validate file length is under our threshold. 
             // Otherwise, rather than reading the content into the memory, we will throw
@@ -249,8 +216,7 @@ namespace Microsoft.CodeAnalysis
             // check this (http://source.roslyn.io/#Microsoft.CodeAnalysis.Workspaces/Workspace/Solution/TextDocumentState.cs,132)
             // to see how workspace deal with exception from FileTextLoader. other consumer can handle the exception differently
             var fileLength = FileUtilities.GetFileLength(path);
-            var threshold = workspace.Options.GetOption(FileTextLoaderOptions.FileLengthThreshold);
-            if (fileLength > threshold)
+            if (fileLength > MaxFileLength)
             {
                 // log max file length which will log to VS telemetry in VS host
                 Logger.Log(FunctionId.FileTextLoader_FileLengthThresholdExceeded, KeyValueLogMessage.Create(m =>
@@ -259,7 +225,7 @@ namespace Microsoft.CodeAnalysis
                     m["Ext"] = PathUtilities.GetExtension(path);
                 }));
 
-                var message = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, path, fileLength, threshold);
+                var message = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, path, fileLength, MaxFileLength);
                 throw new InvalidDataException(message);
             }
         }

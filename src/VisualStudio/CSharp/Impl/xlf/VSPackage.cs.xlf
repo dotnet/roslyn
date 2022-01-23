@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -78,50 +80,61 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="needs-review-translation">Zobrazit diagnostiku pro zavřené soubory;
-Obarvit regulární výraz; 
-Zvýrazňovat související komponenty pod kurzorem; 
-Hlásit neplatné regulární výrazy;
-Povolit analýzu celého řešení;
-Provést analýzu funkcí editoru v externím procesu;
-Povolit přechod na dekompilované zdroje;
-Direktivy using;
-Při řazení direktiv using umístit nejdřív direktivy System;
-Oddělovat skupiny direktiv using;
-Navrhovat direktivy using pro typy v referenčních sestaveních;
-Navrhovat direktivy using pro typy v balíčcích NuGet;
-Zvýrazňování;
-Zvýrazňovat odkazy na symbol pod kurzorem;
-Zvýrazňovat související klíčová slova pod kurzorem;
-Sbalení;
-Po otevření souborů přejít do režimu sbalení;
-Zobrazit oddělovače řádků procedur;
-Zobrazit sbalení pro konstrukty na úrovni deklarace;
-Zobrazit sbalení pro konstrukty na úrovni kódu;
-Zobrazit sbalení pro komentáře a oblast pro preprocesor;
-Sbalit oblasti při sbalování na definice;
-Zesvětlení;
-Zesvětlit nepoužívané direktivy using;
-Zesvětlit nedosažitelný kód;
-Vodítka pro strukturu bloku;
-Zobrazit vodítka pro konstrukty na úrovni deklarace;
-Zobrazit vodítka pro konstrukty na úrovni kódu;
-Nápověda editoru;
-Generovat komentáře dokumentace XML pro ///;
-Vkládat * na začátek nových řádků při psaní komentářů /* */;
-Zobrazit náhled pro sledování přejmenování;
-Rozdělit řetězcové literály při stisknutí klávesy Enter;
-Hlásit neplatné zástupné symboly ve voláních string.Format;
-Extrahovat metodu;
-Nevkládat odkaz nebo výstup do vlastní struktury;
-Implementovat rozhraní nebo abstraktní třídu;
-Vlastnosti, události a metody při vkládání umístit;
-s ostatními členy stejného druhu;
-na konec;
-Při generování vlastnosti;
-preferovat vyvolávací vlastnosti;
-preferovat automatické vlastnosti;</target>
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="new">Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -131,8 +144,8 @@ Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
         <target state="translated">Automaticky formátovat při psaní;
-Automaticky formátovat příkaz při zadání středníku;
-Automaticky formátovat blok při zadání pravé složené závorky;
+Automaticky formátovat příkaz při středníku;
+Automaticky formátovat blok při koncové složené závorce;
 Automaticky formátovat při stisknutí klávesy Enter;
 Automaticky formátovat při vložení;</target>
         <note>C# Formatting &gt; General options page keywords</note>
@@ -150,12 +163,12 @@ place goto labels one indent less than current;</source>
         <target state="translated">Odsadit obsah bloku; 
 odsadit levé a pravé složené závorky; 
 odsadit obsah příkazu case; 
-odsadit obsah příkazu case (když je v bloku); 
+odsazovat obsah příkazu case (když je v bloku); 
 odsadit návěští case; 
 odsazení návěští; 
-umístit návěští goto do levého sloupce; 
-odsadit popisky normálně; 
-umístit návěští goto o jedno odsazení méně, než je aktuální;</target>
+umístit návěští goto do sloupce nejvíce vlevo; 
+odsadit návěští normálně; 
+umístit návěští goto o jedno odsazení méně než je aktuální;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -178,17 +191,17 @@ Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
         <target state="translated">Možnost formátování nového řádku pro složené závorky;Možnosti formátování nového řádku pro klíčová slova;Možnosti nového řádku pro složené závorky;
 Pro typy umístit levou složenou závorku na nový řádek;
-Pro metody a místní funkce umístit levou složenou závorku na nový řádek;
+Pro metody a lokální funkce umístit levou složenou závorku na nový řádek;
 Pro vlastnosti, indexery a události umístit levou složenou závorku na nový řádek;
-Pro přístupové objekty vlastností, indexerů a událostí umístit levou složenou závorku na nový řádek;
+Pro přistupující objekty vlastností, indexerů a událostí umístit levou složenou závorku na nový řádek;
 Pro anonymní metody umístit levou složenou závorku na nový řádek;
 Pro řídicí bloky umístit levou složenou závorku na nový řádek;
 Pro anonymní typy umístit levou složenou závorku na nový řádek;
 Pro inicializátory objektů, kolekcí a polí umístit levou složenou závorku na nový řádek;
 Možnosti nového řádku pro klíčová slova;
-Umístit else na nový řádek;
-Umístit catch na nový řádek;
-Umístit finally na nový řádek;
+Umístit klíčové slovo else na nový řádek;
+Umístit klíčové slovo catch na nový řádek;
+Umístit klíčové slovo finally na nový řádek;
 Možnosti nového řádku pro výraz;
 Umístit členy v inicializátorech objektů na nový řádek;
 Umístit členy v anonymních typech na nový řádek;
@@ -228,35 +241,35 @@ Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
         <target state="translated">Nastavit mezery pro deklarace metod;
-Vložit mezeru mezi název metody a její levou kulatou závorku;
-Vkládat mezery uvnitř závorek u seznamu parametrů;
-Vkládat mezery uvnitř závorek u prázdného seznamu parametrů;
+Vložit mezeru mezi název metody a její levou kulatou závorkou;
+Vložit mezeru mezi kulaté závorky seznamu parametrů;
+Vložit mezeru mezi kulaté závorky prázdného seznamu parametrů;
 Nastavit mezery pro volání metod;
-Vkládat mezery uvnitř závorek u seznamu argumentů;
-Vkládat mezery uvnitř závorek u prázdného seznamu argumentů;
+Vložit mezeru mezi kulaté závorky seznamu argumentů;
+Vložit mezeru mezi kulaté závorky prázdného seznamu argumentů;
 Nastavit další možnosti mezer;
 Vkládat mezeru po klíčových slovech v příkazech toku řízení;
-Vkládat mezery uvnitř závorek výrazů;
-Vkládat mezery uvnitř závorek přetypování;
-Vkládat mezery uvnitř závorek příkazů toku řízení;
+Vložit mezeru mezi kulaté závorky výrazů;
+Vložit mezeru mezi kulaté závorky přetypování;
+Vložit mezery mezi kulaté závorky příkazů řízení toku;
 Vložit mezeru po přetypování;
-Ignorovat mezery v deklaračních příkazech;
-Nastavit mezery pro složené závorky;
+Ignorovat mezery ve výpisech deklarací;
+Nastavit mezery pro hranaté závorky;
 Vložit mezeru před levou hranatou závorku;
-Vložit mezeru uvnitř prázdných hranatých závorek;
-Vkládat mezery uvnitř hranatých závorek;
+Vložit mezeru mezi prázdné hranaté závorky;
+Vložit mezery mezi hranaté závorky;
 Nastavit mezery pro oddělovače;
 Vložit mezeru po dvojtečce pro základní typ nebo rozhraní v deklaraci typu;
-Vložit mezeru za čárkou;
-Vložit mezery za tečkou;
-Vložit mezeru za středníkem v příkazu for;
+Vložit mezeru za čárku;
+Vložit mezeru za tečku;
+Vložit mezeru za středník v příkazu for;
 Vložit mezeru před dvojtečku pro základní typ nebo rozhraní v deklaraci typu;
-Vložit mezeru před čárkou;
-Vložit mezeru před tečkou;
-Vložit mezeru před středníkem v příkazu for;
+Vložit mezeru před čárku;
+Vložit mezeru před tečku;
+Vložit mezeru před středník v příkazu for;
 Nastavit mezery pro operátory;
-Ignorovat mezery kolem binárních operátorů;
-Odebrat mezery před a za binárními operátory;
+Ignorovat mezery okolo binárních operátorů;
+Odebrat mezery před a po binárních operátorech;
 Vložit mezeru před a za binární operátory;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
@@ -269,8 +282,10 @@ Vložit mezeru před a za binární operátory;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -279,21 +294,25 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Změnit nastavení seznamu pro doplňování;Předem vybrat naposledy použitý člen;Seznamy pro doplňování;
-Zobrazit seznam pro doplňování po zadání znaku;
-Zobrazit seznam pro doplňování po odstranění znaku;
-Zvýraznit odpovídající části položek seznamu pro doplňování;
-Zobrazit filtry položek pro doplňování;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="translated">Změnit nastavení pro seznam dokončení;Předvolit naposledy použitou položku; Seznamy dokončení;
+Po zadání znaku zobrazit seznam dokončení;
+Po odstranění znaku zobrazit seznam dokončení;
+Automaticky zobrazovat seznam dokončení v seznamech argumentů (experimentální);
+Zvýraznit odpovídající části položek seznamu dokončení;
+Zobrazit filtry položek dokončení;
+Automaticky dokončit příkaz středníkem;
 Chování fragmentů;
 Nikdy nezahrnovat fragmenty;
 Vždy zahrnovat fragmenty;
-Zahrnovat fragmenty při zadání ?-Tab za identifikátorem;
+Zahrnovat fragmenty po zadání ?-Tab za identifikátor;
 Chování klávesy Enter;
-Nikdy nepřidávat nový řádek při stisknutí klávesy Enter;
-Přidat nový řádek při stisknutí klávesy Enter jenom za plně napsaným slovem;
-Vždy přidat nový řádek při stisknutí klávesy Enter;
-Zobrazovat návrhy názvů;</target>
+Při stisknutí klávesy Enter nikdy nepřidávat nový řádek;
+Při stisknutí klávesy Enter přidat nový řádek jenom po dopsání celého slova;
+Při stisknutí klávesy Enter vždy přidat nový řádek;
+Zobrazovat návrhy názvů;
+Zobrazit položky z neimportovaných oborů názvů (experimentální);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -313,7 +332,7 @@ Zobrazovat návrhy názvů;</target>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">Obalování</target>
+        <target state="translated">Zalamování</target>
         <note />
       </trans-unit>
       <trans-unit id="111">
@@ -327,13 +346,13 @@ Zobrazovat návrhy názvů;</target>
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">Editor CSharp</target>
+        <source>C# Editor</source>
+        <target state="translated">Editor C#</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">Editor CSharp s kódováním</target>
+        <source>C# Editor with Encoding</source>
+        <target state="translated">Editor C# s kódováním</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -358,7 +377,7 @@ Zobrazovat návrhy názvů;</target>
       </trans-unit>
       <trans-unit id="314">
         <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
-        <target state="translated">Styl pojmenování;Styly názvů;Pravidlo pro pojmenování;Konvence pojmenování</target>
+        <target state="translated">Styl pojmenování;Styly názvů;Pravidlo pojmenování;Konvence pojmenování</target>
         <note>C# Naming Style options page keywords</note>
       </trans-unit>
       <trans-unit id="116">
@@ -373,12 +392,12 @@ Zobrazovat návrhy názvů;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Prázdný soubor skriptu C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Skript Visual C#</target>
         <note />
       </trans-unit>
     </body>

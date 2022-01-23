@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Tags;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -15,11 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         // https://github.com/dotnet/roslyn/issues/26642
         private static readonly Guid ImageCatalogGuid = Guid.Parse("ae27a6b0-e345-4288-96df-5eaf394ee369");
 
+        public static ImageId GetImageCatalogImageId(int imageId)
+            => new(ImageCatalogGuid, imageId);
+
         public static ImageId GetImageId(this Glyph glyph)
         {
             // VS for mac cannot refer to ImageMoniker
             // so we need to expose ImageId instead of ImageMoniker here
             // and expose ImageMoniker in the EditorFeatures.wpf.dll
+            // The use of constants here is okay because the compiler inlines their values, so no runtime reference is needed.
+            // There are tests in src\EditorFeatures\Test\AssemblyReferenceTests.cs to ensure we don't regress that.
             switch (glyph)
             {
                 case Glyph.None:
@@ -208,11 +214,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     return new ImageId(ImageCatalogGuid, KnownImageIds.NuGet);
 
                 case Glyph.TargetTypeMatch:
-                    return new ImageId(ImageCatalogGuid, KnownImageIds.CorrelationScope);
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.MatchType);
 
                 default:
                     throw new ArgumentException(nameof(glyph));
             }
         }
+
+        public static ImageElement GetImageElement(this Glyph glyph)
+            => new ImageElement(glyph.GetImageId());
     }
 }

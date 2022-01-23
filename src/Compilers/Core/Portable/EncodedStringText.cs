@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Roslyn.Utilities;
@@ -18,15 +19,15 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private static readonly Encoding s_utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
+        private static readonly Lazy<Encoding> s_fallbackEncoding = new(CreateFallbackEncoding);
+
         /// <summary>
         /// Encoding to use when UTF-8 fails. We try to find the following, in order, if available:
         ///     1. The default ANSI codepage
         ///     2. CodePage 1252.
         ///     3. Latin1.
         /// </summary>
-        private static readonly Lazy<Encoding> s_fallbackEncoding = new Lazy<Encoding>(GetFallbackEncoding);
-
-        private static Encoding GetFallbackEncoding()
+        internal static Encoding CreateFallbackEncoding()
         {
             try
             {
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
         internal static SourceText Create(Stream stream,
-            Encoding defaultEncoding = null,
+            Encoding? defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)
         {
@@ -80,13 +81,14 @@ namespace Microsoft.CodeAnalysis.Text
                 canBeEmbedded: canBeEmbedded);
         }
 
-        private static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
-            Encoding defaultEncoding = null,
+        internal static SourceText Create(Stream stream,
+            Lazy<Encoding> getEncoding,
+            Encoding? defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)
         {
-            Debug.Assert(stream != null);
-            Debug.Assert(stream.CanRead && stream.CanSeek);
+            RoslynDebug.Assert(stream != null);
+            RoslynDebug.Assert(stream.CanRead);
 
             bool detectEncoding = defaultEncoding == null;
             if (detectEncoding)
@@ -129,23 +131,25 @@ namespace Microsoft.CodeAnalysis.Text
             bool throwIfBinaryDetected = false,
             bool canBeEmbedded = false)
         {
-            Debug.Assert(data != null);
-            Debug.Assert(encoding != null);
+            RoslynDebug.Assert(data != null);
+            RoslynDebug.Assert(encoding != null);
 
-            data.Seek(0, SeekOrigin.Begin);
-
-            // For small streams, see if we can read the byte buffer directly.
-            if (encoding.GetMaxCharCountOrThrowIfHuge(data) < LargeObjectHeapLimitInChars)
+            if (data.CanSeek)
             {
-                ArraySegment<byte> bytes;
-                if (TryGetBytesFromStream(data, out bytes) && bytes.Offset == 0)
+                data.Seek(0, SeekOrigin.Begin);
+
+                // For small streams, see if we can read the byte buffer directly.
+                if (encoding.GetMaxCharCountOrThrowIfHuge(data) < LargeObjectHeapLimitInChars)
                 {
-                    return SourceText.From(bytes.Array,
-                                           (int)data.Length,
-                                           encoding,
-                                           checksumAlgorithm,
-                                           throwIfBinaryDetected,
-                                           canBeEmbedded);
+                    if (TryGetBytesFromStream(data, out ArraySegment<byte> bytes) && bytes.Offset == 0 && bytes.Array is object)
+                    {
+                        return SourceText.From(bytes.Array,
+                                               (int)data.Length,
+                                               encoding,
+                                               checksumAlgorithm,
+                                               throwIfBinaryDetected,
+                                               canBeEmbedded);
+                    }
                 }
             }
 
@@ -189,8 +193,8 @@ namespace Microsoft.CodeAnalysis.Text
         private static bool TryGetBytesFromFileStream(FileStream stream,
                                                       out ArraySegment<byte> bytes)
         {
-            Debug.Assert(stream != null);
-            Debug.Assert(stream.Position == 0);
+            RoslynDebug.Assert(stream != null);
+            RoslynDebug.Assert(stream.Position == 0);
 
             int length = (int)stream.Length;
             if (length == 0)

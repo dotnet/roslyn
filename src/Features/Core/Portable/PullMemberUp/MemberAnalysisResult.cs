@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.  
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.PullMemberUp
 {
@@ -32,7 +36,6 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// 2. The 'Make abstract' check box of a member is checked, and the destination is a non-abstract class
         /// </summary>
         public readonly bool ChangeDestinationTypeToAbstract;
-
 
         /// <summary>
         /// Indicate whether it would cause error if we directly pull Member into destination.

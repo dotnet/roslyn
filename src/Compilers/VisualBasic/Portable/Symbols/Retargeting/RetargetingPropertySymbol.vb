@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -33,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Private _lazyExplicitInterfaceImplementations As ImmutableArray(Of PropertySymbol)
 
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
         Public Sub New(retargetingModule As RetargetingModuleSymbol, underlyingProperty As PropertySymbol)
             Debug.Assert(retargetingModule IsNot Nothing)
@@ -292,12 +294,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return builder.ToImmutableAndFree()
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfo())
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
         Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean

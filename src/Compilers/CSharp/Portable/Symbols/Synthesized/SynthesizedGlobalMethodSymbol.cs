@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -116,7 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public sealed override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public sealed override bool AreLocalsZeroed => ContainingModule.AreLocalsZeroed;
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
@@ -138,6 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             return ImmutableArray<string>.Empty;
@@ -157,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_parameters.IsEmpty)
+                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(SetParameters)} prior to accessing this property.");
+                if (_parameters.IsDefault)
                 {
                     return ImmutableArray<ParameterSymbol>.Empty;
                 }
@@ -192,6 +203,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return TypeWithAnnotations.Create(_returnType); }
+        }
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return FlowAnalysisAnnotations.None; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -304,16 +320,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsDeclaredReadOnly => false;
 
+        internal sealed override bool IsInitOnly => false;
+
         internal override bool SynthesizesLoweredBoundBody
         {
             get { return true; }
         }
 
-        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics);
+        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics);
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal sealed override bool IsNullableAnalysisEnabled() => false;
     }
 }

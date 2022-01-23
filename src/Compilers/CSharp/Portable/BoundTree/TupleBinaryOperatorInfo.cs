@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-
     internal enum TupleBinaryOperatorInfoKind
     {
         Single,
@@ -25,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class TupleBinaryOperatorInfo
     {
         internal abstract TupleBinaryOperatorInfoKind InfoKind { get; }
-        internal readonly TypeSymbol LeftConvertedTypeOpt;
-        internal readonly TypeSymbol RightConvertedTypeOpt;
+        internal readonly TypeSymbol? LeftConvertedTypeOpt;
+        internal readonly TypeSymbol? RightConvertedTypeOpt;
 #if DEBUG
         internal abstract TreeDumperNode DumpCore();
         internal string Dump() => TreeDumper.DumpCompact(DumpCore());
 #endif
 
-        private TupleBinaryOperatorInfo(TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt)
+        private TupleBinaryOperatorInfo(TypeSymbol? leftConvertedTypeOpt, TypeSymbol? rightConvertedTypeOpt)
         {
             LeftConvertedTypeOpt = leftConvertedTypeOpt;
             RightConvertedTypeOpt = rightConvertedTypeOpt;
@@ -44,25 +45,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal class Single : TupleBinaryOperatorInfo
         {
             internal readonly BinaryOperatorKind Kind;
-            internal readonly Conversion LeftConversion;
-            internal readonly Conversion RightConversion;
-            internal readonly MethodSymbol MethodSymbolOpt; // User-defined comparison operator, if applicable
+            internal readonly MethodSymbol? MethodSymbolOpt; // User-defined comparison operator, if applicable
+            internal readonly TypeSymbol? ConstrainedToTypeOpt;
 
-            internal readonly Conversion ConversionForBool; // If a conversion to bool exists, then no operator needed. If an operator is needed, this holds the conversion for input to that operator.
+            internal readonly BoundValuePlaceholder? ConversionForBoolPlaceholder;
+            internal readonly BoundExpression? ConversionForBool; // If a conversion to bool exists, then no operator needed. If an operator is needed, this holds the conversion for input to that operator.
+
             internal readonly UnaryOperatorSignature BoolOperator; // Information for op_true or op_false
 
-            internal Single(TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt, BinaryOperatorKind kind,
-                Conversion leftConversion, Conversion rightConversion, MethodSymbol methodSymbolOpt,
-                Conversion conversionForBool, UnaryOperatorSignature boolOperator) : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
+            internal Single(
+                TypeSymbol? leftConvertedTypeOpt,
+                TypeSymbol? rightConvertedTypeOpt,
+                BinaryOperatorKind kind,
+                MethodSymbol? methodSymbolOpt,
+                TypeSymbol? constrainedToTypeOpt,
+                BoundValuePlaceholder? conversionForBoolPlaceholder,
+                BoundExpression? conversionForBool,
+                UnaryOperatorSignature boolOperator) : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
             {
                 Kind = kind;
-                LeftConversion = leftConversion;
-                RightConversion = rightConversion;
                 MethodSymbolOpt = methodSymbolOpt;
+                ConstrainedToTypeOpt = constrainedToTypeOpt;
+                ConversionForBoolPlaceholder = conversionForBoolPlaceholder;
                 ConversionForBool = conversionForBool;
                 BoolOperator = boolOperator;
 
-                Debug.Assert(Kind.IsUserDefined() == ((object)MethodSymbolOpt != null));
+                Debug.Assert(Kind.IsUserDefined() == (MethodSymbolOpt is { }));
             }
 
             internal override TupleBinaryOperatorInfoKind InfoKind
@@ -75,12 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override TreeDumperNode DumpCore()
             {
                 var sub = new List<TreeDumperNode>();
-                if ((object)MethodSymbolOpt != null)
+                if (MethodSymbolOpt is { })
                 {
                     sub.Add(new TreeDumperNode("methodSymbolOpt", MethodSymbolOpt.ToDisplayString(), null));
                 }
-                sub.Add(new TreeDumperNode("leftConversion", LeftConvertedTypeOpt.ToDisplayString(), null));
-                sub.Add(new TreeDumperNode("rightConversion", RightConvertedTypeOpt.ToDisplayString(), null));
+                sub.Add(new TreeDumperNode("leftConversion", LeftConvertedTypeOpt?.ToDisplayString(), null));
+                sub.Add(new TreeDumperNode("rightConversion", RightConvertedTypeOpt?.ToDisplayString(), null));
 
                 return new TreeDumperNode("nested", Kind, sub);
             }
@@ -94,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly ImmutableArray<TupleBinaryOperatorInfo> Operators;
 
-            static internal readonly Multiple ErrorInstance =
+            internal static readonly Multiple ErrorInstance =
                 new Multiple(operators: ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
 
-            internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt)
+            internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol? leftConvertedTypeOpt, TypeSymbol? rightConvertedTypeOpt)
                 : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
             {
                 Debug.Assert(leftConvertedTypeOpt is null || leftConvertedTypeOpt.StrippedType().IsTupleType);

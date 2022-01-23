@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2381,10 +2385,11 @@ class C
             CompileAndVerify(src, expectedOutput: "TryCatch228Finally").
                 VerifyIL("C.Test", @"
 {
-  // Code size      129 (0x81)
+  // Code size      132 (0x84)
   .maxstack  2
   .locals init (int V_0, //x
-                System.DivideByZeroException V_1) //e
+                System.DivideByZeroException V_1, //e
+                int V_2)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
@@ -2397,7 +2402,7 @@ class C
       IL_000d:  ldloc.0
       IL_000e:  div
       IL_000f:  stloc.0
-      IL_0010:  leave.s    IL_0080
+      IL_0010:  leave.s    IL_0083
     }
     filter
     {
@@ -2418,7 +2423,7 @@ class C
       IL_002b:  pop
       IL_002c:  ldstr      ""Catch1""
       IL_0031:  call       ""void System.Console.Write(string)""
-      IL_0036:  leave.s    IL_0080
+      IL_0036:  leave.s    IL_0083
     }
     filter
     {
@@ -2443,21 +2448,22 @@ class C
       IL_0059:  ldloc.1
       IL_005a:  callvirt   ""string System.Exception.Message.get""
       IL_005f:  callvirt   ""int string.Length.get""
-      IL_0064:  box        ""int""
-      IL_0069:  call       ""string string.Concat(object, object)""
-      IL_006e:  call       ""void System.Console.Write(string)""
-      IL_0073:  leave.s    IL_0080
+      IL_0064:  stloc.2
+      IL_0065:  ldloca.s   V_2
+      IL_0067:  call       ""string int.ToString()""
+      IL_006c:  call       ""string string.Concat(string, string)""
+      IL_0071:  call       ""void System.Console.Write(string)""
+      IL_0076:  leave.s    IL_0083
     }
   }
   finally
   {
-    IL_0075:  ldstr      ""Finally""
-    IL_007a:  call       ""void System.Console.Write(string)""
-    IL_007f:  endfinally
+    IL_0078:  ldstr      ""Finally""
+    IL_007d:  call       ""void System.Console.Write(string)""
+    IL_0082:  endfinally
   }
-  IL_0080:  ret
-}
-");
+  IL_0083:  ret
+}");
         }
 
         [Fact]

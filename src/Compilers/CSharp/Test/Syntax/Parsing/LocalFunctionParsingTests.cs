@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -69,28 +73,17 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "await");
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "L");
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
                             N(SyntaxKind.ExpressionStatement);
                             {
                                 N(SyntaxKind.LessThanExpression);
                                 {
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.AwaitExpression);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.AwaitKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "L");
+                                        }
                                     }
                                     N(SyntaxKind.LessThanToken);
                                     M(SyntaxKind.IdentifierName);
@@ -204,21 +197,21 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.LocalDeclarationStatement);
+                            N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.VariableDeclaration);
+                                N(SyntaxKind.AwaitExpression);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.AwaitKeyword);
+                                    N(SyntaxKind.InvocationExpression);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "await");
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "L");
-                                        M(SyntaxKind.BracketedArgumentList);
+                                        N(SyntaxKind.IdentifierName);
                                         {
-                                            M(SyntaxKind.OpenBracketToken);
-                                            M(SyntaxKind.CloseBracketToken);
+                                            N(SyntaxKind.IdentifierToken, "L");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            M(SyntaxKind.CloseParenToken);
                                         }
                                     }
                                 }
@@ -300,6 +293,760 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunctionAttribute()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    void M()
+    {
+        [A]
+        void local() { }
+
+        [return: A]
+        void local() { }
+
+        [A]
+        int local() => 42;
+
+        [A][B] void local() { }
+    }
+}", options: TestOptions.Regular9);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "local");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.AttributeTargetSpecifier);
+                                    {
+                                        N(SyntaxKind.ReturnKeyword);
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "local");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "local");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.ArrowExpressionClause);
+                                {
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "42");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "B");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "local");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            tree.GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunctionModifier_Error_LocalVariable()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    void M()
+    {
+        public object local;
+    }
+}", TestOptions.Regular9);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "local");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            tree.GetDiagnostics().Verify(
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunction_NoBody()
+        {
+            UsingTree(@"
+class C
+{
+    void M()
+    {
+        void local();
+    }
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "local");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunction_Extern()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        extern void local();
+    }
+}";
+
+            UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
+            verifyTree();
+
+            UsingTree(code, TestOptions.Regular8).GetDiagnostics().Verify(
+                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         extern void local();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
+            verifyTree();
+
+            void verifyTree()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.ExternKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "local");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.SemicolonToken);
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunction_Extern_Body()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        extern void local() { }
+    }
+}";
+
+            UsingTree(code, TestOptions.Regular9).GetDiagnostics().Verify();
+            verifyTree();
+
+            UsingTree(code, TestOptions.Regular8).GetDiagnostics().Verify(
+                // (6,9): error CS8400: Feature 'extern local functions' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         extern void local() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "extern").WithArguments("extern local functions", "9.0").WithLocation(6, 9));
+            verifyTree();
+
+            void verifyTree()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.ExternKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "local");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalVariable_Extern()
+        {
+            const string statement = "extern object obj;";
+            UsingStatement(statement, TestOptions.Regular9,
+                // (1,1): error CS0106: The modifier 'extern' is not valid for this item
+                // extern object obj;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(1, 1));
+            verifyTree();
+
+            UsingStatement(statement,
+                // (1,1): error CS0106: The modifier 'extern' is not valid for this item
+                // extern object obj;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(1, 1));
+            verifyTree();
+
+            void verifyTree()
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.ExternKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "obj");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunctionAttribute_Error_LocalVariable()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    void M()
+    {
+        [A] object local;
+    }
+}", TestOptions.Regular9);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "local");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(tree).VerifyDiagnostics(
+                // (6,9): error CS7014: Attributes are not valid in this context.
+                //         [A] object local;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,20): warning CS0168: The variable 'local' is declared but never used
+                //         [A] object local;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(6, 20));
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunctionAttribute_Error_LocalVariable_MultipleDeclarators()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    void M()
+    {
+        [A] object local1, local2;
+    }
+}", TestOptions.Regular9);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "local1");
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "local2");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(tree).VerifyDiagnostics(
+                // (6,9): error CS7014: Attributes are not valid in this context.
+                //         [A] object local1, local2;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,20): warning CS0168: The variable 'local1' is declared but never used
+                //         [A] object local1, local2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local1").WithArguments("local1").WithLocation(6, 20),
+                // (6,28): warning CS0168: The variable 'local2' is declared but never used
+                //         [A] object local1, local2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local2").WithArguments("local2").WithLocation(6, 28));
+        }
+
+        [Fact]
+        [WorkItem(12280, "https://github.com/dotnet/roslyn/issues/12280")]
+        public void LocalFunctionAttribute_Error_IncompleteMember()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    void M()
+    {
+        [A]
+    }
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            tree.GetDiagnostics().Verify(
+                // (6,12): error CS1525: Invalid expression term '}'
+                //         [A]
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 12),
+                // (6,12): error CS1002: ; expected
+                //         [A]
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 12)
+            );
         }
 
         [Fact]
@@ -510,67 +1257,286 @@ class c
             Assert.Equal(SyntaxKind.NumericLiteralExpression, s2.Expression.Kind());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10388")]
+        [Fact]
         public void LocalFunctionsWithAwait()
         {
-            var file = ParseFile(@"class c
+            UsingTree(@"
+class c
 {
     void m1() { await await() => new await(); }
     void m2() { await () => new await(); }
     async void m3() { await () => new await(); }
     void m4() { async await() => new await(); }
+    async void m5() { await async () => new await(); }
 }");
 
-            Assert.NotNull(file);
-            var c = (ClassDeclarationSyntax)file.Members.Single();
-            Assert.Equal(4, c.Members.Count);
-
+            N(SyntaxKind.CompilationUnit);
             {
-                Assert.Equal(SyntaxKind.MethodDeclaration, c.Members[0].Kind());
-                var m1 = (MethodDeclarationSyntax)c.Members[0];
-                Assert.Equal(0, m1.Modifiers.Count);
-                Assert.Equal(1, m1.Body.Statements.Count);
-                Assert.Equal(SyntaxKind.LocalFunctionStatement, m1.Body.Statements[0].Kind());
-                var s1 = (LocalFunctionStatementSyntax)m1.Body.Statements[0];
-                Assert.False(s1.HasErrors);
-                Assert.Equal(0, s1.Modifiers.Count);
-                Assert.Equal("await", s1.ReturnType.ToString());
-                Assert.Equal("await", s1.Identifier.ToString());
-                Assert.Null(s1.TypeParameterList);
-                Assert.Equal(0, s1.ParameterList.ParameterCount);
-                Assert.Null(s1.Body);
-                Assert.NotNull(s1.ExpressionBody);
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m1");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "await");
+                                }
+                                N(SyntaxKind.IdentifierToken, "await");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.ArrowExpressionClause);
+                                {
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.ObjectCreationExpression);
+                                    {
+                                        N(SyntaxKind.NewKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "await");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m2");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.ObjectCreationExpression);
+                                    {
+                                        N(SyntaxKind.NewKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "await");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m3");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.AwaitExpression);
+                                {
+                                    N(SyntaxKind.AwaitKeyword);
+                                    N(SyntaxKind.ParenthesizedExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.ObjectCreationExpression);
+                                {
+                                    N(SyntaxKind.NewKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m4");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "async");
+                                }
+                                N(SyntaxKind.IdentifierToken, "await");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.ArrowExpressionClause);
+                                {
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.ObjectCreationExpression);
+                                    {
+                                        N(SyntaxKind.NewKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "await");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m5");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.AwaitExpression);
+                                {
+                                    N(SyntaxKind.AwaitKeyword);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "async");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.ObjectCreationExpression);
+                                {
+                                    N(SyntaxKind.NewKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
-
-            {
-                Assert.Equal(SyntaxKind.MethodDeclaration, c.Members[1].Kind());
-                var m2 = (MethodDeclarationSyntax)c.Members[1];
-                Assert.Equal(0, m2.Modifiers.Count);
-                Assert.Equal(2, m2.Body.Statements.Count);
-                Assert.Equal(SyntaxKind.ExpressionStatement, m2.Body.Statements[0].Kind());
-                var s1 = (ExpressionStatementSyntax)m2.Body.Statements[0];
-                Assert.Equal(SyntaxKind.InvocationExpression, s1.Expression.Kind());
-                var e1 = (InvocationExpressionSyntax)s1.Expression;
-                Assert.Equal("await", e1.Expression.ToString());
-                Assert.Equal(0, e1.ArgumentList.Arguments.Count);
-                Assert.True(s1.SemicolonToken.IsMissing);
-                Assert.Equal("=> ", s1.GetTrailingTrivia().ToFullString());
-            }
-
-            {
-                Assert.Equal(SyntaxKind.MethodDeclaration, c.Members[2].Kind());
-                var m3 = (MethodDeclarationSyntax)c.Members[2];
-                Assert.Equal(1, m3.Modifiers.Count);
-                Assert.Equal("async", m3.Modifiers.Single().ToString());
-                Assert.Equal(2, m3.Body.Statements.Count);
-                Assert.Equal(SyntaxKind.ExpressionStatement, m3.Body.Statements[0].Kind());
-                var s1 = (ExpressionStatementSyntax)m3.Body.Statements[0];
-                Assert.Equal(SyntaxKind.AwaitExpression, s1.Expression.Kind());
-                var e1 = (AwaitExpressionSyntax)s1.Expression;
-                Assert.Equal(SyntaxKind.SimpleLambdaExpression, e1.Expression.Kind());
-                Assert.True(s1.SemicolonToken.IsMissing);
-                Assert.Equal("=> ", s1.GetTrailingTrivia().ToFullString());
-            }
+            EOF();
         }
 
         [WorkItem(13090, "https://github.com/dotnet/roslyn/issues/13090")]
@@ -622,9 +1588,9 @@ class c
 
             var expected = new[]
             {
-                // (5,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static void F() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9)
             };
 
             UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
@@ -633,10 +1599,7 @@ class c
             UsingDeclaration(text, options: TestOptions.Regular8);
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
-            checkNodes();
-
-            UsingDeclaration(text, options: TestOptions.RegularPreview);
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -702,12 +1665,12 @@ class c
 
             var expected = new[]
             {
-                // (5,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async void F1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 9),
-                // (6,15): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
+                // (6,15): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 15)
             };
             UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
             checkNodes();
@@ -715,10 +1678,7 @@ class c
             UsingDeclaration(text, options: TestOptions.Regular8);
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
-            checkNodes();
-
-            UsingDeclaration(text, options: TestOptions.RegularPreview);
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -803,24 +1763,24 @@ class c
 
             var expected = new[]
             {
-                // (5,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
-                // (5,16): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,16): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 16),
-                // (6,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 16),
+                // (6,9): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 9),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22),
-                // (6,22): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,22): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22)
             };
 
             UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
@@ -835,10 +1795,7 @@ class c
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
-            checkNodes();
-
-            UsingDeclaration(text, options: TestOptions.RegularPreview,
+            UsingDeclaration(text, options: TestOptions.Regular9,
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
@@ -937,16 +1894,16 @@ class c
                 // (5,14): error CS1002: ; expected
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
-                // (5,14): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,14): error CS8652: The feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         void static F() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 14),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 14),
                 // (5,22): error CS1001: Identifier expected
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22)
             };
 
             UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
-            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
+            verify();
 
             expected = new[]
             {
@@ -965,8 +1922,74 @@ class c
             };
 
             UsingDeclaration(text, options: TestOptions.Regular8, expected);
+            verify();
 
-            UsingDeclaration(text, options: TestOptions.RegularPreview, expected);
+            UsingDeclaration(text, options: TestOptions.Regular9, expected);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.StaticKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
         }
     }
 }

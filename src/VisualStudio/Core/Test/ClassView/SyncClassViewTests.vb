@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -858,12 +860,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
 #End Region
 
-        Private Sub Test(
+        Private Shared Sub Test(
             workspaceDefinition As XElement,
             ParamArray presentationNodes As NodeVerifier()
         )
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 

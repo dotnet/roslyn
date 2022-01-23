@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -38,7 +42,7 @@ class B
             var compilation = SyntaxFactory.CompilationUnit(
                 externs: SyntaxFactory.SingletonList<ExternAliasDirectiveSyntax>(
                             SyntaxFactory.ExternAliasDirective("A1")),
-                usings: default(SyntaxList<UsingDirectiveSyntax>),
+                usings: default,
                 attributeLists: SyntaxFactory.SingletonList<AttributeListSyntax>(
                                 SyntaxFactory.AttributeList(
                                     SyntaxFactory.Token(
@@ -59,15 +63,15 @@ class B
                 new MemberDeclarationSyntax[]
                 {
                     SyntaxFactory.ClassDeclaration(
-                        default(SyntaxList<AttributeListSyntax>),
+                        default,
                         SyntaxFactory.TokenList(),
                         SyntaxFactory.Identifier("My"),
                         null,
                         SyntaxFactory.BaseList(
                             SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
                                 SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute")))),
-                                default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                                default(SyntaxList<MemberDeclarationSyntax>)),
+                                default,
+                                default),
                     SyntaxFactory.ClassDeclaration("A"),
                     SyntaxFactory.ClassDeclaration(
                         attributeLists: SyntaxFactory.SingletonList<AttributeListSyntax>(
@@ -79,13 +83,14 @@ class B
                         identifier: SyntaxFactory.Identifier("B"),
                         typeParameterList: null,
                         baseList: null,
-                        constraintClauses: default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                        members: default(SyntaxList<MemberDeclarationSyntax>))
+                        constraintClauses: default,
+                        members: default)
                 }));
 
             Assert.NotNull(compilation);
 
-            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+            var newCompilation = Formatter.Format(compilation, workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
 
@@ -106,12 +111,13 @@ public class C
 public class SomeAttribute : System.Attribute { }
 ";
 
-            var ws = new AdhocWorkspace();
-            var generator = SyntaxGenerator.GetGenerator(ws, LanguageNames.CSharp);
+            var workspace = new AdhocWorkspace();
+            var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
             var root = SyntaxFactory.ParseCompilationUnit(text);
             var decl = generator.GetDeclaration(root.DescendantNodes().OfType<VariableDeclaratorSyntax>().First(vd => vd.Identifier.Text == "f2"));
             var newDecl = generator.AddAttributes(decl, generator.Attribute("Some")).WithAdditionalAnnotations(Formatter.Annotation);
             var newRoot = root.ReplaceNode(decl, newDecl);
+            var options = SyntaxFormattingOptions.Default;
 
             var expected = @"
 public class C
@@ -126,13 +132,13 @@ public class C
 public class SomeAttribute : System.Attribute { }
 ";
 
-            var formatted = Formatter.Format(newRoot, ws).ToFullString();
+            var formatted = Formatter.Format(newRoot, workspace.Services, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, formatted);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, ws).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, workspace.Services, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
 
-            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, ws).ToFullString();
+            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, workspace.Services, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, annotationFormatted);
         }
 
@@ -148,7 +154,7 @@ public class SomeAttribute : System.Attribute { }
     string MyProperty => ""42"";
 }";
             var property = SyntaxFactory.PropertyDeclaration(
-                attributeLists: default(SyntaxList<AttributeListSyntax>),
+                attributeLists: default,
                 modifiers: SyntaxFactory.TokenList(),
                 type: SyntaxFactory.PredefinedType(
                     SyntaxFactory.Token(
@@ -165,19 +171,19 @@ public class SomeAttribute : System.Attribute { }
                 semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
             var compilation = SyntaxFactory.CompilationUnit(
-                externs: default(SyntaxList<ExternAliasDirectiveSyntax>),
-                usings: default(SyntaxList<UsingDirectiveSyntax>),
-                attributeLists: default(SyntaxList<AttributeListSyntax>),
+                externs: default,
+                usings: default,
+                attributeLists: default,
                 members: SyntaxFactory.List(
                 new MemberDeclarationSyntax[]
                 {
                     SyntaxFactory.ClassDeclaration(
-                        attributeLists: default(SyntaxList<AttributeListSyntax>),
+                        attributeLists: default,
                         modifiers: SyntaxFactory.TokenList(),
                         identifier: SyntaxFactory.Identifier("PropertyTest"),
                         typeParameterList: null,
                         baseList: null,
-                        constraintClauses: default(SyntaxList<TypeParameterConstraintClauseSyntax>),
+                        constraintClauses: default,
                         members: SyntaxFactory.List(
                             new MemberDeclarationSyntax[]
                             {
@@ -188,7 +194,8 @@ public class SomeAttribute : System.Attribute { }
 
             Assert.NotNull(compilation);
 
-            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+            var newCompilation = Formatter.Format(compilation, workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
     }

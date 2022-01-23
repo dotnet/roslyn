@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Text.RegularExpressions
@@ -7,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -2495,7 +2498,7 @@ End Module
             c.VerifyIL("Form1.VB$StateMachine_1_Test.MoveNext",
             <![CDATA[
 {
-  // Code size      369 (0x171)
+  // Code size      345 (0x159)
   .maxstack  4
   .locals init (Integer V_0,
                 Integer V_1,
@@ -2508,7 +2511,7 @@ End Module
   .try
   {
     IL_0007:  ldloc.1
-    IL_0008:  brfalse    IL_00e0
+    IL_0008:  brfalse    IL_00c8
     IL_000d:  ldc.i4.2
     IL_000e:  ldc.i4.2
     IL_000f:  newobj     "Form1.S(*,*)..ctor"
@@ -2560,89 +2563,81 @@ End Module
     IL_0086:  ldfld      "Form1.VB$StateMachine_1_Test.$U3 As Integer"
     IL_008b:  call       "Form1.S(*,*).Get"
     IL_0090:  pop
-    IL_0091:  ldarg.0
-    IL_0092:  ldfld      "Form1.VB$StateMachine_1_Test.$U1 As Form1.S(,)"
-    IL_0097:  ldarg.0
-    IL_0098:  ldfld      "Form1.VB$StateMachine_1_Test.$U2 As Integer"
-    IL_009d:  ldarg.0
-    IL_009e:  ldfld      "Form1.VB$StateMachine_1_Test.$U3 As Integer"
-    IL_00a3:  call       "Form1.S(*,*).Get"
-    IL_00a8:  pop
-    IL_00a9:  call       "Function Form1.F() As System.Threading.Tasks.Task(Of Integer)"
-    IL_00ae:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
-    IL_00b3:  stloc.3
-    IL_00b4:  ldloca.s   V_3
-    IL_00b6:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
-    IL_00bb:  brtrue.s   IL_00fc
+    IL_0091:  call       "Function Form1.F() As System.Threading.Tasks.Task(Of Integer)"
+    IL_0096:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_009b:  stloc.3
+    IL_009c:  ldloca.s   V_3
+    IL_009e:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_00a3:  brtrue.s   IL_00e4
+    IL_00a5:  ldarg.0
+    IL_00a6:  ldc.i4.0
+    IL_00a7:  dup
+    IL_00a8:  stloc.1
+    IL_00a9:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
+    IL_00ae:  ldarg.0
+    IL_00af:  ldloc.3
+    IL_00b0:  stfld      "Form1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+    IL_00bb:  ldloca.s   V_3
     IL_00bd:  ldarg.0
-    IL_00be:  ldc.i4.0
-    IL_00bf:  dup
-    IL_00c0:  stloc.1
-    IL_00c1:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
-    IL_00c6:  ldarg.0
-    IL_00c7:  ldloc.3
-    IL_00c8:  stfld      "Form1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
-    IL_00cd:  ldarg.0
-    IL_00ce:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-    IL_00d3:  ldloca.s   V_3
-    IL_00d5:  ldarg.0
-    IL_00d6:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Form1.VB$StateMachine_1_Test)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Form1.VB$StateMachine_1_Test)"
-    IL_00db:  leave      IL_0170
-    IL_00e0:  ldarg.0
-    IL_00e1:  ldc.i4.m1
-    IL_00e2:  dup
-    IL_00e3:  stloc.1
-    IL_00e4:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
-    IL_00e9:  ldarg.0
-    IL_00ea:  ldfld      "Form1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
-    IL_00ef:  stloc.3
+    IL_00be:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Form1.VB$StateMachine_1_Test)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Form1.VB$StateMachine_1_Test)"
+    IL_00c3:  leave      IL_0158
+    IL_00c8:  ldarg.0
+    IL_00c9:  ldc.i4.m1
+    IL_00ca:  dup
+    IL_00cb:  stloc.1
+    IL_00cc:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
+    IL_00d1:  ldarg.0
+    IL_00d2:  ldfld      "Form1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00d7:  stloc.3
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldflda     "Form1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00de:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00e4:  ldarg.0
+    IL_00e5:  ldfld      "Form1.VB$StateMachine_1_Test.$U1 As Form1.S(,)"
+    IL_00ea:  ldarg.0
+    IL_00eb:  ldfld      "Form1.VB$StateMachine_1_Test.$U2 As Integer"
     IL_00f0:  ldarg.0
-    IL_00f1:  ldflda     "Form1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
-    IL_00f6:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
-    IL_00fc:  ldarg.0
-    IL_00fd:  ldfld      "Form1.VB$StateMachine_1_Test.$U1 As Form1.S(,)"
-    IL_0102:  ldarg.0
-    IL_0103:  ldfld      "Form1.VB$StateMachine_1_Test.$U2 As Integer"
-    IL_0108:  ldarg.0
-    IL_0109:  ldfld      "Form1.VB$StateMachine_1_Test.$U3 As Integer"
-    IL_010e:  call       "Form1.S(*,*).Address"
-    IL_0113:  ldflda     "Form1.S.I As Integer"
-    IL_0118:  ldloca.s   V_3
-    IL_011a:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
-    IL_011f:  ldloca.s   V_3
-    IL_0121:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
-    IL_0127:  call       "Function Form1.M(ByRef Integer, Integer) As Integer"
-    IL_012c:  stloc.0
-    IL_012d:  ldarg.0
-    IL_012e:  ldnull
-    IL_012f:  stfld      "Form1.VB$StateMachine_1_Test.$U1 As Form1.S(,)"
-    IL_0134:  leave.s    IL_015a
+    IL_00f1:  ldfld      "Form1.VB$StateMachine_1_Test.$U3 As Integer"
+    IL_00f6:  call       "Form1.S(*,*).Address"
+    IL_00fb:  ldflda     "Form1.S.I As Integer"
+    IL_0100:  ldloca.s   V_3
+    IL_0102:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_0107:  ldloca.s   V_3
+    IL_0109:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_010f:  call       "Function Form1.M(ByRef Integer, Integer) As Integer"
+    IL_0114:  stloc.0
+    IL_0115:  ldarg.0
+    IL_0116:  ldnull
+    IL_0117:  stfld      "Form1.VB$StateMachine_1_Test.$U1 As Form1.S(,)"
+    IL_011c:  leave.s    IL_0142
   }
   catch System.Exception
   {
-    IL_0136:  dup
-    IL_0137:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_013c:  stloc.s    V_4
-    IL_013e:  ldarg.0
-    IL_013f:  ldc.i4.s   -2
-    IL_0141:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
-    IL_0146:  ldarg.0
-    IL_0147:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-    IL_014c:  ldloc.s    V_4
-    IL_014e:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)"
-    IL_0153:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0158:  leave.s    IL_0170
+    IL_011e:  dup
+    IL_011f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0124:  stloc.s    V_4
+    IL_0126:  ldarg.0
+    IL_0127:  ldc.i4.s   -2
+    IL_0129:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
+    IL_012e:  ldarg.0
+    IL_012f:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+    IL_0134:  ldloc.s    V_4
+    IL_0136:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)"
+    IL_013b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0140:  leave.s    IL_0158
   }
-  IL_015a:  ldarg.0
-  IL_015b:  ldc.i4.s   -2
-  IL_015d:  dup
-  IL_015e:  stloc.1
-  IL_015f:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
-  IL_0164:  ldarg.0
-  IL_0165:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-  IL_016a:  ldloc.0
-  IL_016b:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)"
-  IL_0170:  ret
+  IL_0142:  ldarg.0
+  IL_0143:  ldc.i4.s   -2
+  IL_0145:  dup
+  IL_0146:  stloc.1
+  IL_0147:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
+  IL_014c:  ldarg.0
+  IL_014d:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_0152:  ldloc.0
+  IL_0153:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)"
+  IL_0158:  ret
 }
 ]]>)
         End Sub
@@ -8538,7 +8533,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
@@ -8574,7 +8569,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
@@ -8611,7 +8606,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
@@ -9183,6 +9178,2325 @@ End Module
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub GetAwaiterBoxingConversion_01()
+            Dim source =
+"Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Threading.Tasks
+
+Interface IAwaitable
+End Interface
+
+Structure StructAwaitable
+    Implements IAwaitable
+End Structure
+
+Module Program
+    <Extension>
+    Function GetAwaiter(x As IAwaitable) As TaskAwaiter
+        If x Is Nothing Then Throw New ArgumentNullException(Nameof(x))
+        Console.Write(x)
+        Return Task.CompletedTask.GetAwaiter()        
+    End Function
+
+    Async Function M() As Task
+        Await New StructAwaitable()
+    End Function
+
+    Sub Main()
+        M().Wait()
+    End Sub
+End Module"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="StructAwaitable")
+        End Sub
+
+        <Fact>
+        Public Sub GetAwaiterBoxingConversion_02()
+            Dim source =
+"Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Threading.Tasks
+
+Structure StructAwaitable
+End Structure
+
+Module Program
+    <Extension>
+    Function GetAwaiter(x As Object) As TaskAwaiter
+        If x Is Nothing Then Throw New ArgumentNullException(Nameof(x))
+        Console.Write(x)
+        Return Task.CompletedTask.GetAwaiter()        
+    End Function
+
+    Async Function M() As Task
+        Dim s As StructAwaitable? = New StructAwaitable()
+        Await s
+    End Function
+
+    Sub Main()
+        M().Wait()
+    End Sub
+End Module"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="StructAwaitable")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_ClassFieldAccessOnProperty()
+            Dim source =
+"Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal a As A) As Task
+        a.B.x = Await Write(""RHS"")
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestPropertyAccessThrows().Wait()
+        TestFieldAccessThrows().Wait()
+        TestPropertyAccessSucceeds().Wait()
+    End Sub
+
+    Private Async Function TestPropertyAccessThrows() As Task
+        Console.WriteLine(NameOf(Program.TestPropertyAccessThrows))
+        Dim a As A = Nothing
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestFieldAccessThrows() As Task
+        Console.WriteLine(NameOf(Program.TestFieldAccessThrows))
+        Dim a = New A()
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestPropertyAccessSucceeds() As Task
+        Console.WriteLine(NameOf(Program.TestPropertyAccessSucceeds))
+        Dim a = New A With {
+            .B = New B()
+        }
+        Console.WriteLine(""Before Assignment a.B.x is: "" & a.B.x)
+        Await Assign(a)
+        Console.WriteLine(""After Assignment a.B.x is: "" & a.B.x)
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module
+
+Class A
+    Public Property B As B
+End Class
+
+Class B
+    Public x As Integer
+End Class
+"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestPropertyAccessThrows
+Before Assignment
+Caught NullReferenceException
+TestFieldAccessThrows
+Before Assignment
+RHS
+Caught NullReferenceException
+TestPropertyAccessSucceeds
+Before Assignment a.B.x is: 0
+RHS
+After Assignment a.B.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      203 (0xcb)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0054
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_a As A""
+    IL_0011:  callvirt   ""Function A.get_B() As B""
+    IL_0016:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As B""
+    IL_001b:  ldstr      ""RHS""
+    IL_0020:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0025:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_002a:  stloc.1
+    IL_002b:  ldloca.s   V_1
+    IL_002d:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0032:  brtrue.s   IL_0070
+    IL_0034:  ldarg.0
+    IL_0035:  ldc.i4.0
+    IL_0036:  dup
+    IL_0037:  stloc.0
+    IL_0038:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_003d:  ldarg.0
+    IL_003e:  ldloc.1
+    IL_003f:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0044:  ldarg.0
+    IL_0045:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_004a:  ldloca.s   V_1
+    IL_004c:  ldarg.0
+    IL_004d:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_0052:  leave.s    IL_00ca
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.m1
+    IL_0056:  dup
+    IL_0057:  stloc.0
+    IL_0058:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_005d:  ldarg.0
+    IL_005e:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0063:  stloc.1
+    IL_0064:  ldarg.0
+    IL_0065:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006a:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0070:  ldarg.0
+    IL_0071:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As B""
+    IL_0076:  ldloca.s   V_1
+    IL_0078:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_007d:  ldloca.s   V_1
+    IL_007f:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0085:  stfld      ""B.x As Integer""
+    IL_008a:  ldarg.0
+    IL_008b:  ldnull
+    IL_008c:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As B""
+    IL_0091:  leave.s    IL_00b5
+  }
+  catch System.Exception
+  {
+    IL_0093:  dup
+    IL_0094:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0099:  stloc.2
+    IL_009a:  ldarg.0
+    IL_009b:  ldc.i4.s   -2
+    IL_009d:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00a8:  ldloc.2
+    IL_00a9:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00ae:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00b3:  leave.s    IL_00ca
+  }
+  IL_00b5:  ldarg.0
+  IL_00b6:  ldc.i4.s   -2
+  IL_00b8:  dup
+  IL_00b9:  stloc.0
+  IL_00ba:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00bf:  ldarg.0
+  IL_00c0:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00ca:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_ClassFieldAccessOnArray()
+            Dim source =
+"Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal arr As A()) As Task
+        arr(0).x = Await Write(""RHS"")
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestIndexerThrows().Wait()
+        TestAssignmentThrows().Wait()
+        TestIndexerSucceeds().Wait()
+        TestReassignsArrayAndIndexerDuringAwait().Wait()
+        TestReassignsTargetDuringAwait().Wait()
+    End Sub
+
+    Private Async Function TestIndexerThrows() As Task
+        Console.WriteLine(NameOf(Program.TestIndexerThrows))
+        Dim arr = New A(-1) {}
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(arr)
+        Catch __unusedIndexOutOfRangeException1__ As IndexOutOfRangeException
+            Console.WriteLine(""Caught IndexOutOfRangeException"")
+        End Try
+    End Function
+
+    Private Async Function TestAssignmentThrows() As Task
+        Console.WriteLine(NameOf(Program.TestAssignmentThrows))
+        Dim arr = New A(0) {}
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(arr)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestIndexerSucceeds() As Task
+        Console.WriteLine(NameOf(Program.TestIndexerSucceeds))
+        Dim arr = New A(0) {New A()}
+        Console.WriteLine(""Before Assignment arr[0].x is: "" & arr(0).x)
+        Await Assign(arr)
+        Console.WriteLine(""After Assignment arr[0].x is: "" & arr(0).x)
+    End Function
+
+    Private Async Function TestReassignsArrayAndIndexerDuringAwait() As Task
+        Console.WriteLine(NameOf(Program.TestReassignsArrayAndIndexerDuringAwait))
+        Dim a = New A()
+        Dim arr = New A(0) {a}
+        Dim index = 0
+        Console.WriteLine(""Before Assignment arr.Length is: "" & arr.Length)
+        Console.WriteLine(""Before Assignment a.x is: "" & a.x)
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                arr = New A(-1) {}
+                index = 1
+                Console.WriteLine(s)
+                Return 42
+            End Function
+
+        arr(index).x = Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment arr.Length is: "" & arr.Length)
+        Console.WriteLine(""After Assignment a.x is: "" & a.x)
+    End Function
+
+    Private Async Function TestReassignsTargetDuringAwait() As Task
+        Console.WriteLine(NameOf(Program.TestReassignsTargetDuringAwait))
+        Dim a = New A()
+        Dim arr = New A(0) {a}
+        Console.WriteLine(""Before Assignment arr[0].x is: "" & arr(0).x)
+        Console.WriteLine(""Before Assignment arr[0].y is: "" & arr(0).y)
+        Console.WriteLine(""Before Assignment a.x is: "" & a.x)
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                arr(0) = New A With {
+                    .y = True
+                }
+                Console.WriteLine(s)
+                Return 42
+            End Function
+
+        arr(0).x = Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment arr[0].x is: "" & arr(0).x)
+        Console.WriteLine(""After Assignment arr[0].y is: "" & arr(0).y)
+        Console.WriteLine(""After Assignment a.x is: "" & a.x)
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module
+
+Class A
+    Public x As Integer
+    Public y As Boolean
+End Class"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestIndexerThrows
+Before Assignment
+Caught IndexOutOfRangeException
+TestAssignmentThrows
+Before Assignment
+RHS
+Caught NullReferenceException
+TestIndexerSucceeds
+Before Assignment arr[0].x is: 0
+RHS
+After Assignment arr[0].x is: 42
+TestReassignsArrayAndIndexerDuringAwait
+Before Assignment arr.Length is: 1
+Before Assignment a.x is: 0
+RHS
+After Assignment arr.Length is: 0
+After Assignment a.x is: 42
+TestReassignsTargetDuringAwait
+Before Assignment arr[0].x is: 0
+Before Assignment arr[0].y is: False
+Before Assignment a.x is: 0
+RHS
+After Assignment arr[0].x is: 0
+After Assignment arr[0].y is: True
+After Assignment a.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      200 (0xc8)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0051
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_arr As A()""
+    IL_0011:  ldc.i4.0
+    IL_0012:  ldelem.ref
+    IL_0013:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_0018:  ldstr      ""RHS""
+    IL_001d:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0022:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0027:  stloc.1
+    IL_0028:  ldloca.s   V_1
+    IL_002a:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_002f:  brtrue.s   IL_006d
+    IL_0031:  ldarg.0
+    IL_0032:  ldc.i4.0
+    IL_0033:  dup
+    IL_0034:  stloc.0
+    IL_0035:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_003a:  ldarg.0
+    IL_003b:  ldloc.1
+    IL_003c:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0041:  ldarg.0
+    IL_0042:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_0047:  ldloca.s   V_1
+    IL_0049:  ldarg.0
+    IL_004a:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_004f:  leave.s    IL_00c7
+    IL_0051:  ldarg.0
+    IL_0052:  ldc.i4.m1
+    IL_0053:  dup
+    IL_0054:  stloc.0
+    IL_0055:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_005a:  ldarg.0
+    IL_005b:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0060:  stloc.1
+    IL_0061:  ldarg.0
+    IL_0062:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0067:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006d:  ldarg.0
+    IL_006e:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_0073:  ldloca.s   V_1
+    IL_0075:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_007a:  ldloca.s   V_1
+    IL_007c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0082:  stfld      ""A.x As Integer""
+    IL_0087:  ldarg.0
+    IL_0088:  ldnull
+    IL_0089:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_008e:  leave.s    IL_00b2
+  }
+  catch System.Exception
+  {
+    IL_0090:  dup
+    IL_0091:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0096:  stloc.2
+    IL_0097:  ldarg.0
+    IL_0098:  ldc.i4.s   -2
+    IL_009a:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_009f:  ldarg.0
+    IL_00a0:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00a5:  ldloc.2
+    IL_00a6:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00ab:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00b0:  leave.s    IL_00c7
+  }
+  IL_00b2:  ldarg.0
+  IL_00b3:  ldc.i4.s   -2
+  IL_00b5:  dup
+  IL_00b6:  stloc.0
+  IL_00b7:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00bc:  ldarg.0
+  IL_00bd:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00c2:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00c7:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_StructFieldAccessOnArray()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal arr As A()) As Task
+        arr(0).x = Await Write(""RHS"")
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestIndexerThrows().Wait()
+        TestIndexerSucceeds().Wait()
+        TestReassignsArrayAndIndexerDuringAwait().Wait()
+        TestReassignsTargetDuringAwait().Wait()
+    End Sub
+
+    Private Async Function TestIndexerThrows() As Task
+        Console.WriteLine(NameOf(Program.TestIndexerThrows))
+        Dim arr = New A(-1) {}
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(arr)
+        Catch __unusedIndexOutOfRangeException1__ As IndexOutOfRangeException
+            Console.WriteLine(""Caught IndexOutOfRangeException"")
+        End Try
+    End Function
+
+    Private Async Function TestIndexerSucceeds() As Task
+        Console.WriteLine(NameOf(Program.TestIndexerSucceeds))
+        Dim arr = New A(0) {}
+        Console.WriteLine(""Before Assignment arr[0].x is: "" & arr(0).x)
+        Await Assign(arr)
+        Console.WriteLine(""After Assignment arr[0].x is: "" & arr(0).x)
+    End Function
+
+    Private Async Function TestReassignsArrayAndIndexerDuringAwait() As Task
+        Console.WriteLine(NameOf(Program.TestReassignsArrayAndIndexerDuringAwait))
+        Dim arr = New A(0) {}
+        Dim arrCopy = arr
+        Dim index = 0
+        Console.WriteLine(""Before Assignment arr.Length is: "" & arr.Length)
+        Console.WriteLine(""Before Assignment arrCopy[0].x is: "" & arrCopy(0).x)
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                 Await Task.Yield()
+                 arr = New A(-1) {}
+                 index = 1
+                 Console.WriteLine(s)
+                 Return 42
+             End Function
+
+        arr(index).x = Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment arr.Length is: "" & arr.Length)
+        Console.WriteLine(""After Assignment arrCopy[0].x is: "" & arrCopy(0).x)
+    End Function
+
+    Private Async Function TestReassignsTargetDuringAwait() As Task
+        Console.WriteLine(NameOf(Program.TestReassignsTargetDuringAwait))
+        Dim arr = New A(0) {}
+        Console.WriteLine(""Before Assignment arr[0].x is: "" & arr(0).x)
+        Console.WriteLine(""Before Assignment arr[0].y is: "" & arr(0).y)
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                arr(0) = New A With {
+                    .y = True
+                }
+                Console.WriteLine(s)
+                Return 42
+            End Function
+
+        arr(0).x = Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment arr[0].x is: "" & arr(0).x)
+        Console.WriteLine(""Before Assignment arr[0].y is: "" & arr(0).y)
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module
+
+Structure A
+    Public x As Integer
+    Public y As Boolean
+End Structure"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestIndexerThrows
+Before Assignment
+Caught IndexOutOfRangeException
+TestIndexerSucceeds
+Before Assignment arr[0].x is: 0
+RHS
+After Assignment arr[0].x is: 42
+TestReassignsArrayAndIndexerDuringAwait
+Before Assignment arr.Length is: 1
+Before Assignment arrCopy[0].x is: 0
+RHS
+After Assignment arr.Length is: 0
+After Assignment arrCopy[0].x is: 42
+TestReassignsTargetDuringAwait
+Before Assignment arr[0].x is: 0
+Before Assignment arr[0].y is: False
+RHS
+After Assignment arr[0].x is: 42
+Before Assignment arr[0].y is: True").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      217 (0xd9)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_005c
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_arr As A()""
+    IL_0011:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As A()""
+    IL_0016:  ldarg.0
+    IL_0017:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As A()""
+    IL_001c:  ldc.i4.0
+    IL_001d:  ldelema    ""A""
+    IL_0022:  pop
+    IL_0023:  ldstr      ""RHS""
+    IL_0028:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_002d:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0032:  stloc.1
+    IL_0033:  ldloca.s   V_1
+    IL_0035:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_003a:  brtrue.s   IL_0078
+    IL_003c:  ldarg.0
+    IL_003d:  ldc.i4.0
+    IL_003e:  dup
+    IL_003f:  stloc.0
+    IL_0040:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0045:  ldarg.0
+    IL_0046:  ldloc.1
+    IL_0047:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_004c:  ldarg.0
+    IL_004d:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_0052:  ldloca.s   V_1
+    IL_0054:  ldarg.0
+    IL_0055:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_005a:  leave.s    IL_00d8
+    IL_005c:  ldarg.0
+    IL_005d:  ldc.i4.m1
+    IL_005e:  dup
+    IL_005f:  stloc.0
+    IL_0060:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0065:  ldarg.0
+    IL_0066:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006b:  stloc.1
+    IL_006c:  ldarg.0
+    IL_006d:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0072:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0078:  ldarg.0
+    IL_0079:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As A()""
+    IL_007e:  ldc.i4.0
+    IL_007f:  ldelema    ""A""
+    IL_0084:  ldloca.s   V_1
+    IL_0086:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_008b:  ldloca.s   V_1
+    IL_008d:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0093:  stfld      ""A.x As Integer""
+    IL_0098:  ldarg.0
+    IL_0099:  ldnull
+    IL_009a:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As A()""
+    IL_009f:  leave.s    IL_00c3
+  }
+  catch System.Exception
+  {
+    IL_00a1:  dup
+    IL_00a2:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_00a7:  stloc.2
+    IL_00a8:  ldarg.0
+    IL_00a9:  ldc.i4.s   -2
+    IL_00ab:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_00b0:  ldarg.0
+    IL_00b1:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00b6:  ldloc.2
+    IL_00b7:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00bc:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00c1:  leave.s    IL_00d8
+  }
+  IL_00c3:  ldarg.0
+  IL_00c4:  ldc.i4.s   -2
+  IL_00c6:  dup
+  IL_00c7:  stloc.0
+  IL_00c8:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00cd:  ldarg.0
+  IL_00ce:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00d3:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00d8:  ret
+}")
+        End Sub
+
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_AssignmentToArray()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal arr As Integer()) As Task
+        arr(0) = Await Write(""RHS"")
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestIndexerThrows().Wait()
+        TestIndexerSucceeds().Wait()
+        TestReassignsArrayAndIndexerDuringAwait().Wait()
+    End Sub
+
+    Private Async Function TestIndexerThrows() As Task
+        Console.WriteLine(NameOf(Program.TestIndexerThrows))
+        Dim arr = New Integer(-1) {}
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(arr)
+        Catch __unusedIndexOutOfRangeException1__ As IndexOutOfRangeException
+            Console.WriteLine(""Caught IndexOutOfRangeException"")
+        End Try
+    End Function
+
+    Private Async Function TestIndexerSucceeds() As Task
+        Console.WriteLine(NameOf(Program.TestIndexerSucceeds))
+        Dim arr = New Integer(0) {}
+        Console.WriteLine(""Before Assignment arr[0] is: "" & arr(0))
+        Await Assign(arr)
+        Console.WriteLine(""After Assignment arr[0] is: "" & arr(0))
+    End Function
+
+    Private Async Function TestReassignsArrayAndIndexerDuringAwait() As Task
+        Console.WriteLine(NameOf(Program.TestReassignsArrayAndIndexerDuringAwait))
+        Dim arr = New Integer(0) {}
+        Dim arrCopy = arr
+        Dim index = 0
+        Console.WriteLine(""Before Assignment arr.Length is: "" & arr.Length)
+        Console.WriteLine(""Before Assignment arrCopy[0] is: "" & arrCopy(0))
+        
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                arr = New Integer(-1) {}
+                index = 1
+                Console.WriteLine(s)
+                Return 42
+            End Function
+        
+        arr(index) = Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment arr.Length is: "" & arr.Length)
+        Console.WriteLine(""After Assignment arrCopy[0] is: "" & arrCopy(0))
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestIndexerThrows
+Before Assignment
+RHS
+Caught IndexOutOfRangeException
+TestIndexerSucceeds
+Before Assignment arr[0] is: 0
+RHS
+After Assignment arr[0] is: 42
+TestReassignsArrayAndIndexerDuringAwait
+Before Assignment arr.Length is: 1
+Before Assignment arrCopy[0] is: 0
+RHS
+After Assignment arr.Length is: 0
+After Assignment arrCopy[0] is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      195 (0xc3)
+  .maxstack  4
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004f
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_arr As Integer()""
+    IL_0011:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer()""
+    IL_0016:  ldstr      ""RHS""
+    IL_001b:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0020:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0025:  stloc.1
+    IL_0026:  ldloca.s   V_1
+    IL_0028:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_002d:  brtrue.s   IL_006b
+    IL_002f:  ldarg.0
+    IL_0030:  ldc.i4.0
+    IL_0031:  dup
+    IL_0032:  stloc.0
+    IL_0033:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0038:  ldarg.0
+    IL_0039:  ldloc.1
+    IL_003a:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_003f:  ldarg.0
+    IL_0040:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_0045:  ldloca.s   V_1
+    IL_0047:  ldarg.0
+    IL_0048:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_004d:  leave.s    IL_00c2
+    IL_004f:  ldarg.0
+    IL_0050:  ldc.i4.m1
+    IL_0051:  dup
+    IL_0052:  stloc.0
+    IL_0053:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_005e:  stloc.1
+    IL_005f:  ldarg.0
+    IL_0060:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0065:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006b:  ldarg.0
+    IL_006c:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer()""
+    IL_0071:  ldc.i4.0
+    IL_0072:  ldloca.s   V_1
+    IL_0074:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_0079:  ldloca.s   V_1
+    IL_007b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0081:  stelem.i4
+    IL_0082:  ldarg.0
+    IL_0083:  ldnull
+    IL_0084:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer()""
+    IL_0089:  leave.s    IL_00ad
+  }
+  catch System.Exception
+  {
+    IL_008b:  dup
+    IL_008c:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0091:  stloc.2
+    IL_0092:  ldarg.0
+    IL_0093:  ldc.i4.s   -2
+    IL_0095:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_009a:  ldarg.0
+    IL_009b:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00a0:  ldloc.2
+    IL_00a1:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00a6:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00ab:  leave.s    IL_00c2
+  }
+  IL_00ad:  ldarg.0
+  IL_00ae:  ldc.i4.s   -2
+  IL_00b0:  dup
+  IL_00b1:  stloc.0
+  IL_00b2:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00b7:  ldarg.0
+  IL_00b8:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00bd:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00c2:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal a As A) As Task
+        a.b.c.x = Await Write(""RHS"")
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestAIsNull().Wait()
+        TestAIsNotNull().Wait()
+        ReassignADuringAssignment().Wait()
+    End Sub
+
+    Private Async Function TestAIsNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNull))
+        Dim a As A = Nothing
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestAIsNotNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNotNull))
+        Dim a = New A()
+        Console.WriteLine(""Before Assignment a.b.c.x is: "" & a.b.c.x)
+        Await Assign(a)
+        Console.WriteLine(""After Assignment a.b.c.x is: "" & a.b.c.x)
+    End Function
+
+    Private Async Function ReassignADuringAssignment() As Task
+        Console.WriteLine(NameOf(Program.ReassignADuringAssignment))
+        Dim a = New A()
+        Dim aCopy = a
+        Console.WriteLine(""Before Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""Before Assignment aCopy.b.c.x is: "" & aCopy.b.c.x)
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                a = Nothing
+                Console.WriteLine(s)
+                Return 42
+            End Function
+
+        a.b.c.x = Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""After Assignment aCopy.b.c.x is: "" & aCopy.b.c.x)
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module
+
+Class A
+    Public b As B
+End Class
+
+Structure B
+    Public c As C
+End Structure
+
+Structure C
+    Public x As Integer
+End Structure"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestAIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a.b.c.x is: 0
+RHS
+After Assignment a.b.c.x is: 42
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy.b.c.x is: 0
+RHS
+After Assignment a is null == True
+After Assignment aCopy.b.c.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      223 (0xdf)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_005e
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_a As A""
+    IL_0011:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_0016:  ldarg.0
+    IL_0017:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_001c:  ldfld      ""A.b As B""
+    IL_0021:  pop
+    IL_0022:  ldstr      ""RHS""
+    IL_0027:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_002c:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0031:  stloc.1
+    IL_0032:  ldloca.s   V_1
+    IL_0034:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0039:  brtrue.s   IL_007a
+    IL_003b:  ldarg.0
+    IL_003c:  ldc.i4.0
+    IL_003d:  dup
+    IL_003e:  stloc.0
+    IL_003f:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0044:  ldarg.0
+    IL_0045:  ldloc.1
+    IL_0046:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_004b:  ldarg.0
+    IL_004c:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_0051:  ldloca.s   V_1
+    IL_0053:  ldarg.0
+    IL_0054:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_0059:  leave      IL_00de
+    IL_005e:  ldarg.0
+    IL_005f:  ldc.i4.m1
+    IL_0060:  dup
+    IL_0061:  stloc.0
+    IL_0062:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0067:  ldarg.0
+    IL_0068:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006d:  stloc.1
+    IL_006e:  ldarg.0
+    IL_006f:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0074:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_007a:  ldarg.0
+    IL_007b:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_0080:  ldflda     ""A.b As B""
+    IL_0085:  ldflda     ""B.c As C""
+    IL_008a:  ldloca.s   V_1
+    IL_008c:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_0091:  ldloca.s   V_1
+    IL_0093:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0099:  stfld      ""C.x As Integer""
+    IL_009e:  ldarg.0
+    IL_009f:  ldnull
+    IL_00a0:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_00a5:  leave.s    IL_00c9
+  }
+  catch System.Exception
+  {
+    IL_00a7:  dup
+    IL_00a8:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_00ad:  stloc.2
+    IL_00ae:  ldarg.0
+    IL_00af:  ldc.i4.s   -2
+    IL_00b1:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00bc:  ldloc.2
+    IL_00bd:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00c2:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00c7:  leave.s    IL_00de
+  }
+  IL_00c9:  ldarg.0
+  IL_00ca:  ldc.i4.s   -2
+  IL_00cc:  dup
+  IL_00cd:  stloc.0
+  IL_00ce:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00d3:  ldarg.0
+  IL_00d4:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00d9:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00de:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_ClassPropertyAssignmentOnClassProperty()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal a As A) As Task
+        a.b.x = Await Write(""RHS"")
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestAIsNull().Wait()
+        TestAIsNotNull().Wait()
+        ReassignADuringAssignment().Wait()
+    End Sub
+
+    Private Async Function TestAIsNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNull))
+        Dim a As A = Nothing
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestAIsNotNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNotNull))
+        Dim a = New A With {
+            ._b = New B()
+        }
+        Console.WriteLine(""Before Assignment a._b._x is: "" & a._b._x)
+        Await Assign(a)
+        Console.WriteLine(""After Assignment a._b._x is: "" & a._b._x)
+    End Function
+
+    Private Async Function ReassignADuringAssignment() As Task
+        Console.WriteLine(NameOf(Program.ReassignADuringAssignment))
+        Dim a = New A With {
+            ._b = New B()
+        }
+        Dim aCopy = a
+        Console.WriteLine(""Before Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""Before Assignment aCopy._b._x is: "" & aCopy._b._x)
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                a = Nothing
+                Console.WriteLine(s)
+                Return 42
+            End Function
+
+        a.b.x = Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""After Assignment aCopy._b._x is: "" & aCopy._b._x)
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module
+
+Class A
+    Public _b As B
+
+    Public Property b As B
+        Get
+            Console.WriteLine(""GetB"")
+            Return _b
+        End Get
+        Set(ByVal value As B)
+            Console.WriteLine(""SetB"")
+            _b = value
+        End Set
+    End Property
+End Class
+
+Class B
+    Public _x As Integer
+
+    Public Property x As Integer
+        Get
+            Console.WriteLine(""GetX"")
+            Return _x
+        End Get
+        Set(ByVal value As Integer)
+            Console.WriteLine(""SetX"")
+            _x = value
+        End Set
+    End Property
+End Class"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestAIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a._b._x is: 0
+GetB
+RHS
+SetX
+After Assignment a._b._x is: 42
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy._b._x is: 0
+GetB
+RHS
+SetX
+After Assignment a is null == True
+After Assignment aCopy._b._x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      203 (0xcb)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0054
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_a As A""
+    IL_0011:  callvirt   ""Function A.get_b() As B""
+    IL_0016:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As B""
+    IL_001b:  ldstr      ""RHS""
+    IL_0020:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0025:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_002a:  stloc.1
+    IL_002b:  ldloca.s   V_1
+    IL_002d:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0032:  brtrue.s   IL_0070
+    IL_0034:  ldarg.0
+    IL_0035:  ldc.i4.0
+    IL_0036:  dup
+    IL_0037:  stloc.0
+    IL_0038:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_003d:  ldarg.0
+    IL_003e:  ldloc.1
+    IL_003f:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0044:  ldarg.0
+    IL_0045:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_004a:  ldloca.s   V_1
+    IL_004c:  ldarg.0
+    IL_004d:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_0052:  leave.s    IL_00ca
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.m1
+    IL_0056:  dup
+    IL_0057:  stloc.0
+    IL_0058:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_005d:  ldarg.0
+    IL_005e:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0063:  stloc.1
+    IL_0064:  ldarg.0
+    IL_0065:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006a:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0070:  ldarg.0
+    IL_0071:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As B""
+    IL_0076:  ldloca.s   V_1
+    IL_0078:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_007d:  ldloca.s   V_1
+    IL_007f:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0085:  callvirt   ""Sub B.set_x(Integer)""
+    IL_008a:  ldarg.0
+    IL_008b:  ldnull
+    IL_008c:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As B""
+    IL_0091:  leave.s    IL_00b5
+  }
+  catch System.Exception
+  {
+    IL_0093:  dup
+    IL_0094:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0099:  stloc.2
+    IL_009a:  ldarg.0
+    IL_009b:  ldc.i4.s   -2
+    IL_009d:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00a8:  ldloc.2
+    IL_00a9:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00ae:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00b3:  leave.s    IL_00ca
+  }
+  IL_00b5:  ldarg.0
+  IL_00b6:  ldc.i4.s   -2
+  IL_00b8:  dup
+  IL_00b9:  stloc.0
+  IL_00ba:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00bf:  ldarg.0
+  IL_00c0:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00ca:  ret
+}")
+        End Sub
+
+        <WorkItem(19609, "https://github.com/dotnet/roslyn/issues/19609")>
+        <Fact>
+        Public Sub KeepLtrSemantics_FieldAccessOnClass()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal a As A) As Task
+        a.x = Await Write(""RHS"")
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestAIsNull().Wait()
+        TestAIsNotNull().Wait()
+        ReassignADuringAssignment().Wait()
+    End Sub
+
+    Private Async Function TestAIsNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNull))
+        Dim a As A = Nothing
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestAIsNotNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNotNull))
+        Dim a = New A()
+        Console.WriteLine(""Before Assignment a.x is: "" & a.x)
+        Await Assign(a)
+        Console.WriteLine(""After Assignment a.x is: "" & a.x)
+    End Function
+
+    Private Async Function ReassignADuringAssignment() As Task
+        Console.WriteLine(NameOf(Program.ReassignADuringAssignment))
+        Dim a = New A()
+        Dim aCopy = a
+        Console.WriteLine(""Before Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""Before Assignment aCopy.x is: "" & aCopy.x)
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = Async Function(ByVal s As String)
+                                                                        Await Task.Yield()
+                                                                        a = Nothing
+                                                                        Console.WriteLine(s)
+                                                                        Return 42
+                                                                    End Function
+
+        a.x = Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""After Assignment aCopy.x is: "" & aCopy.x)
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module
+
+Class A
+    Public x As Integer
+End Class"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestAIsNull
+Before Assignment
+RHS
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a.x is: 0
+RHS
+After Assignment a.x is: 42
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy.x is: 0
+RHS
+After Assignment a is null == True
+After Assignment aCopy.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      198 (0xc6)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004f
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_a As A""
+    IL_0011:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_0016:  ldstr      ""RHS""
+    IL_001b:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0020:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0025:  stloc.1
+    IL_0026:  ldloca.s   V_1
+    IL_0028:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_002d:  brtrue.s   IL_006b
+    IL_002f:  ldarg.0
+    IL_0030:  ldc.i4.0
+    IL_0031:  dup
+    IL_0032:  stloc.0
+    IL_0033:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0038:  ldarg.0
+    IL_0039:  ldloc.1
+    IL_003a:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_003f:  ldarg.0
+    IL_0040:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_0045:  ldloca.s   V_1
+    IL_0047:  ldarg.0
+    IL_0048:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_004d:  leave.s    IL_00c5
+    IL_004f:  ldarg.0
+    IL_0050:  ldc.i4.m1
+    IL_0051:  dup
+    IL_0052:  stloc.0
+    IL_0053:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_005e:  stloc.1
+    IL_005f:  ldarg.0
+    IL_0060:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0065:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006b:  ldarg.0
+    IL_006c:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_0071:  ldloca.s   V_1
+    IL_0073:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_0078:  ldloca.s   V_1
+    IL_007a:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0080:  stfld      ""A.x As Integer""
+    IL_0085:  ldarg.0
+    IL_0086:  ldnull
+    IL_0087:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As A""
+    IL_008c:  leave.s    IL_00b0
+  }
+  catch System.Exception
+  {
+    IL_008e:  dup
+    IL_008f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0094:  stloc.2
+    IL_0095:  ldarg.0
+    IL_0096:  ldc.i4.s   -2
+    IL_0098:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_009d:  ldarg.0
+    IL_009e:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00a3:  ldloc.2
+    IL_00a4:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00a9:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00ae:  leave.s    IL_00c5
+  }
+  IL_00b0:  ldarg.0
+  IL_00b1:  ldc.i4.s   -2
+  IL_00b3:  dup
+  IL_00b4:  stloc.0
+  IL_00b5:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00ba:  ldarg.0
+  IL_00bb:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00c0:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00c5:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_CompoundAssignment()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal a As A) As Task
+        a.x += Await Write(""RHS"")
+    End Function
+
+    Sub Main(ByVal args As String())
+        TestAIsNull().Wait()
+        TestAIsNotNull().Wait()
+        ReassignADuringAssignment().Wait()
+        ReassignXDuringAssignment().Wait()
+    End Sub
+
+    Private Async Function TestAIsNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNull))
+        Dim a As A = Nothing
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestAIsNotNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNotNull))
+        Dim a = New A() With {
+            .x = 1
+        }
+        Console.WriteLine(""Before Assignment a.x is: "" & a.x)
+        Await Assign(a)
+        Console.WriteLine(""After Assignment a.x is: "" & a.x)
+    End Function
+
+    Private Async Function ReassignADuringAssignment() As Task
+        Console.WriteLine(NameOf(Program.ReassignADuringAssignment))
+        Dim a = New A() With {
+            .x = 1
+        }
+        Dim aCopy = a
+        Console.WriteLine(""Before Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""Before Assignment aCopy.x is: "" & aCopy.x)
+        
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                a = Nothing
+                Console.WriteLine(s)
+                Return 42
+            End Function
+        
+        a.x += Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""After Assignment aCopy.x is: "" & aCopy.x)
+    End Function
+
+    Private Async Function ReassignXDuringAssignment() As Task
+        Console.WriteLine(NameOf(Program.ReassignXDuringAssignment))
+        Dim a = New A() With {
+            .x = 1
+        }
+        Console.WriteLine(""Before Assignment a.x is: "" & a.x)
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                a.x = 100
+                Console.WriteLine(s)
+                Return 42
+            End Function
+
+        a.x += Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment a.x is: "" & a.x)
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module
+
+Class A
+    Public x As Integer
+End Class"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestAIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a.x is: 1
+RHS
+After Assignment a.x is: 43
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy.x is: 1
+RHS
+After Assignment a is null == True
+After Assignment aCopy.x is: 43
+ReassignXDuringAssignment
+Before Assignment a.x is: 1
+RHS
+After Assignment a.x is: 43").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      222 (0xde)
+  .maxstack  4
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0060
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_a As A""
+    IL_0011:  stfld      ""Program.VB$StateMachine_0_Assign.$U2 As A""
+    IL_0016:  ldarg.0
+    IL_0017:  ldarg.0
+    IL_0018:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_a As A""
+    IL_001d:  ldfld      ""A.x As Integer""
+    IL_0022:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer""
+    IL_0027:  ldstr      ""RHS""
+    IL_002c:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0031:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0036:  stloc.1
+    IL_0037:  ldloca.s   V_1
+    IL_0039:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_003e:  brtrue.s   IL_007c
+    IL_0040:  ldarg.0
+    IL_0041:  ldc.i4.0
+    IL_0042:  dup
+    IL_0043:  stloc.0
+    IL_0044:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0049:  ldarg.0
+    IL_004a:  ldloc.1
+    IL_004b:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0050:  ldarg.0
+    IL_0051:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_0056:  ldloca.s   V_1
+    IL_0058:  ldarg.0
+    IL_0059:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_005e:  leave.s    IL_00dd
+    IL_0060:  ldarg.0
+    IL_0061:  ldc.i4.m1
+    IL_0062:  dup
+    IL_0063:  stloc.0
+    IL_0064:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0069:  ldarg.0
+    IL_006a:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006f:  stloc.1
+    IL_0070:  ldarg.0
+    IL_0071:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0076:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_007c:  ldarg.0
+    IL_007d:  ldfld      ""Program.VB$StateMachine_0_Assign.$U2 As A""
+    IL_0082:  ldarg.0
+    IL_0083:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer""
+    IL_0088:  ldloca.s   V_1
+    IL_008a:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_008f:  ldloca.s   V_1
+    IL_0091:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0097:  add.ovf
+    IL_0098:  stfld      ""A.x As Integer""
+    IL_009d:  ldarg.0
+    IL_009e:  ldnull
+    IL_009f:  stfld      ""Program.VB$StateMachine_0_Assign.$U2 As A""
+    IL_00a4:  leave.s    IL_00c8
+  }
+  catch System.Exception
+  {
+    IL_00a6:  dup
+    IL_00a7:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_00ac:  stloc.2
+    IL_00ad:  ldarg.0
+    IL_00ae:  ldc.i4.s   -2
+    IL_00b0:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00bb:  ldloc.2
+    IL_00bc:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00c1:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00c6:  leave.s    IL_00dd
+  }
+  IL_00c8:  ldarg.0
+  IL_00c9:  ldc.i4.s   -2
+  IL_00cb:  dup
+  IL_00cc:  stloc.0
+  IL_00cd:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00d2:  ldarg.0
+  IL_00d3:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00d8:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00dd:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_CompoundAssignmentProperties()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal a As A) As Task
+        a.x += Await Write(""RHS"")
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestAIsNull().Wait()
+        TestAIsNotNull().Wait()
+        ReassignADuringAssignment().Wait()
+        ReassignXDuringAssignment().Wait()
+    End Sub
+
+    Private Async Function TestAIsNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNull))
+        Dim a As A = Nothing
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestAIsNotNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNotNull))
+        Dim a = New A() With {
+            ._x = 1
+        }
+        Console.WriteLine(""Before Assignment a._x is: "" & a._x)
+        Await Assign(a)
+        Console.WriteLine(""After Assignment a._x is: "" & a._x)
+    End Function
+
+    Private Async Function ReassignADuringAssignment() As Task
+        Console.WriteLine(NameOf(Program.ReassignADuringAssignment))
+        Dim a = New A() With {
+            ._x = 1
+        }
+        Dim aCopy = a
+        Console.WriteLine(""Before Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""Before Assignment aCopy._x is: "" & aCopy._x)
+        
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                a = Nothing
+                Console.WriteLine(s)
+                Return 42
+            End Function
+        
+        a.x += Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment a is null == "" & (a Is Nothing))
+        Console.WriteLine(""After Assignment aCopy._x is: "" & aCopy._x)
+    End Function
+
+    Private Async Function ReassignXDuringAssignment() As Task
+        Console.WriteLine(NameOf(Program.ReassignXDuringAssignment))
+        Dim a = New A() With {
+            ._x = 1
+        }
+        Console.WriteLine(""Before Assignment a._x is: "" & a._x)
+        
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                a._x = 100
+                Console.WriteLine(s)
+                Return 42
+            End Function
+        
+        a.x += Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment a._x is: "" & a._x)
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module
+
+Class A
+    Public _x As Integer
+
+    Public Property x As Integer
+        Get
+            Console.WriteLine(""GetX"")
+            Return _x
+        End Get
+        Set(ByVal value As Integer)
+            Console.WriteLine(""SetX"")
+            _x = value
+        End Set
+    End Property
+End Class"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestAIsNull
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a._x is: 1
+GetX
+RHS
+SetX
+After Assignment a._x is: 43
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy._x is: 1
+GetX
+RHS
+SetX
+After Assignment a is null == True
+After Assignment aCopy._x is: 43
+ReassignXDuringAssignment
+Before Assignment a._x is: 1
+GetX
+RHS
+SetX
+After Assignment a._x is: 43").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      231 (0xe7)
+  .maxstack  4
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                A V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0069
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldarg.0
+    IL_000d:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_a As A""
+    IL_0012:  dup
+    IL_0013:  stloc.2
+    IL_0014:  stfld      ""Program.VB$StateMachine_0_Assign.$S0 As A""
+    IL_0019:  ldloc.2
+    IL_001a:  stfld      ""Program.VB$StateMachine_0_Assign.$U2 As A""
+    IL_001f:  ldarg.0
+    IL_0020:  ldarg.0
+    IL_0021:  ldfld      ""Program.VB$StateMachine_0_Assign.$S0 As A""
+    IL_0026:  callvirt   ""Function A.get_x() As Integer""
+    IL_002b:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer""
+    IL_0030:  ldstr      ""RHS""
+    IL_0035:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_003a:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_003f:  stloc.1
+    IL_0040:  ldloca.s   V_1
+    IL_0042:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0047:  brtrue.s   IL_0085
+    IL_0049:  ldarg.0
+    IL_004a:  ldc.i4.0
+    IL_004b:  dup
+    IL_004c:  stloc.0
+    IL_004d:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0052:  ldarg.0
+    IL_0053:  ldloc.1
+    IL_0054:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0059:  ldarg.0
+    IL_005a:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_005f:  ldloca.s   V_1
+    IL_0061:  ldarg.0
+    IL_0062:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_0067:  leave.s    IL_00e6
+    IL_0069:  ldarg.0
+    IL_006a:  ldc.i4.m1
+    IL_006b:  dup
+    IL_006c:  stloc.0
+    IL_006d:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0072:  ldarg.0
+    IL_0073:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0078:  stloc.1
+    IL_0079:  ldarg.0
+    IL_007a:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_007f:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0085:  ldarg.0
+    IL_0086:  ldfld      ""Program.VB$StateMachine_0_Assign.$U2 As A""
+    IL_008b:  ldarg.0
+    IL_008c:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer""
+    IL_0091:  ldloca.s   V_1
+    IL_0093:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_0098:  ldloca.s   V_1
+    IL_009a:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00a0:  add.ovf
+    IL_00a1:  callvirt   ""Sub A.set_x(Integer)""
+    IL_00a6:  ldarg.0
+    IL_00a7:  ldnull
+    IL_00a8:  stfld      ""Program.VB$StateMachine_0_Assign.$U2 As A""
+    IL_00ad:  leave.s    IL_00d1
+  }
+  catch System.Exception
+  {
+    IL_00af:  dup
+    IL_00b0:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_00b5:  stloc.3
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldc.i4.s   -2
+    IL_00b9:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_00be:  ldarg.0
+    IL_00bf:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00c4:  ldloc.3
+    IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00ca:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00cf:  leave.s    IL_00e6
+  }
+  IL_00d1:  ldarg.0
+  IL_00d2:  ldc.i4.s   -2
+  IL_00d4:  dup
+  IL_00d5:  stloc.0
+  IL_00d6:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00db:  ldarg.0
+  IL_00dc:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00e1:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00e6:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub AssignmentToFieldOfStaticFieldOfStruct()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign() As Task
+        A.b.x = Await Write(""RHS"")
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        Console.WriteLine(""Before Assignment A.b.x is: "" & A.b.x)
+        Assign().Wait()
+        Console.WriteLine(""After Assignment A.b.x is: "" & A.b.x)
+    End Sub
+End Module
+
+Structure A
+    Public Shared b As B
+End Structure
+
+Structure B
+    Public x As Integer
+End Structure"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="Before Assignment A.b.x is: 0
+RHS
+After Assignment A.b.x is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      178 (0xb2)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0043
+    IL_000a:  ldstr      ""RHS""
+    IL_000f:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0014:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0019:  stloc.1
+    IL_001a:  ldloca.s   V_1
+    IL_001c:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0021:  brtrue.s   IL_005f
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.0
+    IL_0025:  dup
+    IL_0026:  stloc.0
+    IL_0027:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_002c:  ldarg.0
+    IL_002d:  ldloc.1
+    IL_002e:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0033:  ldarg.0
+    IL_0034:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_0039:  ldloca.s   V_1
+    IL_003b:  ldarg.0
+    IL_003c:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_0041:  leave.s    IL_00b1
+    IL_0043:  ldarg.0
+    IL_0044:  ldc.i4.m1
+    IL_0045:  dup
+    IL_0046:  stloc.0
+    IL_0047:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_004c:  ldarg.0
+    IL_004d:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0052:  stloc.1
+    IL_0053:  ldarg.0
+    IL_0054:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0059:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_005f:  ldsflda    ""A.b As B""
+    IL_0064:  ldloca.s   V_1
+    IL_0066:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_006b:  ldloca.s   V_1
+    IL_006d:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0073:  stfld      ""B.x As Integer""
+    IL_0078:  leave.s    IL_009c
+  }
+  catch System.Exception
+  {
+    IL_007a:  dup
+    IL_007b:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0080:  stloc.2
+    IL_0081:  ldarg.0
+    IL_0082:  ldc.i4.s   -2
+    IL_0084:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0089:  ldarg.0
+    IL_008a:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_008f:  ldloc.2
+    IL_0090:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0095:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_009a:  leave.s    IL_00b1
+  }
+  IL_009c:  ldarg.0
+  IL_009d:  ldc.i4.s   -2
+  IL_009f:  dup
+  IL_00a0:  stloc.0
+  IL_00a1:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00a6:  ldarg.0
+  IL_00a7:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00ac:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00b1:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_CallOnClassFieldOnClass()
+            Dim source =
+"Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Invoke(ByVal a As A) As Task
+        a.b.M(Await Write())
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestAIsNull().Wait()
+        TestBIsNull().Wait()
+        TestSucceeds().Wait()
+    End Sub
+
+    Private Async Function TestAIsNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNull))
+        Dim a As A = Nothing
+        Console.WriteLine(""Before Invoke"")
+
+        Try
+            Await Invoke(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestBIsNull() As Task
+        Console.WriteLine(NameOf(Program.TestBIsNull))
+        Dim a = New A()
+        Console.WriteLine(""Before Invoke"")
+
+        Try
+            Await Invoke(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestSucceeds() As Task
+        Console.WriteLine(NameOf(Program.TestSucceeds))
+        Dim a = New A With {
+            .b = New B()
+        }
+        Console.WriteLine(""Before Invoke"")
+        Await Invoke(a)
+        Console.WriteLine(""After Invoke"")
+    End Function
+
+    Private Async Function Write() As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(""Write"")
+        Return 42
+    End Function
+End Module
+
+Class A
+    Public b As B
+End Class
+
+Class B
+    Public Sub M(a as Integer)
+        Console.WriteLine(""M"")
+    End Sub
+End Class"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestAIsNull
+Before Invoke
+Caught NullReferenceException
+TestBIsNull
+Before Invoke
+Write
+Caught NullReferenceException
+TestSucceeds
+Before Invoke
+Write
+M
+After Invoke").VerifyIL("Program.VB$StateMachine_0_Invoke.MoveNext", "
+{
+  // Code size      198 (0xc6)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004f
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Invoke.$VB$Local_a As A""
+    IL_0011:  ldfld      ""A.b As B""
+    IL_0016:  stfld      ""Program.VB$StateMachine_0_Invoke.$U1 As B""
+    IL_001b:  call       ""Function Program.Write() As System.Threading.Tasks.Task(Of Integer)""
+    IL_0020:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0025:  stloc.1
+    IL_0026:  ldloca.s   V_1
+    IL_0028:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_002d:  brtrue.s   IL_006b
+    IL_002f:  ldarg.0
+    IL_0030:  ldc.i4.0
+    IL_0031:  dup
+    IL_0032:  stloc.0
+    IL_0033:  stfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+    IL_0038:  ldarg.0
+    IL_0039:  ldloc.1
+    IL_003a:  stfld      ""Program.VB$StateMachine_0_Invoke.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_003f:  ldarg.0
+    IL_0040:  ldflda     ""Program.VB$StateMachine_0_Invoke.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_0045:  ldloca.s   V_1
+    IL_0047:  ldarg.0
+    IL_0048:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Invoke)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Invoke)""
+    IL_004d:  leave.s    IL_00c5
+    IL_004f:  ldarg.0
+    IL_0050:  ldc.i4.m1
+    IL_0051:  dup
+    IL_0052:  stloc.0
+    IL_0053:  stfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""Program.VB$StateMachine_0_Invoke.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_005e:  stloc.1
+    IL_005f:  ldarg.0
+    IL_0060:  ldflda     ""Program.VB$StateMachine_0_Invoke.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0065:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006b:  ldarg.0
+    IL_006c:  ldfld      ""Program.VB$StateMachine_0_Invoke.$U1 As B""
+    IL_0071:  ldloca.s   V_1
+    IL_0073:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_0078:  ldloca.s   V_1
+    IL_007a:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0080:  callvirt   ""Sub B.M(Integer)""
+    IL_0085:  ldarg.0
+    IL_0086:  ldnull
+    IL_0087:  stfld      ""Program.VB$StateMachine_0_Invoke.$U1 As B""
+    IL_008c:  leave.s    IL_00b0
+  }
+  catch System.Exception
+  {
+    IL_008e:  dup
+    IL_008f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0094:  stloc.2
+    IL_0095:  ldarg.0
+    IL_0096:  ldc.i4.s   -2
+    IL_0098:  stfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+    IL_009d:  ldarg.0
+    IL_009e:  ldflda     ""Program.VB$StateMachine_0_Invoke.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00a3:  ldloc.2
+    IL_00a4:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00a9:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00ae:  leave.s    IL_00c5
+  }
+  IL_00b0:  ldarg.0
+  IL_00b1:  ldc.i4.s   -2
+  IL_00b3:  dup
+  IL_00b4:  stloc.0
+  IL_00b5:  stfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+  IL_00ba:  ldarg.0
+  IL_00bb:  ldflda     ""Program.VB$StateMachine_0_Invoke.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00c0:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00c5:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_CallOnStructFieldOnClass()
+            Dim source =
+"Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Invoke(ByVal a As A) As Task
+        a.b.M(Await Write())
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestAIsNull().Wait()
+        TestSucceeds().Wait()
+    End Sub
+
+    Private Async Function TestAIsNull() As Task
+        Console.WriteLine(NameOf(Program.TestAIsNull))
+        Dim a As A = Nothing
+        Console.WriteLine(""Before Invoke"")
+
+        Try
+            Await Invoke(a)
+        Catch __ As NullReferenceException
+            Console.WriteLine(""Caught NullReferenceException"")
+        End Try
+    End Function
+
+    Private Async Function TestSucceeds() As Task
+        Console.WriteLine(NameOf(Program.TestSucceeds))
+        Dim a = New A()
+        Console.WriteLine(""Before Invoke"")
+        Await Invoke(a)
+        Console.WriteLine(""After Invoke"")
+    End Function
+
+    Private Async Function Write() As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(""Write"")
+        Return 42
+    End Function
+End Module
+
+Class A
+    Public b As B
+End Class
+
+Structure B
+    Public Sub M(a as Integer)
+        Console.WriteLine(""M"")
+    End Sub
+End Structure"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestAIsNull
+Before Invoke
+Caught NullReferenceException
+TestSucceeds
+Before Invoke
+Write
+M
+After Invoke").VerifyIL("Program.VB$StateMachine_0_Invoke.MoveNext", "
+{
+  // Code size      210 (0xd2)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0056
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Invoke.$VB$Local_a As A""
+    IL_0011:  stfld      ""Program.VB$StateMachine_0_Invoke.$U1 As A""
+    IL_0016:  ldarg.0
+    IL_0017:  ldfld      ""Program.VB$StateMachine_0_Invoke.$U1 As A""
+    IL_001c:  ldfld      ""A.b As B""
+    IL_0021:  pop
+    IL_0022:  call       ""Function Program.Write() As System.Threading.Tasks.Task(Of Integer)""
+    IL_0027:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_002c:  stloc.1
+    IL_002d:  ldloca.s   V_1
+    IL_002f:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0034:  brtrue.s   IL_0072
+    IL_0036:  ldarg.0
+    IL_0037:  ldc.i4.0
+    IL_0038:  dup
+    IL_0039:  stloc.0
+    IL_003a:  stfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+    IL_003f:  ldarg.0
+    IL_0040:  ldloc.1
+    IL_0041:  stfld      ""Program.VB$StateMachine_0_Invoke.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0046:  ldarg.0
+    IL_0047:  ldflda     ""Program.VB$StateMachine_0_Invoke.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_004c:  ldloca.s   V_1
+    IL_004e:  ldarg.0
+    IL_004f:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Invoke)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Invoke)""
+    IL_0054:  leave.s    IL_00d1
+    IL_0056:  ldarg.0
+    IL_0057:  ldc.i4.m1
+    IL_0058:  dup
+    IL_0059:  stloc.0
+    IL_005a:  stfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+    IL_005f:  ldarg.0
+    IL_0060:  ldfld      ""Program.VB$StateMachine_0_Invoke.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0065:  stloc.1
+    IL_0066:  ldarg.0
+    IL_0067:  ldflda     ""Program.VB$StateMachine_0_Invoke.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0072:  ldarg.0
+    IL_0073:  ldfld      ""Program.VB$StateMachine_0_Invoke.$U1 As A""
+    IL_0078:  ldflda     ""A.b As B""
+    IL_007d:  ldloca.s   V_1
+    IL_007f:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_0084:  ldloca.s   V_1
+    IL_0086:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_008c:  call       ""Sub B.M(Integer)""
+    IL_0091:  ldarg.0
+    IL_0092:  ldnull
+    IL_0093:  stfld      ""Program.VB$StateMachine_0_Invoke.$U1 As A""
+    IL_0098:  leave.s    IL_00bc
+  }
+  catch System.Exception
+  {
+    IL_009a:  dup
+    IL_009b:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_00a0:  stloc.2
+    IL_00a1:  ldarg.0
+    IL_00a2:  ldc.i4.s   -2
+    IL_00a4:  stfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+    IL_00a9:  ldarg.0
+    IL_00aa:  ldflda     ""Program.VB$StateMachine_0_Invoke.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00af:  ldloc.2
+    IL_00b0:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00b5:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00ba:  leave.s    IL_00d1
+  }
+  IL_00bc:  ldarg.0
+  IL_00bd:  ldc.i4.s   -2
+  IL_00bf:  dup
+  IL_00c0:  stloc.0
+  IL_00c1:  stfld      ""Program.VB$StateMachine_0_Invoke.$State As Integer""
+  IL_00c6:  ldarg.0
+  IL_00c7:  ldflda     ""Program.VB$StateMachine_0_Invoke.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00cc:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00d1:  ret
+}")
+        End Sub
+
+        <Fact>
+        <WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")>
+        Public Sub AssignModuleStructureField()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Public Structure S1
+    Public Field As Integer
+End Structure
+
+Module Program
+    Dim s1 As S1
+
+    Async Function M1(t As Task(Of Integer)) As Task
+        s1.Field = Await t
+    End Function
+
+    Sub Main()
+        M1(Task.FromResult(1)).Wait()
+        Console.Write(s1.Field)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="1")
+        End Sub
+
+        <Fact>
+        <WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")>
+        Public Sub AssignInstanceStructureField()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Public Structure S1
+    Public Field As Integer
+End Structure
+
+Class C
+    Dim s1 As S1
+
+    Async Function M1(t As Task(Of Integer)) As Task
+        s1.Field = Await t
+    End Function
+
+    Shared Sub Main()
+        Dim c = New C()
+        c.M1(Task.FromResult(1)).Wait()
+        Console.Write(c.s1.Field)
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
     End Class
 End Namespace

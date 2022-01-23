@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.InvertConditional;
@@ -13,15 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertConditional
         : AbstractInvertConditionalCodeRefactoringProvider<ConditionalExpressionSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpInvertConditionalCodeRefactoringProvider()
         {
         }
 
-        // Show the feature in the condition of the conditional up through the ? token.
-        // Don't offer if the conditional is missing the colon and the conditional is
-        // too incomplete.
-        protected override bool ShouldOffer(ConditionalExpressionSyntax conditional, int position)
-            => position <= conditional.QuestionToken.Span.End &&
-               !conditional.ColonToken.IsMissing;
+        // Don't offer if the conditional is missing the colon and the conditional is too incomplete.
+        protected override bool ShouldOffer(ConditionalExpressionSyntax conditional)
+            => !conditional.ColonToken.IsMissing;
     }
 }

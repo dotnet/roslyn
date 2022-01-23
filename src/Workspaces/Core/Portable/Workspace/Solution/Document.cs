@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -21,17 +25,25 @@ namespace Microsoft.CodeAnalysis
     /// It provides access to the source text, parsed syntax tree and the corresponding semantic model.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public partial class Document : TextDocument
+    public class Document : TextDocument
     {
-        private WeakReference<SemanticModel> _model;
-        private Task<SyntaxTree> _syntaxTreeResultTask;
+        /// <summary>
+        /// A cached reference to the <see cref="SemanticModel"/>.
+        /// </summary>
+        private WeakReference<SemanticModel>? _model;
 
-        internal Document(Project project, DocumentState state) :
-            base(project, state, TextDocumentKind.Document)
+        /// <summary>
+        /// A cached task that can be returned once the tree has already been created. This is only set if <see cref="SupportsSyntaxTree"/> returns true,
+        /// so the inner value can be non-null.
+        /// </summary>
+        private Task<SyntaxTree>? _syntaxTreeResultTask;
+
+        internal Document(Project project, DocumentState state)
+            : base(project, state, TextDocumentKind.Document)
         {
         }
 
-        private DocumentState DocumentState => (DocumentState)State;
+        internal DocumentState DocumentState => (DocumentState)State;
 
         /// <summary>
         /// The kind of source code this document contains.
@@ -50,17 +62,16 @@ namespace Microsoft.CodeAnalysis
                    DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
         }
 
+        [Obsolete("Use TextDocument.HasTextChanged")]
         internal bool HasTextChanged(Document otherDocument)
-        {
-            return DocumentState.HasTextChanged(otherDocument.DocumentState);
-        }
+            => HasTextChanged(otherDocument, ignoreUnchangeableDocument: false);
 
         /// <summary>
         /// Get the current syntax tree for the document if the text is already loaded and the tree is already parsed.
         /// In almost all cases, you should call <see cref="GetSyntaxTreeAsync"/> to fetch the tree, which will parse the tree
         /// if it's not already parsed.
         /// </summary>
-        public bool TryGetSyntaxTree(out SyntaxTree syntaxTree)
+        public bool TryGetSyntaxTree([NotNullWhen(returnValue: true)] out SyntaxTree? syntaxTree)
         {
             // if we already have cache, use it
             if (_syntaxTreeResultTask != null)
@@ -106,9 +117,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the version of the document's top level signature if it is already loaded and available.
         /// </summary>
         internal bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
-        {
-            return DocumentState.TryGetTopLevelChangeTextVersion(out version);
-        }
+            => DocumentState.TryGetTopLevelChangeTextVersion(out version);
 
         /// <summary>
         /// Gets the version of the syntax tree. This is generally the newer of the text version and the project's version.
@@ -120,11 +129,10 @@ namespace Microsoft.CodeAnalysis
             return textVersion.GetNewerVersion(projectVersion);
         }
 
-
         /// <summary>
         /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSyntaxTreeAsync"/> and <see cref="GetSyntaxRootAsync"/> methods.
-        /// 
+        ///
         /// If <see langword="false"/> then these methods will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
@@ -132,8 +140,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSemanticModelAsync"/> method.
-        /// 
-        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
+        ///
+        /// If <see langword="false"/> then that method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSemanticModel
         {
@@ -146,18 +154,27 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
-        public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
+        /// <returns>
+        /// The returned syntax tree can be <see langword="null"/> if the <see cref="SupportsSyntaxTree"/> returns <see
+        /// langword="false"/>. This function may cause computation to occur the first time it is called, but will return
+        /// a cached result every subsequent time.  <see cref="SyntaxTree"/>'s can hold onto their roots lazily. So calls 
+        /// to <see cref="SyntaxTree.GetRoot"/> or <see cref="SyntaxTree.GetRootAsync"/> may end up causing computation
+        /// to occur at that point.
+        /// </returns>
+        public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
         {
             // If the language doesn't support getting syntax trees for a document, then bail out immediately.
             if (!this.SupportsSyntaxTree)
             {
-                return SpecializedTasks.Default<SyntaxTree>();
+                return SpecializedTasks.Null<SyntaxTree>();
             }
 
             // if we have a cached result task use it
             if (_syntaxTreeResultTask != null)
             {
-                return _syntaxTreeResultTask;
+                // _syntaxTreeResultTask is a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
+                // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
+                return _syntaxTreeResultTask!;
             }
             // check to see if we already have the tree before actually going async
             if (TryGetSyntaxTree(out var tree))
@@ -166,14 +183,19 @@ namespace Microsoft.CodeAnalysis
                 // don't use the actual async task because it depends on a specific cancellation token
                 // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
                 Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
-                return _syntaxTreeResultTask;
+
+                // _syntaxTreeResultTask is a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
+                // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
+                return _syntaxTreeResultTask!;
             }
 
             // do it async for real.
-            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask();
+            // GetSyntaxTreeAsync returns a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
+            // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask()!;
         }
 
-        internal SyntaxTree GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
+        internal SyntaxTree? GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
         {
             if (!this.SupportsSyntaxTree)
             {
@@ -188,7 +210,7 @@ namespace Microsoft.CodeAnalysis
         /// In almost all cases, you should call <see cref="GetSyntaxRootAsync"/> to fetch the root node, which will parse
         /// the document if necessary.
         /// </summary>
-        public bool TryGetSyntaxRoot(out SyntaxNode root)
+        public bool TryGetSyntaxRoot([NotNullWhen(returnValue: true)] out SyntaxNode? root)
         {
             root = null;
             return this.TryGetSyntaxTree(out var tree) && tree.TryGetRoot(out root) && root != null;
@@ -197,14 +219,19 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
-        public async Task<SyntaxNode> GetSyntaxRootAsync(CancellationToken cancellationToken = default)
+        /// <returns>
+        /// The returned <see cref="SyntaxNode"/> will be <see langword="null"/> if <see
+        /// cref="SupportsSyntaxTree"/> returns <see langword="false"/>.  This function will return
+        /// the same value if called multiple times.
+        /// </returns>
+        public async Task<SyntaxNode?> GetSyntaxRootAsync(CancellationToken cancellationToken = default)
         {
             if (!this.SupportsSyntaxTree)
             {
                 return null;
             }
 
-            var tree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = (await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
             return await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -213,14 +240,14 @@ namespace Microsoft.CodeAnalysis
         /// on the UI thread).  Right now, the only feature this is for is Outlining as VS will
         /// block on that feature from the UI thread when a document is opened.
         /// </summary>
-        internal SyntaxNode GetSyntaxRootSynchronously(CancellationToken cancellationToken)
+        internal SyntaxNode? GetSyntaxRootSynchronously(CancellationToken cancellationToken)
         {
             if (!this.SupportsSyntaxTree)
             {
                 return null;
             }
 
-            var tree = this.GetSyntaxTreeSynchronously(cancellationToken);
+            var tree = this.GetSyntaxTreeSynchronously(cancellationToken)!;
             return tree.GetRoot(cancellationToken);
         }
 
@@ -229,7 +256,7 @@ namespace Microsoft.CodeAnalysis
         /// In almost all cases, you should call <see cref="GetSemanticModelAsync"/>, which will compute the semantic model
         /// if necessary.
         /// </summary>
-        public bool TryGetSemanticModel(out SemanticModel semanticModel)
+        public bool TryGetSemanticModel([NotNullWhen(returnValue: true)] out SemanticModel? semanticModel)
         {
             semanticModel = null;
             return _model != null && _model.TryGetTarget(out semanticModel);
@@ -238,7 +265,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the semantic model for this document asynchronously.
         /// </summary>
-        public async Task<SemanticModel> GetSemanticModelAsync(CancellationToken cancellationToken = default)
+        /// <returns>
+        /// The returned <see cref="SemanticModel"/> may be <see langword="null"/> if <see
+        /// cref="SupportsSemanticModel"/> returns <see langword="false"/>. This function will
+        /// return the same value if called multiple times.
+        /// </returns>
+        public async Task<SemanticModel?> GetSemanticModelAsync(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -252,8 +284,8 @@ namespace Microsoft.CodeAnalysis
                     return semanticModel;
                 }
 
-                var syntaxTree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var compilation = await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
 
                 var result = compilation.GetSemanticModel(syntaxTree);
                 Contract.ThrowIfNull(result);
@@ -280,7 +312,7 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -290,50 +322,41 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of this document updated to have the source code kind specified.
         /// </summary>
         public Document WithSourceCodeKind(SourceCodeKind kind)
-        {
-            return this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetDocument(this.Id);
-        }
+            => this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the text specified.
         /// </summary>
         public Document WithText(SourceText text)
-        {
-            return this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetDocument(this.Id);
-        }
+            => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
         /// </summary>
         public Document WithSyntaxRoot(SyntaxNode root)
-        {
-            return this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id);
-        }
+            => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the specified name.
         /// </summary>
         public Document WithName(string name)
-        {
-            return this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id);
-        }
+            => this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the specified folders.
         /// </summary>
         public Document WithFolders(IEnumerable<string> folders)
-        {
-            return this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id);
-        }
+            => this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the specified file path.
         /// </summary>
         /// <param name="filePath"></param>
+        // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
+        // filePath is null, but it's odd because we *do* support null file paths. Why can't you switch a
+        // document back to null?
         public Document WithFilePath(string filePath)
-        {
-            return this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id);
-        }
+            => this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id)!;
 
         /// <summary>
         /// Get the text changes between this document and a prior version of the same document.
@@ -357,7 +380,6 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // first try to see if text already knows its changes
-                    IList<TextChange> textChanges = null;
                     if (this.TryGetText(out var text) && oldDocument.TryGetText(out var oldText))
                     {
                         if (text == oldText)
@@ -368,7 +390,7 @@ namespace Microsoft.CodeAnalysis
                         var container = text.Container;
                         if (container != null)
                         {
-                            textChanges = text.GetTextChanges(oldText).ToList();
+                            var textChanges = text.GetTextChanges(oldText).ToList();
 
                             // if changes are significant (not the whole document being replaced) then use these changes
                             if (textChanges.Count > 1 || (textChanges.Count == 1 && textChanges[0].Span != new TextSpan(0, oldText.Length)))
@@ -381,9 +403,10 @@ namespace Microsoft.CodeAnalysis
                     // get changes by diffing the trees
                     if (this.SupportsSyntaxTree)
                     {
-                        var tree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        var tree = (await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
                         var oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
+                        RoslynDebug.Assert(oldTree is object);
                         return tree.GetChanges(oldTree);
                     }
 
@@ -393,7 +416,7 @@ namespace Microsoft.CodeAnalysis
                     return text.GetTextChanges(oldText).ToList();
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -408,7 +431,7 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<DocumentId> GetLinkedDocumentIds()
         {
             var documentIdsWithPath = this.Project.Solution.GetDocumentIdsWithFilePath(this.FilePath);
-            var filteredDocumentIds = this.Project.Solution.FilterDocumentIdsByLanguage(documentIdsWithPath, this.Project.Language).ToImmutableArray();
+            var filteredDocumentIds = this.Project.Solution.FilterDocumentIdsByLanguage(documentIdsWithPath, this.Project.Language);
             return filteredDocumentIds.Remove(this.Id);
         }
 
@@ -419,22 +442,20 @@ namespace Microsoft.CodeAnalysis
         ///
         /// Use this method to gain access to potentially incomplete semantics quickly.
         /// </summary>
-        internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;
 
-            // only produce doc with frozen semantics if this document is part of the workspace's
-            // primary branch and there is actual background compilation going on, since w/o
+            // only produce doc with frozen semantics if this workspace has support for that, as without
             // background compilation the semantics won't be moving toward completeness.  Also,
             // ensure that the project that this document is part of actually supports compilations,
             // as partial semantics don't make sense otherwise.
-            if (solution.BranchId == workspace.PrimaryBranchId &&
-                workspace.PartialSemanticsEnabled &&
+            if (workspace.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
                 var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
-                return newSolution.GetDocument(this.Id);
+                return newSolution.GetDocument(this.Id)!;
             }
             else
             {
@@ -443,11 +464,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private string GetDebuggerDisplay()
-        {
-            return this.Name;
-        }
+            => this.Name;
 
-        private AsyncLazy<DocumentOptionSet> _cachedOptions;
+        private AsyncLazy<DocumentOptionSet>? _cachedOptions;
 
         /// <summary>
         /// Returns the options that should be applied to this document. This consists of global options from <see cref="Solution.Options"/>,
@@ -457,26 +476,25 @@ namespace Microsoft.CodeAnalysis
         /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
         /// </remarks>
         public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default)
-        {
-            return GetOptionsAsync(Project.Solution.Options, cancellationToken);
-        }
+            => GetOptionsAsync(Project.Solution.Options, cancellationToken);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", AllowCaptures = false)]
         internal Task<DocumentOptionSet> GetOptionsAsync(OptionSet solutionOptions, CancellationToken cancellationToken)
         {
             // TODO: we have this workaround since Solution.Options is not actually snapshot but just return Workspace.Options which violate snapshot model.
             //       this doesn't validate whether same optionset is given to invalidate the cache or not. this is not new since existing implementation
-            //       also didn't check whether Workspace.Option is same as before or not. all wierd-ness come from the root cause of Solution.Options violating
+            //       also didn't check whether Workspace.Option is same as before or not. all weird-ness come from the root cause of Solution.Options violating
             //       snapshot model. once that is fixed, we can remove this workaround - https://github.com/dotnet/roslyn/issues/19284
             if (_cachedOptions == null)
             {
-                InitializeCachedOptions(solutionOptions, cancellationToken);
+                InitializeCachedOptions(solutionOptions);
             }
 
+            Contract.ThrowIfNull(_cachedOptions);
             return _cachedOptions.GetValueAsync(cancellationToken);
         }
 
-        private void InitializeCachedOptions(OptionSet solutionOptions, CancellationToken cancellationToken)
+        private void InitializeCachedOptions(OptionSet solutionOptions)
         {
             var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
             {
@@ -490,7 +508,35 @@ namespace Microsoft.CodeAnalysis
 
         internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
         {
-            return DocumentState.GetAnalyzerOptionsAsync(Project.FilePath, cancellationToken);
+            var projectFilePath = Project.FilePath;
+            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+            // as a part of a code action, but haven't been written to disk yet.
+            string? effectiveFilePath = null;
+
+            if (FilePath != null)
+            {
+                effectiveFilePath = FilePath;
+            }
+            else if (Name != null && projectFilePath != null)
+            {
+                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+                if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
+                {
+                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
+                }
+            }
+
+            if (effectiveFilePath != null)
+            {
+                return Project.State.GetAnalyzerOptionsForPathAsync(effectiveFilePath, cancellationToken);
+            }
+            else
+            {
+                // Really no idea where this is going, so bail
+                return Task.FromResult(DictionaryAnalyzerConfigOptions.EmptyDictionary);
+            }
         }
     }
 }

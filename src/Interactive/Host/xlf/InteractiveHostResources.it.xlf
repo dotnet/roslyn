@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
         <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">Il tentativo di connessione al processo {0} non è riuscito. Nuovo tentativo in corso...</target>
+        <target state="translated">Il tentativo di connessione al processo {0} non è riuscito. Verrà effettuato un nuovo tentativo...</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_resolve_reference_0">
@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">Non è stato possibile creare un processo remoto per l'esecuzione di codice interattiva.</target>
+        <source>Failed to create a remote process for interactive code execution: '{0}'</source>
+        <target state="translated">Non è stato possibile creare un processo remoto per l'esecuzione di codice interattiva: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_initialize_remote_interactive_process">

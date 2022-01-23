@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.  
 
+#nullable disable
+
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -11,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
@@ -19,13 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
     internal class VisualStudioPullMemberUpService : IPullMemberUpOptionsService
     {
         private readonly IGlyphService _glyphService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         [ImportingConstructor]
-        public VisualStudioPullMemberUpService(IGlyphService glyphService, IWaitIndicator waitIndicator)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioPullMemberUpService(IGlyphService glyphService, IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _glyphService = glyphService;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
         public PullMembersUpOptions GetPullMemberUpOptions(Document document, ISymbol selectedMember)
@@ -36,35 +43,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 .SelectAsArray(member =>
                     new PullMemberUpSymbolViewModel(member, _glyphService)
                     {
-                        // The member user selected will be checked at the begining.
+                        // The member user selected will be checked at the beginning.
                         IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedMember, member),
                         MakeAbstract = false,
                         IsMakeAbstractCheckable = !member.IsKind(SymbolKind.Field) && !member.IsAbstract,
                         IsCheckable = true
                     });
 
-            using (var cancellationTokenSource = new CancellationTokenSource())
-            {
-                var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
-                    _glyphService,
-                    document.Project.Solution,
-                    selectedMember.ContainingType,
-                    cancellationTokenSource.Token).BaseTypeNodes;
-                var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
-                var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
-                var dialog = new PullMemberUpDialog(viewModel);
-                var result = dialog.ShowModal();
+            using var cancellationTokenSource = new CancellationTokenSource();
+            var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
+                _glyphService,
+                document.Project.Solution,
+                selectedMember.ContainingType,
+                cancellationTokenSource.Token);
+            var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
+            var viewModel = new PullMemberUpDialogViewModel(_uiThreadOperationExecutor, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
+            var dialog = new PullMemberUpDialog(viewModel);
+            var result = dialog.ShowModal();
 
-                // Dialog has finshed its work, cancel finding dependents task.
-                cancellationTokenSource.Cancel();
-                if (result.GetValueOrDefault())
-                {
-                    return dialog.ViewModel.CreatePullMemberUpOptions();
-                }
-                else
-                {
-                    return null;
-                }
+            // Dialog has finshed its work, cancel finding dependents task.
+            cancellationTokenSource.Cancel();
+            if (result.GetValueOrDefault())
+            {
+                return dialog.ViewModel.CreatePullMemberUpOptions();
+            }
+            else
+            {
+                return null;
             }
         }
     }

@@ -1,4 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.IO;
 using System.Linq;
@@ -14,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
     {
         private class TestCompilationOutputs : CompilationOutputs
         {
-            private readonly Func<Stream> _openAssemblyStream;
-            private readonly Func<Stream> _openPdbStream;
+            private readonly Func<Stream?>? _openAssemblyStream;
+            private readonly Func<Stream?>? _openPdbStream;
 
-            public TestCompilationOutputs(Func<Stream> openAssemblyStream = null, Func<Stream> openPdbStream = null)
+            public TestCompilationOutputs(Func<Stream?>? openAssemblyStream = null, Func<Stream?>? openPdbStream = null)
             {
                 _openAssemblyStream = openAssemblyStream;
                 _openPdbStream = openPdbStream;
@@ -25,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
 
             public override string AssemblyDisplayPath => "assembly";
             public override string PdbDisplayPath => "pdb";
-            protected override Stream OpenAssemblyStream() => (_openAssemblyStream ?? throw new NotImplementedException()).Invoke();
-            protected override Stream OpenPdbStream() => (_openPdbStream ?? throw new NotImplementedException()).Invoke();
+            protected override Stream? OpenAssemblyStream() => (_openAssemblyStream ?? throw new NotImplementedException()).Invoke();
+            protected override Stream? OpenPdbStream() => (_openPdbStream ?? throw new NotImplementedException()).Invoke();
         }
 
         [Theory]
@@ -54,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
             var pdbStream = (format != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
             var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: format), pdbStream: pdbStream);
 
-            Stream currentPEStream = null;
-            Stream currentPdbStream = null;
+            Stream? currentPEStream = null;
+            Stream? currentPdbStream = null;
 
             var outputs = new TestCompilationOutputs(
                 openAssemblyStream: () => currentPEStream = new MemoryStream(peImage.ToArray()),
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
 
             using (var pdb = outputs.OpenPdb())
             {
-                var encReader = pdb.CreateEditAndContinueMethodDebugInfoReader();
+                var encReader = pdb!.CreateEditAndContinueMethodDebugInfoReader();
                 Assert.Equal(format != DebugInformationFormat.Pdb, encReader.IsPortable);
                 var localSig = encReader.GetLocalSignature(MetadataTokens.MethodDefinitionHandle(1));
                 Assert.Equal(MetadataTokens.StandaloneSignatureHandle(1), localSig);
@@ -83,18 +86,18 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
 
             if (format == DebugInformationFormat.Embedded)
             {
-                Assert.Throws<ObjectDisposedException>(() => currentPEStream.Length);
+                Assert.Throws<ObjectDisposedException>(() => currentPEStream!.Length);
             }
             else
             {
-                Assert.Throws<ObjectDisposedException>(() => currentPdbStream.Length);
+                Assert.Throws<ObjectDisposedException>(() => currentPdbStream!.Length);
             }
 
             using (var metadata = outputs.OpenAssemblyMetadata(prefetch: false))
             {
-                Assert.NotEqual(0, currentPEStream.Length);
+                Assert.NotEqual(0, currentPEStream!.Length);
 
-                var mdReader = metadata.GetMetadataReader();
+                var mdReader = metadata!.GetMetadataReader();
                 Assert.Equal("lib", mdReader.GetString(mdReader.GetAssemblyDefinition().Name));
             }
 
@@ -105,9 +108,21 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
                 // the stream has been closed since we prefetched the metadata:
                 Assert.Throws<ObjectDisposedException>(() => currentPEStream.Length);
 
-                var mdReader = metadata.GetMetadataReader();
+                var mdReader = metadata!.GetMetadataReader();
                 Assert.Equal("lib", mdReader.GetString(mdReader.GetAssemblyDefinition().Name));
             }
+
+            Assert.NotEqual(Guid.Empty, outputs.ReadAssemblyModuleVersionId());
+        }
+
+        [Fact]
+        public void ReadAssemblyModuleVersionId_NoAssembly()
+        {
+            var outputs = new TestCompilationOutputs(
+                openAssemblyStream: () => null,
+                openPdbStream: () => null);
+
+            Assert.Equal(Guid.Empty, outputs.ReadAssemblyModuleVersionId());
         }
     }
 }

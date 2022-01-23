@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -27,20 +28,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given code fix provider or suppression fix provider.
         /// </summary>
-        public static FixAllProviderInfo Create(object provider)
+        public static FixAllProviderInfo? Create(object provider)
         {
             if (provider is CodeFixProvider codeFixProvider)
             {
                 return CreateWithCodeFixer(codeFixProvider);
             }
 
-            return CreateWithSuppressionFixer((ISuppressionFixProvider)provider);
+            return CreateWithSuppressionFixer((IConfigurationFixProvider)provider);
         }
 
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given code fix provider.
         /// </summary>
-        private static FixAllProviderInfo CreateWithCodeFixer(CodeFixProvider provider)
+        private static FixAllProviderInfo? CreateWithCodeFixer(CodeFixProvider provider)
         {
             var fixAllProvider = provider.GetFixAllProvider();
             if (fixAllProvider == null)
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given suppression fix provider.
         /// </summary>
-        private static FixAllProviderInfo CreateWithSuppressionFixer(ISuppressionFixProvider provider)
+        private static FixAllProviderInfo? CreateWithSuppressionFixer(IConfigurationFixProvider provider)
         {
             var fixAllProvider = provider.GetFixAllProvider();
             if (fixAllProvider == null)
@@ -99,9 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             public override bool CanBeFixed(Diagnostic diagnostic)
-            {
-                return _supportedDiagnosticIds.Contains(diagnostic.Id);
-            }
+                => _supportedDiagnosticIds.Contains(diagnostic.Id);
         }
 
         private class SuppressionFixerFixAllProviderInfo : FixAllProviderInfo
@@ -110,17 +109,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public SuppressionFixerFixAllProviderInfo(
                 FixAllProvider fixAllProvider,
-                ISuppressionFixProvider suppressionFixer,
+                IConfigurationFixProvider suppressionFixer,
                 ImmutableArray<FixAllScope> supportedScopes)
                 : base(fixAllProvider, supportedScopes)
             {
-                _canBeSuppressedOrUnsuppressed = suppressionFixer.CanBeSuppressedOrUnsuppressed;
+                _canBeSuppressedOrUnsuppressed = suppressionFixer.IsFixableDiagnostic;
             }
 
             public override bool CanBeFixed(Diagnostic diagnostic)
-            {
-                return _canBeSuppressedOrUnsuppressed(diagnostic);
-            }
+                => _canBeSuppressedOrUnsuppressed(diagnostic);
         }
     }
 }

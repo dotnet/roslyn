@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Threading;
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
                     solution, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
-                return declarations.SelectAsArray(t => t.Symbol);
+                return declarations;
             }
         }
 
@@ -49,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
                     project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(t => t.Symbol);
+                return declarations;
             }
         }
 
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
                     solution, pattern, filter, cancellationToken).ConfigureAwait(false);
-                return declarations.SelectAsArray(t => t.Symbol);
+                return declarations;
             }
         }
 
@@ -108,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
                     project, pattern, filter, cancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(t => t.Symbol);
+                return declarations;
             }
         }
 

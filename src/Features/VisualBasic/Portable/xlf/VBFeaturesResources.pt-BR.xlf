@@ -20,16 +20,31 @@
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="translated">Adicionar Importações ausentes</target>
-        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+        <note>{Locked="Import"}</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
         <target state="translated">Adicionar 'Shadows'</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">A instrução 'If' pode ser simplificada</target>
+      <trans-unit id="Apply_Imports_directive_placement_preferences">
+        <source>Apply Imports directive placement preferences</source>
+        <target state="translated">Aplicar as preferências de posicionamento de diretiva de Imports</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Apply_Me_qualification_preferences">
+        <source>Apply Me qualification preferences</source>
+        <target state="translated">Aplicar as preferências de qualificação de Me</target>
+        <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Change_to_DirectCast">
+        <source>Change to 'DirectCast'</source>
+        <target state="translated">Alterar para 'DirectCast'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_TryCast">
+        <source>Change to 'TryCast'</source>
+        <target state="translated">Alterar para 'TryCast'</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_0">
@@ -74,8 +89,13 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="translated">Tornar '{0}' herdável</target>
+        <target state="translated">Alterar '{0}' para herdável</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_private_field_ReadOnly_when_possible">
+        <source>Make private field ReadOnly when possible</source>
+        <target state="translated">Fazer com que o campo privado seja ReadOnly quando possível</target>
+        <note>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
@@ -92,14 +112,19 @@
         <target state="translated">&lt;Vários Tipos&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Remover Importações Desnecessárias</target>
-        <note />
+      <trans-unit id="Organize_Imports">
+        <source>Organize Imports</source>
+        <target state="translated">Organizar as Imports</target>
+        <note>{Locked="Import"}</note>
       </trans-unit>
-      <trans-unit id="Sort_Imports">
-        <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
+      <trans-unit id="Remove_shared_keyword_from_module_member">
+        <source>Remove 'Shared' keyword from Module member</source>
+        <target state="translated">Remover a palavra-chave 'Shared' do membro do Módulo</target>
+        <note>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Shared_constructor">
+        <source>Shared constructor</source>
+        <target state="translated">Construtor compartilhado</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -110,6 +135,11 @@
       <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
         <source>Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab.</source>
         <target state="translated">Observação: o preenchimento de espaço está desabilitado para evitar interferências em potencial. Para inserir um nome da lista, use tab.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="translated">({0} Eventos)</target>
         <note />
       </trans-unit>
       <trans-unit id="new_field">
@@ -159,7 +189,7 @@
       </trans-unit>
       <trans-unit id="AddHandler_statement">
         <source>AddHandler statement</source>
-        <target state="translated">Instrução AdicionarManipuladora</target>
+        <target state="translated">Instrução AddHandler</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveHandler_statement">
@@ -220,7 +250,7 @@
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
         <target state="translated">Remover qualificação 'Me'</target>
-        <note />
+        <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
@@ -302,21 +332,6 @@
         <target state="translated">Seleção inválida</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
-        <source>Selection doesn't contain any valid token</source>
-        <target state="translated">A seleção não contém qualquer token válido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction</source>
-        <target state="translated">Nenhuma seleção válida para realizar a extração</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction</source>
-        <target state="translated">Não há um nó raiz comum para extração</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">Preterido</target>
@@ -340,11 +355,6 @@
       <trans-unit id="new_variable">
         <source>&lt;new variable&gt;</source>
         <target state="translated">&lt;nova variável&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">R&amp;emover e Classificar Importações</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
@@ -942,11 +952,6 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
         <target state="translated">Especifica a ordem de classificação para uma cláusula Classificar Por em uma consulta. O menor elemento aparecerá primeiro.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">Assincronamente aguarda a conclusão da tarefa.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
         <source>Sets the string comparison method specified in Option Compare to a strict binary sort order.</source>
         <target state="translated">Define o método de comparação de cadeia de caracteres especificado na Opção Compare como uma ordem de classificação binária estrita.</target>
@@ -1357,7 +1362,7 @@ Return -or- Return &lt;expression&gt;</target>
       <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
         <source>When set to On, restricts implicit data type conversions to only widening conversions.
 Option Strict {On | Off}</source>
-        <target state="translated">Quando definido como Ativado, restringe conversões de tipo de dados implícitos para somente conversões de ampliação.
+        <target state="translated">Quando definido como Ativado, restringe conversões de tipo de dados implícitos para somente conversões de expansão.
 Opção Strict {On | Off}</target>
         <note />
       </trans-unit>
@@ -1487,11 +1492,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Tornar {0} uma Função Assíncrona.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Inserir Coversão ausente</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">Converter {0} para Iterador</target>
@@ -1514,7 +1514,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Gerar conversão redutora no '{0}'</target>
+        <target state="translated">Gerar conversão de restrição no '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
@@ -1522,69 +1522,39 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Gerar conversão de expansão no '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">Não altere este código. Coloque o código de limpeza em Dispose(disposing As Boolean) acima.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: liberar recursos não gerenciados (objetos não gerenciados) e substituir um Finalize() abaixo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: substituir Finalize() somente se Dispose(disposing As Boolean) acima tiver o código para liberar recursos não gerenciados.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Código adicionado pelo Visual Basic para implementar corretamente o padrão descartável.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: remover marca de comentário da linha a seguir se Finalize() for substituído acima.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">A instrução Imports é desnecessária.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
-        <target state="translated">Bloco Tentar</target>
+        <target state="translated">Bloco Try</target>
         <note>{Locked="Try"} "Try" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Catch_clause">
         <source>Catch clause</source>
-        <target state="translated">Cláusula Obter</target>
+        <target state="translated">Cláusula Catch</target>
         <note>{Locked="Catch"} "Catch" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Finally_clause">
         <source>Finally clause</source>
-        <target state="translated">Cláusula Finalmente</target>
+        <target state="translated">Cláusula Finally</target>
         <note>{Locked="Finally"} "Finally" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_statement">
         <source>Using statement</source>
-        <target state="translated">Usando instrução</target>
+        <target state="translated">Instrução Using</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_block">
         <source>Using block</source>
-        <target state="translated">Bloco Usando</target>
+        <target state="translated">Bloco Using</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="With_statement">
         <source>With statement</source>
-        <target state="translated">Instrução Com</target>
+        <target state="translated">Instrução With</target>
         <note>{Locked="With"} "With" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="With_block">
         <source>With block</source>
-        <target state="translated">Bloco Com</target>
+        <target state="translated">Bloco With</target>
         <note>{Locked="With"} "With" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="SyncLock_statement">
@@ -1599,17 +1569,17 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="For_Each_statement">
         <source>For Each statement</source>
-        <target state="translated">Instrução Para Cada</target>
+        <target state="translated">Instrução For Each</target>
         <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="For_Each_block">
         <source>For Each block</source>
-        <target state="translated">Bloco Para Cada</target>
+        <target state="translated">Bloco For Each</target>
         <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="On_Error_statement">
         <source>On Error statement</source>
-        <target state="translated">Instrução Em Caso de Erro</target>
+        <target state="translated">Instrução On Error</target>
         <note>{Locked="On Error"} "On Error" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Resume_statement">
@@ -1619,12 +1589,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Yield_statement">
         <source>Yield statement</source>
-        <target state="translated">Instrução Rendimento</target>
+        <target state="translated">Instrução Yield</target>
         <note>{Locked="Yield"} "Yield" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Await_expression">
         <source>Await expression</source>
-        <target state="translated">Expressão Aguardar</target>
+        <target state="translated">Expressão Await</target>
         <note>{Locked="Await"} "Await" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Lambda">
@@ -1639,7 +1609,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Select_clause">
         <source>Select clause</source>
-        <target state="translated">Cláusula Selecionar</target>
+        <target state="translated">Cláusula Select</target>
         <note>{Locked="Select"} "Select" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="From_clause">
@@ -1654,22 +1624,22 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Let_clause">
         <source>Let clause</source>
-        <target state="translated">Cláusula Deixar</target>
+        <target state="translated">Cláusula Let</target>
         <note>{Locked="Let"} "Let" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Join_clause">
         <source>Join clause</source>
-        <target state="translated">Cláusula Ingressar</target>
+        <target state="translated">Cláusula Join</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Group_Join_clause">
         <source>Group Join clause</source>
-        <target state="translated">Cláusula Ingressar Grupo</target>
+        <target state="translated">Cláusula Group Join</target>
         <note>{Locked="Group Join"} "Group Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Group_By_clause">
         <source>Group By clause</source>
-        <target state="translated">Cláusula Agrupar Por</target>
+        <target state="translated">Cláusula Group By</target>
         <note>{Locked="Group By"} "Group By" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Function_aggregation">
@@ -1679,22 +1649,22 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Take_While_clause">
         <source>Take While clause</source>
-        <target state="translated">Cláusula Obter Durante</target>
+        <target state="translated">Cláusula Take While</target>
         <note>{Locked="Take While"} "Take While" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Skip_While_clause">
         <source>Skip While clause</source>
-        <target state="translated">Cláusula Ignorar Durante</target>
+        <target state="translated">Cláusula Skip While</target>
         <note>{Locked="Skip While"} "Skip While" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Ordering_clause">
         <source>Ordering clause</source>
-        <target state="translated">Cláusula Ordenação</target>
+        <target state="translated">Cláusula Ordering</target>
         <note>{Locked="Ordering"} "Ordering" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">Condição Ingressar</target>
+        <target state="translated">Condição Join</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1702,14 +1672,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Campo de WithEvents</target>
         <note>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="property_accessor">
-        <source>property accessor</source>
-        <target state="translated">acessador de propriedade</target>
-        <note />
-      </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>
-        <target state="translated">como cláusula</target>
+        <target state="translated">cláusula as</target>
         <note>{Locked="as"} "as" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="type_parameters">
@@ -1769,7 +1734,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nome de classe&gt;</target>
+        <target state="translated">&lt;nome da classe&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
@@ -1830,21 +1795,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Tornar Sub Assíncrona</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Adicionar 'Me.'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Usar a verificação 'Is Nothing'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Usar a verificação 'IsNot Nothing'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

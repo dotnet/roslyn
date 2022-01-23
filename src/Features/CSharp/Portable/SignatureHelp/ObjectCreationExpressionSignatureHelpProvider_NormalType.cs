@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -15,55 +17,52 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private (IList<SignatureHelpItem> items, int? selectedItem) GetNormalTypeConstructors(
-            Document document,
-            ObjectCreationExpressionSyntax objectCreationExpression,
+        private static (IList<SignatureHelpItem> items, int? selectedItem) GetNormalTypeConstructors(
+            BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService,
             INamedTypeSymbol normalType,
             ISymbol within,
+            SignatureHelpOptions options,
             CancellationToken cancellationToken)
         {
             var accessibleConstructors = normalType.InstanceConstructors
                                                    .WhereAsArray(c => c.IsAccessibleWithin(within))
-                                                   .WhereAsArray(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
-                                                   .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
+                                                   .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
+                                                   .Sort(semanticModel, objectCreationExpression.SpanStart);
 
             var symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken);
-            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
 
             var items = accessibleConstructors.SelectAsArray(c =>
-                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
+                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
 
             return (items, selectedItem);
         }
 
-        private SignatureHelpItem ConvertNormalTypeConstructor(
+        private static SignatureHelpItem ConvertNormalTypeConstructor(
             IMethodSymbol constructor,
-            ObjectCreationExpressionSyntax objectCreationExpression,
+            BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
-            CancellationToken cancellationToken)
+            IStructuralTypeDisplayService structuralTypeDisplayService,
+            IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = objectCreationExpression.SpanStart;
             var item = CreateItem(
                 constructor, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 constructor.IsParams(),
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
-                GetNormalTypePostambleParts(constructor),
-                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                GetNormalTypePostambleParts(),
+                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
 
             return item;
         }
 
-        private IList<SymbolDisplayPart> GetNormalTypePreambleParts(
+        private static IList<SymbolDisplayPart> GetNormalTypePreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetNormalTypePostambleParts(IMethodSymbol method)
+        private static IList<SymbolDisplayPart> GetNormalTypePostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

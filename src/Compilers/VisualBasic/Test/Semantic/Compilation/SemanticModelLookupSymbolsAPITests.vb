@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -105,7 +108,7 @@ Imports System
             ' Outside the method, all B's are available.
             syms = semanticModel.LookupSymbols(posOutside, Nothing, "b", Nothing)
             Assert.Equal(3, syms.Length)
-            Dim fullNames = From s In syms.AsEnumerable Order By s.ToTestDisplayString() Select s.ToTestDisplayString()
+            Dim fullNames = syms.Select(Function(x) x.ToTestDisplayString()).OrderBy(StringComparer.Ordinal).ToArray()
             Assert.Equal("A.B(Of X)", fullNames(0))
             Assert.Equal("A.B(Of X, Y)", fullNames(1))
             Assert.Equal("B", fullNames(2))
@@ -113,7 +116,7 @@ Imports System
             ' Inside the method, all B's are available if only types/namespace are allowed
             syms = semanticModel.LookupNamespacesAndTypes(posOutside, Nothing, "b")
             Assert.Equal(3, syms.Length)
-            fullNames = From s In syms.AsEnumerable Order By s.ToTestDisplayString() Select s.ToTestDisplayString()
+            fullNames = syms.Select(Function(x) x.ToTestDisplayString()).OrderBy(StringComparer.Ordinal).ToArray()
             Assert.Equal("A.B(Of X)", fullNames(0))
             Assert.Equal("A.B(Of X, Y)", fullNames(1))
             Assert.Equal("B", fullNames(2))
@@ -305,7 +308,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {SystemCoreRef})
+</compilation>, {TestMetadata.Net40.SystemCore})
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)

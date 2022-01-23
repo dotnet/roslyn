@@ -1,50 +1,40 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract class AbstractFormattingAnalyzer
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractFormattingAnalyzer()
             : base(
                 IDEDiagnosticIds.FormattingDiagnosticId,
+                EnforceOnBuildValues.Formatting,
+                option: null,
                 new LocalizableResourceString(nameof(CodeStyleResources.Fix_formatting), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)),
                 new LocalizableResourceString(nameof(CodeStyleResources.Fix_formatting), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)))
         {
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(Descriptor);
+
+        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
 
-        protected override void InitializeWorker(AnalysisContext context)
+        protected sealed override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+
+        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
-            context.RegisterSyntaxTreeAction(c => AnalyzeSyntaxTree(c, codingConventionsManager));
-        }
-
-        protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, ICodingConventionContext codingConventionContext);
-
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ICodingConventionsManager codingConventionsManager)
-        {
-            var tree = context.Tree;
-            var cancellationToken = context.CancellationToken;
-
-            OptionSet options = CompilerAnalyzerConfigOptions.Empty;
-            if (File.Exists(tree.FilePath))
-            {
-                var codingConventionContext = codingConventionsManager.GetConventionContextAsync(tree.FilePath, cancellationToken).GetAwaiter().GetResult();
-                options = ApplyFormattingOptions(options, codingConventionContext);
-            }
-
+            var options = SyntaxFormattingOptions.Create(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree));
             FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormattingService, Descriptor, options);
         }
     }

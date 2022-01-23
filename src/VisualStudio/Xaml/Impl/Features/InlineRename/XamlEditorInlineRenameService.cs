@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -20,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
         private readonly IXamlRenameInfoService _renameService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlEditorInlineRenameService(IXamlRenameInfoService renameService)
         {
             _renameService = renameService;
@@ -29,21 +35,17 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
         {
             var renameInfo = await _renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-            return new InlineRenameInfo(_renameService, document, position, renameInfo);
+            return new InlineRenameInfo(document, renameInfo);
         }
 
         private class InlineRenameInfo : IInlineRenameInfo
         {
-            private readonly IXamlRenameInfoService _renameService;
             private readonly Document _document;
-            private readonly int _position;
             private readonly IXamlRenameInfo _renameInfo;
 
-            public InlineRenameInfo(IXamlRenameInfoService renameService, Document document, int position, IXamlRenameInfo renameInfo)
+            public InlineRenameInfo(Document document, IXamlRenameInfo renameInfo)
             {
-                _renameService = renameService;
                 _document = document;
-                _position = position;
                 _renameInfo = renameInfo;
             }
 
@@ -63,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
             public TextSpan TriggerSpan => _renameInfo.TriggerSpan;
 
+            // This property isn't currently supported in XAML since it would involve modifying the IXamlRenameInfo interface.
+            public ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations => default;
+
             public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var references = new List<InlineRenameLocation>();
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     references.ToImmutableArray());
             }
 
-            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
+            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
             {
                 return location.TextSpan;
             }
@@ -90,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                 return replacementText;
             }
 
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken)
+            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
             {
                 return location.TextSpan;
             }
@@ -178,11 +183,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     public IEnumerable<DocumentId> DocumentIds => _inlineRenameLocationSet.Locations.Select(l => l.Document.Id).Distinct();
 
                     public bool ReplacementTextValid => _inlineRenameLocationSet.IsReplacementTextValid(_replacementText);
-
-                    public IEnumerable<TextSpan> GetConflictSpans(DocumentId documentId)
-                    {
-                        yield break;
-                    }
 
                     public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
                     {

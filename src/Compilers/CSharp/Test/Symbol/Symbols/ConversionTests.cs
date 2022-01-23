@@ -1,14 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void Test1()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var mscorlibRef = TestMetadata.Net40.mscorlib;
             var compilation = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
             var sys = compilation.GlobalNamespace.ChildNamespace("System");
             Conversions c = new BuckStopsHereBinder(compilation).Conversions;
@@ -219,7 +222,7 @@ class X {
     O<dynamic> f10;
 }
 ";
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var mscorlibRef = TestMetadata.Net40.mscorlib;
             var compilation = CSharpCompilation.Create("Test", new[] { Parse(code) }, new[] { mscorlibRef });
             var global = compilation.GlobalNamespace;
 
@@ -341,7 +344,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             var tuple = GetBindingNodeAndModel<ExpressionSyntax>(comp);
             Assert.Equal(ConversionKind.Identity, tuple.Item2.ClassifyConversion(tuple.Item1, comp.GetSpecialType(SpecialType.System_Boolean)).Kind);
         }
@@ -379,7 +382,7 @@ class Program
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var compilation = CSharpCompilation.Create("MyCompilation")
+            var compilation = (Compilation)CSharpCompilation.Create("MyCompilation")
                 .AddReferences(MscorlibRef)
                 .AddSyntaxTrees(tree);
 
@@ -390,7 +393,7 @@ class Program
                 .FindToken(source.IndexOf("ii", StringComparison.Ordinal)).Parent;
 
             // Get TypeSymbol corresponding to above VariableDeclaratorSyntax.
-            TypeSymbol targetType = ((LocalSymbol)model.GetDeclaredSymbol(variableDeclarator)).Type;
+            ITypeSymbol targetType = ((ILocalSymbol)model.GetDeclaredSymbol(variableDeclarator)).Type;
 
             // Perform ClassifyConversion for expressions from within the above SyntaxTree.
             var sourceExpression1 = (ExpressionSyntax)tree.GetCompilationUnitRoot()
@@ -1035,9 +1038,10 @@ class Convertible
         throw null;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (6,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "new Convertible()"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1705,7 +1709,7 @@ class C<T>
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): error CS0457: Ambiguous user defined conversions 'C<int>.explicit operator C<int>(int)' and 'C<int>.implicit operator C<int>(int)' when converting from 'int' to 'C<int>'
                 //         C<int> x1 = (C<int>)1; // Expression to type
@@ -1714,8 +1718,8 @@ class C<T>
                 //         foreach (C<int> x2 in a) { } // Type to type
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "foreach").WithArguments("C<int>.explicit operator C<int>(int)", "C<int>.implicit operator C<int>(int)", "int", "C<int>"));
 
-            var destinationType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            var conversionSymbols = destinationType.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Conversion);
+            var destinationType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C").Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            var conversionSymbols = destinationType.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Conversion);
             Assert.Equal(2, conversionSymbols.Count());
 
             var tree = comp.SyntaxTrees.Single();
@@ -1731,9 +1735,9 @@ class C<T>
             var forEachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var memberModel = ((CSharpSemanticModel)model).GetMemberModel(forEachSyntax);
             var boundForEach = memberModel.GetBoundNodes(forEachSyntax).OfType<BoundForEachStatement>().Single();
-            var elementConversion = boundForEach.ElementConversion;
+            var elementConversion = BoundNode.GetConversion(boundForEach.ElementConversion, boundForEach.ElementPlaceholder);
             Assert.Equal(LookupResultKind.OverloadResolutionFailure, elementConversion.ResultKind);
-            AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions, conversionSymbols);
+            AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions.GetPublicSymbols(), conversionSymbols);
         }
 
         [WorkItem(715207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715207")]
@@ -1787,7 +1791,7 @@ public class Test
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -1795,10 +1799,10 @@ public class Test
 
             var symbol = model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SymbolKind.Method, symbol.Kind);
-            var method = (MethodSymbol)symbol;
+            var method = (IMethodSymbol)symbol;
             Assert.Equal(MethodKind.Conversion, method.MethodKind);
-            Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), method.ContainingType);
-            Assert.Equal(SpecialType.System_Byte, method.ParameterTypesWithAnnotations.Single().SpecialType);
+            Assert.Equal(comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), method.ContainingType);
+            Assert.Equal(SpecialType.System_Byte, method.Parameters.Single().Type.SpecialType);
         }
 
         [WorkItem(737732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
@@ -1821,7 +1825,7 @@ public struct C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -1829,10 +1833,10 @@ public struct C
 
             var symbol = model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SymbolKind.Method, symbol.Kind);
-            var method = (MethodSymbol)symbol;
+            var method = (IMethodSymbol)symbol;
             Assert.Equal(MethodKind.Conversion, method.MethodKind);
-            Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), method.ContainingType);
-            Assert.Equal(SpecialType.System_Byte, method.ParameterTypesWithAnnotations.Single().SpecialType);
+            Assert.Equal(comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), method.ContainingType);
+            Assert.Equal(SpecialType.System_Byte, method.Parameters.Single().Type.SpecialType);
         }
 
         [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]

@@ -1,28 +1,72 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.ConvertTupleToStruct;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 {
-    public class ConvertTupleToStructTests : AbstractCSharpCodeActionTest
-    {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpConvertTupleToStructCodeRefactoringProvider();
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertTupleToStructCodeRefactoringProvider>;
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
+    [UseExportProvider]
+    public class ConvertTupleToStructTests
+    {
+        private static OptionsCollection PreferImplicitTypeWithInfo()
+            => new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Suggestion },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, true, NotificationOption2.Suggestion },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Suggestion },
+            };
+
+        private static async Task TestAsync(
+            string text,
+            string expected,
+            int index = 0,
+            string? equivalenceKey = null,
+            LanguageVersion languageVersion = LanguageVersion.CSharp9,
+            OptionsCollection? options = null,
+            TestHost testHost = TestHost.InProcess,
+            string[]? actions = null)
+        {
+            if (index != 0)
+                Assert.NotNull(equivalenceKey);
+
+            options ??= new OptionsCollection(LanguageNames.CSharp);
+
+            await new VerifyCS.Test
+            {
+                TestCode = text,
+                FixedCode = expected,
+                TestHost = testHost,
+                LanguageVersion = languageVersion,
+                CodeActionIndex = index,
+                CodeActionEquivalenceKey = equivalenceKey,
+                ExactActionSetOffered = actions,
+                Options = { options },
+            }.RunAsync();
+        }
 
         #region update containing member tests
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleTupleType()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleType(TestHost host)
         {
             var text = @"
 class Test
@@ -38,7 +82,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
     }
 }
 
@@ -84,11 +128,354 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleTupleTypeNoNames()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, B: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, B: 2);
+    }
+}
+
+internal record struct NewStruct(int a, int B)
+{
+    public static implicit operator (int a, int B)(NewStruct value)
+    {
+        return (value.a, value.B);
+    }
+
+    public static implicit operator NewStruct((int a, int B) value)
+    {
+        return new NewStruct(value.a, value.B);
+    }
+}";
+            await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord_FileScopedNamespace(TestHost host)
+        {
+            var text = @"
+namespace N;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+namespace N;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+internal record struct NewStruct(int a, int b)
+{
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord_MatchedNameCasing(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](A: 1, B: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(A: 1, B: 2);
+    }
+}
+
+internal record struct NewStruct(int A, int B)
+{
+    public static implicit operator (int A, int B)(NewStruct value)
+    {
+        return (value.A, value.B);
+    }
+
+    public static implicit operator NewStruct((int A, int B) value)
+    {
+        return new NewStruct(value.A, value.B);
+    }
+}";
+            await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleType_ChangeArgumentNameCase(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](A: 1, B: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int A;
+    public int B;
+
+    public NewStruct(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = A;
+        b = B;
+    }
+
+    public static implicit operator (int A, int B)(NewStruct value)
+    {
+        return (value.A, value.B);
+    }
+
+    public static implicit operator NewStruct((int A, int B) value)
+    {
+        return new NewStruct(value.A, value.B);
+    }
+}";
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleType_ChangeArgumentNameCase_Uppercase(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](A: 1, B: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(p_a_: 1, p_b_: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int A;
+    public int B;
+
+    public NewStruct(int p_a_, int p_b_)
+    {
+        A = p_a_;
+        B = p_b_;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               A == other.A &&
+               B == other.B;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1817952719;
+        hashCode = hashCode * -1521134295 + A.GetHashCode();
+        hashCode = hashCode * -1521134295 + B.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int p_a_, out int p_b_)
+    {
+        p_a_ = A;
+        p_b_ = B;
+    }
+
+    public static implicit operator (int A, int B)(NewStruct value)
+    {
+        return (value.A, value.B);
+    }
+
+    public static implicit operator NewStruct((int A, int B) value)
+    {
+        return new NewStruct(value.A, value.B);
+    }
+}";
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name2",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                accessibilityList: default,
+                modifiers: default);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.CamelCase,
+                name: "Name2",
+                prefix: "p_",
+                suffix: "_",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
+
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            var options = PreferImplicitTypeWithInfo();
+            options.Add(NamingStyleOptions.NamingPreferences, info);
+
+            await TestAsync(text, expected, options: options, testHost: host);
+        }
+
+        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleType_Explicit(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        int hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeNoNames(TestHost host)
         {
             var text = @"
 class Test
@@ -104,7 +491,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(1, 2);
+        var t1 = new NewStruct(1, 2);
     }
 }
 
@@ -150,11 +537,11 @@ internal struct NewStruct
         return new NewStruct(value.Item1, value.Item2);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleTupleTypePartialNames()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypePartialNames(TestHost host)
         {
             var text = @"
 class Test
@@ -170,7 +557,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(1, b: 2);
+        var t1 = new NewStruct(1, b: 2);
     }
 }
 
@@ -216,11 +603,11 @@ internal struct NewStruct
         return new NewStruct(value.Item1, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertFromType()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertFromType(TestHost host)
         {
             var text = @"
 class Test
@@ -237,7 +624,7 @@ class Test
 {
     void Method()
     {
-        {|Rename:NewStruct|} t1 = new NewStruct(a: 1, b: 2);
+        NewStruct t1 = new NewStruct(a: 1, b: 2);
         NewStruct t2 = new NewStruct(a: 1, b: 2);
     }
 }
@@ -284,11 +671,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertFromType2()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertFromType2(TestHost host)
         {
             var text = @"
 class Test
@@ -297,6 +684,7 @@ class Test
     {
         [||](int a, int b) t1 = (a: 1, b: 2);
         (int a, int b) t2 = (a: 1, b: 2);
+        return default;
     }
 }
 ";
@@ -305,8 +693,9 @@ class Test
 {
     NewStruct Method()
     {
-        {|Rename:NewStruct|} t1 = new NewStruct(a: 1, b: 2);
+        NewStruct t1 = new NewStruct(a: 1, b: 2);
         NewStruct t2 = new NewStruct(a: 1, b: 2);
+        return default;
     }
 }
 
@@ -352,11 +741,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertFromType3()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertFromType3(TestHost host)
         {
             var text = @"
 class Test
@@ -365,6 +754,7 @@ class Test
     {
         [||](int a, int b) t1 = (a: 1, b: 2);
         (int b, int a) t2 = (b: 1, a: 2);
+        return default;
     }
 }
 ";
@@ -373,8 +763,9 @@ class Test
 {
     NewStruct Method()
     {
-        {|Rename:NewStruct|} t1 = new NewStruct(a: 1, b: 2);
+        NewStruct t1 = new NewStruct(a: 1, b: 2);
         (int b, int a) t2 = (b: 1, a: 2);
+        return default;
     }
 }
 
@@ -420,11 +811,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertFromType4()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertFromType4(TestHost host)
         {
             var text = @"
 class Test
@@ -442,7 +833,7 @@ class Test
     void Method()
     {
         NewStruct t1 = new NewStruct(a: 1, b: 2);
-        {|Rename:NewStruct|} t2 = new NewStruct(a: 1, b: 2);
+        NewStruct t2 = new NewStruct(a: 1, b: 2);
     }
 }
 
@@ -488,11 +879,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleTupleTypeInNamespace()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeInNamespace(TestHost host)
         {
             var text = @"
 namespace N
@@ -513,7 +904,7 @@ namespace N
     {
         void Method()
         {
-            var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+            var t1 = new NewStruct(a: 1, b: 2);
         }
     }
 
@@ -561,18 +952,86 @@ namespace N
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestNonLiteralNames()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestNonLiteralNames_WithUsings(TestHost host)
+        {
+            var text = @"
+using System.Collections.Generic;
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: {|CS0103:Goo|}(), b: {|CS0103:Bar|}());
+    }
+}
+";
+            var expected = @"
+using System.Collections.Generic;
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct({|CS0103:Goo|}(), {|CS0103:Bar|}());
+    }
+}
+
+internal struct NewStruct
+{
+    public object a;
+    public object b;
+
+    public NewStruct(object a, object b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               EqualityComparer<object>.Default.Equals(a, other.a) &&
+               EqualityComparer<object>.Default.Equals(b, other.b);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
+        return hashCode;
+    }
+
+    public void Deconstruct(out object a, out object b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (object a, object b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((object a, object b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestNonLiteralNames_WithoutUsings(TestHost host)
         {
             var text = @"
 class Test
 {
     void Method()
     {
-        var t1 = [||](a: Goo(), b: Bar());
+        var t1 = [||](a: {|CS0103:Goo|}(), b: {|CS0103:Bar|}());
     }
 }
 ";
@@ -581,7 +1040,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(Goo(), Bar());
+        var t1 = new NewStruct({|CS0103:Goo|}(), {|CS0103:Bar|}());
     }
 }
 
@@ -627,11 +1086,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleTupleTypeWithInferredName()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeWithInferredName(TestHost host)
         {
             var text = @"
 class Test
@@ -647,7 +1106,7 @@ class Test
 {
     void Method(int b)
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b);
+        var t1 = new NewStruct(a: 1, b);
     }
 }
 
@@ -693,11 +1152,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertMultipleInstancesInSameMethod()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertMultipleInstancesInSameMethod(TestHost host)
         {
             var text = @"
 class Test
@@ -714,7 +1173,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
         var t2 = new NewStruct(a: 3, b: 4);
     }
 }
@@ -761,11 +1220,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertMultipleInstancesAcrossMethods()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertMultipleInstancesAcrossMethods(TestHost host)
         {
             var text = @"
 class Test
@@ -788,7 +1247,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
         var t2 = new NewStruct(a: 3, b: 4);
     }
 
@@ -841,11 +1300,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task OnlyConvertMatchingTypesInSameMethod()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task OnlyConvertMatchingTypesInSameMethod(TestHost host)
         {
             var text = @"
 class Test
@@ -864,7 +1323,7 @@ class Test
 {
     void Method(int b)
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
         var t2 = new NewStruct(a: 3, b);
         var t3 = (a: 4, b: 5, c: 6);
         var t4 = (b: 5, a: 6);
@@ -913,11 +1372,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestFixAllMatchesInSingleMethod()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestFixAllMatchesInSingleMethod(TestHost host)
         {
             var text = @"
 class Test
@@ -936,7 +1395,7 @@ class Test
 {
     void Method(int b)
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
         var t2 = new NewStruct(a: 3, b);
         var t3 = (a: 4, b: 5, c: 6);
         var t4 = (b: 5, a: 6);
@@ -985,11 +1444,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestFixNotAcrossMethods()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestFixNotAcrossMethods(TestHost host)
         {
             var text = @"
 class Test
@@ -1012,7 +1471,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
         var t2 = new NewStruct(a: 3, b: 4);
     }
 
@@ -1065,18 +1524,86 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestTrivia()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestTrivia_WithUsings(TestHost host)
+        {
+            var text = @"
+using System.Collections.Generic;
+class Test
+{
+    void Method()
+    {
+        var t1 = /*1*/ [||]( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ {|CS0103:b|} /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
+    }
+}
+";
+            var expected = @"
+using System.Collections.Generic;
+class Test
+{
+    void Method()
+    {
+        var t1 = /*1*/ new NewStruct( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ {|CS0103:b|} /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public object Item2;
+
+    public NewStruct(int a, object item2)
+    {
+        this.a = a;
+        Item2 = item2;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               EqualityComparer<object>.Default.Equals(Item2, other.Item2);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 913311208;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(Item2);
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out object item2)
+    {
+        a = this.a;
+        item2 = Item2;
+    }
+
+    public static implicit operator (int a, object)(NewStruct value)
+    {
+        return (value.a, value.Item2);
+    }
+
+    public static implicit operator NewStruct((int a, object) value)
+    {
+        return new NewStruct(value.a, value.Item2);
+    }
+}";
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestTrivia_WithoutUsings(TestHost host)
         {
             var text = @"
 class Test
 {
     void Method()
     {
-        var t1 = /*1*/ [||]( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ b /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
+        var t1 = /*1*/ [||]( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ {|CS0103:b|} /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
     }
 }
 ";
@@ -1085,7 +1612,7 @@ class Test
 {
     void Method()
     {
-        var t1 = /*1*/ new {|Rename:NewStruct|}( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ b /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
+        var t1 = /*1*/ new NewStruct( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ {|CS0103:b|} /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
     }
 }
 
@@ -1131,11 +1658,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.Item2);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task NotIfReferencesAnonymousTypeInternally()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task NotIfReferencesAnonymousTypeInternally(TestHost host)
         {
             var text = @"
 class Test
@@ -1147,11 +1674,11 @@ class Test
 }
 ";
 
-            await TestMissingInRegularAndScriptAsync(text);
+            await TestAsync(text, text, testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertMultipleNestedInstancesInSameMethod1()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertMultipleNestedInstancesInSameMethod1_WithUsings(TestHost host)
         {
             var text = @"
 class Test
@@ -1163,11 +1690,13 @@ class Test
 }
 ";
             var expected = @"
+using System.Collections.Generic;
+
 class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, (object)new NewStruct(a: 1, default(object)));
+        var t1 = new NewStruct(a: 1, (object)new NewStruct(a: 1, default(object)));
     }
 }
 
@@ -1186,14 +1715,14 @@ internal struct NewStruct
     {
         return obj is NewStruct other &&
                a == other.a &&
-               System.Collections.Generic.EqualityComparer<object>.Default.Equals(b, other.b);
+               EqualityComparer<object>.Default.Equals(b, other.b);
     }
 
     public override int GetHashCode()
     {
         var hashCode = 2118541809;
         hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(b);
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
         return hashCode;
     }
 
@@ -1213,11 +1742,79 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertMultipleNestedInstancesInSameMethod2()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertMultipleNestedInstancesInSameMethod1_WithoutUsings(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: (object)(a: 1, b: default(object)));
+    }
+}
+";
+            var expected = @"
+using System.Collections.Generic;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, (object)new NewStruct(a: 1, default(object)));
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public object b;
+
+    public NewStruct(int a, object b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               EqualityComparer<object>.Default.Equals(b, other.b);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out object b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, object b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, object b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertMultipleNestedInstancesInSameMethod2_WithUsings(TestHost host)
         {
             var text = @"
 class Test
@@ -1229,11 +1826,13 @@ class Test
 }
 ";
             var expected = @"
+using System.Collections.Generic;
+
 class Test
 {
     void Method()
     {
-        var t1 = new NewStruct(a: 1, (object)new {|Rename:NewStruct|}(a: 1, default(object)));
+        var t1 = new NewStruct(a: 1, (object)new NewStruct(a: 1, default(object)));
     }
 }
 
@@ -1252,14 +1851,14 @@ internal struct NewStruct
     {
         return obj is NewStruct other &&
                a == other.a &&
-               System.Collections.Generic.EqualityComparer<object>.Default.Equals(b, other.b);
+               EqualityComparer<object>.Default.Equals(b, other.b);
     }
 
     public override int GetHashCode()
     {
         var hashCode = 2118541809;
         hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(b);
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
         return hashCode;
     }
 
@@ -1279,11 +1878,79 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task RenameAnnotationOnStartingPoint()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertMultipleNestedInstancesInSameMethod2_WithoutUsings(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: (object)[||](a: 1, b: default(object)));
+    }
+}
+";
+            var expected = @"
+using System.Collections.Generic;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, (object)new NewStruct(a: 1, default(object)));
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public object b;
+
+    public NewStruct(int a, object b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               EqualityComparer<object>.Default.Equals(b, other.b);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out object b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, object b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, object b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task RenameAnnotationOnStartingPoint(TestHost host)
         {
             var text = @"
 class Test
@@ -1301,7 +1968,7 @@ class Test
     void Method()
     {
         var t1 = new NewStruct(a: 1, b: 2);
-        var t2 = new {|Rename:NewStruct|}(a: 3, b: 4);
+        var t2 = new NewStruct(a: 3, b: 4);
     }
 }
 
@@ -1347,27 +2014,29 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task CapturedMethodTypeParameters()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task CapturedMethodTypeParameters_WithUsings(TestHost host)
         {
             var text = @"
+using System.Collections.Generic;
 class Test<X> where X : struct
 {
-    void Method<Y>(List<X> x, Y[] y) where Y : class, new()
+    void Method<Y>(System.Collections.Generic.List<X> x, Y[] y) where Y : class, new()
     {
         var t1 = [||](a: x, b: y);
     }
 }
 ";
             var expected = @"
+using System.Collections.Generic;
 class Test<X> where X : struct
 {
-    void Method<Y>(List<X> x, Y[] y) where Y : class, new()
+    void Method<Y>(System.Collections.Generic.List<X> x, Y[] y) where Y : class, new()
     {
-        var t1 = new {|Rename:NewStruct|}<X, Y>(x, y);
+        var t1 = new NewStruct<X, Y>(x, y);
     }
 }
 
@@ -1387,15 +2056,15 @@ internal struct NewStruct<X, Y>
     public override bool Equals(object obj)
     {
         return obj is NewStruct<X, Y> other &&
-               System.Collections.Generic.EqualityComparer<List<X>>.Default.Equals(a, other.a) &&
-               System.Collections.Generic.EqualityComparer<Y[]>.Default.Equals(b, other.b);
+               EqualityComparer<List<X>>.Default.Equals(a, other.a) &&
+               EqualityComparer<Y[]>.Default.Equals(b, other.b);
     }
 
     public override int GetHashCode()
     {
         var hashCode = 2118541809;
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<List<X>>.Default.GetHashCode(a);
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<Y[]>.Default.GetHashCode(b);
+        hashCode = hashCode * -1521134295 + EqualityComparer<List<X>>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + EqualityComparer<Y[]>.Default.GetHashCode(b);
         return hashCode;
     }
 
@@ -1416,15 +2085,88 @@ internal struct NewStruct<X, Y>
     }
 }";
 
-            await TestExactActionSetOfferedAsync(text, new[]
-            {
-                FeaturesResources.updating_usages_in_containing_member
-            });
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
+                {
+                    FeaturesResources.updating_usages_in_containing_member
+                });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task NewTypeNameCollision()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task CapturedMethodTypeParameters_WithoutUsings(TestHost host)
+        {
+            var text = @"
+class Test<X> where X : struct
+{
+    void Method<Y>(System.Collections.Generic.List<X> x, Y[] y) where Y : class, new()
+    {
+        var t1 = [||](a: x, b: y);
+    }
+}
+";
+            var expected = @"
+using System.Collections.Generic;
+
+class Test<X> where X : struct
+{
+    void Method<Y>(System.Collections.Generic.List<X> x, Y[] y) where Y : class, new()
+    {
+        var t1 = new NewStruct<X, Y>(x, y);
+    }
+}
+
+internal struct NewStruct<X, Y>
+    where X : struct
+    where Y : class, new()
+{
+    public List<X> a;
+    public Y[] b;
+
+    public NewStruct(List<X> a, Y[] b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct<X, Y> other &&
+               EqualityComparer<List<X>>.Default.Equals(a, other.a) &&
+               EqualityComparer<Y[]>.Default.Equals(b, other.b);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + EqualityComparer<List<X>>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + EqualityComparer<Y[]>.Default.GetHashCode(b);
+        return hashCode;
+    }
+
+    public void Deconstruct(out List<X> a, out Y[] b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (List<X> a, Y[] b)(NewStruct<X, Y> value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct<X, Y>((List<X> a, Y[] b) value)
+    {
+        return new NewStruct<X, Y>(value.a, value.b);
+    }
+}";
+
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
+                {
+                    FeaturesResources.updating_usages_in_containing_member
+                });
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task NewTypeNameCollision(TestHost host)
         {
             var text = @"
 class Test
@@ -1444,7 +2186,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct1|}(a: 1, b: 2);
+        var t1 = new NewStruct1(a: 1, b: 2);
     }
 }
 
@@ -1494,11 +2236,11 @@ internal struct NewStruct1
         return new NewStruct1(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestDuplicatedName()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestDuplicatedName(TestHost host)
         {
             var text = @"
 class Test
@@ -1514,7 +2256,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, a: 2);
+        var t1 = new NewStruct(a: 1, a: 2);
     }
 }
 
@@ -1560,11 +2302,85 @@ internal struct NewStruct
         return new NewStruct(value.a, value.a);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+
+            await new VerifyCS.Test
+            {
+                TestCode = text,
+                FixedCode = expected,
+                TestHost = host,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(6,25): error CS8127: Tuple element names must be unique.
+                    DiagnosticResult.CompilerError("CS8127").WithSpan(6, 25, 6, 26),
+                },
+                FixedState =
+                {
+                    ExpectedDiagnostics =
+                    {
+    // /0/Test0.cs(6,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'NewStruct.NewStruct(int, int)'
+    DiagnosticResult.CompilerError("CS7036").WithSpan(6, 22, 6, 31).WithArguments("a", "NewStruct.NewStruct(int, int)"),
+    // /0/Test0.cs(13,16): error CS0102: The type 'NewStruct' already contains a definition for 'a'
+    DiagnosticResult.CompilerError("CS0102").WithSpan(13, 16, 13, 17).WithArguments("NewStruct", "a"),
+    // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller
+    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a"),
+    // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller
+    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a"),
+    // /0/Test0.cs(15,33): error CS0100: The parameter name 'a' is a duplicate
+    DiagnosticResult.CompilerError("CS0100").WithSpan(15, 33, 15, 34).WithArguments("a"),
+    // /0/Test0.cs(17,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(17, 14, 17, 15).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(17,18): error CS0229: Ambiguity between 'int' and 'int'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(17, 18, 17, 19).WithArguments("int", "int"),
+    // /0/Test0.cs(18,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(18, 14, 18, 15).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(18,18): error CS0229: Ambiguity between 'int' and 'int'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(18, 18, 18, 19).WithArguments("int", "int"),
+    // /0/Test0.cs(24,21): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(24, 21, 24, 22).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(24,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(24, 32, 24, 33).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(25,21): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(25, 21, 25, 22).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(25,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(25, 32, 25, 33).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(31,50): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(31, 50, 31, 51).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(32,50): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(32, 50, 32, 51).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(36,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+    DiagnosticResult.CompilerError("CS0177").WithSpan(36, 17, 36, 28).WithArguments("a"),
+    // /0/Test0.cs(36,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+    DiagnosticResult.CompilerError("CS0177").WithSpan(36, 17, 36, 28).WithArguments("a"),
+    // /0/Test0.cs(36,48): error CS0100: The parameter name 'a' is a duplicate
+    DiagnosticResult.CompilerError("CS0100").WithSpan(36, 48, 36, 49).WithArguments("a"),
+    // /0/Test0.cs(38,9): error CS0229: Ambiguity between 'out int' and 'out int'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(38, 9, 38, 10).WithArguments("out int", "out int"),
+    // /0/Test0.cs(38,18): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(38, 18, 38, 19).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(39,9): error CS0229: Ambiguity between 'out int' and 'out int'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(39, 9, 39, 10).WithArguments("out int", "out int"),
+    // /0/Test0.cs(39,18): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(39, 18, 39, 19).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(42,49): error CS8127: Tuple element names must be unique.
+    DiagnosticResult.CompilerError("CS8127").WithSpan(42, 49, 42, 50),
+    // /0/Test0.cs(44,23): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(44, 23, 44, 24).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(44,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(44, 32, 44, 33).WithArguments("NewStruct.a", "NewStruct.a"),
+    // /0/Test0.cs(47,59): error CS8127: Tuple element names must be unique.
+    DiagnosticResult.CompilerError("CS8127").WithSpan(47, 59, 47, 60),
+    // /0/Test0.cs(49,36): error CS0229: Ambiguity between '(int a, int a).a' and '(int a, int a).a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(49, 36, 49, 37).WithArguments("(int a, int a).a", "(int a, int a).a"),
+    // /0/Test0.cs(49,45): error CS0229: Ambiguity between '(int a, int a).a' and '(int a, int a).a'
+    DiagnosticResult.CompilerError("CS0229").WithSpan(49, 45, 49, 46).WithArguments("(int a, int a).a", "(int a, int a).a"),
+                    }
+                },
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestInLambda1()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestInLambda1(TestHost host)
         {
             var text = @"
 using System;
@@ -1588,7 +2404,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
         Action a = () =>
         {
             var t2 = new NewStruct(a: 3, b: 4);
@@ -1638,11 +2454,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestInLambda2()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestInLambda2(TestHost host)
         {
             var text = @"
 using System;
@@ -1669,7 +2485,7 @@ class Test
         var t1 = new NewStruct(a: 1, b: 2);
         Action a = () =>
         {
-            var t2 = new {|Rename:NewStruct|}(a: 3, b: 4);
+            var t2 = new NewStruct(a: 3, b: 4);
         };
     }
 }
@@ -1716,11 +2532,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestInLocalFunction1()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestInLocalFunction1(TestHost host)
         {
             var text = @"
 using System;
@@ -1744,7 +2560,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
         void Goo()
         {
             var t2 = new NewStruct(a: 3, b: 4);
@@ -1794,11 +2610,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestInLocalFunction2()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestInLocalFunction2(TestHost host)
         {
             var text = @"
 using System;
@@ -1825,7 +2641,7 @@ class Test
         var t1 = new NewStruct(a: 1, b: 2);
         void Goo()
         {
-            var t2 = new {|Rename:NewStruct|}(a: 3, b: 4);
+            var t2 = new NewStruct(a: 3, b: 4);
         }
     }
 }
@@ -1872,11 +2688,11 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertWithDefaultNames1()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertWithDefaultNames1(TestHost host)
         {
             var text = @"
 class Test
@@ -1896,11 +2712,11 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(1, 2);
+        var t1 = new NewStruct(1, 2);
         var t2 = new NewStruct(1, 2);
         var t3 = (a: 1, b: 2);
-        var t4 = new NewStruct(Item1: 1, Item2: 2);
-        var t5 = new NewStruct(Item1: 1, Item2: 2);
+        var t4 = new NewStruct(item1: 1, item2: 2);
+        var t5 = new NewStruct(item1: 1, item2: 2);
     }
 }
 
@@ -1946,16 +2762,16 @@ internal struct NewStruct
         return new NewStruct(value.Item1, value.Item2);
     }
 }";
-            await TestExactActionSetOfferedAsync(text, new[]
-            {
-                FeaturesResources.updating_usages_in_containing_member,
-                FeaturesResources.updating_usages_in_containing_type,
-            });
-            await TestInRegularAndScriptAsync(text, expected);
+
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
+                {
+                    FeaturesResources.updating_usages_in_containing_member,
+                    FeaturesResources.updating_usages_in_containing_type,
+                });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertWithDefaultNames2()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertWithDefaultNames2(TestHost host)
         {
             var text = @"
 class Test
@@ -1968,8 +2784,7 @@ class Test
         var t4 = [||](Item1: 1, Item2: 2);
         var t5 = (Item1: 1, Item2: 2);
     }
-}
-";
+}";
             var expected = @"
 class Test
 {
@@ -1978,8 +2793,8 @@ class Test
         var t1 = new NewStruct(1, 2);
         var t2 = new NewStruct(1, 2);
         var t3 = (a: 1, b: 2);
-        var t4 = new {|Rename:NewStruct|}(Item1: 1, Item2: 2);
-        var t5 = new NewStruct(Item1: 1, Item2: 2);
+        var t4 = new NewStruct(item1: 1, item2: 2);
+        var t5 = new NewStruct(item1: 1, item2: 2);
     }
 }
 
@@ -2025,23 +2840,20 @@ internal struct NewStruct
         return new NewStruct(value.Item1, value.Item2);
     }
 }";
-            await TestExactActionSetOfferedAsync(text, new[]
-            {
-                FeaturesResources.updating_usages_in_containing_member,
-                FeaturesResources.updating_usages_in_containing_type,
-            });
-            await TestInRegularAndScriptAsync(text, expected);
-        }
 
-        protected override ParseOptions GetScriptOptions()
-            => null;
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
+                {
+                    FeaturesResources.updating_usages_in_containing_member,
+                    FeaturesResources.updating_usages_in_containing_type,
+                });
+        }
 
         #endregion
 
         #region update containing type tests
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestCapturedTypeParameter_UpdateType()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestCapturedTypeParameter_UpdateType_WithUsings(TestHost host)
         {
             var text = @"
 using System;
@@ -2067,12 +2879,13 @@ class Test<T>
 ";
             var expected = @"
 using System;
+using System.Collections.Generic;
 
 class Test<T>
 {
     void Method(T t)
     {
-        var t1 = new {|Rename:NewStruct|}<T>(t, b: 2);
+        var t1 = new NewStruct<T>(t, b: 2);
     }
 
     T t;
@@ -2101,14 +2914,14 @@ internal struct NewStruct<T>
     public override bool Equals(object obj)
     {
         return obj is NewStruct<T> other &&
-               System.Collections.Generic.EqualityComparer<T>.Default.Equals(a, other.a) &&
+               EqualityComparer<T>.Default.Equals(a, other.a) &&
                b == other.b;
     }
 
     public override int GetHashCode()
     {
         var hashCode = 2118541809;
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(a);
         hashCode = hashCode * -1521134295 + b.GetHashCode();
         return hashCode;
     }
@@ -2130,358 +2943,471 @@ internal struct NewStruct<T>
     }
 }";
 
-            await TestExactActionSetOfferedAsync(text, new[]
+            await TestAsync(
+                text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
+                options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
+                {
+                    FeaturesResources.updating_usages_in_containing_member,
+                    FeaturesResources.updating_usages_in_containing_type
+                });
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestCapturedTypeParameter_UpdateType_WithoutUsings(TestHost host)
+        {
+            var text = @"
+class Test<T>
+{
+    void Method(T t)
+    {
+        var t1 = [||](a: t, b: 2);
+    }
+
+    T t;
+    void Goo()
+    {
+        var t2 = (a: t, b: 4);
+    }
+
+    void Blah<T>(T t)
+    {
+        var t2 = (a: t, b: 4);
+    }
+}
+";
+            var expected = @"
+using System.Collections.Generic;
+
+class Test<T>
+{
+    void Method(T t)
+    {
+        var t1 = new NewStruct<T>(t, b: 2);
+    }
+
+    T t;
+    void Goo()
+    {
+        var t2 = new NewStruct<T>(t, b: 4);
+    }
+
+    void Blah<T>(T t)
+    {
+        var t2 = (a: t, b: 4);
+    }
+}
+
+internal struct NewStruct<T>
+{
+    public T a;
+    public int b;
+
+    public NewStruct(T a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct<T> other &&
+               EqualityComparer<T>.Default.Equals(a, other.a) &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out T a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (T a, int b)(NewStruct<T> value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct<T>((T a, int b) value)
+    {
+        return new NewStruct<T>(value.a, value.b);
+    }
+}";
+
+            await TestAsync(
+                text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
+                options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
+                {
+                    FeaturesResources.updating_usages_in_containing_member,
+                    FeaturesResources.updating_usages_in_containing_type
+                });
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateAllInType_SinglePart_SingleFile(TestHost host)
+        {
+            var text = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+
+    void Goo()
+    {
+        var t2 = (a: 3, b: 4);
+    }
+}
+
+class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+
+    void Goo()
+    {
+        var t2 = new NewStruct(a: 3, b: 4);
+    }
+}
+
+class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(
+                text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
+                options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateAllInType_MultiplePart_SingleFile(TestHost host)
+        {
+            var text = @"
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+
+partial class Test
+{
+    (int a, int b) Goo()
+    {
+        var t2 = (a: 3, b: 4);
+        return default;
+    }
+}
+
+class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+partial class Test
+{
+    NewStruct Goo()
+    {
+        var t2 = new NewStruct(a: 3, b: 4);
+        return default;
+    }
+}
+
+class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(
+                text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
+                options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateAllInType_MultiplePart_MultipleFile(TestHost host)
+        {
+            var text1 = @"
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+
+partial class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}";
+            var text2 = @"
+using System;
+
+partial class Test
+{
+    (int a, int b) Goo()
+    {
+        var t2 = (a: 3, b: 4);
+        return default;
+    }
+}
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}";
+
+            var expected1 = @"
+using System;
+
+partial class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, b: 2);
+    }
+}
+
+partial class Other
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            var expected2 = @"
+using System;
+
+partial class Test
+{
+    NewStruct Goo()
+    {
+        var t2 = new NewStruct(a: 3, b: 4);
+        return default;
+    }
+}
+
+partial class Other
+{
+    void Goo()
+    {
+        var t1 = (a: 1, b: 2);
+    }
+}";
+
+            await new VerifyCS.Test
             {
-                FeaturesResources.updating_usages_in_containing_member,
-                FeaturesResources.updating_usages_in_containing_type
-            });
-            await TestInRegularAndScriptAsync(text, expected, index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task UpdateAllInType_SinglePart_SingleFile()
-        {
-            var text = @"
-using System;
-
-class Test
-{
-    void Method()
-    {
-        var t1 = [||](a: 1, b: 2);
-    }
-
-    void Goo()
-    {
-        var t2 = (a: 3, b: 4);
-    }
-}
-
-class Other
-{
-    void Method()
-    {
-        var t1 = (a: 1, b: 2);
-    }
-}
-";
-            var expected = @"
-using System;
-
-class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
-    }
-
-    void Goo()
-    {
-        var t2 = new NewStruct(a: 3, b: 4);
-    }
-}
-
-class Other
-{
-    void Method()
-    {
-        var t1 = (a: 1, b: 2);
-    }
-}
-
-internal struct NewStruct
-{
-    public int a;
-    public int b;
-
-    public NewStruct(int a, int b)
-    {
-        this.a = a;
-        this.b = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return obj is NewStruct other &&
-               a == other.a &&
-               b == other.b;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = 2118541809;
-        hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + b.GetHashCode();
-        return hashCode;
-    }
-
-    public void Deconstruct(out int a, out int b)
-    {
-        a = this.a;
-        b = this.b;
-    }
-
-    public static implicit operator (int a, int b)(NewStruct value)
-    {
-        return (value.a, value.b);
-    }
-
-    public static implicit operator NewStruct((int a, int b) value)
-    {
-        return new NewStruct(value.a, value.b);
-    }
-}";
-            await TestInRegularAndScriptAsync(text, expected, index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task UpdateAllInType_MultiplePart_SingleFile()
-        {
-            var text = @"
-using System;
-
-partial class Test
-{
-    void Method()
-    {
-        var t1 = [||](a: 1, b: 2);
-    }
-}
-
-partial class Test
-{
-    (int a, int b) Goo()
-    {
-        var t2 = (a: 3, b: 4);
-    }
-}
-
-class Other
-{
-    void Method()
-    {
-        var t1 = (a: 1, b: 2);
-    }
-}
-";
-            var expected = @"
-using System;
-
-partial class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
-    }
-}
-
-partial class Test
-{
-    NewStruct Goo()
-    {
-        var t2 = new NewStruct(a: 3, b: 4);
-    }
-}
-
-class Other
-{
-    void Method()
-    {
-        var t1 = (a: 1, b: 2);
-    }
-}
-
-internal struct NewStruct
-{
-    public int a;
-    public int b;
-
-    public NewStruct(int a, int b)
-    {
-        this.a = a;
-        this.b = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return obj is NewStruct other &&
-               a == other.a &&
-               b == other.b;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = 2118541809;
-        hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + b.GetHashCode();
-        return hashCode;
-    }
-
-    public void Deconstruct(out int a, out int b)
-    {
-        a = this.a;
-        b = this.b;
-    }
-
-    public static implicit operator (int a, int b)(NewStruct value)
-    {
-        return (value.a, value.b);
-    }
-
-    public static implicit operator NewStruct((int a, int b) value)
-    {
-        return new NewStruct(value.a, value.b);
-    }
-}";
-            await TestInRegularAndScriptAsync(text, expected, index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task UpdateAllInType_MultiplePart_MultipleFile()
-        {
-            var text = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
-
-partial class Test
-{
-    void Method()
-    {
-        var t1 = [||](a: 1, b: 2);
-    }
-}
-
-partial class Other
-{
-    void Method()
-    {
-        var t1 = (a: 1, b: 2);
-    }
-}
-        </Document>
-        <Document>
-using System;
-
-partial class Test
-{
-    (int a, int b) Goo()
-    {
-        var t2 = (a: 3, b: 4);
-    }
-}
-
-partial class Other
-{
-    void Goo()
-    {
-        var t1 = (a: 1, b: 2);
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
-
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
-
-partial class Test
-{
-    void Method()
-    {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
-    }
-}
-
-partial class Other
-{
-    void Method()
-    {
-        var t1 = (a: 1, b: 2);
-    }
-}
-
-internal struct NewStruct
-{
-    public int a;
-    public int b;
-
-    public NewStruct(int a, int b)
-    {
-        this.a = a;
-        this.b = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return obj is NewStruct other &amp;&amp;
-               a == other.a &amp;&amp;
-               b == other.b;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = 2118541809;
-        hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + b.GetHashCode();
-        return hashCode;
-    }
-
-    public void Deconstruct(out int a, out int b)
-    {
-        a = this.a;
-        b = this.b;
-    }
-
-    public static implicit operator (int a, int b)(NewStruct value)
-    {
-        return (value.a, value.b);
-    }
-
-    public static implicit operator NewStruct((int a, int b) value)
-    {
-        return new NewStruct(value.a, value.b);
-    }
-}</Document>
-        <Document>
-using System;
-
-partial class Test
-{
-    NewStruct Goo()
-    {
-        var t2 = new NewStruct(a: 3, b: 4);
-    }
-}
-
-partial class Other
-{
-    void Goo()
-    {
-        var t1 = (a: 1, b: 2);
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestInRegularAndScriptAsync(text, expected, index: 1);
+                TestState =
+                {
+                    Sources =
+                    {
+                        text1,
+                        text2,
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = Scope.ContainingType.ToString(),
+                TestHost = host,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         #endregion update containing project tests
 
         #region update containing project tests
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace(TestHost host)
         {
-            var text = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            var text1 = @"
 using System;
 
 namespace N
@@ -2501,9 +3427,8 @@ namespace N
             var t1 = (a: 1, b: 2);
         }
     }
-}
-        </Document>
-        <Document>
+}";
+            var text2 = @"
 using System;
 
 partial class Test
@@ -2511,6 +3436,7 @@ partial class Test
     (int a, int b) Goo()
     {
         var t2 = (a: 3, b: 4);
+        return default;
     }
 }
 
@@ -2520,15 +3446,9 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            var expected1 = @"
 using System;
 
 namespace N
@@ -2537,7 +3457,7 @@ namespace N
     {
         void Method()
         {
-            var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+            var t1 = new NewStruct(a: 1, b: 2);
         }
     }
 
@@ -2562,8 +3482,8 @@ namespace N
 
         public override bool Equals(object obj)
         {
-            return obj is NewStruct other &amp;&amp;
-                   a == other.a &amp;&amp;
+            return obj is NewStruct other &&
+                   a == other.a &&
                    b == other.b;
         }
 
@@ -2591,9 +3511,8 @@ namespace N
             return new NewStruct(value.a, value.b);
         }
     }
-}
-        </Document>
-        <Document>
+}";
+            var expected2 = @"
 using System;
 
 partial class Test
@@ -2601,6 +3520,7 @@ partial class Test
     N.NewStruct Goo()
     {
         var t2 = new N.NewStruct(a: 3, b: 4);
+        return default;
     }
 }
 
@@ -2610,24 +3530,33 @@ partial class Other
     {
         var t1 = new N.NewStruct(a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestInRegularAndScriptAsync(text, expected, index: 2);
+}";
+
+            await new VerifyCS.Test
+            {
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = Scope.ContainingProject.ToString(),
+                TestHost = host,
+                TestState =
+                {
+                    Sources = { text1, text2, },
+                },
+                FixedState =
+                {
+                    Sources = { expected1, expected2 },
+                },
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         #endregion
 
         #region update dependent projects
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task UpdateDependentProjects_DirectDependency()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateDependentProjects_DirectDependency(TestHost host)
         {
-            var text = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            var text1 = @"
 using System;
 
 partial class Test
@@ -2644,12 +3573,9 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <ProjectReference>Assembly1</ProjectReference>
-        <Document>
+}";
+
+            var text2 = @"
 using System;
 
 partial class Other
@@ -2658,14 +3584,8 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+}";
+            var expected1 = @"
 using System;
 
 partial class Test
@@ -2697,8 +3617,8 @@ public struct NewStruct
 
     public override bool Equals(object obj)
     {
-        return obj is NewStruct other &amp;&amp;
-               a == other.a &amp;&amp;
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -2725,11 +3645,8 @@ public struct NewStruct
     {
         return new NewStruct(value.a, value.b);
     }
-}</Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <ProjectReference>Assembly1</ProjectReference>
-        <Document>
+}";
+            var expected2 = @"
 using System;
 
 partial class Other
@@ -2738,20 +3655,45 @@ partial class Other
     {
         var t1 = new NewStruct(a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestInRegularAndScriptAsync(text, expected, index: 3);
+}";
+
+            await new VerifyCS.Test
+            {
+                CodeActionIndex = 3,
+                CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
+                TestHost = host,
+                TestState =
+                {
+                    Sources = { text1 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources = { text2 },
+                            AdditionalProjectReferences = { "TestProject" },
+                        }
+                    },
+                },
+                FixedState =
+                {
+                    Sources = { expected1 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources = { expected2 },
+                            AdditionalProjectReferences = { "TestProject" },
+                        }
+                    },
+                },
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task UpdateDependentProjects_NoDependency()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task UpdateDependentProjects_NoDependency(TestHost host)
         {
-            var text = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            var text1 = @"
 using System;
 
 partial class Test
@@ -2768,11 +3710,8 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
+}";
+            var text2 = @"
 using System;
 
 partial class Other
@@ -2781,14 +3720,8 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+}";
+            var expected1 = @"
 using System;
 
 partial class Test
@@ -2820,8 +3753,8 @@ public struct NewStruct
 
     public override bool Equals(object obj)
     {
-        return obj is NewStruct other &amp;&amp;
-               a == other.a &amp;&amp;
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -2848,10 +3781,9 @@ public struct NewStruct
     {
         return new NewStruct(value.a, value.b);
     }
-}</Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
+}";
+
+            var expected2 = @"
 using System;
 
 partial class Other
@@ -2860,11 +3792,31 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestInRegularAndScriptAsync(text, expected, index: 3);
+}";
+
+            await new VerifyCS.Test
+            {
+                CodeActionIndex = 3,
+                CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
+                TestHost = host,
+                TestState =
+                {
+                    Sources = { text1 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] = { Sources = { text2 } }
+                    },
+                },
+                FixedState =
+                {
+                    Sources = { expected1 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] = { Sources = { expected2 } }
+                    },
+                },
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         #endregion

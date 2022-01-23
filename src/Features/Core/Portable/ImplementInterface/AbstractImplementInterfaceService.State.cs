@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -20,20 +23,22 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public SemanticModel Model { get; }
 
             // The members that are not implemented at all.
-            public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> UnimplementedMembers { get; private set; }
+            public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented { get; private set; }
+                = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
+            public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementation { get; private set; }
                 = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
 
             // The members that have no explicit implementation.
-            public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> UnimplementedExplicitMembers { get; private set; }
+            public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; private set; }
                 = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
 
             public State(SyntaxNode interfaceNode, SyntaxNode classOrStructDecl, INamedTypeSymbol classOrStructType, IEnumerable<INamedTypeSymbol> interfaceTypes, SemanticModel model)
             {
-                this.Location = interfaceNode;
-                this.ClassOrStructDecl = classOrStructDecl;
-                this.ClassOrStructType = classOrStructType;
-                this.InterfaceTypes = interfaceTypes;
-                this.Model = model;
+                Location = interfaceNode;
+                ClassOrStructDecl = classOrStructDecl;
+                ClassOrStructType = classOrStructType;
+                InterfaceTypes = interfaceTypes;
+                Model = model;
             }
 
             public static State Generate(
@@ -58,23 +63,27 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 if (service.CanImplementImplicitly)
                 {
-                    state.UnimplementedMembers = state.ClassOrStructType.GetAllUnimplementedMembers(
+                    state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented = state.ClassOrStructType.GetAllUnimplementedMembers(
+                        interfaceTypes, includeMembersRequiringExplicitImplementation: false, cancellationToken);
+
+                    state.MembersWithoutExplicitOrImplicitImplementation = state.ClassOrStructType.GetAllUnimplementedMembers(
+                        interfaceTypes, includeMembersRequiringExplicitImplementation: true, cancellationToken);
+
+                    state.MembersWithoutExplicitImplementation = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
                         interfaceTypes, cancellationToken);
 
-                    state.UnimplementedExplicitMembers = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
-                        interfaceTypes, cancellationToken);
-
-                    var allMembersImplemented = state.UnimplementedMembers.Length == 0;
-                    var allMembersImplementedExplicitly = state.UnimplementedExplicitMembers.Length == 0;
+                    var allMembersImplemented = state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length == 0;
+                    var allMembersImplementedExplicitly = state.MembersWithoutExplicitImplementation.Length == 0;
 
                     return !allMembersImplementedExplicitly || !allMembersImplemented ? state : null;
                 }
                 else
                 {
-                    state.UnimplementedMembers = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
+                    // We put the members in this bucket so that the code fix title is "Implement Interface"
+                    state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
                         interfaceTypes, cancellationToken);
 
-                    var allMembersImplemented = state.UnimplementedMembers.Length == 0;
+                    var allMembersImplemented = state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length == 0;
                     return !allMembersImplemented ? state : null;
                 }
             }

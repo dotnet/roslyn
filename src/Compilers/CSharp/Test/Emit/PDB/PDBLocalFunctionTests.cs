@@ -1,4 +1,10 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -7,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBLocalFunctionTests : CSharpPDBTestBase
     {
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ClosuresInCtor()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class B
@@ -31,7 +37,7 @@ class C : B
         r = g() + h();
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
@@ -126,10 +132,10 @@ class C : B
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_Array()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -147,7 +153,7 @@ class C
             G(f1);
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
@@ -206,10 +212,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForStatement1()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -225,7 +231,7 @@ class C
             G(f); 
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
@@ -282,10 +288,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchStatement1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -316,7 +322,7 @@ class C
         }
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
@@ -371,10 +377,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement1()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -397,7 +403,7 @@ class C
             G(f1);
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 

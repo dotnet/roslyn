@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -38,14 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         EnvDTE.CodeElements ICodeElementContainer<CodeAttributeArgument>.GetCollection()
-        {
-            return this.Arguments;
-        }
+            => this.Arguments;
 
         protected override EnvDTE.CodeElements GetCollection()
-        {
-            return GetCollection<CodeAttribute>(Parent);
-        }
+            => GetCollection<CodeAttribute>(Parent);
 
         internal override bool TryLookupNode(out SyntaxNode node)
         {
@@ -74,15 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             get { return EnvDTE.vsCMElement.vsCMElementAttribute; }
         }
 
-        public override object Parent
-        {
-            get
-            {
-                return _parent != null
-                    ? _parent
-                    : (object)this.FileCodeModel;
-            }
-        }
+        public override object Parent => _parent ?? (object)this.FileCodeModel;
 
         public EnvDTE.CodeElements Arguments
         {
@@ -154,8 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         public new void Delete()
-        {
-            base.Delete();
-        }
+            => base.Delete();
     }
 }
