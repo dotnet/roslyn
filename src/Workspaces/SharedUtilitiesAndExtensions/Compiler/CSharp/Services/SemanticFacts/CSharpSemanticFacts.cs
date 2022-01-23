@@ -355,5 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return builder.ToImmutable();
         }
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
     }
 }

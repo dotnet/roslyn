@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Options;
 
 #if !CODE_STYLE
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Host;
 #endif
 
@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static SyntaxFormattingOptions Create(AnalyzerConfigOptions options)
             => new(options);
+
+        public T GetOption<T>(Option2<T> option)
+            => Options.GetOption(option);
+
+        public T GetOption<T>(PerLanguageOption2<T> option)
+            => Options.GetOption(option);
 
 #if !CODE_STYLE
         public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, string language)

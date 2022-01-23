@@ -8,79 +8,22 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
-
     <Export, [Shared]>
     <ExportLanguageService(GetType(IStructuralTypeDisplayService), LanguageNames.VisualBasic)>
     Friend Class VisualBasicStructuralTypeDisplayService
         Inherits AbstractStructuralTypeDisplayService
-
-        Private Shared ReadOnly s_anonymousDelegateFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
-            globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
-            genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            memberOptions:=
-                SymbolDisplayMemberOptions.IncludeParameters Or
-                SymbolDisplayMemberOptions.IncludeType,
-            parameterOptions:=
-                SymbolDisplayParameterOptions.IncludeName Or
-                SymbolDisplayParameterOptions.IncludeType Or
-                SymbolDisplayParameterOptions.IncludeParamsRefOut Or
-                SymbolDisplayParameterOptions.IncludeDefaultValue,
-            miscellaneousOptions:=
-                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or
-                SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-            kindOptions:=SymbolDisplayKindOptions.IncludeNamespaceKeyword Or SymbolDisplayKindOptions.IncludeTypeKeyword Or SymbolDisplayKindOptions.IncludeMemberKeyword)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            If anonymousType.IsAnonymousDelegateType() Then
-                Return GetDelegateAnonymousType(anonymousType, semanticModel, position)
-            Else
-                Return GetNormalAnonymousType(anonymousType, semanticModel, position)
-            End If
-        End Function
+        Protected Overrides ReadOnly Property SyntaxFactsService As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
-        Private Shared Function GetDelegateAnonymousType(
-                anonymousType As INamedTypeSymbol,
-                semanticModel As SemanticModel,
-                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            Dim method = anonymousType.DelegateInvokeMethod
-
-            Dim members = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
-            members.Add(Punctuation("<"))
-            members.AddRange(MassageDelegateParts(
-                method,
-                method.ToMinimalDisplayParts(semanticModel, position, s_anonymousDelegateFormat)))
-            members.Add(Punctuation(">"))
-
-            Return members.ToImmutableAndFree()
-        End Function
-
-        Private Shared Function MassageDelegateParts(delegateInvoke As IMethodSymbol,
-                                              parts As IEnumerable(Of SymbolDisplayPart)) As IEnumerable(Of SymbolDisplayPart)
-            ' So ugly.  We remove the 'Invoke' name that was added by the symbol display service.
-            Dim result = New List(Of SymbolDisplayPart)
-            For Each part In parts
-                If Equals(part.Symbol, delegateInvoke) Then
-                    Continue For
-                End If
-
-                result.Add(part)
-            Next
-
-            If result.Count >= 2 AndAlso result(1).Kind = SymbolDisplayPartKind.Space Then
-                result.RemoveAt(1)
-            End If
-
-            Return result
-        End Function
-
-        Private Shared Function GetNormalAnonymousType(
+        Protected Overrides Function GetNormalAnonymousTypeParts(
                 anonymousType As INamedTypeSymbol,
                 semanticModel As SemanticModel,
                 position As Integer) As ImmutableArray(Of SymbolDisplayPart)

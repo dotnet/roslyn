@@ -99,5 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Finds all local function definitions within the syntax references for a given <paramref name="symbol"/>
         /// </summary>
         ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken);
+
+        bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
     }
 }

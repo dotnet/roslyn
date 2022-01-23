@@ -992,6 +992,11 @@
         <target state="translated">인덱스 연산자 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="new">Prefer method group conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
         <target state="translated">네임스페이스 및 폴더 일치 구조 선호</target>

@@ -640,7 +640,7 @@ class C
         }
 
         [Fact]
-        public void NullCheckedDiscard()
+        public void NullCheckedDiscard_1()
         {
             var source = @"
 using System;
@@ -649,6 +649,7 @@ class C
     public void M()
     {
         Func<string, int> func1 = (_!!) => 42;
+        Func<string, string, int> func2 = (_!!, x) => 42;
     }
 }";
             var tree = Parse(source, options: TestOptions.RegularPreview);
@@ -656,14 +657,49 @@ class C
             comp.VerifyDiagnostics();
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
+            ParenthesizedLambdaExpressionSyntax[] nodes = comp.GlobalNamespace.GetTypeMember("C")
+                .GetMember<SourceMethodSymbol>("M")
+                .GetNonNullSyntaxNode()
+                .DescendantNodes()
+                .OfType<ParenthesizedLambdaExpressionSyntax>()
+                .ToArray();
+
+            Assert.Equal(2, nodes.Length);
+
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(nodes[0]).Symbol!;
             Assert.True(methodSymbol.Parameters[0].IsNullChecked);
+
+            methodSymbol = (IMethodSymbol)model.GetSymbolInfo(nodes[1]).Symbol!;
+            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
+            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
+        }
+
+        [Fact]
+        public void NullCheckedDiscard_2()
+        {
+            var source = @"
+using System;
+class C
+{
+    public Action<string, string> action0 = (_, _) => { }; // 1
+    public Action<string, string> action1 = (_!!, _) => { }; // 1
+    public Action<string, string> action2 = (_, _!!) => { }; // 2
+    public Action<string, string> action3 = (_!!, _!!) => { }; // 3, 4
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (6,46): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action1 = (_!!, _) => { }; // 1
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(6, 46),
+                // (7,49): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action2 = (_, _!!) => { }; // 2
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(7, 49),
+                // (8,46): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action3 = (_!!, _!!) => { }; // 3, 4
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(8, 46),
+                // (8,51): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action3 = (_!!, _!!) => { }; // 3, 4
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(8, 51));
         }
 
         [Fact]
@@ -680,9 +716,9 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
+                    // (5,31): error CS8994: 'out' parameter 'x' cannot be null-checked.
                     //     public void M(out string x!!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 31));
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnOutParameter, "!!").WithArguments("x").WithLocation(5, 31));
         }
 
         [Fact]
@@ -698,10 +734,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
-                    //     public void M(ref string x!!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 31));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -714,10 +747,7 @@ class C
     public void M(in string x!!) { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics(
-                    // (5,30): error CS8720: By-reference parameter 'x' cannot be null-checked.
-                    //     public void M(in string x!!) { }
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 30));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]

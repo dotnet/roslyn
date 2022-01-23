@@ -992,6 +992,11 @@
         <target state="translated">Preferir operador de índice</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="new">Prefer method group conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
         <target state="translated">Preferir estructura de coincidencia de espacio de nombres y carpetas</target>
