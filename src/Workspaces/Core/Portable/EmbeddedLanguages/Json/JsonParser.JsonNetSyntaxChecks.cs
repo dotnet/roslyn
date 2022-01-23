@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
@@ -119,15 +120,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var child in node.Sequence)
                 {
-                    if (child.IsNode)
+                    if (child.Kind == JsonKind.Property)
                     {
-                        var childNode = child.Node;
-                        if (childNode.Kind == JsonKind.Property)
-                        {
-                            return new EmbeddedDiagnostic(
-                                WorkspacesResources.Properties_not_allowed_in_an_array,
-                                ((JsonPropertyNode)childNode).ColonToken.GetSpan());
-                        }
+                        return new EmbeddedDiagnostic(
+                            WorkspacesResources.Properties_not_allowed_in_an_array,
+                            ((JsonPropertyNode)child).ColonToken.GetSpan());
                     }
                 }
 
@@ -158,14 +155,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return true;
             }
 
-            private static EmbeddedDiagnostic? CheckCommasBetweenSequenceElements(JsonSequenceNode node)
+            private static EmbeddedDiagnostic? CheckCommasBetweenSequenceElements(ImmutableArray<JsonValueNode> sequence)
             {
                 // Json.net allows sequences of commas.  But after every non-comma value, you need
                 // a comma.
-                for (int i = 0, n = node.ChildCount - 1; i < n; i++)
+                for (int i = 0, n = sequence.Length - 1; i < n; i++)
                 {
-                    var child = node[i];
-                    var nextChild = node[i + 1];
+                    var child = sequence[i];
+                    var nextChild = sequence[i + 1];
                     if (child.Kind != JsonKind.CommaValue &&
                         nextChild.Kind != JsonKind.CommaValue)
                     {
@@ -180,7 +177,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             private static EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
             {
-                for (int i = 0, n = node.Sequence.ChildCount; i < n; i++)
+                for (int i = 0, n = node.Sequence.Length; i < n; i++)
                 {
                     var child = node.Sequence[i];
                     if (i % 2 == 0)

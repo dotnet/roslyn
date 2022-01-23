@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             VirtualCharSequence text, JsonCompilationUnit compilationUnit)
         {
             var arraySequence = compilationUnit.Sequence;
-            if (arraySequence.ChildCount == 0)
+            if (arraySequence.IsEmpty)
             {
                 // json is not allowed to be just whitespace.
                 if (text.Length > 0 &&
@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     return new EmbeddedDiagnostic(WorkspacesResources.Syntax_error, GetSpan(text));
                 }
             }
-            else if (arraySequence.ChildCount >= 2)
+            else if (arraySequence.Length >= 2)
             {
                 // the top level can't have more than one actual value.
-                var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
+                var firstToken = GetFirstToken(arraySequence[1]);
                 return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0]),
                     firstToken.GetSpan());
@@ -170,9 +170,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             foreach (var child in compilationUnit.Sequence)
             {
                 // Commas should never show up in the top level sequence.
-                if (child.IsNode && child.Node.Kind == JsonKind.CommaValue)
+                if (child.Kind == JsonKind.CommaValue)
                 {
-                    var emptyValue = (JsonCommaValueNode)child.Node;
+                    var emptyValue = (JsonCommaValueNode)child;
                     return new EmbeddedDiagnostic(
                         string.Format(WorkspacesResources._0_unexpected, ','),
                         emptyValue.CommaToken.GetSpan());
@@ -217,15 +217,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 var diagnostic = trivia.Diagnostics.FirstOrNull();
                 if (diagnostic != null)
-                {
                     return diagnostic;
-                }
             }
 
             return null;
         }
 
-        private JsonSequenceNode ParseSequence()
+        private ImmutableArray<JsonValueNode> ParseSequence()
         {
             try
             {
@@ -239,16 +237,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
         }
 
-        private JsonSequenceNode ParseSequenceWorker()
+        private ImmutableArray<JsonValueNode> ParseSequenceWorker()
         {
-            var list = ArrayBuilder<JsonValueNode>.GetInstance();
+            using var _ = ArrayBuilder<JsonValueNode>.GetInstance(out var result);
 
             while (ShouldConsumeSequenceElement())
-            {
-                list.Add(ParseValue());
-            }
+                result.Add(ParseValue());
 
-            return new JsonSequenceNode(list.ToImmutableAndFree());
+            return result.ToImmutable();
         }
 
         private bool ShouldConsumeSequenceElement()
