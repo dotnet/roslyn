@@ -83,10 +83,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // Special case for converting a method group to object. The compiler issues a warning if the cast is removed:
             // warning CS8974: Converting method group 'ToString' to non-delegate type 'object'. Did you intend to invoke the method?
-            if (semanticModel.GetOperation(cast.Expression, cancellationToken)?.Kind == OperationKind.MethodReference &&
+            var castExpressionOperation = semanticModel.GetOperation(cast.Expression, cancellationToken);
+            if (castExpressionOperation?.Kind == OperationKind.MethodReference &&
                 semanticModel.GetTypeInfo(cast.Type, cancellationToken).Type?.SpecialType is SpecialType.System_Object)
             {
-                return false;
+                // If we have a double cast, report as unnecessary, e.g:
+                // (object)(object)MethodGroup
+                // (Delegate)(object)MethodGroup
+                // If we have a single object cast, don't report as unnecessary e.g:
+                // (object)MethodGroup
+                return castExpressionOperation.Parent?.Parent?.Kind == OperationKind.Conversion;
             }
 
             return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);

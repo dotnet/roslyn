@@ -12647,7 +12647,7 @@ class C
 
         [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task ConvertingMethodGroupToObject()
+        public async Task ConvertingMethodGroupToObject_CastIsNecessary()
         {
             var code = @"
 class C
@@ -12663,6 +12663,45 @@ class C
                 TestCode = code,
                 FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [InlineData("Delegate")]
+        [InlineData("MulticastDelegate")]
+        [InlineData("Func<string>")]
+        public async Task ConvertingMethodGroupToObject_CastIsUnnecessary(string type)
+        {
+            var code = $@"
+using System;
+
+class C
+{{
+    static {type} M(object o)
+    {{
+        return ({type})[|(object)|]o.ToString;
+    }}
+}}
+";
+            var fixedCode = $@"
+using System;
+
+class C
+{{
+    static {type} M(object o)
+    {{
+        return o.ToString;
+    }}
+}}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp10,
+                NumberOfIncrementalIterations = 2,
+                NumberOfFixAllIterations = 2,
             }.RunAsync();
         }
     }
