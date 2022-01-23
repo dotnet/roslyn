@@ -4006,10 +4006,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""2"" />
+  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""3"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""2"" />
+  <Diagnostic Message=""Invalid escape sequence"" Start=""13"" Length=""3"" />
 </Diagnostics>");
         }
 
