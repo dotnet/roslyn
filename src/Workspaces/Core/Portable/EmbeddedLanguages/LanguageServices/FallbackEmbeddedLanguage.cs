@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-<<<<<<< HEAD
-=======
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
->>>>>>> jsonTests
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices

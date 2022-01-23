@@ -2,14 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-<<<<<<< HEAD
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
-{
-    internal enum JsonOptions
-    {
-        None,
-        Strict
-=======
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -20,6 +12,12 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
+    internal enum JsonParserOptions
+    {
+        None,
+        Strict
+    }
+
     [DataContract]
     internal readonly record struct JsonOptions(
         [property: DataMember(Order = 0)] bool ColorizeJsonPatterns,
@@ -87,6 +85,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 ReportInvalidJsonPatterns: options.GetOption(Metadata.ReportInvalidJsonPatterns, language),
                 HighlightRelatedJsonComponentsUnderCursor: options.GetOption(Metadata.HighlightRelatedJsonComponentsUnderCursor, language),
                 DetectAndOfferEditorFeaturesForProbableJsonStrings: options.GetOption(Metadata.DetectAndOfferEditorFeaturesForProbableJsonStrings, language));
->>>>>>> jsonTests
     }
 }

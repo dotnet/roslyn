@@ -32,16 +32,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             : VirtualChar.Create((char)0, span: default);
 
         public VirtualCharSequence GetCharsToCurrentPosition(int start)
-<<<<<<< HEAD
-        {
-            return this.Text.GetSubSequence(TextSpan.FromBounds(start, this.Position));
-        }
-=======
-            => GetSubSequence(start, Position);
-
-        public VirtualCharSequence GetSubSequence(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
->>>>>>> jsonTests
 
         public JsonToken ScanNextToken()
         {
@@ -239,11 +230,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
         {
-<<<<<<< HEAD
-            var chars = this.Text.GetSubSequence(new TextSpan(this.Position, 1));
-=======
             var chars = this.Text.GetSubSequence(new TextSpan(Position, 1));
->>>>>>> jsonTests
             Position++;
             return (chars, kind, null);
         }
@@ -404,13 +391,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private JsonTrivia? ScanWhitespace()
         {
             var start = Position;
-<<<<<<< HEAD
-            while (Position < Text.Length &&
-                   char.IsWhiteSpace(this.CurrentChar))
-            {
-=======
             while (Position < Text.Length && this.CurrentChar.IsWhiteSpace)
->>>>>>> jsonTests
                 Position++;
 
             if (Position > start)

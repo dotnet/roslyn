@@ -97,11 +97,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         /// diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-<<<<<<< HEAD
-        public static JsonTree TryParse(VirtualCharSequence text, JsonOptions options)
-=======
-        public static JsonTree? TryParse(VirtualCharSequence text, bool strict)
->>>>>>> jsonTests
+        public static JsonTree? TryParse(VirtualCharSequence text, JsonParserOptions strict)
         {
             try
             {

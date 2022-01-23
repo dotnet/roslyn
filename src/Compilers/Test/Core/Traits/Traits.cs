@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
             public const string CodeActionsDeclareAsNullable = "CodeActions.DeclareAsNullable";
-<<<<<<< HEAD:src/Test/Utilities/Portable/Traits/Traits.cs
             public const string CodeActionsDetectJsonString = "CodeActions.DetectJsonString";
-=======
             public const string CodeActionsExtractInterface = "CodeActions.ExtractInterface";
             public const string CodeActionsExtractLocalFunction = "CodeActions.ExtractLocalFunction";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
@@ -92,7 +90,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsFixReturnType = "CodeActions.FixReturnType";
             public const string CodeActionsFullyQualify = "CodeActions.FullyQualify";
             public const string CodeActionsGenerateComparisonOperators = "CodeActions.GenerateComparisonOperators";
->>>>>>> jsonTests:src/Compilers/Test/Core/Traits/Traits.cs
             public const string CodeActionsGenerateConstructor = "CodeActions.GenerateConstructor";
             public const string CodeActionsGenerateConstructorFromMembers = "CodeActions.GenerateConstructorFromMembers";
             public const string CodeActionsGenerateDefaultConstructors = "CodeActions.GenerateDefaultConstructors";
