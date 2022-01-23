@@ -1248,9 +1248,81 @@ public class C
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task RS1024_CustomComparer()
+        {
+            var code = @"
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M()
+    {
+        _ = new HashSet<ISymbol>(SymbolNameComparer.Instance);
+    }
+}
+
+internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
+{
+    private SymbolNameComparer() { }
+
+    internal static IEqualityComparer<ISymbol> Instance { get; } = new SymbolNameComparer();
+
+    public override bool Equals(ISymbol x, ISymbol y) => true;
+
+    public override int GetHashCode(ISymbol obj) => 0;
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RS1024_CustomComparer2()
+        {
+            var code = @"
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M()
+    {
+        _ = new HashSet<ISymbol>(SymbolNameComparer.Instance);
+    }
+}
+
+internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
+{
+    private SymbolNameComparer() { }
+
+    internal static SymbolNameComparer Instance { get; } = new SymbolNameComparer();
+
+    public override bool Equals(ISymbol x, ISymbol y) => true;
+
+    public override int GetHashCode(ISymbol obj) => 0;
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+        }
+
         private static ReferenceAssemblies CreateNetCoreReferenceAssemblies()
             => ReferenceAssemblies.NetCore.NetCoreApp31.AddPackages(ImmutableArray.Create(
-                new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0"),
+                new PackageIdentity("Microsoft.CodeAnalysis", "4.0.1"),
                 new PackageIdentity("System.Runtime.Serialization.Formatters", "4.3.0"),
                 new PackageIdentity("System.Configuration.ConfigurationManager", "4.7.0"),
                 new PackageIdentity("System.Security.Cryptography.Cng", "4.7.0"),

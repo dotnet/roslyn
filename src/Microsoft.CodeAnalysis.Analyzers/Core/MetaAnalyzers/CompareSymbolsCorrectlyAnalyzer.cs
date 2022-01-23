@@ -86,7 +86,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     context => HandleInvocationOperation(in context, symbolType, symbolEqualityComparerType, equalityComparerMethods, systemHashCode),
                     OperationKind.Invocation);
 
-                if (symbolEqualityComparerType != null)
+
+                var iEqualityComparer = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEqualityComparer1);
+                if (symbolEqualityComparerType is not null && iEqualityComparer is not null)
                 {
                     var collectionTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericDictionary2));
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsConcurrentConcurrentDictionary2));
 
                     context.RegisterOperationAction(
-                        context => HandleObjectCreation(in context, symbolType, symbolEqualityComparerType, collectionTypesBuilder.ToImmutable()),
+                        context => HandleObjectCreation(in context, symbolType, iEqualityComparer, collectionTypesBuilder.ToImmutable()),
                         OperationKind.ObjectCreation);
                 }
             });
@@ -230,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         }
 
         private static void HandleObjectCreation(in OperationAnalysisContext context, INamedTypeSymbol symbolType,
-             INamedTypeSymbol symbolEqualityComparerType, ImmutableHashSet<INamedTypeSymbol> collectionTypes)
+             INamedTypeSymbol iEqualityComparerType, ImmutableHashSet<INamedTypeSymbol> collectionTypes)
         {
             var objectCreation = (IObjectCreationOperation)context.Operation;
 
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 collectionTypes.Contains(createdType.OriginalDefinition) &&
                 !createdType.TypeArguments.IsEmpty &&
                 IsSymbolType(createdType.TypeArguments[0], symbolType) &&
-                !objectCreation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
+                !objectCreation.Arguments.Any(arg => IsSymbolType(arg.Value, iEqualityComparerType)))
             {
                 context.ReportDiagnostic(objectCreation.CreateDiagnostic(CollectionRule));
             }
@@ -246,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static bool IsSymbolType(IOperation? operation, INamedTypeSymbol symbolType)
         {
-            if (operation?.Type is object && IsSymbolType(operation.Type, symbolType))
+            if (operation?.Type is object && IsSymbolType(operation.Type.OriginalDefinition, symbolType))
             {
                 return true;
             }
