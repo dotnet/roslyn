@@ -7,7 +7,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     internal interface IJsonNodeVisitor
     {
         void Visit(JsonCompilationUnit node);
-        void Visit(JsonSequenceNode node);
         void Visit(JsonArrayNode node);
         void Visit(JsonObjectNode node);
         void Visit(JsonPropertyNode node);

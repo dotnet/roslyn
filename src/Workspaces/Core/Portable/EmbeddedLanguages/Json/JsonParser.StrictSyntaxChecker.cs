@@ -113,15 +113,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 var sequence = node.Sequence;
                 foreach (var child in sequence)
                 {
-                    if (child.IsNode)
+                    if (child.Kind != JsonKind.Property && child.Kind != JsonKind.CommaValue)
                     {
-                        var childNode = child.Node;
-                        if (childNode.Kind != JsonKind.Property && childNode.Kind != JsonKind.CommaValue)
-                        {
-                            return new EmbeddedDiagnostic(
-                                WorkspacesResources.Only_properties_allowed_in_an_object,
-                                GetFirstToken(childNode).GetSpan());
-                        }
+                        return new EmbeddedDiagnostic(
+                            WorkspacesResources.Only_properties_allowed_in_an_object,
+                            GetFirstToken(child).GetSpan());
                     }
                 }
 
@@ -132,25 +128,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var child in node.Sequence)
                 {
-                    if (child.IsNode)
+                    if (child.Kind == JsonKind.Property)
                     {
-                        var childNode = child.Node;
-                        if (childNode.Kind == JsonKind.Property)
-                        {
-                            return new EmbeddedDiagnostic(
-                                WorkspacesResources.Properties_not_allowed_in_an_array,
-                                ((JsonPropertyNode)childNode).ColonToken.GetSpan());
-                        }
+                        return new EmbeddedDiagnostic(
+                            WorkspacesResources.Properties_not_allowed_in_an_array,
+                            ((JsonPropertyNode)child).ColonToken.GetSpan());
                     }
                 }
 
                 return CheckProperSeparation(node.Sequence) ?? CheckChildren(node);
             }
 
-            private static EmbeddedDiagnostic? CheckProperSeparation(JsonSequenceNode sequence)
+            private static EmbeddedDiagnostic? CheckProperSeparation(ImmutableArray<JsonValueNode> sequence)
             {
                 // Ensure that this sequence is actually a separated list.
-                for (int i = 0, n = sequence.ChildCount; i < n; i++)
+                for (int i = 0, n = sequence.Length; i < n; i++)
                 {
                     var child = sequence[i];
                     if (i % 2 == 0)
@@ -173,10 +165,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     }
                 }
 
-                if (sequence.ChildCount != 0 &&
-                    sequence.ChildCount % 2 == 0)
+                if (sequence.Length != 0 &&
+                    sequence.Length % 2 == 0)
                 {
-                    var lastChild = sequence[sequence.ChildCount - 1];
+                    var lastChild = sequence[^1];
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Trailing_comma_not_allowed,
                         lastChild.GetSpan());

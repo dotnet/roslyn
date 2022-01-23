@@ -15,10 +15,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal sealed class JsonCompilationUnit : JsonNode
     {
-        public JsonCompilationUnit(JsonSequenceNode sequence, JsonToken endOfFileToken)
+        public JsonCompilationUnit(ImmutableArray<JsonValueNode> sequence, JsonToken endOfFileToken)
             : base(JsonKind.CompilationUnit)
         {
-            Debug.Assert(sequence != null);
             Debug.Assert(endOfFileToken.Kind == JsonKind.EndOfFile);
             Sequence = sequence;
             EndOfFileToken = endOfFileToken;
@@ -28,18 +27,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         /// For error recovery purposes, we support a sequence of nodes at the top level (even
         /// though only a single node is actually allowed).
         /// </summary>
-        public JsonSequenceNode Sequence { get; }
+        public ImmutableArray<JsonValueNode> Sequence { get; }
         public JsonToken EndOfFileToken { get; }
 
-        internal override int ChildCount => 2;
+        internal override int ChildCount => Sequence.Length + 1;
 
         internal override JsonNodeOrToken ChildAt(int index)
-            => index switch
-            {
-                0 => Sequence,
-                1 => EndOfFileToken,
-                _ => throw new InvalidOperationException(),
-            };
+        {
+            if (index == Sequence.Length)
+                return EndOfFileToken;
+
+            return Sequence[index];
+        }
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -54,32 +53,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             : base(kind)
         {
         }
-    }
-
-    /// <summary>
-    /// Represents a possibly-empty sequence of json expressions.
-    /// </summary>
-    internal sealed class JsonSequenceNode : JsonNode
-    {
-        public ImmutableArray<JsonValueNode> Children { get; }
-
-        internal override int ChildCount => Children.Length;
-
-        public JsonSequenceNode(ImmutableArray<JsonValueNode> children)
-            : base(JsonKind.Sequence)
-        {
-            Debug.Assert(children.All(v => v != null));
-            this.Children = children;
-        }
-
-        public new JsonValueNode this[int index]
-            => Children[index];
-
-        internal override JsonNodeOrToken ChildAt(int index)
-            => Children[index];
-
-        public override void Accept(IJsonNodeVisitor visitor)
-            => visitor.Visit(this);
     }
 
     /// <summary>
@@ -114,7 +87,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     {
         public JsonObjectNode(
             JsonToken openBraceToken,
-            JsonSequenceNode sequence,
+            ImmutableArray<JsonValueNode> sequence,
             JsonToken closeBraceToken)
             : base(JsonKind.Object)
         {
@@ -128,19 +101,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         public JsonToken OpenBraceToken { get; }
-        public JsonSequenceNode Sequence { get; }
+        public ImmutableArray<JsonValueNode> Sequence { get; }
         public JsonToken CloseBraceToken { get; }
 
-        internal override int ChildCount => 3;
+        internal override int ChildCount => 2 + Sequence.Length;
 
         internal override JsonNodeOrToken ChildAt(int index)
-            => index switch
-            {
-                0 => OpenBraceToken,
-                1 => Sequence,
-                2 => CloseBraceToken,
-                _ => throw new InvalidOperationException(),
-            };
+        {
+            if (index == 0)
+                return OpenBraceToken;
+
+            if (index == Sequence.Length + 1)
+                return CloseBraceToken;
+
+            return Sequence[index - 1];
+        }
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -150,12 +125,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     {
         public JsonArrayNode(
             JsonToken openBracketToken,
-            JsonSequenceNode sequence,
+            ImmutableArray<JsonValueNode> sequence,
             JsonToken closeBracketToken)
             : base(JsonKind.Array)
         {
             Debug.Assert(openBracketToken.Kind == JsonKind.OpenBracketToken);
-            Debug.Assert(sequence != null);
             Debug.Assert(closeBracketToken.Kind == JsonKind.CloseBracketToken);
 
             OpenBracketToken = openBracketToken;
@@ -164,19 +138,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         public JsonToken OpenBracketToken { get; }
-        public JsonSequenceNode Sequence { get; }
+        public ImmutableArray<JsonValueNode> Sequence { get; }
         public JsonToken CloseBracketToken { get; }
 
-        internal override int ChildCount => 3;
+        internal override int ChildCount => 2 + Sequence.Length;
 
         internal override JsonNodeOrToken ChildAt(int index)
-            => index switch
-            {
-                0 => OpenBracketToken,
-                1 => Sequence,
-                2 => CloseBracketToken,
-                _ => throw new InvalidOperationException(),
-            };
+        {
+            if (index == 0)
+                return OpenBracketToken;
+
+            if (index == Sequence.Length + 1)
+                return CloseBracketToken;
+
+            return Sequence[index - 1];
+        }
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
@@ -290,7 +266,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     internal sealed class JsonConstructorNode : JsonValueNode
     {
         public JsonConstructorNode(
-            JsonToken newKeyword, JsonToken nameToken, JsonToken openParenToken, JsonSequenceNode sequence, JsonToken closeParenToken)
+            JsonToken newKeyword,
+            JsonToken nameToken,
+            JsonToken openParenToken,
+            ImmutableArray<JsonValueNode> sequence,
+            JsonToken closeParenToken)
             : base(JsonKind.Constructor)
         {
             NewKeyword = newKeyword;
@@ -303,21 +283,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonToken NewKeyword { get; }
         public JsonToken NameToken { get; }
         public JsonToken OpenParenToken { get; }
-        public JsonSequenceNode Sequence { get; }
+        public ImmutableArray<JsonValueNode> Sequence { get; }
         public JsonToken CloseParenToken { get; }
 
-        internal override int ChildCount => 5;
+        internal override int ChildCount => Sequence.Length + 4;
 
         internal override JsonNodeOrToken ChildAt(int index)
-            => index switch
-            {
-                0 => NewKeyword,
-                1 => NameToken,
-                2 => OpenParenToken,
-                3 => Sequence,
-                4 => CloseParenToken,
-                _ => throw new InvalidOperationException(),
-            };
+        {
+            if (index == 0)
+                return NewKeyword;
+
+            if (index == 1)
+                return NameToken;
+
+            if (index == 2)
+                return OpenParenToken;
+
+            if (index == Sequence.Length + 3)
+                return CloseParenToken;
+
+            return Sequence[index];
+        }
 
         public override void Accept(IJsonNodeVisitor visitor)
             => visitor.Visit(this);
