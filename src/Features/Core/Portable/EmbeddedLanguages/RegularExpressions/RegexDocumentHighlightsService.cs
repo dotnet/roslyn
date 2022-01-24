@@ -28,12 +28,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
-<<<<<<< HEAD
-            var option = document.Project.Solution.Workspace.Options.GetOption(RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
-            if (!option)
-=======
             if (!options.HighlightRelatedRegexComponentsUnderCursor)
->>>>>>> jsonTests
             {
                 return default;
             }

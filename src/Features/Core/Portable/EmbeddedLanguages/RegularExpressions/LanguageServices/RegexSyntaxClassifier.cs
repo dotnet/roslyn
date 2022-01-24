@@ -45,11 +45,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-<<<<<<< HEAD:src/Workspaces/Core/Portable/EmbeddedLanguages/RegularExpressions/LanguageServices/RegexSyntaxClassifier.cs
-            if (!workspace.Options.GetOption(RegexFeatureOptions.ColorizeRegexPatterns, semanticModel.Language))
-=======
             if (!options.ColorizeRegexPatterns)
->>>>>>> jsonTests:src/Features/Core/Portable/EmbeddedLanguages/RegularExpressions/LanguageServices/RegexSyntaxClassifier.cs
             {
                 return;
             }

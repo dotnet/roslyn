@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -65,11 +64,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-<<<<<<< HEAD
-            if (!context.Options.GetOption(RegexFeatureOptions.ProvideRegexCompletions, context.Document.Project.Language))
-=======
             if (!context.CompletionOptions.ProvideRegexCompletions)
->>>>>>> jsonTests
             {
                 return;
             }
