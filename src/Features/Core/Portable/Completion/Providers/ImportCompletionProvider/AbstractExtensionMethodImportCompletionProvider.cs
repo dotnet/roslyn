@@ -68,13 +68,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     if (result.IsPartialResult)
                         CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
                 }
-                else
-                {
-                    // If we can't get a valid receiver type, then we don't show expander as available.
-                    // We need to set this explicitly here because we didn't do the (more expensive) symbol check inside 
-                    // `ShouldProvideCompletion` method above, which is intended for quick syntax based check.
-                    completionContext.ExpandItemsAvailable = false;
-                }
             }
         }
 

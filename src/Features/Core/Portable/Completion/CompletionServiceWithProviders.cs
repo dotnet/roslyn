@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Nothing to do if we didn't even get any regular items back (i.e. 0 items or suggestion item only.)
             if (!triggeredContexts.ContainsNonSuggestionModeItem)
-                return CompletionList.Empty.WithExpandItemsAvailable(triggeredContexts.ExpandItemsAvailable);
+                return CompletionList.Empty;
 
             // See if there were completion contexts provided that were exclusive. If so, then that's all we'll return.
             if (triggeredContexts.ContainsExclusiveContext)
@@ -151,8 +151,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var allContexts = triggeredContexts.NonEmptyContexts.Concat(augmentingContexts.NonEmptyContexts)
                 .Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
-            return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false)
-                .WithExpandItemsAvailable(triggeredContexts.ExpandItemsAvailable || augmentingContexts.ExpandItemsAvailable);
+            return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false);
 
             ImmutableArray<CompletionProvider> GetTriggeredProviders(
                 Document document, ConcatImmutableArray<CompletionProvider> allProviders, int caretPosition, CompletionOptions options, CompletionTrigger trigger, ImmutableHashSet<string>? roles, SourceText text)
@@ -512,7 +511,6 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             public ImmutableArray<CompletionContext> NonEmptyContexts { get; }
 
-            public bool ExpandItemsAvailable { get; }
             public bool ContainsNonSuggestionModeItem { get; }
             public bool ContainsExclusiveContext { get; }
 
@@ -520,7 +518,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
             public AggregatedCompletionContextsData(CompletionContext[] allContexts)
             {
-                var expandItemsAvailable = false;
                 var containsNonSuggestionModeItem = false;
                 var containsExclusiveContext = false;
                 var builder = ArrayBuilder<CompletionContext>.GetInstance(allContexts.Length);
@@ -537,15 +534,11 @@ namespace Microsoft.CodeAnalysis.Completion
                         builder.Add(context);
                     }
 
-                    if (context.ExpandItemsAvailable)
-                        expandItemsAvailable = true;
-
                     if (context.IsExclusive)
                         containsExclusiveContext = true;
                 }
 
                 NonEmptyContexts = builder.ToImmutableAndFree();
-                ExpandItemsAvailable = expandItemsAvailable;
                 ContainsNonSuggestionModeItem = containsNonSuggestionModeItem;
                 ContainsExclusiveContext = containsExclusiveContext;
             }

@@ -298,11 +298,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 itemsBuilder.Add(item);
             }
 
-            // It's possible that some providers can provide expanded items, in which case we will need to show expander as unselected.
-            var filters = filterSet.GetFilterStatesInSet(addUnselectedExpander: completionList.ExpandItemsAvailable);
-            var items = itemsBuilder.ToImmutableAndFree();
+            AddPropertiesToSession(session, completionList, triggerLocation, isExpanded);
 
-            AddPropertiesToSession(session, completionList, triggerLocation, isExpanded, completionList.ExpandItemsAvailable);
+            var filters = filterSet.GetFilterStatesInSet();
+            var items = itemsBuilder.ToImmutableAndFree();
 
             if (completionList.SuggestionModeItem is null)
                 return new(items, suggestionItemOptions: null, selectionHint: AsyncCompletionData.InitialSelectionHint.RegularSelection, filters);
@@ -313,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             return new(items, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters);
 
-            static void AddPropertiesToSession(IAsyncCompletionSession session, CompletionList completionList, SnapshotPoint triggerLocation, bool isExpanded, bool expandItemsAvailable)
+            static void AddPropertiesToSession(IAsyncCompletionSession session, CompletionList completionList, SnapshotPoint triggerLocation, bool isExpanded)
             {
                 // Store around the span this completion list applies to.  We'll use this later
                 // to pass this value in when we're committing a completion list item.
@@ -344,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // so when they are requested via expander later, we can retrieve it.
                 // Technically we should save the trigger location for each individual service that made such claim, but in reality only Roslyn's
                 // completion service uses expander, so we can get away with not making such distinction.
-                if (!isExpanded && expandItemsAvailable)
+                if (!isExpanded)
                 {
                     session.Properties[ExpandedItemTriggerLocation] = triggerLocation;
                 }

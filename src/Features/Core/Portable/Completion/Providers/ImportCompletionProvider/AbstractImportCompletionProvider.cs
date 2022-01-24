@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            completionContext.ExpandItemsAvailable = true;
-
             // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via expander in completion list)
             var isExpandedCompletion = completionContext.CompletionOptions.IsExpandedCompletion;
             if (!isExpandedCompletion)

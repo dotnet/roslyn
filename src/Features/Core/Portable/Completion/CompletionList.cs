@@ -51,25 +51,18 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem? SuggestionModeItem { get; }
 
-        /// <summary>
-        /// Indicate if expand items are returned or can be provided upon request (if expand items are disabled via options)
-        /// </summary>
-        internal bool ExpandItemsAvailable { get; }
-
         private CompletionList(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
             CompletionRules? rules,
             CompletionItem? suggestionModeItem,
-            bool isExclusive,
-            bool expandItemsAvailable)
+            bool isExclusive)
         {
             Span = defaultSpan;
+
             Items = items.NullToEmpty();
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
-            ExpandItemsAvailable = expandItemsAvailable;
-
             _isExclusive = isExclusive;
 
             foreach (var item in Items)
@@ -92,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionRules? rules = null,
             CompletionItem? suggestionModeItem = null)
         {
-            return Create(defaultSpan, items, rules, suggestionModeItem, isExclusive: false, expandItemsAvailable: false);
+            return Create(defaultSpan, items, rules, suggestionModeItem, isExclusive: false);
         }
 
         internal static CompletionList Create(
@@ -100,36 +93,32 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CompletionItem> items,
             CompletionRules? rules,
             CompletionItem? suggestionModeItem,
-            bool isExclusive,
-            bool expandItemsAvailable = false)
+            bool isExclusive)
         {
-            return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive, expandItemsAvailable);
+            return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive);
         }
 
         private CompletionList With(
             Optional<TextSpan> span = default,
             Optional<ImmutableArray<CompletionItem>> items = default,
             Optional<CompletionRules> rules = default,
-            Optional<CompletionItem> suggestionModeItem = default,
-            Optional<bool> expandItemsAvailable = default)
+            Optional<CompletionItem> suggestionModeItem = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
             var newItems = items.HasValue ? items.Value : Items;
             var newRules = rules.HasValue ? rules.Value : Rules;
             var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : SuggestionModeItem;
-            var newExpandItemsAvailable = expandItemsAvailable.HasValue ? expandItemsAvailable.Value : ExpandItemsAvailable;
 
             if (newSpan == Span &&
                 newItems == Items &&
                 newRules == Rules &&
-                newSuggestionModeItem == SuggestionModeItem &&
-                newExpandItemsAvailable == ExpandItemsAvailable)
+                newSuggestionModeItem == SuggestionModeItem)
             {
                 return this;
             }
             else
             {
-                return Create(newSpan, newItems, newRules, newSuggestionModeItem, _isExclusive, newExpandItemsAvailable);
+                return Create(newSpan, newItems, newRules, newSuggestionModeItem);
             }
         }
 
@@ -162,17 +151,11 @@ namespace Microsoft.CodeAnalysis.Completion
             => With(suggestionModeItem: suggestionModeItem);
 
         /// <summary>
-        /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="ExpandItemsAvailable"/> property changed.
-        /// </summary>
-        internal CompletionList WithExpandItemsAvailable(bool expandItemsAvailable)
-            => With(expandItemsAvailable: expandItemsAvailable);
-
-        /// <summary>
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
         /// </summary>
         public static readonly CompletionList Empty = new(
             default, default, CompletionRules.Default,
-            suggestionModeItem: null, isExclusive: false, expandItemsAvailable: false);
+            suggestionModeItem: null, isExclusive: false);
 
         internal TestAccessor GetTestAccessor()
             => new(this);

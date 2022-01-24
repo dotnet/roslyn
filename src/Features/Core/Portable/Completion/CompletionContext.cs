@@ -75,14 +75,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool IsExclusive { get; set; }
 
         /// <summary>
-        /// Set to true if the corresponding provider can provide extended items with current context,
-        /// regardless of whether those items are actually added. i.e. it might be disabled by default,
-        /// but we still want to show the expander so user can explicitly request them to be added to 
-        /// completion list if we are in the appropriate context.
-        /// </summary>
-        internal bool ExpandItemsAvailable { get; set; }
-
-        /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
         /// </summary>
         public CompletionContext(
