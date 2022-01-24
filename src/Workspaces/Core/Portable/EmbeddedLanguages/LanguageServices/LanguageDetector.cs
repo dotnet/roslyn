@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         private static readonly Dictionary<string, TOptions> s_nameToOption =
             typeof(TOptions).GetTypeInfo().DeclaredFields
                 .Where(f => f.FieldType == typeof(TOptions))
-                .ToDictionary(f => f.Name, f => (TOptions)f.GetValue(null), StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(f => f.Name, f => (TOptions)f.GetValue(null)!, StringComparer.OrdinalIgnoreCase);
 
         private readonly Regex _regex;
 
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             }
 
             var optionGroup = match.Groups["option"];
-            foreach (Capture capture in optionGroup.Captures)
+            foreach (Capture? capture in optionGroup.Captures)
             {
-                if (!s_nameToOption.TryGetValue(capture.Value, out var specificOption))
+                if (!s_nameToOption.TryGetValue(capture!.Value, out var specificOption))
                 {
                     // hit something we don't understand.  bail out.  that will help ensure
                     // users don't have weird behavior just because they misspelled something.
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             return true;
         }
 
-        private TOptions CombineOptions(TOptions options, TOptions specificOption)
+        private static TOptions CombineOptions(TOptions options, TOptions specificOption)
         {
             var int1 = (int)(object)options;
             var int2 = (int)(object)specificOption;
