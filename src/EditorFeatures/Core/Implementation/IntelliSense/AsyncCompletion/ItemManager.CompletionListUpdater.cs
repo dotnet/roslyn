@@ -391,7 +391,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(IReadOnlyList<MatchResult<VSCompletionItem>> items, CancellationToken cancellationToken)
             {
-                return items.SelectAsArray(matchResult =>
+                if (items.IsEmpty())
+                {
+                    return ImmutableArray<CompletionItemWithHighlight>.Empty;
+                }
+
+                using var _ = ArrayBuilder<CompletionItemWithHighlight>.GetInstance(items.Count, out var builder);
+                builder.AddRange(items.Select(matchResult =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var highlightedSpans = _highlightMatchingPortions
@@ -399,7 +405,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         : ImmutableArray<Span>.Empty;
 
                     return new CompletionItemWithHighlight(matchResult.EditorCompletionItem, highlightedSpans);
-                });
+                }));
+
+                return builder.ToImmutable();
 
                 static ImmutableArray<Span> GetHighlightedSpans(
                     MatchResult<VSCompletionItem> matchResult,
