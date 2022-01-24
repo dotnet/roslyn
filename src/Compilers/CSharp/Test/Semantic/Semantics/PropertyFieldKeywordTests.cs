@@ -1303,6 +1303,7 @@ class C
             comp.TestOnlyCompilationData = accessorBindingData;
 
             comp.VerifyDiagnostics(
+                // PROTOTYPE(semi-auto-props): Do we expect a similar error for semi auto props?
                 // (22,33): error CS0165: Use of unassigned local variable 's1'
                 //         S_WithAutoProperty s2 = s1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(22, 33)
