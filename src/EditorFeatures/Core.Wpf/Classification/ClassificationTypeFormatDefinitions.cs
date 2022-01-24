@@ -900,7 +900,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
-<<<<<<< HEAD
         #region JSON
 
         [Export(typeof(EditorFormatDefinition))]
@@ -912,9 +911,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonCommentFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonCommentFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonCommentFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Comment;
+                this.DisplayName = EditorFeaturesResources.JSON_Comment;
                 this.ForegroundColor = Color.FromRgb(87, 166, 74);
             }
         }
@@ -927,9 +928,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonNumberFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonNumberFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonNumberFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Number;
+                this.DisplayName = EditorFeaturesResources.JSON_Number;
                 this.ForegroundColor = Color.FromRgb(181, 206, 168);
             }
         }
@@ -942,9 +945,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonStringFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonStringFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonStringFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_String;
+                this.DisplayName = EditorFeaturesResources.JSON_String;
                 this.ForegroundColor = Color.FromRgb(214, 157, 133);
             }
         }
@@ -957,9 +962,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonKeywordFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonKeywordFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonKeywordFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Keyword;
+                this.DisplayName = EditorFeaturesResources.JSON_Keyword;
                 this.ForegroundColor = Color.FromRgb(86, 156, 214);
             }
         }
@@ -972,9 +979,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonTextFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonTextFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonTextFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Text;
+                this.DisplayName = EditorFeaturesResources.JSON_Text;
                 this.ForegroundColor = Color.FromRgb(220, 220, 220);
             }
         }
@@ -987,9 +996,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonOperatorFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonOperatorFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonOperatorFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Operator;
+                this.DisplayName = EditorFeaturesResources.JSON_Operator;
                 this.ForegroundColor = Color.FromRgb(180, 180, 180);
             }
         }
@@ -1002,9 +1013,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonPunctuationFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonPunctuationFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonPunctuationFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Punctuation;
+                this.DisplayName = EditorFeaturesResources.JSON_Punctuation;
                 this.ForegroundColor = Color.FromRgb(220, 220, 220);
             }
         }
@@ -1017,9 +1030,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonObjectFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonObjectFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonObjectFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Object;
+                this.DisplayName = EditorFeaturesResources.JSON_Object;
                 this.ForegroundColor = Color.FromRgb(216, 80, 80);
             }
         }
@@ -1032,9 +1047,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonArrayFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonArrayFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonArrayFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Array;
+                this.DisplayName = EditorFeaturesResources.JSON_Array;
                 this.ForegroundColor = Color.FromRgb(216, 80, 80);
             }
         }
@@ -1047,9 +1064,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonPropertyNameFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonPropertyNameFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonPropertyNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Property_Name;
+                this.DisplayName = EditorFeaturesResources.JSON_Property_Name;
                 this.ForegroundColor = Color.FromRgb(202, 121, 236);
             }
         }
@@ -1062,18 +1081,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class JsonConstructorNameFormatDefinition : ClassificationFormatDefinition
         {
-            private JsonConstructorNameFormatDefinition()
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public JsonConstructorNameFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.JSON_Constructor_Name;
+                this.DisplayName = EditorFeaturesResources.JSON_Constructor_Name;
                 this.ForegroundColor = Color.FromRgb(78, 201, 176);
             }
         }
         #endregion
 
-        #region VB XML Literals - Attribute Name 
-=======
         #region VB XML Literals - Attribute Name
->>>>>>> jsonTests
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.XmlLiteralAttributeName)]
         [Name(ClassificationTypeNames.XmlLiteralAttributeName)]
