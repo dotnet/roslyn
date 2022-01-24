@@ -373,7 +373,7 @@ namespace Analyzer.Utilities.Extensions
             return true;
         }
 
-        private static bool ParameterTypesAreSame(this IParameterSymbol parameter1, IParameterSymbol parameter2)
+        public static bool ParameterTypesAreSame(this IParameterSymbol parameter1, IParameterSymbol parameter2)
         {
             var type1 = parameter1.Type.OriginalDefinition;
             var type2 = parameter2.Type.OriginalDefinition;

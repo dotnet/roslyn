@@ -15,5 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.Fixers
                 DirectCast(expression, ExpressionSyntax),
                 DirectCast(whenNotNull, ExpressionSyntax))
         End Function
+
+        Protected Overrides Function GetExpression(invocationOperation As Operations.IInvocationOperation) As SyntaxNode
+            Dim invocation = DirectCast(invocationOperation.Syntax, InvocationExpressionSyntax)
+            Return invocation.Expression
+        End Function
     End Class
 End Namespace

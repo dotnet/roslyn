@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -18,9 +19,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     public abstract class CompareSymbolsCorrectlyFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CompareSymbolsCorrectlyAnalyzer.EqualityRule.Id);
+            ImmutableArray.Create(DiagnosticIds.CompareSymbolsCorrectlyRuleId);
 
         protected abstract SyntaxNode CreateConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+
+        protected abstract SyntaxNode GetExpression(IInvocationOperation invocationOperation);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
@@ -35,6 +38,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                         CodeAction.Create(
                             CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
                             cancellationToken => ConvertToEqualsAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
+                            equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
+                        diagnostic);
+                }
+                else if (diagnostic.Descriptor == CompareSymbolsCorrectlyAnalyzer.CollectionRule)
+                {
+                    context.RegisterCodeFix(
+                        CodeAction.Create(
+                            CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
+                            cancellationToken => CallOverloadWithEqualityComparerAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
                             equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
                         diagnostic);
                 }
@@ -56,6 +68,110 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 IInvocationOperation invocationOperation => await EnsureEqualsCorrectAsync(document, semanticModel, invocationOperation, cancellationToken).ConfigureAwait(false),
                 _ => document
             };
+        }
+
+        private async Task<Document> CallOverloadWithEqualityComparerAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var expression = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
+            var rawOperation = semanticModel.GetOperation(expression, cancellationToken);
+
+            if (!CompareSymbolsCorrectlyAnalyzer.UseSymbolEqualityComparer(semanticModel.Compilation) ||
+                !semanticModel.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEqualityComparer1, out var iEqualityComparer))
+            {
+                return document;
+            }
+
+            return rawOperation switch
+            {
+                IObjectCreationOperation objectCreation =>
+                    await CallOverloadWithEqualityComparerAsync(
+                        document, objectCreation.Syntax, objectCreation.Constructor, objectCreation.Arguments, isUsedAsExtensionMethod: false,
+                        (generator, args) => generator.ObjectCreationExpression(objectCreation.Type, args), iEqualityComparer, cancellationToken)
+                    .ConfigureAwait(false),
+
+                IInvocationOperation invocation =>
+                    await CallOverloadWithEqualityComparerAsync(
+                        document, invocation.Syntax, invocation.TargetMethod, invocation.Arguments, IsExtensionMethodUsedAsSuch(invocation),
+                        (generator, args) => generator.InvocationExpression(GetExpression(invocation), args), iEqualityComparer, cancellationToken)
+                    .ConfigureAwait(false),
+
+                _ => document,
+            };
+
+            static bool IsExtensionMethodUsedAsSuch(IInvocationOperation invocation)
+                => invocation.IsExtensionMethodAndHasNoInstance()
+                && invocation.Arguments.Length > 0
+                && invocation.Arguments[0].IsImplicit;
+        }
+
+        private static async Task<Document> CallOverloadWithEqualityComparerAsync(Document document, SyntaxNode nodeToReplace, IMethodSymbol methodSymbol,
+            ImmutableArray<IArgumentOperation> arguments, bool isUsedAsExtensionMethod, Func<SyntaxGenerator, IEnumerable<SyntaxNode>, SyntaxNode> getReplacementNode,
+            INamedTypeSymbol iEqualityComparer, CancellationToken cancellationToken)
+        {
+            if (!TryFindSymbolEqualityComparerOverload(methodSymbol, iEqualityComparer, out var symbolEqualityParameterPosition))
+            {
+                return document;
+            }
+
+            var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var generator = editor.Generator;
+
+            var extensionMethodShift = isUsedAsExtensionMethod ? 1 : 0;
+            var syntaxArguments = arguments.Skip(extensionMethodShift).Select(x => x.Syntax).ToList();
+            if (symbolEqualityParameterPosition == 0)
+            {
+                syntaxArguments.Insert(0, GetEqualityComparerDefault(generator));
+            }
+            else
+            {
+                syntaxArguments.Add(GetEqualityComparerDefault(generator));
+            }
+
+            var replacement = getReplacementNode(generator, syntaxArguments);
+            editor.ReplaceNode(nodeToReplace, replacement.WithTriviaFrom(nodeToReplace));
+
+            return editor.GetChangedDocument();
+        }
+
+        private static bool TryFindSymbolEqualityComparerOverload(IMethodSymbol methodSymbol, INamedTypeSymbol iEqualityComparer, out int symbolEqualityParameterPosition)
+        {
+            symbolEqualityParameterPosition = -1;
+            var overloads = methodSymbol.GetOverloads();
+            methodSymbol = (methodSymbol.ReducedFrom ?? methodSymbol).ConstructedFrom;
+            var methodArgsCount = methodSymbol.Parameters.Length;
+
+            foreach (var overload in overloads)
+            {
+                if (overload.Parameters.Length != methodArgsCount + 1)
+                {
+                    continue;
+                }
+
+                // We currently only support adding the equality comparer at the beginning or at the end of the arguments list.
+                if (SymbolEqualityComparer.Default.Equals(overload.Parameters[0].Type.OriginalDefinition, iEqualityComparer))
+                {
+                    if (AreCollectionsEqual(overload.Parameters.Skip(1), methodSymbol.Parameters))
+                    {
+                        symbolEqualityParameterPosition = 0;
+                        return true;
+                    }
+                }
+                else if (SymbolEqualityComparer.Default.Equals(overload.Parameters[^1].Type.OriginalDefinition, iEqualityComparer))
+                {
+                    if (AreCollectionsEqual(overload.Parameters.Take(methodArgsCount), methodSymbol.Parameters))
+                    {
+                        symbolEqualityParameterPosition = methodArgsCount;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+
+            static bool AreCollectionsEqual(IEnumerable<IParameterSymbol> c1, IEnumerable<IParameterSymbol> c2)
+                => c1.Zip(c2, (x, y) => x.ParameterTypesAreSame(y)).All(x => x);
         }
 
         private async Task<Document> EnsureEqualsCorrectAsync(Document document, SemanticModel semanticModel, IInvocationOperation invocationOperation, CancellationToken cancellationToken)
