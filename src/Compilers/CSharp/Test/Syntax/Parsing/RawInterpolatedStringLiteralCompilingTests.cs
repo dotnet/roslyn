@@ -126,6 +126,17 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
     }
 
     [Fact]
+    public void TestInConstantFieldInitializer4()
+    {
+        CreateCompilation(
+@"class C
+{
+    const string x = ""bar"";
+    const string s = $""""""{bar}"""""";
+}").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void TestInAttribute()
     {
         CreateCompilation(
