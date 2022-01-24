@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider, INotifyCommittingItemCompletionProvider
     {
-        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
@@ -72,11 +71,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
         }
 
+        private static async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            // Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
+            // reach outside of the span and ended up with "node not within syntax tree" error from the speculative model.
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+        }
+
         private HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
             var semanticModel = syntaxContext.SemanticModel;
 
-            // The location is the containing node of the LeftToken, or the compilation unit itsef if LeftToken
+            // The location is the containing node of the LeftToken, or the compilation unit itself if LeftToken
             // indicates the beginning of the document (i.e. no parent).
             var location = syntaxContext.LeftToken.Parent ?? syntaxContext.SyntaxTree.GetRoot(cancellationToken);
             var importedNamespaces = GetImportedNamespaces(location, semanticModel, cancellationToken);
