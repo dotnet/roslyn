@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a verbatim token with kind IdentifierToken containing the specified text.
         /// </summary>
         /// <param name="leading">A list of trivia immediately preceding the token.</param>
-        /// <param name="text">The name of the identifier, not including any escapes or leading '@'
+        /// <param name="text">The identifier, not including any escapes or leading '@'
         /// character.</param>
         /// <param name="valueText">The canonical value of the token's text.</param>
         /// <param name="trailing">A list of trivia immediately following the token.</param>
