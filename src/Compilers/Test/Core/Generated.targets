@@ -156,8 +156,8 @@
           <LogicalName>netstandard10.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\microsoftcsharp\Microsoft.CSharp.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\lib\netstandard1.3\Microsoft.CSharp.dll">
-          <LogicalName>netstandard13lib.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
+        <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\lib\netstandard2.0\Microsoft.CSharp.dll">
+          <LogicalName>netstandard20lib.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\microsoftcsharp\Microsoft.CSharp.dll</Link>
         </EmbeddedResource>
         <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.visualbasic\$(MicrosoftVisualBasicVersion)\ref\netstandard1.1\Microsoft.VisualBasic.dll">

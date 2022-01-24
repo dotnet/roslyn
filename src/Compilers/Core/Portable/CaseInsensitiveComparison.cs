@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
                 return str1.Length - str2.Length;
             }
 
-#if !NET20 && !NETSTANDARD1_3
+#if !NET20
             public int Compare(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
             {
                 int len = Math.Min(str1.Length, str2.Length);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-#if !NET20 && !NETSTANDARD1_3
+#if !NET20
             public bool Equals(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
             {
                 if (str1.Length != str2.Length)
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public static bool Equals(string left, string right) => s_comparer.Equals(left, right);
 
-#if !NET20 && !NETSTANDARD1_3
+#if !NET20
         /// <summary>
         /// Determines if two strings are equal according to Unicode rules for case-insensitive
         /// identifier comparison (lower-case mapping).
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public static int Compare(string left, string right) => s_comparer.Compare(left, right);
 
-#if !NET20 && !NETSTANDARD1_3
+#if !NET20
         /// <summary>
         /// Compares two strings according to the Unicode rules for case-insensitive
         /// identifier comparison (lower-case mapping).

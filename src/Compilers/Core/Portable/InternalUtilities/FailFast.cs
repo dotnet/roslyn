@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis
 
         [DebuggerHidden]
         [DoesNotReturn]
-#if !NETSTANDARD1_3
         [MethodImpl(MethodImplOptions.Synchronized)]
-#endif
         internal static void OnFatalException(Exception exception)
         {
             // EDMAURER Now using the managed API to fail fast so as to default
@@ -49,9 +47,7 @@ namespace Microsoft.CodeAnalysis
 
         [DebuggerHidden]
         [DoesNotReturn]
-#if !NETSTANDARD1_3
         [MethodImpl(MethodImplOptions.Synchronized)]
-#endif
         internal static void Fail(string message)
         {
             DumpStackTrace(message: message);
@@ -82,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-#if !NET20 && !NETSTANDARD1_3
+#if !NET20
             Console.WriteLine("Stack trace of handler");
             var stackTrace = new StackTrace();
             Console.WriteLine(stackTrace.ToString());
