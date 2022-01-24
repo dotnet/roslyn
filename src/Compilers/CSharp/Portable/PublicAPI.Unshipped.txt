@@ -33,9 +33,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringEndToken 
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringStartToken = 9082 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedSingleLineRawStringEndToken = 9081 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedSingleLineRawStringStartToken = 9080 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralExpression = 9075 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralToken = 9073 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralExpression = 9074 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralToken = 9072 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax.AddPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax!

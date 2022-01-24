@@ -10387,8 +10387,6 @@ tryAgain:
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.StackAllocArrayCreationExpression:
                 case SyntaxKind.StringLiteralExpression:
-                case SyntaxKind.SingleLineRawStringLiteralExpression:
-                case SyntaxKind.MultiLineRawStringLiteralExpression:
                 case SyntaxKind.SuppressNullableWarningExpression:
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.TrueLiteralExpression:

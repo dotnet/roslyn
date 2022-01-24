@@ -1947,8 +1947,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.ArgListExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.NumericLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.StringLiteralExpression"/></description></item>
-    /// <item><description><see cref="SyntaxKind.MultiLineRawStringLiteralExpression"/></description></item>
-    /// <item><description><see cref="SyntaxKind.SingleLineRawStringLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.CharacterLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.TrueLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.FalseLiteralExpression"/></description></item>
