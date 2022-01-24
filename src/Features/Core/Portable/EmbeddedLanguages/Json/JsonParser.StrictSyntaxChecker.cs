@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     case JsonKind.SingleLineCommentTrivia:
                         // Strict mode doesn't allow comments at all.
                         return new EmbeddedDiagnostic(
-                            WorkspacesResources.Comments_not_allowed,
+                            FeaturesResources.Comments_not_allowed,
                             GetSpan(trivia.VirtualChars));
                     case JsonKind.WhitespaceTrivia:
                         return CheckWhitespace(trivia);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                             // Strict mode only allows spaces and horizontal tabs.  Everything else
                             // is illegal.
                             return new EmbeddedDiagnostic(
-                                WorkspacesResources.Illegal_whitespace_character,
+                                FeaturesResources.Illegal_whitespace_character,
                                 ch.Span);
                     }
                 }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     if (child.Kind != JsonKind.Property && child.Kind != JsonKind.CommaValue)
                     {
                         return new EmbeddedDiagnostic(
-                            WorkspacesResources.Only_properties_allowed_in_an_object,
+                            FeaturesResources.Only_properties_allowed_in_an_object,
                             GetFirstToken(child).GetSpan());
                     }
                 }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     if (child.Kind == JsonKind.Property)
                     {
                         return new EmbeddedDiagnostic(
-                            WorkspacesResources.Properties_not_allowed_in_an_array,
+                            FeaturesResources.Properties_not_allowed_in_an_array,
                             ((JsonPropertyNode)child).ColonToken.GetSpan());
                     }
                 }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         if (child.Kind == JsonKind.CommaValue)
                         {
                             return new EmbeddedDiagnostic(
-                                string.Format(WorkspacesResources._0_unexpected, ","),
+                                string.Format(FeaturesResources._0_unexpected, ","),
                                 child.GetSpan());
                         }
                     }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         if (child.Kind != JsonKind.CommaValue)
                         {
                             return new EmbeddedDiagnostic(
-                                string.Format(WorkspacesResources._0_expected, ","),
+                                string.Format(FeaturesResources._0_expected, ","),
                                 GetFirstToken(child).GetSpan());
                         }
                     }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 {
                     var lastChild = sequence[^1];
                     return new EmbeddedDiagnostic(
-                        WorkspacesResources.Trailing_comma_not_allowed,
+                        FeaturesResources.Trailing_comma_not_allowed,
                         lastChild.GetSpan());
                 }
 
@@ -182,14 +182,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 if (node.NameToken.Kind != JsonKind.StringToken)
                 {
                     return new EmbeddedDiagnostic(
-                        WorkspacesResources.Property_name_must_be_a_string,
+                        FeaturesResources.Property_name_must_be_a_string,
                         node.NameToken.GetSpan());
                 }
 
                 if (node.Value.Kind == JsonKind.CommaValue)
                 {
                     return new EmbeddedDiagnostic(
-                        WorkspacesResources.Value_required,
+                        FeaturesResources.Value_required,
                         new TextSpan(node.ColonToken.VirtualChars[0].Span.End, 0));
                 }
 
@@ -262,7 +262,7 @@ $",
                 if (!s_validNumberRegex.IsMatch(literalText))
                 {
                     return new EmbeddedDiagnostic(
-                        WorkspacesResources.Invalid_number,
+                        FeaturesResources.Invalid_number,
                         literalToken.GetSpan());
                 }
 
@@ -275,7 +275,7 @@ $",
                 if (chars[0] == '\'')
                 {
                     return new EmbeddedDiagnostic(
-                        WorkspacesResources.Strings_must_start_with_double_quote_not_single_quote,
+                        FeaturesResources.Strings_must_start_with_double_quote_not_single_quote,
                         chars[0].Span);
                 }
 
@@ -284,7 +284,7 @@ $",
                     if (chars[i] < ' ')
                     {
                         return new EmbeddedDiagnostic(
-                            WorkspacesResources.Illegal_string_character,
+                            FeaturesResources.Illegal_string_character,
                             chars[i].Span);
                     }
                 }
@@ -297,7 +297,7 @@ $",
                         if (chars[i + 1] == '\'')
                         {
                             return new EmbeddedDiagnostic(
-                                WorkspacesResources.Invalid_escape_sequence,
+                                FeaturesResources.Invalid_escape_sequence,
                                 TextSpan.FromBounds(chars[i].Span.Start, chars[i + 1].Span.End));
                         }
 
@@ -316,21 +316,21 @@ $",
             private static EmbeddedDiagnostic? InvalidLiteral(JsonToken literalToken)
             {
                 return new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources._0_literal_not_allowed, literalToken.VirtualChars.CreateString()),
+                    string.Format(FeaturesResources._0_literal_not_allowed, literalToken.VirtualChars.CreateString()),
                     literalToken.GetSpan());
             }
 
             private static EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
             {
                 return new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources._0_literal_not_allowed, "-Infinity"),
+                    string.Format(FeaturesResources._0_literal_not_allowed, "-Infinity"),
                     node.GetSpan());
             }
 
             private static EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
             {
                 return new EmbeddedDiagnostic(
-                    WorkspacesResources.Constructors_not_allowed,
+                    FeaturesResources.Constructors_not_allowed,
                     node.NewKeyword.GetSpan());
             }
         }
