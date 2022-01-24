@@ -9,15 +9,14 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using System.Xml.Linq;
 using System.Text.Json;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
         private const string _statmentPrefix = "var v = ";
 
-        private SyntaxToken GetStringToken(string text)
+        private static SyntaxToken GetStringToken(string text)
         {
             var statement = _statmentPrefix + text;
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             string expected, string looseDiagnostics, string strictDiagnostics,
             bool runLooseTreeCheck = true, bool runLooseSubTreeCheck = true,
             bool runStrictTreeCheck = true, bool runStrictSubTreeCheck = true,
-            [CallerMemberName]string name = "")
+            [CallerMemberName] string _ = "")
         {
             if (runLooseSubTreeCheck || runLooseSubTreeCheck)
             {
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 TryParseTree(current, strict, runTreeCheck, conversionFailureOk: true);
             }
 
-            for (int start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
+            for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
             {
                 TryParseTree(
                     stringText.Substring(0, start) +
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         private (SyntaxToken, JsonTree?, VirtualCharSequence) JustParseTree(
             string stringText, bool strict, bool conversionFailureOk)
         {
-            var token = GetStringToken(stringText);
+            var token = CSharpJsonParserTests.GetStringToken(stringText);
             if (token.ValueText == "")
             {
                 return default;
@@ -186,13 +185,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return tree;
         }
 
-        private string TreeToText(JsonTree tree)
+        private static string TreeToText(JsonTree tree)
         {
             return new XElement("Tree",
                 NodeToElement(tree.Root)).ToString();
         }
 
-        private string DiagnosticsToText(ImmutableArray<EmbeddedDiagnostic> diagnostics)
+        private static string DiagnosticsToText(ImmutableArray<EmbeddedDiagnostic> diagnostics)
         {
             if (diagnostics.IsEmpty)
             {
@@ -207,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                         new XAttribute("Length", d.Span.Length)))).ToString();
         }
 
-        private XElement NodeToElement(JsonNode node)
+        private static XElement NodeToElement(JsonNode node)
         {
             if (node is JsonArrayNode arrayNode)
                 return ArrayNodeToElement(arrayNode);
@@ -228,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return element;
         }
 
-        private XElement ConstructorNodeToElement(JsonConstructorNode node)
+        private static XElement ConstructorNodeToElement(JsonConstructorNode node)
         {
             var element = new XElement(node.Kind.ToString());
             element.Add(TokenToElement(node.NewKeyword));
@@ -239,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return element;
         }
 
-        private XElement ObjectNodeToElement(JsonObjectNode node)
+        private static XElement ObjectNodeToElement(JsonObjectNode node)
         {
             var element = new XElement(node.Kind.ToString());
             element.Add(TokenToElement(node.OpenBraceToken));
@@ -248,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return element;
         }
 
-        private XElement CompilationUnitToElement(JsonCompilationUnit node)
+        private static XElement CompilationUnitToElement(JsonCompilationUnit node)
         {
             var element = new XElement(node.Kind.ToString());
             element.Add(CreateSequenceNode(node.Sequence));
@@ -256,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return element;
         }
 
-        private XElement ArrayNodeToElement(JsonArrayNode node)
+        private static XElement ArrayNodeToElement(JsonArrayNode node)
         {
             var element = new XElement(node.Kind.ToString());
             element.Add(TokenToElement(node.OpenBracketToken));
@@ -265,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return element;
         }
 
-        private XElement CreateSequenceNode(ImmutableArray<JsonValueNode> sequence)
+        private static XElement CreateSequenceNode(ImmutableArray<JsonValueNode> sequence)
         {
             var element = new XElement("Sequence");
             foreach (var child in sequence)
@@ -273,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return element;
         }
 
-        private XElement TokenToElement(JsonToken token)
+        private static XElement TokenToElement(JsonToken token)
         {
             var element = new XElement(token.Kind.ToString());
 
@@ -300,12 +299,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return element;
         }
 
-        private XElement TriviaToElement(JsonTrivia trivia)
-            => new XElement(
+        private static XElement TriviaToElement(JsonTrivia trivia)
+            => new(
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString().Replace("\f", "\\f"));
 
-        private void CheckInvariants(JsonTree tree, VirtualCharSequence allChars)
+        private static void CheckInvariants(JsonTree tree, VirtualCharSequence allChars)
         {
             var root = tree.Root;
             var position = 0;
@@ -313,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             Assert.Equal(allChars.Length, position);
         }
 
-        private void CheckInvariants(JsonNode node, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(JsonNode node, ref int position, VirtualCharSequence allChars)
         {
             foreach (var child in node)
             {
@@ -328,14 +327,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             }
         }
 
-        private void CheckInvariants(JsonToken token, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(JsonToken token, ref int position, VirtualCharSequence allChars)
         {
             CheckInvariants(token.LeadingTrivia, ref position, allChars);
             CheckCharacters(token.VirtualChars, ref position, allChars);
             CheckInvariants(token.TrailingTrivia, ref position, allChars);
         }
 
-        private void CheckInvariants(ImmutableArray<JsonTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(ImmutableArray<JsonTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
         {
             foreach (var trivia in leadingTrivia)
             {
@@ -343,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             }
         }
 
-        private void CheckInvariants(JsonTrivia trivia, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(JsonTrivia trivia, ref int position, VirtualCharSequence allChars)
         {
             switch (trivia.Kind)
             {
@@ -371,9 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         }
 
         private void TestNST(
-            string stringText, string expected, string looseDiagnostics, string strictDiagnostics, [CallerMemberName]string caller = "")
+            string stringText, string expected, string _, string strictDiagnostics, [CallerMemberName] string caller = "")
         {
-            var (token, tree, allChars) = JustParseTree(stringText, strict: true, conversionFailureOk: false);
+            var (_, tree, allChars) = JustParseTree(stringText, strict: true, conversionFailureOk: false);
             Assert.NotNull(tree);
             Roslyn.Utilities.Contract.ThrowIfNull(tree);
             var actualTree = TreeToText(tree!).Replace("\"", "\"\"");

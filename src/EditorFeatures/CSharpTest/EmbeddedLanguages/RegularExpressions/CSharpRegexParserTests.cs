@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         private static XAttribute GetTextAttribute(SourceText text, TextSpan span)
             => new("Text", text.ToString(span));
 
-        private XElement NodeToElement(RegexNode node)
+        private static XElement NodeToElement(RegexNode node)
         {
             if (node is RegexAlternationNode alternationNode)
                 return AlternationToElement(alternationNode, alternationNode.SequenceList.NodesAndTokens.Length);
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return element;
         }
 
-        private XElement AlternationToElement(RegexAlternationNode alternationNode, int end)
+        private static XElement AlternationToElement(RegexAlternationNode alternationNode, int end)
         {
             // to keep tests in sync with how we used to structure alternations, we specially handle this node.
             // First, if the node only has a single element, then just print that element as that's what would
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString());
 
-        private void CheckInvariants(RegexTree tree, VirtualCharSequence allChars)
+        private static void CheckInvariants(RegexTree tree, VirtualCharSequence allChars)
         {
             var root = tree.Root;
             var position = 0;
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.Equal(allChars.Length, position);
         }
 
-        private void CheckInvariants(RegexNode node, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(RegexNode node, ref int position, VirtualCharSequence allChars)
         {
             foreach (var child in node)
             {
