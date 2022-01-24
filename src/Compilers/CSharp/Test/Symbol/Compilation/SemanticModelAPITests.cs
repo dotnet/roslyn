@@ -4201,12 +4201,36 @@ class Program
             var actual = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
 
             Assert.True(model.GetConstantValue(actual[0]).HasValue);
-            Assert.Equal("0", model.GetConstantValue(actual[0]).Value);
+            Assert.Equal(0, model.GetConstantValue(actual[0]).Value);
             Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(actual[0]).Type.SpecialType);
 
             Assert.True(model.GetConstantValue(actual[1]).HasValue);
-            Assert.Equal("true", model.GetConstantValue(actual[1]).Value);
+            Assert.Equal(true, model.GetConstantValue(actual[1]).Value);
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(actual[1]).Type.SpecialType);
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact]
+        public void ConstantValueOfRawInterpolatedString3()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""""""{null}"""""");
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actual = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+
+            Assert.True(model.GetConstantValue(actual[0]).HasValue);
+            Assert.Null(model.GetConstantValue(actual[0]).Value);
+            Assert.Null(model.GetTypeInfo(actual[0]).Type);
         }
 
         [Fact]
