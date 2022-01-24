@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         /// Lazy import ISourceLinkService because it can cause debugger 
         /// binaries to be eagerly loaded even if they are never used.
         /// </summary>
-        private readonly Lazy<ISourceLinkService?> _sourceLinkService;
+        private readonly Lazy<ISourceLinkService>? _sourceLinkService;
         private readonly IPdbSourceDocumentLogger? _logger;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
         public PdbSourceDocumentLoaderService(
-            [Import(AllowDefault = true)] Lazy<ISourceLinkService?> sourceLinkService,
+            [Import(AllowDefault = true)] Lazy<ISourceLinkService>? sourceLinkService,
             [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
         {
             _sourceLinkService = sourceLinkService;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, CancellationToken cancellationToken)
         {
-            if (sourceDocument.SourceLinkUrl is null || _sourceLinkService.Value is null)
+            if (sourceDocument.SourceLinkUrl is null || _sourceLinkService is null)
                 return null;
 
             // This should ideally be the repo-relative path to the file, and come from SourceLink: https://github.com/dotnet/sourcelink/pull/699
