@@ -1,1 +1,22 @@
+name: Build
 
+on:
+  push:
+    branches: [ patch-1 ]
+  pull_request:
+    branches: [ patch-1 ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Build
+      run: powershell -ExecutionPolicy ByPass -NoProfile -command "& """%~dp0eng\build.ps1""" -build %*"
