@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var chars = GetCharsToCurrentPosition(start);
             diagnostic ??= new EmbeddedDiagnostic(
-                WorkspacesResources.Unterminated_string, GetSpan(chars));
+                FeaturesResources.Unterminated_string, GetSpan(chars));
             return (chars, JsonKind.StringToken, diagnostic);
         }
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (this.Position == Text.Length)
             {
                 var chars = GetCharsToCurrentPosition(stringStart);
-                return new EmbeddedDiagnostic(WorkspacesResources.Unterminated_string, GetSpan(chars));
+                return new EmbeddedDiagnostic(FeaturesResources.Unterminated_string, GetSpan(chars));
             }
 
             var currentCh = this.CurrentChar;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 default:
                     Position++;
                     var chars = GetCharsToCurrentPosition(escapeStart);
-                    return new EmbeddedDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
+                    return new EmbeddedDiagnostic(FeaturesResources.Invalid_escape_sequence, GetSpan(chars));
             }
         }
 
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (invalid || (Position - unicodeCharStart != 4))
             {
                 var chars = GetCharsToCurrentPosition(escapeStart);
-                return new EmbeddedDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
+                return new EmbeddedDiagnostic(FeaturesResources.Invalid_escape_sequence, GetSpan(chars));
             }
 
             return null;
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 var chars = GetCharsToCurrentPosition(start);
                 return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars,
                     ImmutableArray.Create(new EmbeddedDiagnostic(
-                        WorkspacesResources.Error_parsing_comment,
+                        FeaturesResources.Error_parsing_comment,
                         GetSpan(chars))));
             }
 
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // Note: json.net reports an error if the file ends with "//", so we just
                 // preserve that behavior.
                 var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
-                    WorkspacesResources.Unterminated_comment,
+                    FeaturesResources.Unterminated_comment,
                     GetSpan(chars)));
                 return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars, diagnostics);
             }
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             Debug.Assert(Position == Text.Length);
             return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetCharsToCurrentPosition(start),
                 ImmutableArray.Create(new EmbeddedDiagnostic(
-                    WorkspacesResources.Unterminated_comment,
+                    FeaturesResources.Unterminated_comment,
                     GetTextSpan(start, Position))));
         }
 

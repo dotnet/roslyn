@@ -42,16 +42,6 @@
         <target state="translated">Действие кода "{0}" не сформировало измененное решение.</target>
         <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
       </trans-unit>
-      <trans-unit id="Comments_not_allowed">
-        <source>Comments not allowed</source>
-        <target state="new">Comments not allowed</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Constructors_not_allowed">
-        <source>Constructors not allowed</source>
-        <target state="new">Constructors not allowed</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">Основные параметры EditorConfig</target>
@@ -72,29 +62,9 @@
         <target state="translated">Документ не поддерживает синтаксические деревья.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_JSON_editor_features">
-        <source>Enable JSON editor features</source>
-        <target state="new">Enable JSON editor features</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_parsing_comment">
-        <source>Error parsing comment</source>
-        <target state="new">Error parsing comment</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
         <target state="translated">Ошибка при чтении содержимого исходного файла "{0}" — "{1}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Illegal_string_character">
-        <source>Illegal string character</source>
-        <target state="new">Illegal string character</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Illegal_whitespace_character">
-        <source>Illegal whitespace character</source>
-        <target state="new">Illegal whitespace character</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
@@ -102,54 +72,9 @@
         <target state="translated">Отступы и интервалы</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_constructor_name">
-        <source>Invalid constructor name</source>
-        <target state="new">Invalid constructor name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_escape_sequence">
-        <source>Invalid escape sequence</source>
-        <target state="new">Invalid escape sequence</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_number">
-        <source>Invalid number</source>
-        <target state="new">Invalid number</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_property_name">
-        <source>Invalid property name</source>
-        <target state="new">Invalid property name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="JSON_issue_0">
-        <source>JSON issue: {0}</source>
-        <target state="new">JSON issue: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Missing_property_value">
-        <source>Missing property value</source>
-        <target state="new">Missing property value</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_expected">
-        <source>Name expected</source>
-        <target state="new">Name expected</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Nested_properties_not_allowed">
-        <source>Nested properties not allowed</source>
-        <target state="new">Nested properties not allowed</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">Предпочтения для новых строк</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Only_properties_allowed_in_an_object">
-        <source>Only properties allowed in an object</source>
-        <target state="new">Only properties allowed in an object</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
@@ -167,24 +92,9 @@
         <target state="translated">Предварительно определенное преобразование из {0} в {1}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Probable_JSON_string_detected">
-        <source>Probable JSON string detected</source>
-        <target state="new">Probable JSON string detected</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
         <source>Project does not contain specified reference</source>
         <target state="translated">Проект не содержит указанную ссылку.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Properties_not_allowed_in_an_array">
-        <source>Properties not allowed in an array</source>
-        <target state="new">Properties not allowed in an array</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Property_name_must_be_a_string">
-        <source>Property name must be a string</source>
-        <target state="new">Property name must be a string</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -210,11 +120,6 @@
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
         <target state="translated">Решение не содержит указанную ссылку.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
-        <source>Strings must start with " not '</source>
-        <target state="new">Strings must start with " not '</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -302,11 +207,6 @@
         <target state="translated">Синхронизировать пространство имен со структурой папок</target>
         <note />
       </trans-unit>
-      <trans-unit id="Syntax_error">
-        <source>Syntax error</source>
-        <target state="new">Syntax error</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
         <source>The contents of a SourceGeneratedDocument may not be changed.</source>
         <target state="translated">Содержимое SourceGeneratedDocument не может быть изменено.</target>
@@ -322,29 +222,9 @@
         <target state="translated">Решение уже содержит указанную ссылку.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Trailing_comma_not_allowed">
-        <source>Trailing comma not allowed</source>
-        <target state="new">Trailing comma not allowed</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">Unbekannt</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unterminated_comment">
-        <source>Unterminated comment</source>
-        <target state="new">Unterminated comment</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unterminated_string">
-        <source>Unterminated string</source>
-        <target state="new">Unterminated string</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_required">
-        <source>Value required</source>
-        <target state="new">Value required</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -365,11 +245,6 @@
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">Рабочая область не пуста.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_expected">
-        <source>'{0}' expected</source>
-        <target state="new">'{0}' expected</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_in_a_different_project">
@@ -510,11 +385,6 @@
       <trans-unit id="Expected_0">
         <source>Expected {0}.</source>
         <target state="translated">Требуется {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_literal_not_allowed">
-        <source>'{0}' literal not allowed</source>
-        <target state="new">'{0}' literal not allowed</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_must_be_a_non_null_and_non_empty_string">
@@ -880,11 +750,6 @@
       <trans-unit id="Changing_document_property_is_not_supported">
         <source>Changing document properties is not supported</source>
         <target state="translated">Изменение свойств документа не поддерживается</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_unexpected">
-        <source>'{0}' unexpected</source>
-        <target state="new">'{0}' unexpected</target>
         <note />
       </trans-unit>
       <trans-unit id="dot_NET_Coding_Conventions">
