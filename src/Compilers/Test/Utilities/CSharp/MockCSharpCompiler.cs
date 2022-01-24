@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         // <Metalama>
         protected override ILicenseConsumptionManager GetCustomLicenseConsumptionManager() => _customLicenseConsumptionManager;
+        protected override bool IsLongRunningProcess => false;
         // </Metalama>
     }
 }

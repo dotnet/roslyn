@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Metalama.Compiler.Licensing;
-using Metalama.Compiler.UnitTests.Utilities;
+using PostSharp.Backstage.Diagnostics;
 using PostSharp.Backstage.Extensibility;
+using PostSharp.Backstage.Licensing.Consumption;
 using Xunit;
 
 namespace Metalama.Compiler.UnitTests
@@ -14,7 +16,6 @@ namespace Metalama.Compiler.UnitTests
     {
         private readonly TestDateTimeProvider _time = new();
         private readonly TestApplicationInfo _applicationInfo = new();
-        private readonly TestDiagnosticsSink _diagnostics = new();
         private readonly TimeBombLicenseActivator _timeBomb;
 
         public TimeBombTests()
@@ -27,8 +28,7 @@ namespace Metalama.Compiler.UnitTests
 
             serviceProviderBuilder
                 .AddSingleton<IDateTimeProvider>(_time)
-                .AddSingleton<IApplicationInfo>(_applicationInfo)
-                .AddSingleton<IBackstageDiagnosticSink>(_diagnostics);
+                .AddSingleton<IApplicationInfo>(_applicationInfo);
             _timeBomb = new TimeBombLicenseActivator(serviceProviderBuilder.ServiceProvider);
         }
 
@@ -43,8 +43,9 @@ namespace Metalama.Compiler.UnitTests
         public void TimeBombIsSafeBeforeWarningPeriod(int daysAfterBuild)
         {
             SetAge(daysAfterBuild);
-            Assert.True(_timeBomb.TryRegisterLicense());
-            _diagnostics.AssertEmpty();
+            var messages = new List<LicensingMessage>();
+            Assert.True(_timeBomb.TryActivateLicense(messages.Add));
+            Assert.Empty(messages);
         }
 
         [Theory]
@@ -52,10 +53,11 @@ namespace Metalama.Compiler.UnitTests
         [InlineData(TimeBombLicenseActivator.PreviewLicensePeriod)]
         public void TimeBombWarnsDuringWarningPeriod(int daysAfterBuild)
         {
+            var messages = new List<LicensingMessage>();
+            
             SetAge(daysAfterBuild);
-            Assert.True(_timeBomb.TryRegisterLicense());
-            _diagnostics.AssertEmptyErrors();
-            Assert.Single(_diagnostics.GetWarnings(), $"The current preview build of Metalama is {daysAfterBuild} days old and will stop working soon, because it is allowed to be used only for {TimeBombLicenseActivator.PreviewLicensePeriod} days. Please update Metalama soon.");
+            Assert.True(_timeBomb.TryActivateLicense( messages.Add ));
+            Assert.Single(messages);
         }
 
         [Theory]
@@ -63,9 +65,10 @@ namespace Metalama.Compiler.UnitTests
         [InlineData(TimeBombLicenseActivator.PreviewLicensePeriod + 100)]
         public void TimeBombExplodesAfterPreviewLicensePeriod(int daysAfterBuild)
         {
+            var messages = new List<LicensingMessage>();
             SetAge(daysAfterBuild);
-            Assert.False(_timeBomb.TryRegisterLicense());
-            _diagnostics.AssertEmpty();
+            Assert.False(_timeBomb.TryActivateLicense( messages.Add ));
+            Assert.Empty(messages);
         }
 
         private class TestDateTimeProvider : IDateTimeProvider
@@ -81,9 +84,11 @@ namespace Metalama.Compiler.UnitTests
         private class TestApplicationInfo : IApplicationInfo
         {
             public string Name => throw new NotImplementedException();
-            public Version Version => throw new NotImplementedException();
+            public string Version => throw new NotImplementedException();
             public bool IsPrerelease => throw new NotImplementedException();
             public DateTime BuildDate => new DateTime(2000, 1, 1);
+            public ProcessKind ProcessKind => ProcessKind.Other;
+            public bool IsLongRunningProcess => false;
         }
     }
 }

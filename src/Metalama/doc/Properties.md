@@ -9,10 +9,7 @@ The Metalama compiler can be configured by several custom MSBuild properties fro
 * `MetalamaDebugCompiler`: Set to `true` to cause `Debugger.Launch()`.
 * `MetalamaSourceOnlyAnalyzers` contains the list of analyzers that must execute on the source code instead of the transformed code. This is a comma-separated list which can contain the assembly name, an exact namespace (namespace inheritance rules do not apply) or the exact full name of an analyzer type.
 * `MetalamaLicense` constains a comma-separated list of license keys. This allows the user to set the license key using an MSBuild property or using an environment variable.
-* `MetalamaLicenseSources` constains a comma-separated list of license sources. It is used to disable license sources during testing. All license sources are enabled by default. The allowed values are:
-  * `User` for license keys stored in user profile regitered using the PostSharp.Cli tooling or auto-registration.
-  * `Property` for license keys set using the `MetalamaLicense` MSBuild property (or environmet variable).
-* `MetalamaFirstRunLicenseActivatorEnabled`: Set to `false` to disable automatic license activation during first build. This is used for testing. The default value is `true`.
+* `MetalamaAutoStartEvaluation`: Set to `false` to disable automatic activation of the evaluation mode when no valid license is present. This is used for testing. The default value is `true`.
 
 Note: If `MetalamaDebugTransformedCode` is set to `true`, but `EmitCompilerTransformedFiles` is explicitly set to `false` (and no custom `CompilerTransformedFilesOutputPath` is provided), then transformed sources should be used for debugging and diagnostics, but cannot be written to disk.
 

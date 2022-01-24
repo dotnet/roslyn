@@ -5,16 +5,15 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Metalama.Compiler.Licensing;
-using Metalama.Compiler.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using PostSharp.Backstage.Extensibility;
+using PostSharp.Backstage.Licensing.Consumption;
 using Xunit;
 
 namespace Metalama.Compiler.UnitTests
 {
     public class BuildOptionsLicenseSourceTests
     {
-        private readonly TestDiagnosticsSink _diagnostics = new();
 
         [Fact]
         public void LicensesAreRetrievedFromBuildOptions()
@@ -26,8 +25,7 @@ namespace Metalama.Compiler.UnitTests
                 () => services.GetServiceProvider());
             
             serviceProviderBuilder
-                .AddSingleton<IBackstageDiagnosticSink>(_diagnostics)
-                .AddCurrentDateTimeProvider();
+                .AddMinimalBackstageServices();
 
             var configuration = new Dictionary<string, string>
             {
@@ -39,10 +37,11 @@ namespace Metalama.Compiler.UnitTests
                 ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, globalOptions);
 
             BuildOptionsLicenseSource source = new(analyzerConfigOptionsProvider, serviceProviderBuilder.ServiceProvider);
-            Assert.Collection(source.GetLicenses(),
+            var messages = new List<LicensingMessage>();
+            Assert.Collection(source.GetLicenses(messages.Add),
                 l => Assert.Equal("License 'SOMELICENSE1'", l.ToString()),
                 l => Assert.Equal("License 'SOMELICENSE2'", l.ToString()));
-            _diagnostics.AssertEmpty();
+            Assert.Empty(messages);
         }
     }
 }

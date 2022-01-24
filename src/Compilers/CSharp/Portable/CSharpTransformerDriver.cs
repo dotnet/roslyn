@@ -28,7 +28,6 @@ namespace Metalama.Compiler
                 (type, instance) => services.AddService(type, instance),
                 () => services.GetServiceProvider());
 
-            serviceProviderBuilder.AddSingleton<IBackstageDiagnosticSink>(new MetalamaTryBackstageDiagnosticsSink());
             serviceProviderBuilder.AddSingleton<ILicenseConsumptionManager>(new MetalamaTryLicenseConsumptionManager());
 
             var diagnostics = DiagnosticBag.GetInstance();
@@ -38,22 +37,10 @@ namespace Metalama.Compiler
 
         private class MetalamaTryLicenseConsumptionManager : ILicenseConsumptionManager
         {
-            public bool CanConsumeFeatures(ILicenseConsumer consumer, LicensedFeatures requiredFeatures) => true;
-
-            public void ConsumeFeatures(ILicenseConsumer consumer, LicensedFeatures requiredFeatures) { }
+            public bool CanConsumeFeatures(LicensedFeatures requiredFeatures, string? consumingNamespace, Action<LicensingMessage>? reportMessage) => true;
+            
         }
 
-        private class MetalamaTryBackstageDiagnosticsSink : IBackstageDiagnosticSink
-        {
-            public void ReportError(string message, IDiagnosticsLocation? location = null)
-            {
-                throw new InvalidOperationException(message);
-            }
-
-            public void ReportWarning(string message, IDiagnosticsLocation? location = null)
-            {
-                throw new InvalidOperationException(message);
-            }
-        }
+ 
     }
 }

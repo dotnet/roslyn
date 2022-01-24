@@ -11,9 +11,16 @@ namespace Metalama.Compiler
         DiagnosticFilters DiagnosticFilters,
         ImmutableArray<ResourceDescription> AdditionalResources)
     {
+        public bool Success { get; private init; } = true;
+
         public static TransformersResult Empty(Compilation compilation)
             => new TransformersResult(compilation, compilation,
-                ImmutableArray<SyntaxTreeTransformation>.Empty, DiagnosticFilters.Empty, 
+                ImmutableArray<SyntaxTreeTransformation>.Empty, DiagnosticFilters.Empty,
                 ImmutableArray<ResourceDescription>.Empty);
+
+        public static TransformersResult Failure(Compilation compilation)
+            => new TransformersResult(compilation, compilation,
+                ImmutableArray<SyntaxTreeTransformation>.Empty, DiagnosticFilters.Empty,
+                ImmutableArray<ResourceDescription>.Empty) { Success = false };
     }
 }

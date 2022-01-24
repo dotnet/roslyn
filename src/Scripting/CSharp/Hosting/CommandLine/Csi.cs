@@ -40,5 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
         {
             consoleOutput.Write(CSharpScriptingResources.InteractiveHelp);
         }
+        
+        // <Metalama>
+        protected override bool IsLongRunningProcess => true;
+        // </Metalama>
     }
 }

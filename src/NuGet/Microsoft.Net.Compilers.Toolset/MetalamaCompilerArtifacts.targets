@@ -35,6 +35,7 @@
 
     <ItemGroup>
       <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\Microsoft.Bcl.HashCode.dll" />
+      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\Newtonsoft.Json.dll" />
       <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\PostSharp.Backstage.Settings.dll" />
       <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
       <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.dll" />
@@ -48,6 +49,7 @@
 
     <ItemGroup>
       <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Microsoft.Bcl.HashCode.dll" />
+      <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Newtonsoft.Json.dll" />
       <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\PostSharp.Backstage.Settings.dll" />
       <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
       <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll" />

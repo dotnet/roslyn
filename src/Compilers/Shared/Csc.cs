@@ -26,5 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
             var compiler = new Csc(responseFile, buildPaths, args, analyzerLoader);
             return ConsoleUtil.RunWithUtf8Output(compiler.Arguments.Utf8Output, textWriter, tw => compiler.Run(tw));
         }
+
+        // <Metalama>
+        protected override bool IsLongRunningProcess => false;
+        // </Metalama>
     }
 }

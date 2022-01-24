@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis;
-using static Metalama.Compiler.ErrorCode;
+using static Metalama.Compiler.MetalamaErrorCode;
 
 #nullable enable
 
 namespace Metalama.Compiler
 {
-    internal enum ErrorCode
+    internal enum MetalamaErrorCode
     {
         ERR_TransformerFailed = 1,
         ERR_TransformerNotFound = 2,
@@ -15,8 +15,9 @@ namespace Metalama.Compiler
         ERR_TransformersNotOrdered = 4,
         WRN_NoTransformedOutputPathWhenDebuggingTransformed = 5,
         ERR_InvalidIntrinsicUse = 6,
-        ERR_LicensingMessage = 7,
-        WRN_LicensingMessage = 8
+        WRN_LicensingMessage = 7,
+        ERR_InvalidLicenseOverall = 8,
+        ERR_InvalidLicenseForProducingTransformedOutput
     }
 
     internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider
@@ -25,7 +26,7 @@ namespace Metalama.Compiler
 
         public override string CodePrefix => "RE";
 
-        public override Type ErrorCodeType => typeof(ErrorCode);
+        public override Type ErrorCodeType => typeof(MetalamaErrorCode);
 
         #region Roslyn error codes
 
@@ -189,21 +190,23 @@ namespace Metalama.Compiler
                 severity == DiagnosticSeverity.Error || isWarningAsError ? "error" : "warning",
                 id);
 
-        public override DiagnosticSeverity GetSeverity(int code) => (ErrorCode)code switch
+        public override DiagnosticSeverity GetSeverity(int code) => (MetalamaErrorCode)code switch
         {
             ERR_TransformerFailed or
             ERR_TransformerNotFound or
             ERR_TransformerCycleFound or
             ERR_TransformersNotOrdered or
             ERR_InvalidIntrinsicUse or
-            ERR_LicensingMessage => DiagnosticSeverity.Error,
+            ERR_InvalidLicenseOverall or
+            ERR_InvalidLicenseForProducingTransformedOutput => DiagnosticSeverity.Error,
             WRN_NoTransformedOutputPathWhenDebuggingTransformed or
             WRN_LicensingMessage => DiagnosticSeverity.Warning,
+             
             _ => throw new ArgumentOutOfRangeException(nameof(code))
         };
 
         public override LocalizableString GetTitle(int code) =>
-            (ErrorCode)code switch
+            (MetalamaErrorCode)code switch
             {
                 ERR_TransformerFailed => "Transformer failed.",
                 ERR_TransformerNotFound => "Transformer was not found when resolving transformer order.",
@@ -211,8 +214,9 @@ namespace Metalama.Compiler
                 ERR_TransformersNotOrdered => "Transformers are not strongly ordered. Their order of execution would not be deterministic.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled.",
                 ERR_InvalidIntrinsicUse => "Argument is not valid for Metalama intrinsic method.",
-                ERR_LicensingMessage => "Licensing error.",
                 WRN_LicensingMessage => "Licensing warning.",
+                ERR_InvalidLicenseOverall => "Cannot start Metalama: invalid license.",
+                ERR_InvalidLicenseForProducingTransformedOutput => "Cannot generate the transformed code: this feature is not available in Metalama Essentials.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
@@ -224,7 +228,7 @@ namespace Metalama.Compiler
         };
 
         public override string LoadMessage(int code, CultureInfo? language) =>
-            (ErrorCode)code switch
+            (MetalamaErrorCode)code switch
             {
                 ERR_TransformerFailed => "Transformer '{0}' failed: {1}",
                 ERR_TransformerNotFound => "Transformer '{0}' was not found when resolving transformer order.",
@@ -232,8 +236,9 @@ namespace Metalama.Compiler
                 ERR_TransformersNotOrdered => "Transformers '{0}' and '{1}' are not strongly ordered. Their order of execution would not be deterministic.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled. This will lead to warnings and errors that point to nonsensical file locations.",
                 ERR_InvalidIntrinsicUse => "Argument '{0}' is not valid for Metalama intrinsic method '{1}'.",
-                ERR_LicensingMessage => "{0}",
                 WRN_LicensingMessage => "{0}",
+                ERR_InvalidLicenseOverall => "Cannot start Metalama: invalid license.",
+                ERR_InvalidLicenseForProducingTransformedOutput => "Cannot generate the transformed code: this feature is not available in Metalama Essentials.", 
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 

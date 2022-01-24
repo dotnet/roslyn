@@ -3,19 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using PostSharp.Backstage.Diagnostics;
 using PostSharp.Backstage.Extensibility;
-using PostSharp.Backstage.Extensibility.Extensions;
+using PostSharp.Backstage.Licensing.Consumption;
 using PostSharp.Backstage.Licensing.Registration;
 
 namespace Metalama.Compiler.Licensing
 {
-    public class TimeBombLicenseActivator : IFirstRunLicenseActivator
+    internal class TimeBombLicenseActivator : IFirstRunLicenseActivator
     {
         internal const int PreviewLicensePeriod = 90;
         internal const int WarningPeriod = 15;
         
         private readonly IDateTimeProvider _time;
-        private readonly IBackstageDiagnosticSink _diagnostics;
         private readonly IApplicationInfo _applicationInfo;
         
         private bool _warningReported;
@@ -23,11 +23,10 @@ namespace Metalama.Compiler.Licensing
         public TimeBombLicenseActivator(IServiceProvider services)
         {
             _time = services.GetRequiredService<IDateTimeProvider>();
-            _diagnostics = services.GetRequiredService<IBackstageDiagnosticSink>();
             _applicationInfo = services.GetRequiredService<IApplicationInfo>();
         }
 
-        public bool TryRegisterLicense()
+        public bool TryActivateLicense(Action<LicensingMessage> reportMessage)
         {
             var age = (int) (_time.Now - _applicationInfo.BuildDate).TotalDays;
 
@@ -38,8 +37,8 @@ namespace Metalama.Compiler.Licensing
 
             if (!_warningReported && age > (PreviewLicensePeriod - WarningPeriod))
             {
-                _diagnostics.ReportWarning(
-                    $"The current preview build of Metalama is {age} days old and will stop working soon, because it is allowed to be used only for {PreviewLicensePeriod} days. Please update Metalama soon.");
+                reportMessage( new(
+                    $"The current preview build of Metalama is {age} days old and will stop working soon, because it is allowed to be used only for {PreviewLicensePeriod} days. Please update Metalama soon.") );
                 _warningReported = true;
             }
             

@@ -16,11 +16,13 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using PostSharp.Backstage.Diagnostics;
 using PostSharp.Backstage.Extensibility;
 using PostSharp.Backstage.Licensing;
 using PostSharp.Backstage.Licensing.Consumption;
 using PostSharp.Backstage.Licensing.Consumption.Sources;
 using PostSharp.Backstage.Licensing.Registration;
+using PostSharp.Backstage.Licensing.Registration.Evaluation;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -47,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
             _tempDirectory = buildPaths.TempDirectory;
         }
+        
+        
+        // <Metalama>
+        protected abstract bool IsLongRunningProcess { get; }
+        // </Metalama>
 
         public override DiagnosticFormatter DiagnosticFormatter { get { return _diagnosticFormatter; } }
         protected internal new CSharpCommandLineArguments Arguments { get { return (CSharpCommandLineArguments)base.Arguments; } }
@@ -412,55 +419,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Used for testing.
         protected virtual ILicenseConsumptionManager? GetCustomLicenseConsumptionManager() => null;
         
-        private IServiceProvider CreateServices(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, DiagnosticBag diagnostics)
+        private IServiceProvider CreateServiceProvider(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, DiagnosticBag diagnostics)
         {
-            bool IsFirstRunLicenseActivatorEnabled()
-            {
-                if (!analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
-                    "build_property.MetalamaFirstRunLicenseActivatorEnabled",
-                    out var firstRunLicenseActivatorEnabledString))
-                {
-                    throw new InvalidOperationException(
-                        "MetalamaFirstRunLicenseActivatorEnabled property is required.");
-                }
-
-                return bool.Parse(firstRunLicenseActivatorEnabledString);
-            }
-
             var services = new ServiceCollection();
 
             var serviceProviderBuilder = new ServiceProviderBuilder(
                 (type, instance) => services.AddService(type, instance),
-                () => services.GetServiceProvider());
-
-            serviceProviderBuilder
-                .AddCurrentDateTimeProvider()
-                .AddFileSystem()
-                .AddStandardDirectories()
-                .AddSingleton<IBackstageDiagnosticSink>(new DiagnosticBagSink(diagnostics))
-                .AddSingleton<IApplicationInfo>(new MetalamaCompilerApplicationInfo());
+                () => services.GetServiceProvider())
+                .AddBackstageServices(new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess));
 
             var customLicenseConsumptionManager = GetCustomLicenseConsumptionManager();
 
             if (customLicenseConsumptionManager != null)
             {
-                serviceProviderBuilder.AddSingleton<ILicenseConsumptionManager>(customLicenseConsumptionManager);
+                serviceProviderBuilder.AddSingleton(customLicenseConsumptionManager);
             }
             else
             {
-                serviceProviderBuilder.AddStandardLicenseFilesLocations();
-
-                if (IsFirstRunLicenseActivatorEnabled())
+                if ( !analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaAutoStartEvaluation", out var autoStartEvaluationStr) || 
+                    !bool.TryParse(autoStartEvaluationStr, out var autoStartEvaluation ) ||
+                    autoStartEvaluation )
                 {
-                    // TODO: Replace with the AddFirstRunEvaluationLicenseActivator when licensing becomes usable.
-                    serviceProviderBuilder.AddSingleton<IFirstRunLicenseActivator>(new TimeBombLicenseActivator(serviceProviderBuilder.ServiceProvider));
-                    //services.AddFirstRunEvaluationLicenseActivator();
+                    serviceProviderBuilder.AddSingleton<IFirstRunLicenseActivator>(new EvaluationLicenseRegistrar(serviceProviderBuilder.ServiceProvider));
                 }
 
-                LicenseSourceFactory licenseSourceFactory = new(analyzerConfigOptionsProvider, serviceProviderBuilder.ServiceProvider);
-                ILicenseSource[] licenseSources = licenseSourceFactory.Create().ToArray();
+                ILicenseSource[] licenseSources = LicenseSourceFactory.CreateSources(serviceProviderBuilder.ServiceProvider, analyzerConfigOptionsProvider).ToArray();
 
-                serviceProviderBuilder.AddLicenseConsumption(licenseSources);
+                serviceProviderBuilder.AddLicenseConsumptionManager(licenseSources);
             }
 
             return serviceProviderBuilder.ServiceProvider;
@@ -476,18 +461,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TransformersResult.Empty(inputCompilation);
             }
 
-            var services = CreateServices(analyzerConfigProvider, diagnostics);
-            var license = new MetalamaCompilerLicenseConsumptionManager(services);
+            var services = CreateServiceProvider(analyzerConfigProvider, diagnostics);
 
-            license.ConsumeFeatures(LicensedFeatures.Community);
+            // Launch the debugger is required through user options.
+            var debuggerService = services.GetService<IDebuggerService>();
+            debuggerService?.LaunchDebugger();
+            
+            // Initialize licensing.
+            void ReportLicensingMessage(LicensingMessage message)
+            {
+                diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_LicensingMessage, message));
+            }
+            
+            var license = services.GetRequiredService<ILicenseConsumptionManager>();
+            string? consumerNamespace = inputCompilation.AssemblyName ?? "";
+            
+            if (!license.CanConsumeFeatures(LicensedFeatures.Community, consumerNamespace, ReportLicensingMessage))
+            {
+                diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
+                return TransformersResult.Failure(inputCompilation);
+            }
 
             bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
 
             if (shouldDebugTransformedCode)
             {
-                license.ConsumeFeatures(LicensedFeatures.Metalama);
+                if (!license.CanConsumeFeatures(LicensedFeatures.Metalama, consumerNamespace, ReportLicensingMessage))
+                {
+                    diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_InvalidLicenseForProducingTransformedOutput));
+                    return TransformersResult.Failure(inputCompilation);
+                }
             }
 
+            // Run transformers.
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
             var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader, services, cancellationToken);
@@ -630,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 catch (Exception ex)
                 {
                     var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                        MetalamaCompilerMessageProvider.Instance, (int)global::Metalama.Compiler.ErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
+                        MetalamaCompilerMessageProvider.Instance, (int)global::Metalama.Compiler.MetalamaErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
                     diagnostics.Add(diagnostic);
                 }
             }

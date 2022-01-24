@@ -1281,10 +1281,17 @@ namespace Microsoft.CodeAnalysis
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
                     var transformersResult = RunTransformers(compilationBeforeTransformation, transfomers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken);
+
                     compilation = transformersResult.TransformedCompilation;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
                     MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation);
+
+                    // Don't continue if transformers failed.
+                    if (!transformersResult.Success)
+                    {
+                        return;
+                    }
 
                     // Fix whitespaces in generated syntax trees, embed them into the PDB or write them to disk.
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
@@ -1296,7 +1303,7 @@ namespace Microsoft.CodeAnalysis
                         if (shouldDebugTransformedCode && !hasTransformedOutputPath)
                         {
                             var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                                MetalamaCompilerMessageProvider.Instance, (int)ErrorCode.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
+                                MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
                             diagnostics.Add(diagnostic);
                         }
 

@@ -31,5 +31,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             return _metadataProvider;
         }
+        
+        // <Metalama>
+        protected override bool IsLongRunningProcess => true;
+        // </Metalama>
     }
 }

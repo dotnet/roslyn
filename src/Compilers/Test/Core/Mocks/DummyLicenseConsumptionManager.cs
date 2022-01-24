@@ -12,17 +12,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Mocks
 {
     public class DummyLicenseConsumptionManager : ILicenseConsumptionManager
     {
-        public bool CanConsumeFeatures(ILicenseConsumer consumer, LicensedFeatures requiredFeatures)
+        public bool CanConsumeFeatures(LicensedFeatures requiredFeatures, string? consumingNamespace, Action<LicensingMessage> reportMessage )
         {
             return true;
         }
 
-        public void ConsumeFeatures(ILicenseConsumer consumer, LicensedFeatures requiredFeatures)
-        {
-            if (!this.CanConsumeFeatures(consumer, requiredFeatures))
-            {
-                throw new InvalidOperationException("This class is not expected to refuse license consumption.");
-            }
-        }
     }
 }

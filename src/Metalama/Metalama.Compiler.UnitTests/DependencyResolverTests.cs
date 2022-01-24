@@ -40,7 +40,7 @@ namespace Metalama.Compiler.UnitTests
                 ref transformers, new[] { new[] { typeof(T1).FullName, typeof(T2).FullName }.ToImmutableArray() }!, diagnostics);
 
             Assert.Equal(1, diagnostics.Count);
-            Assert.Equal((int)ErrorCode.ERR_TransformerNotFound, diagnostics[0].Code);
+            Assert.Equal((int)MetalamaErrorCode.ERR_TransformerNotFound, diagnostics[0].Code);
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace Metalama.Compiler.UnitTests
                 diagnostics);
 
             Assert.Equal(1, diagnostics.Count);
-            Assert.Equal((int)ErrorCode.ERR_TransformerCycleFound, diagnostics[0].Code);
+            Assert.Equal((int)MetalamaErrorCode.ERR_TransformerCycleFound, diagnostics[0].Code);
         }
 
         [Fact]
@@ -75,7 +75,7 @@ namespace Metalama.Compiler.UnitTests
                 ref transformers, new[] { new[] { typeof(T1).FullName, typeof(T2).FullName }.ToImmutableArray() }!, diagnostics);
 
             Assert.Equal(1, diagnostics.Count);
-            Assert.Equal((int)ErrorCode.ERR_TransformersNotOrdered, diagnostics[0].Code);
+            Assert.Equal((int)MetalamaErrorCode.ERR_TransformersNotOrdered, diagnostics[0].Code);
         }
     }
 

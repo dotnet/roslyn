@@ -18,8 +18,7 @@
 
     <!-- MetalamaSourceOnlyAnalyzers must be on one line and without semicolon because it is a compiler-visible property -->
     <MetalamaSourceOnlyAnalyzers>$(MetalamaSourceOnlyAnalyzers),Microsoft.CodeAnalysis.CodeStyle,Microsoft.CodeAnalysis.CSharp.CodeStyle,StyleCop.Analyzers</MetalamaSourceOnlyAnalyzers>
-    <MetalamaLicenseSources Condition="'$(MetalamaLicenseSources)'==''">User,Property</MetalamaLicenseSources>
-    <MetalamaFirstRunLicenseActivatorEnabled Condition="'$(MetalamaFirstRunLicenseActivatorEnabled)'==''">True</MetalamaFirstRunLicenseActivatorEnabled>
+    <MetalamaAutoStartEvaluation Condition="'$(MetalamaAutoStartEvaluation)'==''">True</MetalamaAutoStartEvaluation>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="$(RoslynTasksAssembly)" />
@@ -33,7 +32,6 @@
     <CompilerVisibleProperty Include="MetalamaDebugCompiler" />
     <CompilerVisibleProperty Include="MetalamaSourceOnlyAnalyzers" />
     <CompilerVisibleProperty Include="MetalamaLicense" />
-    <CompilerVisibleProperty Include="MetalamaLicenseSources" />
-    <CompilerVisibleProperty Include="MetalamaFirstRunLicenseActivatorEnabled" />
+    <CompilerVisibleProperty Include="MetalamaAutoStartEvaluation" />
   </ItemGroup>
 </Project>
