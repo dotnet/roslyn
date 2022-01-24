@@ -488,7 +488,6 @@ class C
         CreateCompilation(
 "class C\r\n{\r\nconst string s = \"\"\"\r\n\t\r\n \"\"\";\r\n}").VerifyDiagnostics(
                 // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
-                // 	
                 Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, "	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
     }
 
@@ -498,7 +497,6 @@ class C
         CreateCompilation(
 "class C\r\n{\r\nconst string s = \"\"\"\r\n \r\n\t\"\"\";\r\n}").VerifyDiagnostics(
                     // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\u0020' versus '\t'
-                    //  
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " ").WithArguments(@"\u0020", @"\t").WithLocation(4, 1));
     }
 
@@ -508,7 +506,6 @@ class C
         CreateCompilation(
 "class C\r\n{\r\nconst string s = \"\"\"\r\n \t\r\n  \"\"\";\r\n}").VerifyDiagnostics(
                 // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
-                //  	
                 Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " 	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
     }
 
@@ -518,7 +515,6 @@ class C
         CreateCompilation(
 "class C\r\n{\r\nconst string s = \"\"\"\r\n \t\r\n   \"\"\";\r\n}").VerifyDiagnostics(
                     // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
-                    //  	
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " 	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
     }
 
