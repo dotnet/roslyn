@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     catch (Exception)
                     {
                         return new EmbeddedDiagnostic(
-                            WorkspacesResources.Invalid_number,
+                            FeaturesResources.Invalid_number,
                             GetSpan(chars));
                     }
                 }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     CultureInfo.InvariantCulture, out _))
                 {
                     return new EmbeddedDiagnostic(
-                        WorkspacesResources.Invalid_number,
+                        FeaturesResources.Invalid_number,
                         GetSpan(chars));
                 }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     if (child.Kind == JsonKind.Property)
                     {
                         return new EmbeddedDiagnostic(
-                            WorkspacesResources.Properties_not_allowed_in_an_array,
+                            FeaturesResources.Properties_not_allowed_in_an_array,
                             ((JsonPropertyNode)child).ColonToken.GetSpan());
                     }
                 }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 if (!IsValidConstructorName(node.NameToken))
                 {
                     return new EmbeddedDiagnostic(
-                        WorkspacesResources.Invalid_constructor_name,
+                        FeaturesResources.Invalid_constructor_name,
                         node.NameToken.GetSpan());
                 }
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         nextChild.Kind != JsonKind.CommaValue)
                     {
                         return new EmbeddedDiagnostic(
-                           string.Format(WorkspacesResources._0_expected, ','),
+                           string.Format(FeaturesResources._0_expected, ','),
                            GetFirstToken(nextChild).GetSpan());
                     }
                 }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         if (child.Kind != JsonKind.Property)
                         {
                             return new EmbeddedDiagnostic(
-                               WorkspacesResources.Only_properties_allowed_in_an_object,
+                               FeaturesResources.Only_properties_allowed_in_an_object,
                                GetFirstToken(child).GetSpan());
                         }
                     }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         if (child.Kind != JsonKind.CommaValue)
                         {
                             return new EmbeddedDiagnostic(
-                               string.Format(WorkspacesResources._0_expected, ','),
+                               string.Format(FeaturesResources._0_expected, ','),
                                GetFirstToken(child).GetSpan());
                         }
                     }
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     !IsLegalPropertyNameText(node.NameToken))
                 {
                     return new EmbeddedDiagnostic(
-                        WorkspacesResources.Invalid_property_name,
+                        FeaturesResources.Invalid_property_name,
                         node.NameToken.GetSpan());
                 }
 

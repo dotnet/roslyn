@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     /// </summary>
     internal partial struct JsonParser
     {
-        private static readonly string s_closeBracketExpected = string.Format(WorkspacesResources._0_expected, ']');
-        private static readonly string s_closeBraceExpected = string.Format(WorkspacesResources._0_expected, '}');
-        private static readonly string s_openParenExpected = string.Format(WorkspacesResources._0_expected, '(');
-        private static readonly string s_closeParenExpected = string.Format(WorkspacesResources._0_expected, ')');
+        private static readonly string s_closeBracketExpected = string.Format(FeaturesResources._0_expected, ']');
+        private static readonly string s_closeBraceExpected = string.Format(FeaturesResources._0_expected, '}');
+        private static readonly string s_openParenExpected = string.Format(FeaturesResources._0_expected, '(');
+        private static readonly string s_closeParenExpected = string.Format(FeaturesResources._0_expected, ')');
 
         private JsonLexer _lexer;
         private JsonToken _currentToken;
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     compilationUnit.EndOfFileToken.LeadingTrivia.All(
                         t => t.Kind == JsonKind.WhitespaceTrivia || t.Kind == JsonKind.EndOfLineTrivia))
                 {
-                    return new EmbeddedDiagnostic(WorkspacesResources.Syntax_error, GetSpan(text));
+                    return new EmbeddedDiagnostic(FeaturesResources.Syntax_error, GetSpan(text));
                 }
             }
             else if (arraySequence.Length >= 2)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // the top level can't have more than one actual value.
                 var firstToken = GetFirstToken(arraySequence[1]);
                 return new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0]),
+                    string.Format(FeaturesResources._0_unexpected, firstToken.VirtualChars[0]),
                     firstToken.GetSpan());
             }
 
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 {
                     var emptyValue = (JsonCommaValueNode)child;
                     return new EmbeddedDiagnostic(
-                        string.Format(WorkspacesResources._0_unexpected, ','),
+                        string.Format(FeaturesResources._0_unexpected, ','),
                         emptyValue.CommaToken.GetSpan());
                 }
             }
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return new JsonPropertyNode(
                     stringLiteralOrText, colonToken,
                     new JsonCommaValueNode(CreateMissingToken(JsonKind.CommaToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        WorkspacesResources.Missing_property_value,
+                        FeaturesResources.Missing_property_value,
                         GetTokenStartPositionSpan(_currentToken)))));
             }
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 value = new JsonPropertyNode(
                     nestedProperty.NameToken,
                     nestedProperty.ColonToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        WorkspacesResources.Nested_properties_not_allowed,
+                        FeaturesResources.Nested_properties_not_allowed,
                         nestedProperty.ColonToken.GetSpan())),
                     nestedProperty.Value);
             }
@@ -391,14 +391,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             return new JsonTextNode(
                 token.With(kind: JsonKind.TextToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources._0_unexpected, firstChar.ToString()),
+                    string.Format(FeaturesResources._0_unexpected, firstChar.ToString()),
                     firstChar.Span)));
         }
 
         private JsonConstructorNode ParseConstructor(JsonToken token)
         {
             var newKeyword = token.With(kind: JsonKind.NewKeyword);
-            var nameToken = ConsumeToken(JsonKind.TextToken, WorkspacesResources.Name_expected);
+            var nameToken = ConsumeToken(JsonKind.TextToken, FeaturesResources.Name_expected);
             var openParen = ConsumeToken(JsonKind.OpenParenToken, s_openParenExpected);
 
             var savedInConstructor = _inConstructor;
