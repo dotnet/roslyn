@@ -5,12 +5,9 @@
 #nullable disable
 
 using System.Collections.Immutable;
-<<<<<<< HEAD
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
-=======
->>>>>>> jsonTests
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
@@ -23,14 +20,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 
         protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
         {
-<<<<<<< HEAD
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new RegexEmbeddedLanguage(info),
                 new JsonEmbeddedLanguage(info),
                 new FallbackEmbeddedLanguage(info));
-=======
-            Languages = ImmutableArray.Create<IEmbeddedLanguage>(new FallbackEmbeddedLanguage(info));
->>>>>>> jsonTests
         }
     }
 }

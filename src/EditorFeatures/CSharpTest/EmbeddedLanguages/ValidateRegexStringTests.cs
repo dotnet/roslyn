@@ -7,15 +7,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
-<<<<<<< HEAD
-using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
-=======
->>>>>>> jsonTests
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -35,13 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 
         private static OptionsCollection OptionOn()
         {
-<<<<<<< HEAD
-            var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp), true);
-=======
             var optionsSet = new OptionsCollection(LanguageNames.CSharp);
             optionsSet.Add(RegularExpressionsOptions.ReportInvalidRegexPatterns, true);
->>>>>>> jsonTests
             return optionsSet;
         }
 
