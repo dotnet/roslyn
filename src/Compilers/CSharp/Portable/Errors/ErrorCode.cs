@@ -2038,6 +2038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RawStringDelimiterOnOwnLine = 9104,
         ERR_RawStringInVerbatimInterpolatedStrings = 9105,
         ERR_RawStringMustContainContent = 9106,
+        ERR_LineContainsDifferentWhitespace = 9107,
 
         // raw interpolated string literals
         ERR_NotEnoughQuotesForRawString = 9120,
