@@ -8077,7 +8077,7 @@ class AsyncReader : IAsyncEnumerable<object>
         }
 
         [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
-        public void ClearCurrentOnRegularException()
+        public void ClearCurrentOnException()
         {
             var source = @"
 using System;
@@ -8127,6 +8127,52 @@ class AsyncReader : IAsyncEnumerable<object>
 ";
             var comp = CreateCompilationWithAsyncIterator(source);
             CompileAndVerify(comp, expectedOutput: "RAN RAN EXCEPTION CLEARED");
+        }
+
+        [Fact, WorkItem(58444, "https://github.com/dotnet/roslyn/issues/58444")]
+        public void ClearCurrentOnRegularExit_Generic()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+var r = new AsyncReader<int>() { value = 42 };
+var enumerator = r.GetAsyncEnumerator();
+try
+{
+    while (await enumerator.MoveNextAsync())
+    {
+        if (enumerator.Current is 42)
+            System.Console.Write(""RAN "");
+    }
+
+    if (enumerator.Current is 0)
+        System.Console.Write(""CLEARED"");
+}
+finally
+{
+    await enumerator.DisposeAsync();
+}
+
+class AsyncReader<T> : IAsyncEnumerable<T>
+{
+    public T value;
+    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        await Task.Yield();
+        yield return value;
+        await Task.Yield();
+        yield return value;
+        await Task.Yield();
+        yield return value;
+    }
+}
+";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            CompileAndVerify(comp, expectedOutput: "RAN RAN RAN CLEARED");
         }
     }
 }
