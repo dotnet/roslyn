@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Test.Utilities
 {
-    internal static class Extensions
+    internal static class CommonCompilerExtensions
     {
         internal static (int Result, string Output) Run(this CommonCompiler compiler, CancellationToken cancellationToken = default)
         {

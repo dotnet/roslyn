@@ -17,9 +17,17 @@ using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Roslyn.Test.Utilities
 {
-    internal record struct TestableCompilerFile(string FilePath, TestableFile TestableFile)
+    internal readonly struct TestableCompilerFile
     {
-        internal List<byte> Contents => TestableFile.Contents;
+        public string FilePath { get; }
+        public TestableFile TestableFile { get; }
+        public List<byte> Contents => TestableFile.Contents;
+
+        public TestableCompilerFile(string filePath, TestableFile testableFile)
+        {
+            FilePath = filePath;
+            TestableFile = testableFile;
+        }
     }
 
     internal enum BasicRuntimeOption
@@ -32,6 +40,10 @@ namespace Roslyn.Test.Utilities
         Manual,
     }
 
+    /// <summary>
+    /// Provides an easy to test version of <see cref="CommonCompiler"/>. This uses <see cref="TestableFileSystem"/> 
+    /// to abstract way all of the file system access (typically the hardest part about testing CommonCompiler).
+    /// </summary>
     internal sealed class TestableCompiler
     {
         internal static string RootDirectory => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"q:\" : "/";
