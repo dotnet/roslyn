@@ -9,26 +9,13 @@ where `n` is a whole number.
 
 The default warning level when the command-line compiler is used is `4`. If you want the compiler to produce all applicable warnings, you can specify `/warn:9999`.
 
-## Warning level 5
+## Warning level 7
 
-The compiler shipped with .NET 5 (the C# 9 compiler) contains the following warnings which are reported only under `/warn:5` or higher.
+The compiler shipped with .NET 7 (the C# 11 compiler) contains the following warnings which are reported only under `/warn:7` or higher.
 
 | Warning ID | Description |
 |------------|-------------|
-| CS8898 | [Static class used as the return type of a method in an interface type](https://github.com/dotnet/roslyn/issues/38256) |
-| CS8897 | [Static class used as the parameter type of a method in an interface type](https://github.com/dotnet/roslyn/issues/38256) |
-| CS8892 | [Multiple entry points](https://github.com/dotnet/roslyn/issues/46831) |
-| CS8887 | [Local variable used before being assigned (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
-| CS8886 | [Out parameter used before being assigned (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
-| CS8885 | [Struct constructor reads 'this' before assigning all fields (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
-| CS8884 | [Field used before assigned in struct constructor (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
-| CS8883 | [Auto-property used before assigned in struct constructor (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
-| CS8882 | [Out parameter not assigned (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
-| CS8881 | [Struct constructor does not assign field (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
-| CS8880 | [Struct constructor does not assign auto property (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
-| CS8848 | [Diagnose precedence error with query expression](https://github.com/dotnet/roslyn/issues/30231) |
-| CS8073 | [Expression always true (or false) when comparing a struct to null](https://github.com/dotnet/roslyn/issues/45744) |
-| CS7023 | [A static type is used in an 'is' or 'as' expression](https://github.com/dotnet/roslyn/issues/30198) |
+| CS8981 | [Type names only containing lower-cased ascii characters may become reserved for the language](https://github.com/dotnet/roslyn/issues/56653) |
 
 # Warning level 6
 
@@ -38,10 +25,23 @@ The compiler shipped with .NET 6 (the C# 10 compiler) contains the following war
 |------------|-------------|
 | CS8826 | [Partial method declarations have signature differences](https://github.com/dotnet/roslyn/issues/47838) |
 
-## Warning level 7
+## Warning level 5
 
-The compiler shipped with .NET 7 (the C# 11 compiler) contains the following warnings which are reported only under `/warn:7` or higher.
+The compiler shipped with .NET 5 (the C# 9 compiler) contains the following warnings which are reported only under `/warn:5` or higher.
 
 | Warning ID | Description |
 |------------|-------------|
-| CS8981 | [Type names only containing lower-cased ascii characters may become reserved for the language](https://github.com/dotnet/roslyn/issues/56653) |
+| CS7023 | [A static type is used in an 'is' or 'as' expression](https://github.com/dotnet/roslyn/issues/30198) |
+| CS8073 | [Expression always true (or false) when comparing a struct to null](https://github.com/dotnet/roslyn/issues/45744) |
+| CS8848 | [Diagnose precedence error with query expression](https://github.com/dotnet/roslyn/issues/30231) |
+| CS8880 | [Struct constructor does not assign auto property (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8881 | [Struct constructor does not assign field (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8882 | [Out parameter not assigned (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8883 | [Auto-property used before assigned in struct constructor (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8884 | [Field used before assigned in struct constructor (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8885 | [Struct constructor reads 'this' before assigning all fields (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8886 | [Out parameter used before being assigned (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8887 | [Local variable used before being assigned (imported struct type with private fields)](https://github.com/dotnet/roslyn/issues/30194) |
+| CS8892 | [Multiple entry points](https://github.com/dotnet/roslyn/issues/46831) |
+| CS8897 | [Static class used as the parameter type of a method in an interface type](https://github.com/dotnet/roslyn/issues/38256) |
+| CS8898 | [Static class used as the return type of a method in an interface type](https://github.com/dotnet/roslyn/issues/38256) |
