@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 interpolation.HasColon ? interpolation.ColonRange.Start : interpolation.CloseBraceRange.Start)];
 
             using var tempLexer = new Lexer(SourceText.From(expressionText), options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon);
-            er
+
             // First grab any trivia right after the {, it will be trailing trivia for the { token.
             var openTokenTrailingTrivia = tempLexer.LexSyntaxTrailingTrivia().Node;
             var openTokenText = text[interpolation.OpenBraceRange];
