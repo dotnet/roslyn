@@ -1064,6 +1064,76 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
+        /// <summary>
+        /// <code>
+        ///                         F5   build
+        ///                              complete
+        ///                         │    │
+        /// Workspace    ═════0═════╪════╪══════════1═══
+        ///                   ▲     │               ▲ src file watcher
+        ///                   │     │               │
+        /// dll/pdb      ═0═══╪═════╪════1══════════╪═══
+        ///                   │     │    ▲          │
+        ///               ┌───┘     │    │          │
+        ///               │      ┌──┼────┴──────────┘
+        /// Source file  ═0══════1══╪═══════════════════
+        ///                         │
+        /// Committed    ═══════════╪════0══════════1═══
+        /// solution
+        /// </code>
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        public async Task ModuleDisallowsEditAndContinue_NoChanges(bool breakMode)
+        {
+            var source0 = "class C1 { void M() { System.Console.WriteLine(0); } }";
+            var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
+
+            var dir = Temp.CreateDirectory();
+            var sourceFile = dir.CreateFile("a.cs");
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+
+            var project = solution.
+                AddProject("test", "test", LanguageNames.CSharp).
+                AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40));
+
+            solution = project.Solution;
+
+            // compile with source1:
+            var moduleId = EmitLibrary(source1, sourceFilePath: sourceFile.Path);
+            LoadLibraryToDebuggee(moduleId, new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForRuntime, "*message*"));
+
+            // update the file with source1 before session starts:
+            sourceFile.WriteAllText(source1);
+
+            // source0 is loaded to workspace before session starts:
+            var document0 = project.AddDocument("a.cs", SourceText.From(source0, Encoding.UTF8), filePath: sourceFile.Path);
+            solution = document0.Project.Solution;
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
+
+            if (breakMode)
+            {
+                EnterBreakState(debuggingSession);
+            }
+
+            // workspace is updated to new version after build completed and the session started:
+            solution = solution.WithDocumentText(document0.Id, SourceText.From(source1));
+
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+            Assert.Equal(ManagedModuleUpdateStatus.None, updates.Status);
+            Assert.Empty(updates.Updates);
+            Assert.Empty(emitDiagnostics);
+
+            if (breakMode)
+            {
+                ExitBreakState(debuggingSession);
+            }
+
+            EndDebuggingSession(debuggingSession);
+        }
+
         [Fact]
         public async Task ModuleDisallowsEditAndContinue_SourceGenerator_NoChanges()
         {
@@ -1088,7 +1158,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // update document with the same content:
             var document1 = solution.Projects.Single().Documents.Single();
             solution = solution.WithDocumentText(document1.Id, SourceText.From(source2));
-            var document2 = solution.GetDocument(document1.Id);
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Equal(ManagedModuleUpdateStatus.None, updates.Status);
