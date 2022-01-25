@@ -106,7 +106,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public override bool Equals(object? obj)
                 {
-                    return _original.Equals(obj);
+                    if (obj instanceof CompilerDiagnostic cd) {
+                        return _original.Equals(cd._original);
+                    } else {
+                        return _original.Equals(obj);
+                    }
                 }
 
                 public override int GetHashCode()
@@ -116,7 +120,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public override bool Equals(Diagnostic? obj)
                 {
-                    return _original.Equals(obj);
+                    if (obj instanceof CompilerDiagnostic cd) {
+                        return _original.Equals(cd._original);
+                    } else {
+                        return _original.Equals(obj);
+                    }
                 }
 
                 internal override Diagnostic WithLocation(Location location)
