@@ -81,18 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             //       """
             if (token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
             {
-                var lastNewLine = token.Text.LastIndexOf(Environment.NewLine);
-                if (lastNewLine != -1)
-                {
-                    var lastLine = token.Text[(lastNewLine + Environment.NewLine.Length)..];
-                    var nonWhitespaceOffset = lastLine.GetFirstNonWhitespaceOffset();
-
-                    if (nonWhitespaceOffset is not null)
-                    {
-                        var tokenIndentation = new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
-                        return tokenIndentation;
-                    }
-                }
+                var endLine = sourceText.Lines.GetLineFromPosition(token.Span.End);
+                var nonWhitespaceOffset = endLine.GetFirstNonWhitespaceOffset();
+                Contract.ThrowIfNull(nonWhitespaceOffset);
+                return new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
             }
 
             // case 1: $"""$$
@@ -100,23 +92,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             // case 2: $"""
             //          text$$
             //          """
-            if (token.IsKind(
-                SyntaxKind.InterpolatedMultiLineRawStringStartToken,
-                SyntaxKind.InterpolatedStringTextToken))
+            if (token.Kind() is SyntaxKind.InterpolatedMultiLineRawStringStartToken or SyntaxKind.InterpolatedStringTextToken)
             {
                 var interpolatedExpression = token.GetAncestor<InterpolatedStringExpressionSyntax>();
-                if (interpolatedExpression is not null)
+                Contract.ThrowIfNull(interpolatedExpression);
+                if (interpolatedExpression.StringEndToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringEndToken))
                 {
-                    if (interpolatedExpression.StringEndToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringEndToken))
-                    {
-                        var endLinePosition = sourceText.Lines.GetLineFromPosition(interpolatedExpression.StringEndToken.Span.End);
-                        var nonWhitespaceOffset = endLinePosition.GetFirstNonWhitespaceOffset();
-                        if (nonWhitespaceOffset is not null)
-                        {
-                            var tokenIndentation = new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
-                            return tokenIndentation;
-                        }
-                    }
+                    var endLinePosition = sourceText.Lines.GetLineFromPosition(interpolatedExpression.StringEndToken.Span.End);
+                    var nonWhitespaceOffset = endLinePosition.GetFirstNonWhitespaceOffset();
+                    Contract.ThrowIfNull(nonWhitespaceOffset);
+                    return new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
                 }
             }
 
@@ -273,6 +258,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                         return GetDefaultIndentationFromToken(indenter, token);
                     }
             }
+        }
+
+        private static int GetLastNewLine(string text)
+        {
+            for (var n = text.Length - 1; n >= 0; n--)
+            {
+                if (SyntaxFacts.IsNewLine(text[n]))
+                    return n;
+            }
+
+            return -1;
         }
 
         private static IndentationResult GetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
