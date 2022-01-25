@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return true;
         }
 
-        public Task<AsyncCompletionData.CompletionContext> GetCompletionContextAsync(
+        public async Task<AsyncCompletionData.CompletionContext> GetCompletionContextAsync(
             IAsyncCompletionSession session,
             AsyncCompletionData.CompletionTrigger trigger,
             SnapshotPoint triggerLocation,
@@ -232,7 +232,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (session is null)
                 throw new ArgumentNullException(nameof(session));
 
-            return GetCompletionContextWorkerAsync(session, trigger, triggerLocation, isExpanded: false, cancellationToken);
+            var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return AsyncCompletionData.CompletionContext.Empty;
+            }
+
+            var options = CompletionOptions.From(document.Project);
+            return await GetCompletionContextWorkerAsync(document, session, trigger, triggerLocation, options, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<AsyncCompletionData.CompletionContext> GetExpandedCompletionContextAsync(
@@ -246,44 +253,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (expander == FilterSet.Expander && session.Properties.TryGetProperty(ExpandedItemTriggerLocation, out SnapshotPoint initialTriggerLocation))
             {
                 AsyncCompletionLogger.LogExpanderUsage();
-                return await GetCompletionContextWorkerAsync(session, intialTrigger, initialTriggerLocation, isExpanded: true, cancellationToken).ConfigureAwait(false);
+
+                var document = initialTriggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document != null)
+                {
+                    var options = CompletionOptions.From(document.Project);
+
+                    // User selected expander explicitly, which means we need to collect and return
+                    // items from unimported namespace (and only those items) regardless of whether it's enabled.
+                    options = options with
+                    {
+                        ShowItemsFromUnimportedNamespaces = true,
+                        ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
+                    };
+
+                    return await GetCompletionContextWorkerAsync(document, session, intialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return AsyncCompletionData.CompletionContext.Empty;
         }
 
         private async Task<AsyncCompletionData.CompletionContext> GetCompletionContextWorkerAsync(
+            Document document,
             IAsyncCompletionSession session,
             AsyncCompletionData.CompletionTrigger trigger,
             SnapshotPoint triggerLocation,
-            bool isExpanded,
+            CompletionOptions options,
             CancellationToken cancellationToken)
         {
-            var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return AsyncCompletionData.CompletionContext.Empty;
-            }
-
-            var completionService = document.GetRequiredLanguageService<CompletionService>();
-
-            var roslynTrigger = _snippetCompletionTriggeredIndirectly
-                ? new CompletionTrigger(CompletionTriggerKind.Snippets)
-                : Helpers.GetRoslynTrigger(trigger, triggerLocation);
-
-            var options = CompletionOptions.From(document.Project);
-
-            if (isExpanded)
-            {
-                // User selected expander explicitly, which means we need to collect and return
-                // items from unimported namespace (and only those items) regardless of whether it's enabled.
-                options = options with
-                {
-                    ShowItemsFromUnimportedNamespaces = true,
-                    ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
-                };
-            }
-
             if (_isDebuggerTextView)
             {
                 options = options with
@@ -292,6 +290,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     ShowXmlDocCommentCompletion = false
                 };
             }
+
+            var completionService = document.GetRequiredLanguageService<CompletionService>();
+            var roslynTrigger = _snippetCompletionTriggeredIndirectly
+                ? new CompletionTrigger(CompletionTriggerKind.Snippets)
+                : Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             var completionList = await completionService.GetCompletionsAsync(
                 document, triggerLocation, options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
@@ -306,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 itemsBuilder.Add(item);
             }
 
-            AddPropertiesToSession(session, completionList, triggerLocation, isExpanded);
+            AddPropertiesToSession(session, completionList, triggerLocation);
 
             var filters = filterSet.GetFilterStatesInSet();
             var items = itemsBuilder.ToImmutableAndFree();
@@ -320,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             return new(items, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters);
 
-            static void AddPropertiesToSession(IAsyncCompletionSession session, CompletionList completionList, SnapshotPoint triggerLocation, bool isExpanded)
+            static void AddPropertiesToSession(IAsyncCompletionSession session, CompletionList completionList, SnapshotPoint triggerLocation)
             {
                 // Store around the span this completion list applies to.  We'll use this later
                 // to pass this value in when we're committing a completion list item.
@@ -351,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // so when they are requested via expander later, we can retrieve it.
                 // Technically we should save the trigger location for each individual service that made such claim, but in reality only Roslyn's
                 // completion service uses expander, so we can get away with not making such distinction.
-                if (!isExpanded)
+                if (!session.Properties.ContainsProperty(ExpandedItemTriggerLocation))
                 {
                     session.Properties[ExpandedItemTriggerLocation] = triggerLocation;
                 }
