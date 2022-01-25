@@ -7742,6 +7742,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedRawStrings3()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = $""""""Hello, { a }"""""";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = $""""""Hello, { a }"""""";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task InterpolatedStrings4()
         {
             var code = @"
@@ -7921,6 +7947,30 @@ class C
     void M()
     {
         var s = $""{42,-4:x}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedRawStrings10()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""""""{42 , -4 :x}"""""";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""""""{42,-4:x}"""""";
     }
 }";
 
@@ -10741,6 +10791,18 @@ var s = $""""""{s}""""""
 ",
                 code: @"
 var s = $""""""{s}""""""
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRawStringInterpolation2()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var s = $""""""{s,0: x }""""""
+",
+                code: @"
+var s = $""""""{s, 0 : x }""""""
 ");
         }
     }
