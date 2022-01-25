@@ -25,16 +25,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            // We may use semanticModel.GetSymbolInfo if https://github.com/dotnet/roslyn/issues/59060 got fixed.
-            var name = ((FunctionPointerUnmanagedCallingConventionSyntax)syntax).Name;
-            var type = semanticModel.Compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv" + name.ValueText);
+            if (syntax.Parent is not FunctionPointerUnmanagedCallingConventionListSyntax list)
+            {
+                return;
+            }
+
+            var callingConventionSyntax = (FunctionPointerUnmanagedCallingConventionSyntax)syntax;
+            if (list.CallingConventions.Count == 1 &&
+                callingConventionSyntax.Name.ValueText is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall")
+            {
+                result.Add(new ClassifiedSpan(callingConventionSyntax.Span, ClassificationTypeNames.ClassName));
+                return;
+            }
+
+            var corLibrary = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly;
+            var type = corLibrary.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv" + callingConventionSyntax.Name.ValueText);
             if (type is not null)
             {
-                var span = name.Span;
-                if (!span.IsEmpty)
-                {
-                    result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ClassName));
-                }
+                result.Add(new ClassifiedSpan(callingConventionSyntax.Name.Span, ClassificationTypeNames.ClassName));
             }
         }
     }
