@@ -39,8 +39,8 @@ namespace Metalama.Compiler.UnitTests
             BuildOptionsLicenseSource source = new(analyzerConfigOptionsProvider, serviceProviderBuilder.ServiceProvider);
             var messages = new List<LicensingMessage>();
             Assert.Collection(source.GetLicenses(messages.Add),
-                l => Assert.Equal("License 'SOMELICENSE1'", l.ToString()),
-                l => Assert.Equal("License 'SOMELICENSE2'", l.ToString()));
+                l => Assert.Equal("SOMELICENSE1", l.ToString()),
+                l => Assert.Equal("SOMELICENSE2", l.ToString()));
             Assert.Empty(messages);
         }
     }

@@ -77,7 +77,6 @@ namespace Metalama.Compiler.Licensing
         /// <inheritdoc />
         public DateTime BuildDate { get; }
 
-        public string Hash { get; set; }
         public ProcessKind ProcessKind => ProcessKind.Compiler;
         public bool IsLongRunningProcess { get; }
 
