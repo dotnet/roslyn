@@ -2758,13 +2758,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
-        <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">将 null 文本或可能的 null 值转换为不可为 null 类型。</target>
+        <source>Null literal or possibly null value is being converted to a non-nullable type.</source>
+        <target state="needs-review-translation">将 null 文本或可能的 null 值转换为不可为 null 类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
-        <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">将 null 字面量或可能为 null 的值转换为非 null 类型。</target>
+        <source>Null literal or possibly null value is being converted to a non-nullable type.</source>
+        <target state="needs-review-translation">将 null 字面量或可能为 null 的值转换为非 null 类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">

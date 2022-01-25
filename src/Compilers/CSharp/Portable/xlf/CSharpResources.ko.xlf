@@ -2752,13 +2752,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
-        <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">null 리터럴 또는 가능한 null 값을 null을 허용하지 않는 형식으로 변환하는 중입니다.</target>
+        <source>Null literal or possibly null value is being converted to a non-nullable type.</source>
+        <target state="needs-review-translation">null 리터럴 또는 가능한 null 값을 null을 허용하지 않는 형식으로 변환하는 중입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
-        <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">null 리터럴 또는 가능한 null 값을 null을 허용하지 않는 형식으로 변환하는 중입니다.</target>
+        <source>Null literal or possibly null value is being converted to a non-nullable type.</source>
+        <target state="needs-review-translation">null 리터럴 또는 가능한 null 값을 null을 허용하지 않는 형식으로 변환하는 중입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
