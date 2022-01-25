@@ -267,10 +267,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AssignmentExpressionSyntax _ when token.Kind() == SyntaxKind.EqualsToken => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
                 ForEachVariableStatementSyntax _ when token.Kind() == SyntaxKind.InKeyword => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
-                // Delete this line if https://github.com/dotnet/roslyn/issues/59060 got fixed
-                FunctionPointerUnmanagedCallingConventionSyntax callingConvention => ImmutableArray.Create<ISymbol>(semanticModel.Compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv" + callingConvention.Name.ValueText)),
+                FunctionPointerUnmanagedCallingConventionSyntax callingConvention => GetCallingConventionSymbol(semanticModel, callingConvention),
                 _ => GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols(),
             };
+        }
+
+        private static ImmutableArray<ISymbol> GetCallingConventionSymbol(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
+        {
+            if (syntax.Parent is not FunctionPointerUnmanagedCallingConventionListSyntax list)
+            {
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
+            if (list.CallingConventions.Count == 1 &&
+                syntax.Name.ValueText is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall")
+            {
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
+            var corLibrary = model.Compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly;
+            var type = corLibrary.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv" + syntax.Name.ValueText);
+            if (type is null)
+            {
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
+            return ImmutableArray.Create<ISymbol>(type);
         }
 
         private static SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
