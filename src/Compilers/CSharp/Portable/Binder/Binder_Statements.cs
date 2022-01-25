@@ -1680,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return propertySymbol is SourcePropertySymbolBase sourceProperty &&
                 sourceProperty.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
-                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything) &&
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
                     IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
                     (sourceProperty.IsStatic || receiver.Kind == BoundKind.ThisReference);
         }
@@ -1712,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(semi-auto-props): TODO: Do we need to use `GetOwnOrInheritedSetMethod` instead of `SetMethod`?
                     // Legacy auto-properties are required to override all accessors. If this is not the case with semi auto props, we may need to use GetOwnOrInheritedSetMethod
                     sourceProperty.SetMethod is null or SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything) &&
+                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
                     IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
                     (sourceProperty.IsStatic || receiver.Kind == BoundKind.ThisReference);
         }
