@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             : VirtualChar.Create((char)0, span: default);
 
         public VirtualCharSequence GetCharsToCurrentPosition(int start)
+            => GetSubSequence(start, Position);
+
+        public VirtualCharSequence GetSubSequence(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public JsonToken ScanNextToken()

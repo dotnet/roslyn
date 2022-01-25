@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
     /// </summary>
     internal class JsonEmbeddedClassifier : AbstractSyntaxClassifier
     {
-        private static ObjectPool<Visitor> s_visitorPool = new(() => new Visitor());
+        private static readonly ObjectPool<Visitor> s_visitorPool = new(() => new Visitor());
         private readonly EmbeddedLanguageInfo _info;
 
         public override ImmutableArray<int> SyntaxTokenKinds { get; }
@@ -122,14 +123,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 
         private class Visitor : IJsonNodeVisitor
         {
-            public ArrayBuilder<ClassifiedSpan> Result;
+            public ArrayBuilder<ClassifiedSpan>? Result;
 
             private void AddClassification(JsonToken token, string typeName)
             {
                 if (!token.IsMissing)
-                {
-                    Result.Add(new ClassifiedSpan(typeName, token.GetSpan()));
-                }
+                    Result!.Add(new ClassifiedSpan(typeName, token.GetSpan()));
             }
 
             private void ClassifyWholeNode(JsonNode node, string typeName)

@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
-            => GetLanguage(item).CompletionProvider.GetChangeAsync(document, item, commitKey, cancellationToken);
+            => GetLanguage(item).CompletionProvider!.GetChangeAsync(document, item, commitKey, cancellationToken);
 
         internal override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
-            => GetLanguage(item).CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
+            => GetLanguage(item).CompletionProvider!.GetDescriptionAsync(document, item, cancellationToken);
 
         private IEmbeddedLanguageFeatures GetLanguage(CompletionItem item)
         {
