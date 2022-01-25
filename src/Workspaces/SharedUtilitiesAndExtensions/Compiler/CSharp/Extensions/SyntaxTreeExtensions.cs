@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // "|"
                 // "|  (e.g. incomplete string literal)
                 return (position > span.Start && position < span.End)
-                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '"');
+                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '"', cancellationToken);
             }
 
             if (token.IsKind(
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // '|'
                 // '|  (e.g. incomplete char literal)
                 return (position > span.Start && position < span.End)
-                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'');
+                    || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'', cancellationToken);
             }
 
             return false;
