@@ -11394,6 +11394,34 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteralInterpolationHole_SingleLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = $""""""{[|y|]}"""""";
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = $""""""{GetY(y)}"""""";
+    }
+
+    private static int GetY(int y)
+    {
+        return y;
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractRawStringLiteral_MultiLine()
         {
             var code = @"
