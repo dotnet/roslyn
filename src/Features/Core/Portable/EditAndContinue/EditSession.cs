@@ -153,8 +153,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
         /// </summary>
         /// <returns><see langword="default"/> if the module is not loaded.</returns>
-        public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, string projectDisplayName, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(documentAnalyses.IsEmpty);
+
             var availability = await DebuggingSession.DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
             if (availability.Status == ManagedHotReloadAvailabilityStatus.ModuleNotLoaded)
             {
@@ -167,7 +169,69 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(availability.Status);
-            return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, availability.LocalizedMessage }));
+            var messageArgs = new[] { newProject.Name, availability.LocalizedMessage };
+
+            using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
+
+            await foreach (var location in CreateChangedLocationsAsync(oldProject, newProject, documentAnalyses, cancellationToken).ConfigureAwait(false))
+            {
+                diagnostics.Add(Diagnostic.Create(descriptor, location, messageArgs));
+            }
+
+            return diagnostics.ToImmutable();
+        }
+
+        private static async IAsyncEnumerable<Location> CreateChangedLocationsAsync(Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var hasRemovedOrAddedDocument = false;
+            foreach (var documentAnalysis in documentAnalyses)
+            {
+                if (!documentAnalysis.HasChanges)
+                {
+                    continue;
+                }
+
+                var oldDocument = await oldProject.GetDocumentAsync(documentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var newDocument = await newProject.GetDocumentAsync(documentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                if (oldDocument == null || newDocument == null)
+                {
+                    hasRemovedOrAddedDocument = true;
+                    continue;
+                }
+
+                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newTree = await newDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                // document location:
+                yield return Location.Create(newTree, GetFirstLineDifferenceSpan(oldText, newText));
+            }
+
+            // project location:
+            if (hasRemovedOrAddedDocument)
+            {
+                yield return Location.None;
+            }
+        }
+
+        private static TextSpan GetFirstLineDifferenceSpan(SourceText oldText, SourceText newText)
+        {
+            var oldLineCount = oldText.Lines.Count;
+            var newLineCount = newText.Lines.Count;
+
+            for (var i = 0; i < Math.Min(oldLineCount, newLineCount); i++)
+            {
+                var oldLineSpan = oldText.Lines[i].Span;
+                var newLineSpan = newText.Lines[i].Span;
+                if (oldLineSpan != newLineSpan || !oldText.GetSubText(oldLineSpan).ContentEquals(newText.GetSubText(newLineSpan)))
+                {
+                    return newText.Lines[i].Span;
+                }
+            }
+
+            return (oldLineCount == newLineCount) ? default :
+                   (newLineCount > oldLineCount) ? newText.Lines[oldLineCount].Span :
+                   TextSpan.FromBounds(newText.Lines[newLineCount - 1].End, newText.Lines[newLineCount - 1].EndIncludingLineBreak);
         }
 
         private async Task<EditAndContinueCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
@@ -780,10 +844,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((newProject.Id, documentDiagnostics));
                     }
 
+                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
+                    if (projectSummary == ProjectAnalysisSummary.NoChanges)
+                    {
+                        continue;
+                    }
+
+                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
+                    var oldProject = oldSolution.GetProject(newProject.Id);
+                    Contract.ThrowIfNull(oldProject);
+
                     // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
                     // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
                     // we need to check with the debugger.
-                    var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, newProject.Name, cancellationToken).ConfigureAwait(false);
+                    var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
 
                     var isModuleEncBlocked = isModuleLoaded && !moduleDiagnostics.IsEmpty;
                     if (isModuleEncBlocked)
@@ -792,7 +866,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         isBlocked = true;
                     }
 
-                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
                     if (projectSummary == ProjectAnalysisSummary.CompilationErrors)
                     {
                         // only remember the first syntax error we encounter:
@@ -832,10 +905,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", newProject.Id.DebugName, newProject.Id);
-
-                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
-                    var oldProject = oldSolution.GetProject(newProject.Id);
-                    Contract.ThrowIfNull(oldProject);
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

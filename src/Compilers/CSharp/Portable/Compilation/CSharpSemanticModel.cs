@@ -5139,6 +5139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal abstract override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol);
+        internal abstract override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol);
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
