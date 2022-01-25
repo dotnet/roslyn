@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.ServiceModel.Configuration;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -137,10 +138,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string workspaceKind = null,
             string extension = null,
             bool commonReferences = true,
+            bool isMarkup = true,
             bool openDocuments = false,
             IDocumentServiceProvider documentServiceProvider = null)
         {
-            var workspaceElement = CreateWorkspaceElement(language, compilationOptions, parseOptions, files, sourceGeneratedFiles, metadataReferences, extension, commonReferences);
+            var workspaceElement = CreateWorkspaceElement(language, compilationOptions, parseOptions, files, sourceGeneratedFiles, metadataReferences, extension, commonReferences, isMarkup);
             return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind, documentServiceProvider);
         }
 
@@ -194,9 +196,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider = null,
             TestComposition composition = null,
             string[] metadataReferences = null,
+            bool isMarkup = true,
             bool openDocuments = false)
         {
-            return CreateCSharp(new[] { file }, Array.Empty<string>(), parseOptions, compilationOptions, exportProvider, composition, metadataReferences, openDocuments);
+            return CreateCSharp(new[] { file }, Array.Empty<string>(), parseOptions, compilationOptions, exportProvider, composition, metadataReferences, isMarkup, openDocuments);
         }
 
         public static TestWorkspace CreateCSharp(
@@ -207,9 +210,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider = null,
             TestComposition composition = null,
             string[] metadataReferences = null,
+            bool isMarkup = true,
             bool openDocuments = false)
         {
-            return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, sourceGeneratedFiles, exportProvider, composition, metadataReferences, openDocuments: openDocuments);
+            return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, sourceGeneratedFiles, exportProvider, composition, metadataReferences, isMarkup: isMarkup, openDocuments: openDocuments);
         }
 
         public static TestWorkspace CreateCSharp2(

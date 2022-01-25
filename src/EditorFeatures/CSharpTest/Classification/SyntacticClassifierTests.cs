@@ -5747,7 +5747,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        public async Task TestRawStringLiteralInterpolation(TestHost testHost)
+        public async Task TestRawStringLiteralInterpolation1(TestHost testHost)
         {
             var code = @"
 class C
@@ -5777,9 +5777,93 @@ class C
                 Local("s"),
                 Operators.Equals,
                 String("$\"\"\""),
-                Punctuation.RawInterpolationOpen("{"),
+                Punctuation.OpenCurly,
                 Identifier("x"),
-                Punctuation.RawInterpolationClose("}"),
+                Punctuation.CloseCurly,
+                String("\"\"\""),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralInterpolation2(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = $$""""""{{x}}"""""";
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("$$\"\"\""),
+                PunctuationText("{{"),
+                Identifier("x"),
+                PunctuationText("}}"),
+                String("\"\"\""),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralInterpolation3(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = $$""""""{{{x}}}"""""";
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("$$\"\"\""),
+                String("{"),
+                PunctuationText("{{"),
+                Identifier("x"),
+                PunctuationText("}}"),
+                String("}"),
                 String("\"\"\""),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
