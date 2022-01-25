@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var simplifiedTypeName = await SnippetFunctionService.GetSimplifiedTypeNameAsync(document, fieldSpan.Value, _fullyQualifiedName, cancellationToken).ConfigureAwait(false);
-            if (!string.IsNullOrEmpty(simplifiedTypeName))
+            if (string.IsNullOrEmpty(simplifiedTypeName))
             {
                 return (VSConstants.E_FAIL, value, hasDefaultValue);
             }

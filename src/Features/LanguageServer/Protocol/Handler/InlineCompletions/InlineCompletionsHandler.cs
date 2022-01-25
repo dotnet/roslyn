@@ -151,7 +151,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
         var formattedText = documentWithSnippetText.WithChanges(formattingChanges);
 
-        // We now have a formatted snippet with default values.  We need to compute
+        // We now have a formatted snippet with default values.  We need to
         // replace the fields and caret with the proper LSP tab stop notation.
         // Since formatting changes are entirely whitespace, we can calculate the new locations by
         // adjusting the old spans based on the formatting changes that occured before them.
@@ -167,14 +167,14 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
             var lspTextForField = string.IsNullOrEmpty(field.DefaultText) ? $"${{{field.EditIndex}}}" : $"${{{field.EditIndex}:{field.DefaultText}}}";
             foreach (var span in spans)
             {
-                // Adjust the span based on the formatting changes.
+                // Adjust the span based on the formatting changes and build the snippet text change.
                 var fieldInFormattedText = GetAdjustedSpan(formattingChanges, span);
                 var fieldInSnippetContext = GetTextSpanInContextOfSnippet(fieldInFormattedText.Start, spanContainingFormattedSnippet.Start, fieldInFormattedText.Length);
                 lspTextChanges.Add(new TextChange(fieldInSnippetContext, lspTextForField));
             }
         }
 
-        // Get the adjusted caret location and replace the placeholder comment with the LSP formatted tab stop..
+        // Get the adjusted caret location and replace the placeholder comment with the LSP formatted tab stop.
         if (caretSpan != null)
         {
             var caretInFormattedText = GetAdjustedSpan(formattingChanges, caretSpan.Value);
@@ -252,9 +252,11 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
                 caretSpan = new TextSpan(locationInFinalSnippet, cursorPart.DefaultText.Length);
             }
 
+            // Append the new snippet part to the text and track the location of the field in the text w/ functions.
             locationInFinalSnippet += part.DefaultText.Length;
             functionSnippetBuilder.Append(part.DefaultText);
 
+            // Keep track of the original field location in the text w/out functions.
             locationInDefaultSnippet += originalPart.DefaultText.Length;
         }
 
@@ -263,6 +265,8 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
     private static CodeSnippet? RetrieveSnippetFromXml(SnippetInfo snippetInfo, RequestContext context)
     {
+        context.TraceInformation($"Reading XML for {snippetInfo.Title} with path {snippetInfo.Path}");
+
         var path = snippetInfo.Path;
         if (path == null)
         {
