@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 // Check that the EqualityComparer exists and can be used, otherwise the Roslyn version
                 // being used it too low to need the change for method references
-                var symbolEqualityComparerType = compilation.GetOrCreateTypeByMetadataName(SymbolEqualityComparerName);
+                var hasSymbolEqualityComparer = UseSymbolEqualityComparer(compilation);
 
                 context.RegisterOperationAction(
                     context => HandleBinaryOperator(in context, symbolType),
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var iEqualityComparer = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEqualityComparer1);
 
                 context.RegisterOperationAction(
-                    context => HandleInvocationOperation(in context, symbolType, symbolEqualityComparerType, equalityComparerMethods, systemHashCode, iEqualityComparer),
+                    context => HandleInvocationOperation(in context, symbolType, hasSymbolEqualityComparer, equalityComparerMethods, systemHashCode, iEqualityComparer),
                     OperationKind.Invocation);
 
-                if (symbolEqualityComparerType is not null && iEqualityComparer is not null)
+                if (hasSymbolEqualityComparer && iEqualityComparer is not null)
                 {
                     var collectionTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericDictionary2));
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static void HandleInvocationOperation(
             in OperationAnalysisContext context,
             INamedTypeSymbol symbolType,
-            INamedTypeSymbol? symbolEqualityComparerType,
+            bool hasSymbolEqualityComparer,
             ImmutableDictionary<string, ImmutableHashSet<INamedTypeSymbol>> equalityComparerMethods,
             INamedTypeSymbol? systemHashCodeType,
             INamedTypeSymbol? iEqualityComparer)
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     break;
 
                 case s_symbolEqualsName:
-                    if (symbolEqualityComparerType is not null && IsNotInstanceInvocationOrNotOnSymbol(invocationOperation, symbolType))
+                    if (hasSymbolEqualityComparer && IsNotInstanceInvocationOrNotOnSymbol(invocationOperation, symbolType))
                     {
                         var parameters = invocationOperation.Arguments;
                         if (parameters.All(p => IsSymbolType(p.Value, symbolType)))
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 default:
                     if (equalityComparerMethods.TryGetValue(method.Name, out var possibleMethodTypes) &&
-                        symbolEqualityComparerType is not null &&
+                        hasSymbolEqualityComparer &&
                         possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
                         IsBehavingOnSymbolType(method, symbolType) &&
                         !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, iEqualityComparer)))
