@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CompletionContext completionContext,
             SyntaxContext syntaxContext,
             HashSet<string> namespaceInScope,
-            bool isExpandedCompletion,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // report telemetry:
                     var totalTicks = Environment.TickCount - ticks;
                     CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
-                        totalTicks, result.GetSymbolsTicks, result.CreateItemsTicks, isExpandedCompletion, result.IsRemote);
+                        totalTicks, result.GetSymbolsTicks, result.CreateItemsTicks, result.IsRemote);
 
                     if (result.IsPartialResult)
                         CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();

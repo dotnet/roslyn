@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract ImmutableArray<AliasDeclarationTypeNode> GetAliasDeclarationNodes(SyntaxNode node);
 
-        protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
+        protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
-                var telemetryCounter = new TelemetryCounter(isExpandedCompletion);
+                var telemetryCounter = new TelemetryCounter();
                 var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
 
                 var itemsFromAllAssemblies = await typeImportCompletionService.GetAllTopLevelTypesAsync(
@@ -165,16 +165,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private class TelemetryCounter
         {
             private readonly int _tick;
-            private readonly bool _isExpandedCompletion;
 
             public int ItemsCount { get; set; }
             public int ReferenceCount { get; set; }
             public bool CacheMiss { get; set; }
 
-            public TelemetryCounter(bool isExpandedCompletion)
+            public TelemetryCounter()
             {
                 _tick = Environment.TickCount;
-                _isExpandedCompletion = isExpandedCompletion;
             }
 
             public void Report()
@@ -186,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // cache miss still count towards the cost of completion, so we need to log regardless of it.
                 var delta = Environment.TickCount - _tick;
-                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta, _isExpandedCompletion);
+                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
                 CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
                 CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
             }

@@ -271,10 +271,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 ? new CompletionTrigger(CompletionTriggerKind.Snippets)
                 : Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
-            var options = CompletionOptions.From(document.Project) with
+            var options = CompletionOptions.From(document.Project);
+
+            if (isExpanded)
             {
-                IsExpandedCompletion = isExpanded
-            };
+                // User selected expander explicitly, which means we need to collect and return
+                // items from unimported namespace (and only those items) regardless of whether it's enabled.
+                options = options with
+                {
+                    ShowItemsFromUnimportedNamespaces = true,
+                    ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
+                };
+            }
 
             if (_isDebuggerTextView)
             {

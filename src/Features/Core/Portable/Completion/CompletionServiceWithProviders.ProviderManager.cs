@@ -164,10 +164,12 @@ namespace Microsoft.CodeAnalysis.Completion
                 CompletionTrigger trigger,
                 in CompletionOptions options)
             {
-                if (options.IsExpandedCompletion)
+                providers = options.ExpandedCompletionBehavior switch
                 {
-                    providers = providers.WhereAsArray(p => p.IsExpandItemProvider);
-                }
+                    ExpandedCompletionMode.NonExpandedItemsOnly => providers.WhereAsArray(p => !p.IsExpandItemProvider),
+                    ExpandedCompletionMode.ExpandedItemsOnly => providers.WhereAsArray(p => p.IsExpandItemProvider),
+                    _ => providers,
+                };
 
                 // If the caller passed along specific options that affect snippets,
                 // then defer to those.  Otherwise if the caller just wants the default

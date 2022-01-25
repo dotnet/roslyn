@@ -182,8 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             // Make sure the unimported types option is on by default.
             testLspServer.TestWorkspace.SetOptions(testLspServer.TestWorkspace.CurrentSolution.Options
-                .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true)
-                .WithChangedOption(CompletionOptions.Metadata.IsExpandedCompletion, true));
+                .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true));
 
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),

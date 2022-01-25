@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
-                IsExpandedCompletion = false
+                ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly
             };
         }
 

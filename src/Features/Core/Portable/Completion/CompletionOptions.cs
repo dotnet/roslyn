@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Recommendations;
+using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Recommendations;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion
         bool TriggerOnTypingLetters,
         bool? TriggerOnDeletion,
         bool TriggerInArgumentLists,
-        bool IsExpandedCompletion,
+        ExpandedCompletionMode ExpandedCompletionBehavior,
         EnterKeyRule EnterKeyBehavior,
         SnippetsRule SnippetsBehavior,
         bool HideAdvancedMembers,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion
               TriggerOnTypingLetters: Metadata.TriggerOnTypingLetters.DefaultValue,
               TriggerOnDeletion: Metadata.TriggerOnDeletion.DefaultValue,
               TriggerInArgumentLists: Metadata.TriggerInArgumentLists.DefaultValue,
-              IsExpandedCompletion: Metadata.IsExpandedCompletion.DefaultValue,
+              ExpandedCompletionBehavior: Metadata.ExpandedCompletionBehavior.DefaultValue,
               EnterKeyBehavior: Metadata.EnterKeyBehavior.DefaultValue,
               SnippetsBehavior: Metadata.SnippetsBehavior.DefaultValue,
               HideAdvancedMembers: Metadata.HideAdvancedMembers.DefaultValue,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion
               TriggerOnTypingLetters: options.GetOption(Metadata.TriggerOnTypingLetters, language),
               TriggerOnDeletion: options.GetOption(Metadata.TriggerOnDeletion, language),
               TriggerInArgumentLists: options.GetOption(Metadata.TriggerInArgumentLists, language),
-              IsExpandedCompletion: options.GetOption(Metadata.IsExpandedCompletion),
+              ExpandedCompletionBehavior: options.GetOption(Metadata.ExpandedCompletionBehavior),
               EnterKeyBehavior: options.GetOption(Metadata.EnterKeyBehavior, language),
               SnippetsBehavior: options.GetOption(Metadata.SnippetsBehavior, language),
               HideAdvancedMembers: options.GetOption(Metadata.HideAdvancedMembers, language),
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 WithChangedOption(Metadata.TriggerOnTypingLetters, language, TriggerOnTypingLetters).
                 WithChangedOption(Metadata.TriggerOnDeletion, language, TriggerOnDeletion).
                 WithChangedOption(Metadata.TriggerInArgumentLists, language, TriggerInArgumentLists).
-                WithChangedOption(Metadata.IsExpandedCompletion, IsExpandedCompletion).
+                WithChangedOption(Metadata.ExpandedCompletionBehavior, ExpandedCompletionBehavior).
                 WithChangedOption(Metadata.EnterKeyBehavior, language, EnterKeyBehavior).
                 WithChangedOption(Metadata.SnippetsBehavior, language, SnippetsBehavior).
                 WithChangedOption(Metadata.HideAdvancedMembers, language, HideAdvancedMembers).
@@ -166,10 +166,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
             /// <summary>
-            /// Indicates if the completion is trigger by toggle the expander.
+            /// Controls which CompletionProvider will be queried for items, based on the value of <see cref="CompletionProvider.IsExpandItemProvider"/>.
             /// </summary>
-            public static readonly Option2<bool> IsExpandedCompletion
-                = new("CompletionServiceOptions", nameof(IsExpandedCompletion), defaultValue: false);
+            public static readonly Option2<ExpandedCompletionMode> ExpandedCompletionBehavior
+                = new("CompletionServiceOptions", nameof(ExpandedCompletionBehavior), defaultValue: ExpandedCompletionMode.AllItems);
 
             // Embedded languages:
 
