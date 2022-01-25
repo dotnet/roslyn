@@ -1380,7 +1380,6 @@ Microsoft.CodeAnalysis.IParameterSymbol.CustomModifiers.get -> System.Collection
 Microsoft.CodeAnalysis.IParameterSymbol.ExplicitDefaultValue.get -> object?
 Microsoft.CodeAnalysis.IParameterSymbol.HasExplicitDefaultValue.get -> bool
 Microsoft.CodeAnalysis.IParameterSymbol.IsDiscard.get -> bool
-Microsoft.CodeAnalysis.IParameterSymbol.IsNullChecked.get -> bool
 Microsoft.CodeAnalysis.IParameterSymbol.IsOptional.get -> bool
 Microsoft.CodeAnalysis.IParameterSymbol.IsParams.get -> bool
 Microsoft.CodeAnalysis.IParameterSymbol.IsThis.get -> bool
