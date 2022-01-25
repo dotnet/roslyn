@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             /// Returns true if an overload is acceptable. In that case, we output the parameter that should be highlighted given the cursor's
             /// position in the partial invocation.
             /// </summary>
-            private static bool FindParameterIndexIfCompatibleMethod(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method, int position,
+            internal static bool FindParameterIndexIfCompatibleMethod(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method, int position,
                 SemanticModel semanticModel, ISemanticFactsService semanticFactsService, out int foundParameterIndex)
             {
                 // map the arguments to their corresponding parameters
