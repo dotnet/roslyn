@@ -7,9 +7,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
@@ -25,21 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (syntax.Parent is not FunctionPointerUnmanagedCallingConventionListSyntax list)
-            {
-                return;
-            }
-
             var callingConventionSyntax = (FunctionPointerUnmanagedCallingConventionSyntax)syntax;
-            if (list.CallingConventions.Count == 1 &&
-                callingConventionSyntax.Name.ValueText is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall")
+            if (CSharpSyntaxFacts.Instance.IsSpecialUnmanagedCallingConvention(callingConventionSyntax))
             {
                 result.Add(new ClassifiedSpan(callingConventionSyntax.Span, ClassificationTypeNames.ClassName));
                 return;
             }
 
-            var corLibrary = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly;
-            var type = corLibrary.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv" + callingConventionSyntax.Name.ValueText);
+            var type = semanticModel.Compilation.UnmanagedCallingConventionType(callingConventionSyntax.Name.ValueText);
             if (type is not null)
             {
                 result.Add(new ClassifiedSpan(callingConventionSyntax.Name.Span, ClassificationTypeNames.ClassName));

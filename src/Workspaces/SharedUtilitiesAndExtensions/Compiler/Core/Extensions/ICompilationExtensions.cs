@@ -211,5 +211,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? DisallowNullAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DisallowNullAttribute).FullName!);
+
+        public static INamedTypeSymbol? UnmanagedCallingConventionType(this Compilation compilation, string callConv)
+        {
+            var corLibrary = compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly;
+            return corLibrary.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv" + callConv);
+        }
     }
 }

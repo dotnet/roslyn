@@ -274,19 +274,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<ISymbol> GetCallingConventionSymbol(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
         {
-            if (syntax.Parent is not FunctionPointerUnmanagedCallingConventionListSyntax list)
+            if (CSharpSyntaxFacts.Instance.IsSpecialUnmanagedCallingConvention(syntax))
             {
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            if (list.CallingConventions.Count == 1 &&
-                syntax.Name.ValueText is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall")
-            {
-                return ImmutableArray<ISymbol>.Empty;
-            }
-
-            var corLibrary = model.Compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly;
-            var type = corLibrary.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv" + syntax.Name.ValueText);
+            var type = model.Compilation.UnmanagedCallingConventionType(syntax.Name.ValueText);
             if (type is null)
             {
                 return ImmutableArray<ISymbol>.Empty;
