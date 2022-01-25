@@ -81,9 +81,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             Assumes.Present(menuCommandService);
 
             _threadingContext = componentModel.GetService<IThreadingContext>();
+            var globalOptions = componentModel.GetService<IGlobalOptionService>();
 
-            _workspace = componentModel.GetService<VisualStudioWorkspace>();
-            _ = new ForceLowMemoryMode(_workspace.Services.GetService<IOptionService>());
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            _ = new ForceLowMemoryMode(globalOptions);
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             if (menuCommandService is OleMenuCommandService mcs)
@@ -95,8 +96,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             }
 
             // set logger at start up
-            var globalOptions = componentModel.GetService<IGlobalOptionService>();
-            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, _workspace.Services);
+            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, workspace.Services);
         }
         #endregion
 
