@@ -5399,10 +5399,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>warning action enable</value>
   </data>
   <data name="WRN_ConvertingNullableToNonNullable" xml:space="preserve">
-    <value>Null literal or possibly null value is being converted to a non-nullable type.</value>
+    <value>Conversion of null literal or possible null value to non-nullable type</value>
+    <comment>Null literal or an expression of a nullable type is being converted to a non-nullable type.</comment>
   </data>
   <data name="WRN_ConvertingNullableToNonNullable_Title" xml:space="preserve">
-    <value>Null literal or possibly null value is being converted to a non-nullable type.</value>
+    <value>Conversion of null literal or possible null value to non-nullable type</value>
+    <comment>Null literal or an expression of a nullable type is being converted to a non-nullable type.</comment>
   </data>
   <data name="WRN_NullReferenceAssignment" xml:space="preserve">
     <value>Possible null reference assignment.</value>
