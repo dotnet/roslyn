@@ -248,10 +248,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
                         goto default;
                     }
-                case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
-                    {
-                        goto default;
-                    }
 
                 default:
                     {
