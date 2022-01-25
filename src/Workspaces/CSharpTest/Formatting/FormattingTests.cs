@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -4510,7 +4511,7 @@ class innerClass
 {
     public innerClass()
     {
-        myDelegate x = (int y = 1) => { return; };
+        myDelegate x = (int y=1) => { return; };
     }
 }";
 
@@ -4626,8 +4627,8 @@ class innerClass
                         })));
 
             Assert.NotNull(property);
-
-            var newProperty = Formatter.Format(property, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+            var newProperty = Formatter.Format(property, workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
 
             Assert.Equal(expected, newProperty.ToFullString());
         }
@@ -8137,7 +8138,7 @@ class Program
         public void DontAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
-            Formatter.Format(block, new AdhocWorkspace());
+            Formatter.Format(block, new AdhocWorkspace().Services, SyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
@@ -9212,7 +9213,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
         public void FormatSingleStructDeclaration()
-            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
+            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatIndexExpression()

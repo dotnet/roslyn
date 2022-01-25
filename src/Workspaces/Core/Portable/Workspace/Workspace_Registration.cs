@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a <see cref="WorkspaceRegistration" /> for a given text container.
         /// </summary>
-        public static WorkspaceRegistration GetWorkspaceRegistration(SourceTextContainer? textContainer)
+        public static WorkspaceRegistration GetWorkspaceRegistration(SourceTextContainer textContainer)
         {
             if (textContainer == null)
             {

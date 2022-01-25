@@ -242,12 +242,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
-        <target state="new">Await the preceding expression</target>
+        <target state="translated">等待前面的表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
-        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <target state="translated">等待前面的表达式并添加 ConfigureAwait({0})。</target>
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -470,6 +470,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">将类型转换为“{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">在磁盘或嵌入源上找不到可移植 PDB。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">在磁盘、嵌入源或符号服务器上找不到 PDB。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">创建字段 "{0}" 并赋值</target>
@@ -550,6 +560,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">创建 CodeFixProvider“{0}”的实例时出错</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">读取 PDB 时出错:“{0}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">示例:</target>
@@ -567,7 +582,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">显式继承文档</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -615,14 +630,34 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">设置文档格式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">在“{0}”处找到 PDB 文件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">在符号服务器上找到 PDB。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">在符号服务器上找到 PDB，但无法读取文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">找到嵌入的 PDB 文件。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">生成抽象方法“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">生成抽象属性“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -632,7 +667,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">生成常数“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -647,12 +682,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">生成枚举成员“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">生成字段“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -662,7 +697,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">生成方法“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -677,17 +712,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">生成属性“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">生成只读字段“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">生成只读属性“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -912,7 +947,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">杂项文件</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
@@ -1022,7 +1057,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">将静态成员移到另一类型...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1035,6 +1070,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">移动 {0} 要求重启应用程序。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">从“{1}”导航到符号“{0}”。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">嵌套限定符 {0}</target>
@@ -1043,6 +1083,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">没有可用于提取的公共根节点。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">未在 PDB 中找到源文档信息。</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -1230,11 +1275,11 @@ This option is recommended if you know that backtracking will not succeed. Preve
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="needs-review-translation">均衡组定义删除以前定义的组的定义，并在当前组中存储以前定义的组和当前组之间的时间间隔。
-    
-"name1" 是当前组(可选)，"name2" 是以前定义的组，而 "subexpression" 是任何有效的正则表达式模式。均衡组定义将删除 name2 的定义，并在 name1 中存储 name2 和 name1 之间的间隔。如果未定义 name2 组，则匹配回溯。由于删除 name2 的最后一个定义会发现 name2 的上一个定义，此构造使你能够使用作为计数器的组的捕获堆栈来跟踪嵌套构造(如括号)或左括号和右括号。
+        <target state="translated">均衡组定义删除以前定义的组的定义，并在当前组中存储以前定义的组和当前组之间的时间间隔。
 
-均衡组定义使用 "name2" 作为堆栈。每个嵌套构造的开始字符都放在该组中并位于其组中。捕获集合。匹配结束字符时，将从组中删除其相应的左符号，并减小捕获集合 1。在所有嵌套构造的开始和结束字符都匹配后，"name1" 为空。</target>
+“name1” 是当前组(可选)，“name2” 是以前定义的组，而 “subexpression” 是任何有效的正则表达式模式。均衡组定义将删除 name2 的定义，并在 name1 中存储 name2 和 name1 之间的间隔。如果未定义 name2 组，则匹配回溯。由于删除 name2 的最后一个定义会发现 name2 的上一个定义，此构造使你能够将组 name2 的捕获堆栈用作计数器来跟踪嵌套构造(如括号或左括号和右括号)。
+
+均衡组定义使用 “name2” 作为堆栈。每个嵌套构造的开始字符都放在该组中并位于其组中。捕获集合。匹配结束字符时，将从组中删除其相应的开始字符，并且捕获集合将减少 1。在所有嵌套构造的开始和结束字符都匹配后，“name1” 为空。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -2307,12 +2352,22 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="new">Silent</target>
+        <target state="translated">无提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">对可访问性修饰符排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">在 PDB 中找不到源代码语言信息。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">源是引用程序集，信息不足，无法查找 PDB。</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2340,6 +2395,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">在 lambda 和本地函数之间切换需要重启应用程序。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">在程序集路径 "{0}" 中找到符号</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: 释放未托管的资源(未托管的对象)并重写终结器</target>
@@ -2365,6 +2425,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">所选内容包含不带声明的本地函数调用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">尝试从 SourceLink 下载源代码时超时。如果继续尝试进行请求，有可能会成功。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">尝试从符号服务器下载 PDB 时超时。如果继续尝试进行请求，有可能会成功。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">(?()|) 中的 | 太多</target>
@@ -2377,7 +2447,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">类型:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
@@ -2663,6 +2733,46 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">在嵌入的 PDB 中找到“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">在嵌入 PDB 中找到“{0}”，但校验和错误或无法读取临时文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">在嵌入的 PDB 中找到“{0}”，但无法写入临时文件:“{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">在嵌入的 PDB 中找到“{0}”，并找到缓存的源文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">在原始位置找到“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">在原始位置找到“{0}”，但校验和错误或无法读取临时文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">通过 SourceLink 找到“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">通过 SourceLink 找到“{0}”，但无法读取临时文件。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2992,6 +3102,16 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <source>discard</source>
         <target state="translated">放弃</target>
         <note />
+      </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">嵌入源</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">外部源</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>

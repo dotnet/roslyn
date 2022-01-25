@@ -1947,8 +1947,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.ArgListExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.NumericLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.StringLiteralExpression"/></description></item>
-    /// <item><description><see cref="SyntaxKind.MultiLineRawStringLiteralExpression"/></description></item>
-    /// <item><description><see cref="SyntaxKind.SingleLineRawStringLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.CharacterLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.TrueLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.FalseLiteralExpression"/></description></item>
@@ -5785,6 +5783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
+        /// <summary>This could be a single <c>{</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).</summary>
         public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolationSyntax)this.Green).openBraceToken, Position, 0);
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
@@ -5793,6 +5792,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public InterpolationFormatClauseSyntax? FormatClause => GetRed(ref this.formatClause, 3);
 
+        /// <summary>
+        /// This could be a single <c>}</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).
+        /// </summary>
         public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolationSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)

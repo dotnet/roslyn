@@ -209,8 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
-                case SyntaxKind.RawInterpolationOpenToken:
-                case SyntaxKind.RawInterpolationCloseToken:
                 case SyntaxKind.LoadKeyword:
                 case SyntaxKind.NullableKeyword:
                 case SyntaxKind.EnableKeyword:
@@ -543,8 +541,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return token switch
             {
                 SyntaxKind.StringLiteralToken => SyntaxKind.StringLiteralExpression,
-                SyntaxKind.SingleLineRawStringLiteralToken => SyntaxKind.SingleLineRawStringLiteralExpression,
-                SyntaxKind.MultiLineRawStringLiteralToken => SyntaxKind.MultiLineRawStringLiteralExpression,
+                SyntaxKind.SingleLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.MultiLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
                 SyntaxKind.CharacterLiteralToken => SyntaxKind.CharacterLiteralExpression,
                 SyntaxKind.NumericLiteralToken => SyntaxKind.NumericLiteralExpression,
                 SyntaxKind.NullKeyword => SyntaxKind.NullLiteralExpression,

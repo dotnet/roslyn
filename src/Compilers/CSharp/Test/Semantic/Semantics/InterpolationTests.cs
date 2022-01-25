@@ -6818,7 +6818,7 @@ End Structure
         [Theory]
         [InlineData(@"$""""")]
         [InlineData(@"$"""" + $""""")]
-        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant(string expression)
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_01(string expression)
         {
             var code = @"
 using System.Runtime.CompilerServices;
@@ -6841,6 +6841,39 @@ class C
                 // (8,34): error CS8943: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
                 //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute(new string[] { null })] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, "InterpolatedStringHandlerArgumentAttribute(new string[] { null })").WithLocation(8, 34)
+            );
+
+            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+            Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
+        }
+
+        [Fact, WorkItem(58025, "https://github.com/dotnet/roslyn/issues/58025")]
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_02()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+C.M(1, $"""");
+
+class C
+{
+    public static void M(int i, [InterpolatedStringHandlerArgumentAttribute((string[])null)] CustomHandler c) {}
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            comp.VerifyDiagnostics(
+                // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
+                // (8,34): error CS8943: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute((string[])null)] CustomHandler c) {}
+                Diagnostic(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, "InterpolatedStringHandlerArgumentAttribute((string[])null)").WithLocation(8, 34)
             );
 
             var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
@@ -6937,6 +6970,46 @@ End Structure
 Imports System.Runtime.CompilerServices
 Public Class C
     Public Shared Sub M(i As Integer, <InterpolatedStringHandlerArgument(CStr(Nothing))> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() });
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
+                // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "2").WithLocation(1, 8),
+                // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "3").WithLocation(1, 8)
+            );
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+            Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
+        }
+
+        [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_FromMetadata_04()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Shared Sub M(i As Integer, <InterpolatedStringHandlerArgument(DirectCast(Nothing, String()))> c As CustomHandler)
     End Sub
 End Class
 <InterpolatedStringHandler>
@@ -9441,6 +9514,868 @@ s2.I:2");
   IL_0037:  ret
 }
 ");
+
+            comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: @"
+s1.I:1
+s2.I:2");
+        }
+
+        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        public void StructReceiver_Rvalue_ObjectCreationReceiver_01()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var i = 0;
+new StructLogger(true, 1).Log($""log:{i++}"");
+Console.WriteLine($""(1) i={i}"");
+
+internal readonly struct StructLogger
+{
+    private readonly bool _disabled;
+    private readonly int _id;
+
+    public bool Disabled => _disabled;
+    public int Id => _id;
+
+    public StructLogger(bool disabled, int id)
+    {
+        _disabled = disabled;
+        _id = id;
+    }
+
+    public void Log([InterpolatedStringHandlerArgument("""")] DummyHandler handler) => Console.WriteLine($""StructLogger#{_id}: "" + handler.GetContent());
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, StructLogger structLogger, out bool enabled)
+    {
+        Console.WriteLine($""Creating DummyHandler from StructLogger#{structLogger.Id}"");
+        enabled = !structLogger.Disabled;
+        _builder = structLogger.Disabled ? null : new StringBuilder();
+    }
+    public string GetContent() => _builder?.ToString();
+
+    public void AppendLiteral(string s) => _builder?.Append(s);
+    public void AppendFormatted<T>(T t) => _builder?.Append(t);
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+Creating DummyHandler from StructLogger#1
+StructLogger#1: 
+(1) i=0");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (int V_0, //i
+                StructLogger V_1,
+                DummyHandler V_2,
+                bool V_3)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""StructLogger..ctor(bool, int)""
+  IL_000b:  ldc.i4.4
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldloc.1
+  IL_000e:  ldloca.s   V_3
+  IL_0010:  newobj     ""DummyHandler..ctor(int, int, StructLogger, out bool)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.3
+  IL_0017:  brfalse.s  IL_0031
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  ldstr      ""log:""
+  IL_0020:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  ldloc.0
+  IL_0028:  dup
+  IL_0029:  ldc.i4.1
+  IL_002a:  add
+  IL_002b:  stloc.0
+  IL_002c:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  ldloc.2
+  IL_0034:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_0039:  ldstr      ""(1) i={0}""
+  IL_003e:  ldloc.0
+  IL_003f:  box        ""int""
+  IL_0044:  call       ""string string.Format(string, object)""
+  IL_0049:  call       ""void System.Console.WriteLine(string)""
+  IL_004e:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        public void StructReceiver_Rvalue_ObjectCreationReceiver_02()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var i = 0;
+new StructLogger(true, 1).Log($""log:{i++}"");
+Console.WriteLine($""(1) i={i}"");
+var s = new StructLogger(true, 2);
+s.Log($""log:{i++}"");
+Console.WriteLine($""(2) i={i}"");
+
+internal readonly struct StructLogger
+{
+    private readonly bool _disabled;
+    private readonly int _id;
+
+    public bool Disabled => _disabled;
+    public int Id => _id;
+
+    public StructLogger(bool disabled, int id)
+    {
+        _disabled = disabled;
+        _id = id;
+    }
+
+    public void Log([InterpolatedStringHandlerArgument("""")] DummyHandler handler) => Console.WriteLine($""StructLogger#{_id}: "" + handler.GetContent());
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, StructLogger structLogger, out bool enabled)
+    {
+        Console.WriteLine($""Creating DummyHandler from StructLogger#{structLogger.Id}"");
+        enabled = !structLogger.Disabled;
+        _builder = structLogger.Disabled ? null : new StringBuilder();
+    }
+    public string GetContent() => _builder?.ToString();
+
+    public void AppendLiteral(string s) => _builder?.Append(s);
+    public void AppendFormatted<T>(T t) => _builder?.Append(t);
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+Creating DummyHandler from StructLogger#1
+StructLogger#1: 
+(1) i=0
+Creating DummyHandler from StructLogger#2
+StructLogger#2: 
+(2) i=0
+");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      169 (0xa9)
+  .maxstack  4
+  .locals init (int V_0, //i
+                StructLogger V_1, //s
+                StructLogger V_2,
+                DummyHandler V_3,
+                bool V_4,
+                StructLogger V_5)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""StructLogger..ctor(bool, int)""
+  IL_000b:  ldc.i4.4
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldloc.2
+  IL_000e:  ldloca.s   V_4
+  IL_0010:  newobj     ""DummyHandler..ctor(int, int, StructLogger, out bool)""
+  IL_0015:  stloc.3
+  IL_0016:  ldloc.s    V_4
+  IL_0018:  brfalse.s  IL_0034
+  IL_001a:  ldloca.s   V_3
+  IL_001c:  ldstr      ""log:""
+  IL_0021:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0026:  nop
+  IL_0027:  ldloca.s   V_3
+  IL_0029:  ldloc.0
+  IL_002a:  dup
+  IL_002b:  ldc.i4.1
+  IL_002c:  add
+  IL_002d:  stloc.0
+  IL_002e:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0033:  nop
+  IL_0034:  ldloca.s   V_2
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_003c:  nop
+  IL_003d:  ldstr      ""(1) i={0}""
+  IL_0042:  ldloc.0
+  IL_0043:  box        ""int""
+  IL_0048:  call       ""string string.Format(string, object)""
+  IL_004d:  call       ""void System.Console.WriteLine(string)""
+  IL_0052:  nop
+  IL_0053:  ldloca.s   V_1
+  IL_0055:  ldc.i4.1
+  IL_0056:  ldc.i4.2
+  IL_0057:  call       ""StructLogger..ctor(bool, int)""
+  IL_005c:  ldloc.1
+  IL_005d:  stloc.s    V_5
+  IL_005f:  ldc.i4.4
+  IL_0060:  ldc.i4.1
+  IL_0061:  ldloc.s    V_5
+  IL_0063:  ldloca.s   V_4
+  IL_0065:  newobj     ""DummyHandler..ctor(int, int, StructLogger, out bool)""
+  IL_006a:  stloc.3
+  IL_006b:  ldloc.s    V_4
+  IL_006d:  brfalse.s  IL_0089
+  IL_006f:  ldloca.s   V_3
+  IL_0071:  ldstr      ""log:""
+  IL_0076:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_007b:  nop
+  IL_007c:  ldloca.s   V_3
+  IL_007e:  ldloc.0
+  IL_007f:  dup
+  IL_0080:  ldc.i4.1
+  IL_0081:  add
+  IL_0082:  stloc.0
+  IL_0083:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0088:  nop
+  IL_0089:  ldloca.s   V_5
+  IL_008b:  ldloc.3
+  IL_008c:  call       ""void StructLogger.Log(DummyHandler)""
+  IL_0091:  nop
+  IL_0092:  ldstr      ""(2) i={0}""
+  IL_0097:  ldloc.0
+  IL_0098:  box        ""int""
+  IL_009d:  call       ""string string.Format(string, object)""
+  IL_00a2:  call       ""void System.Console.WriteLine(string)""
+  IL_00a7:  nop
+  IL_00a8:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        public void StructArgument_Rvalue_ObjectCreationArgument_01()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var i = 0;
+Log(new StructLogger(true, 1), $""log:{i++}"");
+Console.WriteLine($""(1) i={i}"");
+
+static void Log(StructLogger logger, [InterpolatedStringHandlerArgument(""logger"")] DummyHandler handler) => Console.WriteLine($""StructLogger#{logger._id}: "" + handler.GetContent());
+
+internal readonly struct StructLogger
+{
+    private readonly bool _disabled;
+    public readonly int _id;
+
+    public bool Disabled => _disabled;
+    public int Id => _id;
+
+    public StructLogger(bool disabled, int id)
+    {
+        _disabled = disabled;
+        _id = id;
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, StructLogger structLogger, out bool enabled)
+    {
+        Console.WriteLine($""Creating DummyHandler from StructLogger#{structLogger.Id}"");
+        enabled = !structLogger.Disabled;
+        _builder = structLogger.Disabled ? null : new StringBuilder();
+    }
+    public string GetContent() => _builder?.ToString();
+
+    public void AppendLiteral(string s) => _builder?.Append(s);
+    public void AppendFormatted<T>(T t) => _builder?.Append(t);
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+Creating DummyHandler from StructLogger#1
+StructLogger#1: 
+(1) i=0");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       78 (0x4e)
+  .maxstack  5
+  .locals init (int V_0, //i
+                StructLogger V_1,
+                DummyHandler V_2,
+                bool V_3)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""StructLogger..ctor(bool, int)""
+  IL_000b:  ldloc.1
+  IL_000c:  ldc.i4.4
+  IL_000d:  ldc.i4.1
+  IL_000e:  ldloc.1
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  newobj     ""DummyHandler..ctor(int, int, StructLogger, out bool)""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.3
+  IL_0018:  brfalse.s  IL_0032
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  ldstr      ""log:""
+  IL_0021:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0026:  ldloca.s   V_2
+  IL_0028:  ldloc.0
+  IL_0029:  dup
+  IL_002a:  ldc.i4.1
+  IL_002b:  add
+  IL_002c:  stloc.0
+  IL_002d:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""void Program.<<Main>$>g__Log|0_0(StructLogger, DummyHandler)""
+  IL_0038:  ldstr      ""(1) i={0}""
+  IL_003d:  ldloc.0
+  IL_003e:  box        ""int""
+  IL_0043:  call       ""string string.Format(string, object)""
+  IL_0048:  call       ""void System.Console.WriteLine(string)""
+  IL_004d:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        public void StructArgument_Rvalue_ObjectCreationArgument_02()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var i = 0;
+Log(new StructLogger(true, 1), $""log:{i++}"");
+Console.WriteLine($""(1) i={i}"");
+
+static void Log(in StructLogger logger, [InterpolatedStringHandlerArgument(""logger"")] DummyHandler handler) => Console.WriteLine($""StructLogger#{logger._id}: "" + handler.GetContent());
+
+internal readonly struct StructLogger
+{
+    private readonly bool _disabled;
+    public readonly int _id;
+
+    public bool Disabled => _disabled;
+    public int Id => _id;
+
+    public StructLogger(bool disabled, int id)
+    {
+        _disabled = disabled;
+        _id = id;
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, in StructLogger structLogger, out bool enabled)
+    {
+        Console.WriteLine($""Creating DummyHandler from StructLogger#{structLogger.Id}"");
+        enabled = !structLogger.Disabled;
+        _builder = structLogger.Disabled ? null : new StringBuilder();
+    }
+    public string GetContent() => _builder?.ToString();
+
+    public void AppendLiteral(string s) => _builder?.Append(s);
+    public void AppendFormatted<T>(T t) => _builder?.Append(t);
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+Creating DummyHandler from StructLogger#1
+StructLogger#1: 
+(1) i=0");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (int V_0, //i
+                StructLogger V_1,
+                DummyHandler V_2,
+                bool V_3)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""StructLogger..ctor(bool, int)""
+  IL_000b:  ldc.i4.4
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  newobj     ""DummyHandler..ctor(int, int, in StructLogger, out bool)""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.3
+  IL_0018:  brfalse.s  IL_0032
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  ldstr      ""log:""
+  IL_0021:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0026:  ldloca.s   V_2
+  IL_0028:  ldloc.0
+  IL_0029:  dup
+  IL_002a:  ldc.i4.1
+  IL_002b:  add
+  IL_002c:  stloc.0
+  IL_002d:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  ldloc.2
+  IL_0035:  call       ""void Program.<<Main>$>g__Log|0_0(in StructLogger, DummyHandler)""
+  IL_003a:  ldstr      ""(1) i={0}""
+  IL_003f:  ldloc.0
+  IL_0040:  box        ""int""
+  IL_0045:  call       ""string string.Format(string, object)""
+  IL_004a:  call       ""void System.Console.WriteLine(string)""
+  IL_004f:  ret
+}");
+        }
+
+        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        public void StructArgument_Rvalue_ObjectCreationArgument_03()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var i = 0;
+Log(ref new StructLogger(true, 1), $""log:{i++}"");
+Console.WriteLine($""(1) i={i}"");
+
+static void Log(ref StructLogger logger, [InterpolatedStringHandlerArgument(""logger"")] DummyHandler handler) => Console.WriteLine($""StructLogger#{logger._id}: "" + handler.GetContent());
+
+internal readonly struct StructLogger
+{
+    private readonly bool _disabled;
+    public readonly int _id;
+
+    public bool Disabled => _disabled;
+    public int Id => _id;
+
+    public StructLogger(bool disabled, int id)
+    {
+        _disabled = disabled;
+        _id = id;
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, ref StructLogger structLogger, out bool enabled)
+    {
+        Console.WriteLine($""Creating DummyHandler from StructLogger#{structLogger.Id}"");
+        enabled = !structLogger.Disabled;
+        _builder = structLogger.Disabled ? null : new StringBuilder();
+    }
+    public string GetContent() => _builder?.ToString();
+
+    public void AppendLiteral(string s) => _builder?.Append(s);
+    public void AppendFormatted<T>(T t) => _builder?.Append(t);
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1510: A ref or out value must be an assignable variable
+                // Log(ref new StructLogger(true, 1), $"log:{i++}");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new StructLogger(true, 1)").WithLocation(7, 9)
+            );
+        }
+
+        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        public void ReferenceReceiver_Rvalue_ObjectCreationReceiver_01()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var i = 0;
+new ClassLogger(true, 1).Log($""log:{i++}"");
+Console.WriteLine($""(1) i={i}"");
+
+internal readonly struct ClassLogger
+{
+    private readonly bool _disabled;
+    private readonly int _id;
+
+    public bool Disabled => _disabled;
+    public int Id => _id;
+
+    public ClassLogger(bool disabled, int id)
+    {
+        _disabled = disabled;
+        _id = id;
+    }
+
+    public void Log([InterpolatedStringHandlerArgument("""")] DummyHandler handler) => Console.WriteLine($""ClassLogger#{_id}: "" + handler.GetContent());
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, ClassLogger ClassLogger, out bool enabled)
+    {
+        Console.WriteLine($""Creating DummyHandler from ClassLogger#{ClassLogger.Id}"");
+        enabled = !ClassLogger.Disabled;
+        _builder = ClassLogger.Disabled ? null : new StringBuilder();
+    }
+    public string GetContent() => _builder?.ToString();
+
+    public void AppendLiteral(string s) => _builder?.Append(s);
+    public void AppendFormatted<T>(T t) => _builder?.Append(t);
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+Creating DummyHandler from ClassLogger#1
+ClassLogger#1: 
+(1) i=0");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (int V_0, //i
+                ClassLogger V_1,
+                DummyHandler V_2,
+                bool V_3)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""ClassLogger..ctor(bool, int)""
+  IL_000b:  ldc.i4.4
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldloc.1
+  IL_000e:  ldloca.s   V_3
+  IL_0010:  newobj     ""DummyHandler..ctor(int, int, ClassLogger, out bool)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.3
+  IL_0017:  brfalse.s  IL_0031
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  ldstr      ""log:""
+  IL_0020:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  ldloc.0
+  IL_0028:  dup
+  IL_0029:  ldc.i4.1
+  IL_002a:  add
+  IL_002b:  stloc.0
+  IL_002c:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  ldloc.2
+  IL_0034:  call       ""void ClassLogger.Log(DummyHandler)""
+  IL_0039:  ldstr      ""(1) i={0}""
+  IL_003e:  ldloc.0
+  IL_003f:  box        ""int""
+  IL_0044:  call       ""string string.Format(string, object)""
+  IL_0049:  call       ""void System.Console.WriteLine(string)""
+  IL_004e:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        public void ReferenceArgument_Rvalue_ObjectCreationArgument_01()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var i = 0;
+Log(new ClassLogger(true, 1), $""log:{i++}"");
+Console.WriteLine($""(1) i={i}"");
+
+static void Log(ClassLogger logger, [InterpolatedStringHandlerArgument(""logger"")] DummyHandler handler) => Console.WriteLine($""ClassLogger#{logger._id}: "" + handler.GetContent());
+
+internal readonly struct ClassLogger
+{
+    private readonly bool _disabled;
+    public readonly int _id;
+
+    public bool Disabled => _disabled;
+    public int Id => _id;
+
+    public ClassLogger(bool disabled, int id)
+    {
+        _disabled = disabled;
+        _id = id;
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, ClassLogger ClassLogger, out bool enabled)
+    {
+        Console.WriteLine($""Creating DummyHandler from ClassLogger#{ClassLogger.Id}"");
+        enabled = !ClassLogger.Disabled;
+        _builder = ClassLogger.Disabled ? null : new StringBuilder();
+    }
+    public string GetContent() => _builder?.ToString();
+
+    public void AppendLiteral(string s) => _builder?.Append(s);
+    public void AppendFormatted<T>(T t) => _builder?.Append(t);
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+Creating DummyHandler from ClassLogger#1
+ClassLogger#1: 
+(1) i=0");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       78 (0x4e)
+  .maxstack  5
+  .locals init (int V_0, //i
+                ClassLogger V_1,
+                DummyHandler V_2,
+                bool V_3)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""ClassLogger..ctor(bool, int)""
+  IL_000b:  ldloc.1
+  IL_000c:  ldc.i4.4
+  IL_000d:  ldc.i4.1
+  IL_000e:  ldloc.1
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  newobj     ""DummyHandler..ctor(int, int, ClassLogger, out bool)""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.3
+  IL_0018:  brfalse.s  IL_0032
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  ldstr      ""log:""
+  IL_0021:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0026:  ldloca.s   V_2
+  IL_0028:  ldloc.0
+  IL_0029:  dup
+  IL_002a:  ldc.i4.1
+  IL_002b:  add
+  IL_002c:  stloc.0
+  IL_002d:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""void Program.<<Main>$>g__Log|0_0(ClassLogger, DummyHandler)""
+  IL_0038:  ldstr      ""(1) i={0}""
+  IL_003d:  ldloc.0
+  IL_003e:  box        ""int""
+  IL_0043:  call       ""string string.Format(string, object)""
+  IL_0048:  call       ""void System.Console.WriteLine(string)""
+  IL_004d:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        public void ReferenceArgument_Rvalue_ObjectCreationArgument_02()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var i = 0;
+Log(new ClassLogger(true, 1), $""log:{i++}"");
+Console.WriteLine($""(1) i={i}"");
+
+static void Log(in ClassLogger logger, [InterpolatedStringHandlerArgument(""logger"")] DummyHandler handler) => Console.WriteLine($""ClassLogger#{logger._id}: "" + handler.GetContent());
+
+internal readonly struct ClassLogger
+{
+    private readonly bool _disabled;
+    public readonly int _id;
+
+    public bool Disabled => _disabled;
+    public int Id => _id;
+
+    public ClassLogger(bool disabled, int id)
+    {
+        _disabled = disabled;
+        _id = id;
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, in ClassLogger ClassLogger, out bool enabled)
+    {
+        Console.WriteLine($""Creating DummyHandler from ClassLogger#{ClassLogger.Id}"");
+        enabled = !ClassLogger.Disabled;
+        _builder = ClassLogger.Disabled ? null : new StringBuilder();
+    }
+    public string GetContent() => _builder?.ToString();
+
+    public void AppendLiteral(string s) => _builder?.Append(s);
+    public void AppendFormatted<T>(T t) => _builder?.Append(t);
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+Creating DummyHandler from ClassLogger#1
+ClassLogger#1: 
+(1) i=0");
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (int V_0, //i
+                ClassLogger V_1,
+                DummyHandler V_2,
+                bool V_3)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""ClassLogger..ctor(bool, int)""
+  IL_000b:  ldc.i4.4
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  newobj     ""DummyHandler..ctor(int, int, in ClassLogger, out bool)""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.3
+  IL_0018:  brfalse.s  IL_0032
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  ldstr      ""log:""
+  IL_0021:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_0026:  ldloca.s   V_2
+  IL_0028:  ldloc.0
+  IL_0029:  dup
+  IL_002a:  ldc.i4.1
+  IL_002b:  add
+  IL_002c:  stloc.0
+  IL_002d:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  ldloc.2
+  IL_0035:  call       ""void Program.<<Main>$>g__Log|0_0(in ClassLogger, DummyHandler)""
+  IL_003a:  ldstr      ""(1) i={0}""
+  IL_003f:  ldloc.0
+  IL_0040:  box        ""int""
+  IL_0045:  call       ""string string.Format(string, object)""
+  IL_004a:  call       ""void System.Console.WriteLine(string)""
+  IL_004f:  ret
+}");
+        }
+
+        [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
+        public void ReferenceArgument_Rvalue_ObjectCreationArgument_03()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var i = 0;
+Log(ref new ClassLogger(true, 1), $""log:{i++}"");
+Console.WriteLine($""(1) i={i}"");
+
+static void Log(ref ClassLogger logger, [InterpolatedStringHandlerArgument(""logger"")] DummyHandler handler) => Console.WriteLine($""ClassLogger#{logger._id}: "" + handler.GetContent());
+
+internal readonly struct ClassLogger
+{
+    private readonly bool _disabled;
+    public readonly int _id;
+
+    public bool Disabled => _disabled;
+    public int Id => _id;
+
+    public ClassLogger(bool disabled, int id)
+    {
+        _disabled = disabled;
+        _id = id;
+    }
+}
+
+[InterpolatedStringHandler]
+internal ref struct DummyHandler
+{
+    private readonly StringBuilder _builder;
+    public DummyHandler(int literalLength, int formattedCount, ref ClassLogger ClassLogger, out bool enabled)
+    {
+        Console.WriteLine($""Creating DummyHandler from ClassLogger#{ClassLogger.Id}"");
+        enabled = !ClassLogger.Disabled;
+        _builder = ClassLogger.Disabled ? null : new StringBuilder();
+    }
+    public string GetContent() => _builder?.ToString();
+
+    public void AppendLiteral(string s) => _builder?.Append(s);
+    public void AppendFormatted<T>(T t) => _builder?.Append(t);
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1510: A ref or out value must be an assignable variable
+                // Log(ref new ClassLogger(true, 1), $"log:{i++}");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new ClassLogger(true, 1)").WithLocation(7, 9)
+            );
         }
 
         [Theory]
@@ -14190,6 +15125,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14209,9 +15145,9 @@ partial struct CustomHandler
                 // (5,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // s.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(5, 5),
-                // (14,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // (15,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
                 //     public static void M(this S1 s, [InterpolatedStringHandlerArgument("")] CustomHandler c) => throw null;
-                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(14, 38)
+                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(15, 38)
             );
         }
 
@@ -14227,6 +15163,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14257,6 +15194,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14307,6 +15245,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14355,6 +15294,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14388,6 +15328,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 

@@ -157,16 +157,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             _workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
 
-            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
-            // the background thread then we will experience hangs like we see in this bug:
-            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
-            // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
-            var telemetryService = (VisualStudioWorkspaceTelemetryService)_workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
-            telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession);
-
-            Logger.Log(FunctionId.Run_Environment,
-                KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
-
             InitializeColors();
 
             // load some services that have to be loaded in UI thread
@@ -319,7 +309,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             base.Dispose(disposing);
         }
 
-        private void ReportSessionWideTelemetry()
+        private static void ReportSessionWideTelemetry()
         {
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
@@ -396,7 +386,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                     // so guarding us from them
                     if (localRegistration != null)
                     {
-                        FatalError.ReportAndCatch(new InvalidOperationException("BulkFileOperation already exist"));
+                        FatalError.ReportAndCatch(new InvalidOperationException("BulkFileOperation already exist"), ErrorSeverity.General);
                         return;
                     }
 

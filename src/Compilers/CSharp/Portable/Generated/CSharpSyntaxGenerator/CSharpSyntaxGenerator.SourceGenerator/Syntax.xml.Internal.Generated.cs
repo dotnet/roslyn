@@ -12225,10 +12225,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.closeBraceToken = closeBraceToken;
         }
 
+        /// <summary>This could be a single <c>{</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).</summary>
         public SyntaxToken OpenBraceToken => this.openBraceToken;
         public ExpressionSyntax Expression => this.expression;
         public InterpolationAlignmentClauseSyntax? AlignmentClause => this.alignmentClause;
         public InterpolationFormatClauseSyntax? FormatClause => this.formatClause;
+        /// <summary>
+        /// This could be a single <c>}</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).
+        /// </summary>
         public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
         internal override GreenNode? GetSlot(int index)
@@ -36270,8 +36274,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
-                case SyntaxKind.MultiLineRawStringLiteralExpression:
-                case SyntaxKind.SingleLineRawStringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -37559,20 +37561,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
 #if DEBUG
             if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            switch (openBraceToken.Kind)
-            {
-                case SyntaxKind.OpenBraceToken:
-                case SyntaxKind.RawInterpolationOpenToken: break;
-                default: throw new ArgumentException(nameof(openBraceToken));
-            }
+            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            switch (closeBraceToken.Kind)
-            {
-                case SyntaxKind.CloseBraceToken:
-                case SyntaxKind.RawInterpolationCloseToken: break;
-                default: throw new ArgumentException(nameof(closeBraceToken));
-            }
+            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
 #endif
 
             return new InterpolationSyntax(SyntaxKind.Interpolation, openBraceToken, expression, alignmentClause, formatClause, closeBraceToken, this.context);
@@ -41306,8 +41298,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
-                case SyntaxKind.MultiLineRawStringLiteralExpression:
-                case SyntaxKind.SingleLineRawStringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -42595,20 +42585,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
 #if DEBUG
             if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            switch (openBraceToken.Kind)
-            {
-                case SyntaxKind.OpenBraceToken:
-                case SyntaxKind.RawInterpolationOpenToken: break;
-                default: throw new ArgumentException(nameof(openBraceToken));
-            }
+            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            switch (closeBraceToken.Kind)
-            {
-                case SyntaxKind.CloseBraceToken:
-                case SyntaxKind.RawInterpolationCloseToken: break;
-                default: throw new ArgumentException(nameof(closeBraceToken));
-            }
+            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
 #endif
 
             return new InterpolationSyntax(SyntaxKind.Interpolation, openBraceToken, expression, alignmentClause, formatClause, closeBraceToken);

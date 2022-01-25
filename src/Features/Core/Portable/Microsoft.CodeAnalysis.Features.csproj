@@ -29,6 +29,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.UnitTesting" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />

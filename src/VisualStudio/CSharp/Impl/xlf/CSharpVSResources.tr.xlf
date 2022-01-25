@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">İlişkisel işleçleri içinde: &lt;&gt; = &lt; &gt; = == gibi! =</target>
+        <target state="translated">İlişkisel işleçleri içinde: &lt;&gt; = &lt;&gt; = == gibi! =</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Prefer_extended_property_pattern">
         <source>Prefer extended property pattern</source>
-        <target state="new">Prefer extended property pattern</target>
+        <target state="translated">Genişletilmiş özellik desenini tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
@@ -140,6 +140,11 @@
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Tür denetimi yerine 'null' denetimini tercih edin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

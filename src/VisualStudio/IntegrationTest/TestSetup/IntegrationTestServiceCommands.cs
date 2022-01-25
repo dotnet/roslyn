@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             {
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainAssemblyResolve;
 
-                WatsonTraceListener.Install();
+                TestTraceListener.Install();
 
                 _service = new IntegrationService();
 
@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             }
         }
 
-        private void SwapAvailableCommands(MenuCommand commandToDisable, MenuCommand commandToEnable)
+        private static void SwapAvailableCommands(MenuCommand commandToDisable, MenuCommand commandToEnable)
         {
             commandToDisable.Enabled = false;
             commandToDisable.Visible = false;
