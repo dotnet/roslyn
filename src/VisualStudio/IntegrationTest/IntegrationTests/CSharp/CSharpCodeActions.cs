@@ -783,5 +783,69 @@ class C
                 Assert.Equal(expectedContents, actualContents);
             }
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [WorkItem(46784, "https://github.com/dotnet/roslyn/issues/46784")]
+        public void ConfigureSeverityWithManualEditsToEditorconfig()
+        {
+            var markup = @"
+class C
+{
+    public static void Main()
+    {
+        // CS0168: The variable 'x' is declared but never used
+        int $$x;
+    }
+}";
+            SetUpEditor(markup);
+
+            // Verify CS0168 warning in original code.
+            VerifyDiagnosticInErrorList("Warning", VisualStudio);
+
+            // Add an .editorconfig file to the project to change severity to error.
+            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", open: true);
+            VisualStudio.Editor.SendKeys(@"
+[*.cs]
+dotnet_diagnostic.CS0168.severity = ");
+
+            // NOTE: Below wait is a critical step in repro-ing the original regression.
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
+
+            VisualStudio.Editor.SendKeys("error");
+
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
+
+            // Verify CS0168 is now reported as an error.
+            VerifyDiagnosticInErrorList("Error", VisualStudio);
+
+            return;
+
+            static void VerifyDiagnosticInErrorList(string expectedSeverity, VisualStudioInstance visualStudio)
+            {
+                visualStudio.ErrorList.ShowErrorList();
+                var expectedContents = new[] {
+                    new ErrorListItem(
+                        severity: expectedSeverity,
+                        description: "The variable 'x' is declared but never used",
+                        project: "TestProj",
+                        fileName: "Class1.cs",
+                        line: 7,
+                        column: 13)
+                };
+
+                var actualContents = visualStudio.ErrorList.GetErrorListContents();
+                Assert.Equal(expectedContents, actualContents);
+            }
+        }
     }
 }
