@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            info.Text = TextWindow.GetText(intern: true);
             if (quoteCharacter == '\'')
             {
+                info.Text = TextWindow.GetText(intern: true);
                 info.Kind = SyntaxKind.CharacterLiteralToken;
                 if (_builder.Length != 1)
                 {
@@ -77,7 +77,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                info.Kind = SyntaxKind.StringLiteralToken;
+                // PROTOTYPE(UTF8StringLiterals) : Should the suffix be case-insensitive?
+                if (!inDirective && TextWindow.PeekChar() == 'u' && TextWindow.PeekChar(1) == '8')
+                {
+                    info.Kind = SyntaxKind.UTF8StringLiteralToken;
+                    TextWindow.AdvanceChar(2);
+                }
+                else
+                {
+                    info.Kind = SyntaxKind.StringLiteralToken;
+                }
+
+                info.Text = TextWindow.GetText(intern: true);
+
                 if (_builder.Length > 0)
                 {
                     info.StringValue = TextWindow.Intern(_builder);
@@ -182,7 +194,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _builder.Append(ch);
             }
 
-            info.Kind = SyntaxKind.StringLiteralToken;
+            // PROTOTYPE(UTF8StringLiterals) : Should the suffix be case-insensitive?
+            if (TextWindow.PeekChar() == 'u' && TextWindow.PeekChar(1) == '8')
+            {
+                info.Kind = SyntaxKind.UTF8StringLiteralToken;
+                TextWindow.AdvanceChar(2);
+            }
+            else
+            {
+                info.Kind = SyntaxKind.StringLiteralToken;
+            }
+
             info.Text = TextWindow.GetText(intern: false);
             info.StringValue = _builder.ToString();
         }

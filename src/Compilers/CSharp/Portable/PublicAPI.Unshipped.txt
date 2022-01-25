@@ -49,6 +49,8 @@ Microsoft.CodeAnalysis.CSharp.Syntax.SlicePatternSyntax.WithDotDotToken(Microsof
 Microsoft.CodeAnalysis.CSharp.Syntax.SlicePatternSyntax.WithPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax? pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SlicePatternSyntax!
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ListPattern = 9035 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SlicePattern = 9034 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralExpression = 8756 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralToken = 8518 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitListPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSlicePattern(Microsoft.CodeAnalysis.CSharp.Syntax.SlicePatternSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectiveTriviaSyntax.File.get -> Microsoft.CodeAnalysis.SyntaxToken

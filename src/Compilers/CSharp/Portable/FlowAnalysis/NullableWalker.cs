@@ -10357,6 +10357,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode? VisitUTF8String(BoundUTF8String node)
+        {
+            Debug.Assert(!IsConditionalState);
+            var result = base.VisitUTF8String(node);
+            SetNotNullResult(node);
+            return result;
+        }
+
         public override BoundNode? VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node)
         {
             var result = base.VisitPreviousSubmissionReference(node);

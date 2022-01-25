@@ -291,6 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     case SyntaxKind.IdentifierToken:
                     case SyntaxKind.NumericLiteralToken:
                     case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.UTF8StringLiteralToken:
                         if (node.IsMissing)
                         {
                             goto default;

@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the conversion is an implicit Utf8 strings literal conversion.
+        /// Returns true if the conversion is an implicit Utf8 string literal conversion.
         /// </summary>
         public bool IsUtf8StringLiteral
         {
