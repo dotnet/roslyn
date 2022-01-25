@@ -77,6 +77,10 @@ internal partial class InlineCompletionsHandler
         }
     }
 
+    /// <summary>
+    /// To indicate cursor location we put in a multi-line comment so that we can
+    /// find it after formatting.
+    /// </summary>
     private record SnippetCursorPart() : SnippetPart("/*$0*/");
 
     private record SnippetStringPart(string Text) : SnippetPart(Text);

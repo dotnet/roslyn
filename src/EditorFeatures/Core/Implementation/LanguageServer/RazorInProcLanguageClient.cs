@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -74,6 +76,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
                 vsServerCapabilities.SupportsDiagnosticRequests = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
+
+                var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);
+                var regex = new Regex(regexExpression);
+                vsServerCapabilities.InlineCompletionOptions = new VSInternalInlineCompletionOptions
+                {
+                    Pattern = regex
+                };
+
                 return vsServerCapabilities;
             }
 

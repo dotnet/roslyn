@@ -109,13 +109,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
             }
 
-            var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);
-            var regex = new System.Text.RegularExpressions.Regex(regexExpression);
-            serverCapabilities.InlineCompletionOptions = new VSInternalInlineCompletionOptions
-            {
-                Pattern = regex
-            };
-
             return serverCapabilities;
         }
 

@@ -75,7 +75,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         var syntaxFactsService = context.Document.Project.GetRequiredLanguageService<ISyntaxFactsService>();
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var position = sourceText.Lines.GetPosition(linePosition);
-        if (!TryGetWordOnLeft(position, sourceText, syntaxFactsService, out var wordOnLeft))
+        if (!SnippetUtilities.TryGetWordOnLeft(position, sourceText, syntaxFactsService, out var wordOnLeft))
         {
             return new VSInternalInlineCompletionList();
         }
@@ -259,35 +259,6 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         }
 
         return (functionSnippetBuilder.ToString(), fieldOffsets.ToImmutableDictionary(), caretSpan);
-    }
-
-    private static bool TryGetWordOnLeft(int position, SourceText currentText, ISyntaxFactsService syntaxFactsService, [NotNullWhen(true)] out TextSpan? wordSpan)
-    {
-        // TODO unify with AbstractSnippetCommandHandler
-
-        var endPosition = position;
-        var startPosition = endPosition;
-
-        // Find the snippet shortcut
-        while (startPosition > 0)
-        {
-            var c = currentText[startPosition - 1];
-            if (!syntaxFactsService.IsIdentifierPartCharacter(c) && c != '#' && c != '~')
-            {
-                break;
-            }
-
-            startPosition--;
-        }
-
-        if (startPosition == endPosition)
-        {
-            wordSpan = null;
-            return false;
-        }
-
-        wordSpan = TextSpan.FromBounds(startPosition, endPosition);
-        return true;
     }
 
     private static CodeSnippet? RetrieveSnippetFromXml(SnippetInfo snippetInfo, RequestContext context)
