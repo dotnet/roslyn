@@ -256,17 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
         }
 
-        private static int GetLastNewLine(string text)
-        {
-            for (var n = text.Length - 1; n >= 0; n--)
-            {
-                if (SyntaxFacts.IsNewLine(text[n]))
-                    return n;
-            }
-
-            return -1;
-        }
-
         private static IndentationResult GetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
             => token.Parent switch
             {

@@ -97,6 +97,11 @@
         <target state="translated">Rientro automatico</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="new">Split raw string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_string">
         <source>Split string</source>
         <target state="translated">Dividi stringa</target>
