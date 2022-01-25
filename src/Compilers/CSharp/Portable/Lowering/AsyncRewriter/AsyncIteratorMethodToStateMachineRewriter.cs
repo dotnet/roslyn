@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ... this.state = FinishedState; ...
 
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
-            // this.builder.Complete();
             // _current = default;
+            // this.builder.Complete();
             // this.promiseOfValueOrEnd.SetResult(false);
             // return;
             // _exprReturnLabelTrue:
