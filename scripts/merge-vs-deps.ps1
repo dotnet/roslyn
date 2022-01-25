@@ -16,4 +16,5 @@ else {
 if (-not $?)
 {
     Write-Host "##vso[task.logissue type=warning]Unable to merge main-vs-deps into the source branch. This could mean that main-vs-deps doesn't exist or could indicate a network issue."
+    exit 0
 }
