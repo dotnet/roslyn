@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         private static bool IsMethodArgument(SyntaxToken token, ISyntaxFacts syntaxFacts)
             => syntaxFacts.IsLiteralExpression(token.Parent) &&
                syntaxFacts.IsArgument(token.Parent.Parent) &&
-               syntaxFacts.IsInvocationExpression(token.Parent.Parent.Parent.Parent);
+               syntaxFacts.IsInvocationExpression(token.Parent.Parent.Parent?.Parent);
 
         public bool IsDefinitelyJson(SyntaxToken token, CancellationToken cancellationToken)
         {
@@ -156,11 +156,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             }
 
             var stringLiteral = token;
-            var literalNode = stringLiteral.Parent;
-            var argumentNode = literalNode.Parent;
+            var literalNode = stringLiteral.GetRequiredParent();
+            var argumentNode = literalNode.GetRequiredParent();
             Debug.Assert(syntaxFacts.IsArgument(argumentNode));
 
-            var argumentList = argumentNode.Parent;
+            var argumentList = argumentNode.GetRequiredParent();
             var invocationOrCreation = argumentList.Parent;
             if (syntaxFacts.IsInvocationExpression(invocationOrCreation))
             {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             return false;
         }
 
-        public JsonTree TryParseJson(SyntaxToken token)
+        public JsonTree? TryParseJson(SyntaxToken token)
         {
             var syntaxFacts = _info.SyntaxFacts;
             if (IsDefinitelyNotJson(token, syntaxFacts))
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             return parameter?.Name == name;
         }
 
-        private string GetNameOfInvokedExpression(SyntaxNode invokedExpression)
+        private string? GetNameOfInvokedExpression(SyntaxNode invokedExpression)
         {
             var syntaxFacts = _info.SyntaxFacts;
             if (syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))

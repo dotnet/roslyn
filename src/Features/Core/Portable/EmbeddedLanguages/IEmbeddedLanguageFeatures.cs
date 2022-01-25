@@ -26,6 +26,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         /// individual providers and expose them as one single completion provider to
         /// the rest of Roslyn.
         /// </summary>
-        EmbeddedLanguageCompletionProvider CompletionProvider { get; }
+        EmbeddedLanguageCompletionProvider? CompletionProvider { get; }
     }
 }

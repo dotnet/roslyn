@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
 
         public JsonDetectionAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
-                   new LocalizableResourceString(nameof(WorkspacesResources.Probable_JSON_string_detected), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                   new LocalizableResourceString(nameof(WorkspacesResources.Probable_JSON_string_detected), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _info = info;
         }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                         detector.IsProbablyJson(token))
                     {
                         var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-                        var strictTree = JsonParser.TryParse(chars, JsonFeatureOptions.Strict);
+                        var strictTree = JsonParser.TryParse(chars, JsonOptions.Strict);
                         var properties = strictTree != null && strictTree.Diagnostics.Length == 0
                             ? s_strictProperties
                             : ImmutableDictionary<string, string>.Empty;
