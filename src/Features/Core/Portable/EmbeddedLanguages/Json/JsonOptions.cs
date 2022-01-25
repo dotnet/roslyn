@@ -34,28 +34,28 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 HighlightRelatedJsonComponentsUnderCursor,
                 DetectAndOfferEditorFeaturesForProbableJsonStrings);
 
-            public static PerLanguageOption<bool> ColorizeJsonPatterns =
+            public static PerLanguageOption2<bool> ColorizeJsonPatterns =
                 new PerLanguageOption<bool>(
                     nameof(JsonOptions),
                     nameof(ColorizeJsonPatterns),
                     defaultValue: true,
                     storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeJsonPatterns"));
 
-            public static PerLanguageOption<bool> ReportInvalidJsonPatterns =
+            public static PerLanguageOption2<bool> ReportInvalidJsonPatterns =
                 new PerLanguageOption<bool>(
                     nameof(JsonOptions),
                     nameof(ReportInvalidJsonPatterns),
                     defaultValue: true,
                     storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidJsonPatterns"));
 
-            public static PerLanguageOption<bool> HighlightRelatedJsonComponentsUnderCursor =
+            public static PerLanguageOption2<bool> HighlightRelatedJsonComponentsUnderCursor =
                 new PerLanguageOption<bool>(
                     nameof(JsonOptions),
                     nameof(HighlightRelatedJsonComponentsUnderCursor),
                     defaultValue: true,
                     storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedJsonComponentsUnderCursor"));
 
-            public static PerLanguageOption<bool> DetectAndOfferEditorFeaturesForProbableJsonStrings =
+            public static PerLanguageOption2<bool> DetectAndOfferEditorFeaturesForProbableJsonStrings =
                 new PerLanguageOption<bool>(
                     nameof(JsonOptions),
                     nameof(DetectAndOfferEditorFeaturesForProbableJsonStrings),
