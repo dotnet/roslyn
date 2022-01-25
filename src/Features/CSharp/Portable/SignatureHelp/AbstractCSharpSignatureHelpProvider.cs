@@ -254,13 +254,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                         return true;
                     }
 
-                    return true;
+                    return false;
                 }
 
                 bool HasImplicitConversion(SyntaxNode expression, ITypeSymbol destination)
                 {
                     var conversion = semanticFactsService.ClassifyConversion(semanticModel, expression, destination);
-                    return conversion.Exists && conversion.IsImplicit;
+                    return conversion.IsImplicit;
                 }
             }
 

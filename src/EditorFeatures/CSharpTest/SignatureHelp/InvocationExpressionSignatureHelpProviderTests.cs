@@ -1967,6 +1967,31 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_RefKind()
+        {
+            var markup = @"
+class D
+{
+    static void Main()
+    {
+        int i = 0;
+        [|M(out i$$|]);
+    }
+    static void M(ref int a, int i) { }
+    static void M(out int b, int i) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void D.M(ref int a, int i)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("void D.M(out int b, int i)", currentParameterIndex: 0, isSelected: true),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
         [Theory]
         [InlineData("1$$", 0)]
         [InlineData(",$$", 1)]

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
@@ -74,30 +75,21 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            // get the candidate methods
-            ImmutableArray<IMethodSymbol> methods;
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             if (type.TypeKind == TypeKind.Delegate)
             {
-                var invokeMethod = type.DelegateInvokeMethod;
-                if (invokeMethod is null)
-                {
-                    return null;
-                }
-
-                methods = ImmutableArray.Create(invokeMethod);
+                return await GetItemsWorkerForDelegateAsync(document, position, objectCreationExpression, type, cancellationToken).ConfigureAwait(false);
             }
-            else
-            {
-                methods = type.InstanceConstructors
-                    .WhereAsArray(c => c.IsAccessibleWithin(within))
-                    .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
-                    .Sort(semanticModel, objectCreationExpression.SpanStart);
 
-                if (!methods.Any())
-                {
-                    return null;
-                }
+            // get the candidate methods
+            var methods = type.InstanceConstructors
+                             .WhereAsArray(c => c.IsAccessibleWithin(within))
+                             .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
+                             .Sort(semanticModel, objectCreationExpression.SpanStart);
+
+            if (!methods.Any())
+            {
+                return null;
             }
 
             // guess the best candidate if needed and determine parameter index
@@ -108,28 +100,41 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, out var currentSymbol, out var parameterIndex);
 
             // present items and select
-            ImmutableArray<SignatureHelpItem> items;
-            int? selectedItem;
             var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
-            if (type.TypeKind == TypeKind.Delegate)
-            {
-                var invokeMethod = type.DelegateInvokeMethod;
-                Debug.Assert(invokeMethod is not null);
-                items = ConvertDelegateTypeConstructor(objectCreationExpression, invokeMethod, semanticModel, structuralTypeDisplayService, position);
-                selectedItem = 0;
-            }
-            else
-            {
-                var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
+            var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
-                items = methods.SelectAsArray(c =>
-                    ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
+            var items = methods.SelectAsArray(c =>
+                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
 
-                selectedItem = TryGetSelectedIndex(methods, currentSymbol);
-            }
+            var selectedItem = TryGetSelectedIndex(methods, currentSymbol);
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
             return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
+        }
+
+        private static async Task<SignatureHelpItems?> GetItemsWorkerForDelegateAsync(Document document, int position, BaseObjectCreationExpressionSyntax objectCreationExpression,
+            INamedTypeSymbol type, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(objectCreationExpression, cancellationToken).ConfigureAwait(false);
+            Debug.Assert(type.TypeKind == TypeKind.Delegate);
+            Debug.Assert(objectCreationExpression.ArgumentList is not null);
+
+            var invokeMethod = type.DelegateInvokeMethod;
+            if (invokeMethod is null)
+            {
+                return null;
+            }
+
+            // determine parameter index
+            var arguments = objectCreationExpression.ArgumentList.Arguments;
+            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
+            LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(arguments, invokeMethod, position, semanticModel, semanticFactsService, out var parameterIndex);
+
+            // present item and select
+            var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
+            var items = ConvertDelegateTypeConstructor(objectCreationExpression, invokeMethod, semanticModel, structuralTypeDisplayService, position);
+            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
+            return MakeSignatureHelpItems(items, textSpan, invokeMethod, parameterIndex, selectedItem: 0, arguments, position);
         }
     }
 }
