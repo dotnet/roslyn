@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
@@ -19,8 +22,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
 
         public JsonDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
-                   new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                   new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+                   EnforceOnBuildValues.Json,
+                   JsonFeatureOptions.ReportInvalidJsonPatterns,
+                   new LocalizableResourceString(nameof(FeaturesResources.JSON_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.JSON_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _info = info;
         }
@@ -39,20 +44,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var options = context.Options;
 
-            var optionSet = options.GetDocumentOptionSetAsync(
-                semanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(JsonFeatureOptions.ReportInvalidJsonPatterns, syntaxTree.Options.Language);
+            var option = context.GetOption(JsonFeatureOptions.ReportInvalidJsonPatterns, syntaxTree.Options.Language);
             if (!option)
-            {
                 return;
-            }
 
             var detector = JsonPatternDetector.GetOrCreate(semanticModel, _info);
 
@@ -70,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             {
                 if (child.IsNode)
                 {
-                    Analyze(context, detector, child.AsNode(), cancellationToken);
+                    Analyze(context, detector, child.AsNode()!, cancellationToken);
                 }
                 else
                 {
