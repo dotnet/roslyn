@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
 
             return list.CallingConventions.Count == 1 &&
-                syntax.Name.ValueText is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall");
+                syntax.Name.ValueText is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall";
         }
 
         #region IsXXX members
