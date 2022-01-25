@@ -62,7 +62,7 @@
          the generators we build would load on the command line but not load in IDEs. -->
     <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <!-- <Metalama> -->
-    <PostSharpBackstageSettingsVersion Condition="'$(PostSharpBackstageSettingsVersion)'==''">branch:master</PostSharpBackstageSettingsVersion>
+    <MetalamaBackstageVersion Condition="'$(MetalamaBackstageVersion)'==''">branch:master</MetalamaBackstageVersion>
     <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.31-preview</PostSharpEngineeringVersion>
     <!-- </Metalama> -->
   </PropertyGroup>

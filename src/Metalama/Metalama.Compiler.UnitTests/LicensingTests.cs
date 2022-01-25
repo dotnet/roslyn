@@ -10,9 +10,8 @@ using System.IO;
 using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.Mocks;
-using PostSharp.Backstage.Licensing.Consumption.Sources;
-using PostSharp.Backstage.Licensing.Licenses;
+using Metalama.Backstage.Licensing.Consumption.Sources;
+using Metalama.Backstage.Licensing.Licenses;
 using Xunit;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 

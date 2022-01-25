@@ -6,8 +6,8 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using PostSharp.Backstage.Diagnostics;
-using PostSharp.Backstage.Extensibility;
+using Metalama.Backstage.Diagnostics;
+using Metalama.Backstage.Extensibility;
 
 namespace Metalama.Compiler.Licensing
 {

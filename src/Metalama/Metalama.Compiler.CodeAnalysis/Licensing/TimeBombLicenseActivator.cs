@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using PostSharp.Backstage.Diagnostics;
-using PostSharp.Backstage.Extensibility;
-using PostSharp.Backstage.Licensing.Consumption;
-using PostSharp.Backstage.Licensing.Registration;
+using Metalama.Backstage.Diagnostics;
+using Metalama.Backstage.Extensibility;
+using Metalama.Backstage.Licensing.Consumption;
+using Metalama.Backstage.Licensing.Registration;
 
 namespace Metalama.Compiler.Licensing
 {

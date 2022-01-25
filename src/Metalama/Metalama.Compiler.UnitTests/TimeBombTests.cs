@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Generic;
 using Metalama.Compiler.Licensing;
-using PostSharp.Backstage.Diagnostics;
-using PostSharp.Backstage.Extensibility;
-using PostSharp.Backstage.Licensing.Consumption;
+using Metalama.Backstage.Diagnostics;
+using Metalama.Backstage.Extensibility;
+using Metalama.Backstage.Licensing.Consumption;
 using Xunit;
 
 namespace Metalama.Compiler.UnitTests
@@ -24,7 +24,7 @@ namespace Metalama.Compiler.UnitTests
 
             var serviceProviderBuilder = new ServiceProviderBuilder(
                 (type, instance) => services.AddService(type, instance),
-                () => services.GetServiceProvider());
+                () => services);
 
             serviceProviderBuilder
                 .AddSingleton<IDateTimeProvider>(_time)

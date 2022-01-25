@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Metalama.Compiler.Licensing;
 using Microsoft.CodeAnalysis.Diagnostics;
-using PostSharp.Backstage.Extensibility;
-using PostSharp.Backstage.Licensing.Consumption;
+using Metalama.Backstage.Extensibility;
+using Metalama.Backstage.Licensing.Consumption;
 using Xunit;
 
 namespace Metalama.Compiler.UnitTests
@@ -22,7 +22,7 @@ namespace Metalama.Compiler.UnitTests
 
             var serviceProviderBuilder = new ServiceProviderBuilder(
                 (type, instance) => services.AddService(type, instance),
-                () => services.GetServiceProvider());
+                () => services);
             
             serviceProviderBuilder
                 .AddMinimalBackstageServices();

@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
-using PostSharp.Backstage.Licensing.Consumption.Sources;
+using Metalama.Backstage.Licensing.Consumption.Sources;
 
 namespace Metalama.Compiler.Licensing
 {
@@ -18,7 +18,7 @@ namespace Metalama.Compiler.Licensing
             // The MetalamaIgnoreUserLicenses property is used in tests only. It is not imported from MSBuild.
             if (!(configuration.GlobalOptions.TryGetValue("build_property.MetalamaIgnoreUserLicenses", out var value) && bool.TryParse(value, out var parsedValue) && parsedValue))
             {
-                yield return new FileLicenseSource(services);
+                yield return new UserProfileLicenseSource(services);
             }
             
             yield return new BuildOptionsLicenseSource(configuration, services);

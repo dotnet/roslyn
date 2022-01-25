@@ -5,14 +5,15 @@
 // <Metalama /> This code is used by Try.Metalama.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using PostSharp.Backstage.Extensibility;
-using PostSharp.Backstage.Licensing;
-using PostSharp.Backstage.Licensing.Consumption;
+using Metalama.Backstage.Extensibility;
+using Metalama.Backstage.Licensing;
+using Metalama.Backstage.Licensing.Consumption;
 
 namespace Metalama.Compiler
 {
@@ -22,23 +23,9 @@ namespace Metalama.Compiler
             Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
             ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
-            var services = new ServiceCollection();
-
-            var serviceProviderBuilder = new ServiceProviderBuilder(
-                (type, instance) => services.AddService(type, instance),
-                () => services.GetServiceProvider());
-
-            serviceProviderBuilder.AddSingleton<ILicenseConsumptionManager>(new MetalamaTryLicenseConsumptionManager());
-
             var diagnostics = DiagnosticBag.GetInstance();
-            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
+            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, new ServiceCollection(), CancellationToken.None);
             return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
-        }
-
-        private class MetalamaTryLicenseConsumptionManager : ILicenseConsumptionManager
-        {
-            public bool CanConsumeFeatures(LicensedFeatures requiredFeatures, string? consumingNamespace, Action<LicensingMessage>? reportMessage) => true;
-            
         }
 
  

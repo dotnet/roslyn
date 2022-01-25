@@ -51,7 +51,7 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
     <!-- <Metalama> -->
-    <PackageReference Include="PostSharp.Backstage.Settings" Version="$(PostSharpBackstageSettingsVersion)" />
+    <PackageReference Include="Metalama.Backstage" Version="$(MetalamaBackstageVersion)" />
     <!-- </Metalama> -->
   </ItemGroup>
   <ItemGroup>
