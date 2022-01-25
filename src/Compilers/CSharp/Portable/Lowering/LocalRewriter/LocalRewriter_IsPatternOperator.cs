@@ -14,17 +14,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
+            BoundDecisionDag decisionDag = node.DecisionDag;
+            if (decisionDag.ContainsAnySynthesizedNodes())
+            {
+                decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(_factory.Compilation, node);
+                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
+            }
+
             bool negated = node.IsNegated;
             BoundExpression result;
-
-            if (canProduceLinearSequence(node.DecisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
+            if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
             {
                 // If we can build a linear test sequence `(e1 && e2 && e3)` for the dag, do so.
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
                 result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
                 isPatternRewriter.Free();
             }
-            else if (canProduceLinearSequence(node.DecisionDag.RootNode, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel))
+            else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel))
             {
                 // If we can build a linear test sequence with the whenTrue and whenFalse labels swapped, then negate the
                 // result.  This would typically arise when the source contains `e is not pattern`.
@@ -37,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We need to lower a generalized dag, so we produce a label for the true and false branches and assign to a temporary containing the result.
                 var isPatternRewriter = new IsPatternExpressionGeneralLocalRewriter(node.Syntax, this);
-                result = isPatternRewriter.LowerGeneralIsPattern(node);
+                result = isPatternRewriter.LowerGeneralIsPattern(node, decisionDag);
                 isPatternRewriter.Free();
             }
 
@@ -104,19 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _statements.Free();
             }
 
-            internal BoundExpression LowerGeneralIsPattern(BoundIsPatternExpression node)
+            internal BoundExpression LowerGeneralIsPattern(BoundIsPatternExpression node, BoundDecisionDag decisionDag)
             {
                 _factory.Syntax = node.Syntax;
                 var resultBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 var inputExpression = _localRewriter.VisitExpression(node.Expression);
-
-                BoundDecisionDag decisionDag = node.DecisionDag;
-                if (decisionDag.ContainsAnySynthesizedNodes())
-                {
-                    decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(_factory.Compilation, node);
-                    Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
-                }
-
                 decisionDag = ShareTempsIfPossibleAndEvaluateInput(decisionDag, inputExpression, resultBuilder, out _);
 
                 // lower the decision dag.
@@ -225,7 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundIsPatternExpression isPatternExpression, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel)
             {
                 BoundDecisionDag decisionDag = isPatternExpression.DecisionDag;
-                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
                 BoundExpression loweredInput = _localRewriter.VisitExpression(isPatternExpression.Expression);
 
                 // The optimization of sharing pattern-matching temps with user variables can always apply to

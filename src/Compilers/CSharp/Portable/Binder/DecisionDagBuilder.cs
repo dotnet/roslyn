@@ -60,15 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Conversions _conversions;
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly LabelSymbol _defaultLabel;
-        private readonly bool _considerAlternativeIndexers;
+        /// <summary>
+        /// We might need to build a dedicated dag for lowering during which we
+        /// avoid synthesizing tests to relate alternative indexers. This won't 
+        /// affect code semantics but it results in a better code generation.
+        /// </summary>
+        private readonly bool _forLowering;
 
-        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, bool considerAlternativeIndexers, BindingDiagnosticBag diagnostics)
+        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, bool forLowering, BindingDiagnosticBag diagnostics)
         {
             this._compilation = compilation;
             this._conversions = compilation.Conversions;
             _diagnostics = diagnostics;
             _defaultLabel = defaultLabel;
-            _considerAlternativeIndexers = considerAlternativeIndexers;
+            _forLowering = forLowering;
         }
 
         /// <summary>
@@ -81,9 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchSection> switchSections,
             LabelSymbol defaultLabel,
             BindingDiagnosticBag diagnostics,
-            bool considerAlternativeIndexers = true)
+            bool forLowering = false)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, considerAlternativeIndexers, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForSwitchStatement(syntax, switchGoverningExpression, switchSections);
         }
 
@@ -98,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.SwitchSections,
                 node.DefaultLabel?.Label ?? node.BreakLabel,
                 BindingDiagnosticBag.Discarded,
-                considerAlternativeIndexers: false);
+                forLowering: true);
         }
 
         /// <summary>
@@ -111,9 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             LabelSymbol defaultLabel,
             BindingDiagnosticBag diagnostics,
-            bool considerAlternativeIndexers = true)
+            bool forLowering = false)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, considerAlternativeIndexers, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForSwitchExpression(syntax, switchExpressionInput, switchArms);
         }
 
@@ -129,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.SwitchArms,
                 defaultLabel,
                 BindingDiagnosticBag.Discarded,
-                considerAlternativeIndexers: false);
+                forLowering: true);
         }
 
         /// <summary>
@@ -143,9 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol whenTrueLabel,
             LabelSymbol whenFalseLabel,
             BindingDiagnosticBag diagnostics,
-            bool considerAlternativeIndexers = true)
+            bool forLowering = false)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, considerAlternativeIndexers, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
         }
 
@@ -161,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.WhenTrueLabel,
                 node.WhenFalseLabel,
                 BindingDiagnosticBag.Discarded,
-                considerAlternativeIndexers: false);
+                forLowering: true);
         }
 
         private BoundDecisionDag CreateDecisionDagForIsPattern(
@@ -1479,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
 
-                                if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue) && _considerAlternativeIndexers)
+                                if (!_forLowering && lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                 {
                                     // Otherwise, we add a test to make the result conditional on the length value.
                                     (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
