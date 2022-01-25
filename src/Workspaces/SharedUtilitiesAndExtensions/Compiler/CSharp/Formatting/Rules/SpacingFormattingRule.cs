@@ -470,16 +470,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // No space before { or after } in interpolations
             if ((currentKind == SyntaxKind.OpenBraceToken && currentToken.Parent is InterpolationSyntax) ||
-                (currentKind == SyntaxKind.RawInterpolationOpenToken && currentToken.Parent is InterpolationSyntax) ||
-                (previousKind == SyntaxKind.CloseBraceToken && previousToken.Parent is InterpolationSyntax) ||
-                currentKind == SyntaxKind.RawInterpolationCloseToken && currentToken.Parent is InterpolationSyntax)
+                (previousKind == SyntaxKind.CloseBraceToken && previousToken.Parent is InterpolationSyntax))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
             // Preserve space after { or before } in interpolations (i.e. between the braces and the expression)
-            if (((previousKind is SyntaxKind.OpenBraceToken or SyntaxKind.RawInterpolationOpenToken) && previousToken.Parent is InterpolationSyntax) ||
-                ((currentKind is SyntaxKind.CloseBraceToken or SyntaxKind.RawInterpolationCloseToken) && currentToken.Parent is InterpolationSyntax))
+            if ((previousKind == SyntaxKind.OpenBraceToken && previousToken.Parent is InterpolationSyntax) ||
+                (currentKind == SyntaxKind.CloseBraceToken && currentToken.Parent is InterpolationSyntax))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
             }

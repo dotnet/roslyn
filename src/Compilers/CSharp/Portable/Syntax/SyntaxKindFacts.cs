@@ -143,8 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsPunctuation(SyntaxKind kind)
         {
-            return kind >= SyntaxKind.TildeToken && kind <= SyntaxKind.QuestionQuestionEqualsToken ||
-                kind is SyntaxKind.RawInterpolationOpenToken || kind is SyntaxKind.RawInterpolationCloseToken;
+            return kind >= SyntaxKind.TildeToken && kind <= SyntaxKind.QuestionQuestionEqualsToken;
         }
 
         public static bool IsLanguagePunctuation(SyntaxKind kind)
