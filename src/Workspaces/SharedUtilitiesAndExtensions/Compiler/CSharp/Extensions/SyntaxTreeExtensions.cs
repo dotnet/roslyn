@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar)
+        private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar, CancellationToken cancellationToken)
         {
             if (!token.IsKind(
                     SyntaxKind.StringLiteralToken,
@@ -362,23 +362,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
             }
 
-            var startLength = 1;
-            if (token.IsVerbatimStringLiteral())
-            {
-                startLength = 2;
-            }
+            if (position != token.Span.End)
+                return false;
 
             if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.MultiLineRawStringLiteralToken))
             {
-                var tokenStart = token.ToString().TakeWhile(s => s == '"');
-                startLength = tokenStart.Count();
+                var sourceText = token.SyntaxTree!.GetText(cancellationToken);
+                var startDelimeterLength = 0;
+                var endDelimeterLength = 0;
+                for (int i = token.SpanStart, n = token.Span.End; i < n; position++)
+                {
+                    if (sourceText[i] == '"')
+                        startDelimeterLength++;
+                }
 
-                return position == token.Span.End &&
-                    (token.Span.Length == startLength || (token.Span.Length > startLength && !token.ToString().EndsWith(string.Concat(tokenStart))));
+                for (int i = token.Span.End - 1, n = token.Span.Start; i >= n; i--)
+                {
+                    if (sourceText[i] == '"')
+                        endDelimeterLength++;
+                }
+
+                return token.Span.Length == startDelimeterLength ||
+                    (token.Span.Length > startDelimeterLength && endDelimeterLength < startDelimeterLength);
             }
-
-            return position == token.Span.End &&
-                (token.Span.Length == startLength || (token.Span.Length > startLength && token.ToString().Cast<char>().LastOrDefault() != lastChar));
+            else
+            {
+                var startDelimeterLength = token.IsVerbatimStringLiteral() ? 2 : 1;
+                return token.Span.Length == startDelimeterLength ||
+                    (token.Span.Length > startDelimeterLength && token.Text[^1] != lastChar);
+            }
         }
 
         public static bool IsEntirelyWithinStringOrCharLiteral(
