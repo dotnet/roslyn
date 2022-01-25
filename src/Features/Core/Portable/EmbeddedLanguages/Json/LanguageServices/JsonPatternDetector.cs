@@ -19,15 +19,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
     {
         private const string _jsonName = "json";
         private const string _methodNameOfInterest = "Parse";
-        private static readonly HashSet<string> _typeNamesOfInterest = new HashSet<string>
+        private static readonly HashSet<string> _typeNamesOfInterest = new()
         {
             "Newtonsoft.Json.Linq.JToken",
             "Newtonsoft.Json.Linq.JObject",
             "Newtonsoft.Json.Linq.JArray"
         };
 
-        private static readonly ConditionalWeakTable<SemanticModel, JsonPatternDetector> _modelToDetector =
-            new ConditionalWeakTable<SemanticModel, JsonPatternDetector>();
+        private static readonly ConditionalWeakTable<SemanticModel, JsonPatternDetector> _modelToDetector = new();
 
         private readonly SemanticModel _semanticModel;
         private readonly EmbeddedLanguageInfo _info;
@@ -38,8 +37,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         /// 
         /// All matching is case insensitive, with spaces allowed between the punctuation.
         /// </summary>
-        private static readonly LanguageCommentDetector<JsonOptions> s_languageCommentDetector =
-            new LanguageCommentDetector<JsonOptions>("json");
+        private static readonly LanguageCommentDetector<JsonOptions> s_languageCommentDetector = new("json");
 
         public JsonPatternDetector(
             SemanticModel semanticModel,
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             return new JsonPatternDetector(semanticModel, info, types);
         }
 
-        public static bool IsDefinitelyNotJson(SyntaxToken token, ISyntaxFactsService syntaxFacts)
+        public static bool IsDefinitelyNotJson(SyntaxToken token, ISyntaxFacts syntaxFacts)
         {
             if (!syntaxFacts.IsStringLiteral(token))
             {
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         }
 
         private static bool HasJsonLanguageComment(
-            SyntaxToken token, ISyntaxFactsService syntaxFacts, out JsonOptions options)
+            SyntaxToken token, ISyntaxFacts syntaxFacts, out JsonOptions options)
         {
             if (HasJsonLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts, out options))
             {
@@ -107,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         }
 
         private static bool HasJsonLanguageComment(
-            SyntaxTriviaList list, ISyntaxFactsService syntaxFacts, out JsonOptions options)
+            SyntaxTriviaList list, ISyntaxFacts syntaxFacts, out JsonOptions options)
         {
             foreach (var trivia in list)
             {
@@ -122,7 +120,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         }
 
         private static bool HasJsonLanguageComment(
-            SyntaxTrivia trivia, ISyntaxFactsService syntaxFacts, out JsonOptions options)
+            SyntaxTrivia trivia, ISyntaxFacts syntaxFacts, out JsonOptions options)
         {
             if (syntaxFacts.IsRegularComment(trivia))
             {
@@ -134,7 +132,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             return false;
         }
 
-        private static bool IsMethodArgument(SyntaxToken token, ISyntaxFactsService syntaxFacts)
+        private static bool IsMethodArgument(SyntaxToken token, ISyntaxFacts syntaxFacts)
             => syntaxFacts.IsLiteralExpression(token.Parent) &&
                syntaxFacts.IsArgument(token.Parent.Parent) &&
                syntaxFacts.IsInvocationExpression(token.Parent.Parent.Parent.Parent);
@@ -244,7 +242,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             if (node.Kind == JsonKind.Object)
             {
                 var objNode = (JsonObjectNode)node;
-                if (objNode.Sequence.ChildCount >= 1)
+                if (objNode.Sequence.Length >= 1)
                 {
                     return true;
                 }

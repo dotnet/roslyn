@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
     /// </summary>
     internal class JsonEmbeddedClassifier : AbstractSyntaxClassifier
     {
-        private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
+        private static ObjectPool<Visitor> s_visitorPool = new(() => new Visitor());
         private readonly EmbeddedLanguageInfo _info;
 
         public override ImmutableArray<int> SyntaxTokenKinds { get; }
@@ -33,15 +33,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         }
 
         public override void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SyntaxToken token,
+            SemanticModel semanticModel,
+            ClassificationOptions options,
+            ArrayBuilder<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
             if (_info.StringLiteralTokenKind != token.RawKind)
             {
                 return;
             }
 
-            if (!workspace.Options.GetOption(JsonFeatureOptions.ColorizeJsonPatterns, token.Language))
+            if (!options.ColorizeJsonPatterns)
             {
                 return;
             }
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
                 return;
             }
 
-            var visitor = _visitorPool.Allocate();
+            var visitor = s_visitorPool.Allocate();
             try
             {
                 visitor.Result = result;
@@ -73,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             finally
             {
                 visitor.Result = null;
-                _visitorPool.Free(visitor);
+                s_visitorPool.Free(visitor);
             }
         }
 
@@ -145,11 +148,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             }
 
             public void Visit(JsonCompilationUnit node)
-            {
-                // nothing to do.
-            }
-
-            public void Visit(JsonSequenceNode node)
             {
                 // nothing to do.
             }

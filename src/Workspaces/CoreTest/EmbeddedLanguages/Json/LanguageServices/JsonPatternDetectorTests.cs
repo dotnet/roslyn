@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
 {
     public class JsonPatternDetectorTests
     {
-        private void Match(string value, JsonOptions? expectedOptions = null)
+        private void Match(string value, JsonFeatureOptions? expectedOptions = null)
         {
             Assert.True(JsonPatternDetector.TestAccessor.TryMatch(value, out var actualOptions));
 
@@ -117,31 +117,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
         [Fact]
         public void TestOption()
         {
-            Match("lang=json,strict", JsonOptions.Strict);
+            Match("lang=json,strict", JsonFeatureOptions.Strict);
         }
 
         [Fact]
         public void TestOptionWithSpaces()
         {
-            Match("lang=json , strict", JsonOptions.Strict);
+            Match("lang=json , strict", JsonFeatureOptions.Strict);
         }
 
         [Fact]
         public void TestOptionFollowedByPeriod()
         {
-            Match("lang=json,strict. Explanation", JsonOptions.Strict);
+            Match("lang=json,strict. Explanation", JsonFeatureOptions.Strict);
         }
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod()
         {
-            Match("lang=json,strict,Strict. Explanation", JsonOptions.Strict);
+            Match("lang=json,strict,Strict. Explanation", JsonFeatureOptions.Strict);
         }
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod_CaseInsensitive()
         {
-            Match("Language=Json,Strict. Explanation", JsonOptions.Strict);
+            Match("Language=Json,Strict. Explanation", JsonFeatureOptions.Strict);
         }
 
         [Fact]

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                         detector.IsProbablyJson(token))
                     {
                         var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-                        var strictTree = JsonParser.TryParse(chars, JsonOptions.Strict);
+                        var strictTree = JsonParser.TryParse(chars, JsonFeatureOptions.Strict);
                         var properties = strictTree != null && strictTree.Diagnostics.Length == 0
                             ? s_strictProperties
                             : ImmutableDictionary<string, string>.Empty;

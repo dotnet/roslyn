@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
         public SyntaxEditorBasedCodeFixProvider CodeFixProvider { get; }
 
         // No document-highlights for embedded json currently.
-        public IDocumentHighlightsService DocumentHighlightsService => null;
+        public IDocumentHighlightsService? DocumentHighlightsService => null;
 
         // No completion for embedded json currently.
-        public EmbeddedLanguageCompletionProvider CompletionProvider => null;
+        public EmbeddedLanguageCompletionProvider? CompletionProvider => null;
 
         public JsonEmbeddedLanguageFeatures(
             AbstractEmbeddedLanguageFeaturesProvider languagesProvider,

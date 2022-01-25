@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             _info = info;
         }
 
-        public string Title => WorkspacesResources.Enable_JSON_editor_features;
+        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(JsonDetectionAnalyzer.DiagnosticId);
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
         public void Fix(SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var stringLiteral = diagnostic.Location.FindToken(cancellationToken);
-            Debug.Assert(_info.SyntaxFacts.IsStringLiteral(stringLiteral));
+            Debug.Assert(_info.SyntaxFacts.SyntaxKinds.StringLiteralToken == stringLiteral.RawKind);
 
             var commentContents = diagnostic.Properties.ContainsKey(JsonDetectionAnalyzer.StrictKey)
                 ? "lang=json,strict"
@@ -60,9 +60,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
-            {
                 Fix(editor, diagnostic, cancellationToken);
-            }
 
             return Task.CompletedTask;
         }
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(WorkspacesResources.Enable_JSON_editor_features, createChangedDocument)
+                : base(FeaturesResources.Enable_JSON_editor_features, createChangedDocument, nameof(FeaturesResources.Enable_JSON_editor_features))
             {
             }
         }

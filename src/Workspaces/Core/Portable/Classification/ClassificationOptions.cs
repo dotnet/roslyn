@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Classification
     [DataContract]
     internal readonly record struct ClassificationOptions(
         [property: DataMember(Order = 0)] bool ClassifyReassignedVariables,
-        [property: DataMember(Order = 1)] bool ColorizeRegexPatterns)
+        [property: DataMember(Order = 1)] bool ColorizeRegexPatterns,
+        [property: DataMember(Order = 2)] bool ColorizeJsonPatterns)
     {
         [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
@@ -28,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
                 ClassifyReassignedVariables,
-                ColorizeRegexPatterns);
+                ColorizeRegexPatterns,
+                ColorizeJsonPatterns);
 
             private const string FeatureName = "ClassificationOptions";
 
@@ -39,12 +41,17 @@ namespace Microsoft.CodeAnalysis.Classification
             public static PerLanguageOption2<bool> ColorizeRegexPatterns =
                 new("RegularExpressionsOptions", "ColorizeRegexPatterns", defaultValue: true,
                     storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns"));
+
+            public static PerLanguageOption2<bool> ColorizeJsonPatterns =
+                new("JsonFeatureOptions", "ColorizeJsonPatterns", defaultValue: true,
+                    storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeJsonPatterns"));
         }
 
         public static readonly ClassificationOptions Default
           = new(
               ClassifyReassignedVariables: Metadata.ClassifyReassignedVariables.DefaultValue,
-              ColorizeRegexPatterns: Metadata.ColorizeRegexPatterns.DefaultValue);
+              ColorizeRegexPatterns: Metadata.ColorizeRegexPatterns.DefaultValue,
+              ColorizeJsonPatterns: Metadata.ColorizeJsonPatterns.DefaultValue);
 
         public static ClassificationOptions From(Project project)
             => From(project.Solution.Options, project.Language);
@@ -52,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public static ClassificationOptions From(OptionSet options, string language)
             => new(
                 ClassifyReassignedVariables: options.GetOption(Metadata.ClassifyReassignedVariables, language),
-                ColorizeRegexPatterns: options.GetOption(Metadata.ColorizeRegexPatterns, language));
+                ColorizeRegexPatterns: options.GetOption(Metadata.ColorizeRegexPatterns, language),
+                ColorizeJsonPatterns: options.GetOption(Metadata.ColorizeJsonPatterns, language));
     }
 }
