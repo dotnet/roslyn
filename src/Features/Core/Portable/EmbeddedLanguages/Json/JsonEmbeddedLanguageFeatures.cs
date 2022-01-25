@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
         public IDocumentHighlightsService DocumentHighlightsService => null;
 
         // No completion for embedded json currently.
-        public CompletionProvider CompletionProvider => null;
+        public EmbeddedLanguageCompletionProvider CompletionProvider => null;
 
         public JsonEmbeddedLanguageFeatures(
             AbstractEmbeddedLanguageFeaturesProvider languagesProvider,

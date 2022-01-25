@@ -2,13 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-<<<<<<< HEAD
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
-=======
->>>>>>> jsonTests
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
@@ -26,22 +19,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         IDocumentHighlightsService? DocumentHighlightsService { get; }
 
         /// <summary>
-<<<<<<< HEAD
-        /// Optional analyzers that produces diagnostics for an embedded language string.
-        /// </summary>
-        ImmutableArray<AbstractBuiltInCodeStyleDiagnosticAnalyzer> DiagnosticAnalyzers { get; }
-
-        /// <summary>
-        /// An optional fix provider that can fix the diagnostics produced by <see
-        /// cref="DiagnosticAnalyzers"/>
-        /// </summary>
-        SyntaxEditorBasedCodeFixProvider CodeFixProvider { get; }
-
-        /// <summary>
-        /// An optional completion provider that can provide completion items for this
-=======
         /// Completion provider that can provide completion items for this
->>>>>>> jsonTests
         /// specific embedded language.
         /// 
         /// <see cref="AbstractAggregateEmbeddedLanguageCompletionProvider"/> will aggregate all these

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(Options.OptionSet options)
             => false;
 
         protected override void InitializeWorker(AnalysisContext context)

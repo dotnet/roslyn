@@ -5,8 +5,10 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
@@ -23,8 +25,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguageFeatures(info),
                 new RegexEmbeddedLanguage(this, info),
+                new JsonEmbeddedLanguageFeatures(this, info),
                 new FallbackEmbeddedLanguage(info));
         }
+
+        /// <summary>
+        /// Helper method used by the VB and C# embedded language <see cref="CodeFixProvider"/>s so they can
+        /// add special comments to string literals to convey that language services should light up
+        /// for them.
+        /// </summary>
+        internal abstract void AddComment(
+            SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents);
 
         /// <summary>Escapes <paramref name="text"/> appropriately so it can be inserted into 
         /// <paramref name="token"/>.  For example if inserting `\p{Number}` into a normal C#
