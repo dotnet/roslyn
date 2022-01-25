@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         where TConstructorDeclaration : SyntaxNode
         where TExpression : SyntaxNode
     {
-        protected static SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
+        protected static SyntaxAnnotation SpecializedFormattingAnnotation = new();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseAutoPropertyDiagnosticId);
@@ -76,12 +74,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var declarator = (TVariableDeclarator)declaratorLocation.FindNode(cancellationToken);
             var fieldDocument = solution.GetRequiredDocument(declarator.SyntaxTree);
             var fieldSemanticModel = await fieldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var fieldSymbol = (IFieldSymbol)fieldSemanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+            var fieldSymbol = (IFieldSymbol)fieldSemanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
 
             var property = GetPropertyDeclaration(propertyLocation.FindNode(cancellationToken));
             var propertyDocument = solution.GetRequiredDocument(property.SyntaxTree);
             var propertySemanticModel = await propertyDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var propertySymbol = (IPropertySymbol)propertySemanticModel.GetDeclaredSymbol(property, cancellationToken);
+            var propertySymbol = (IPropertySymbol)propertySemanticModel.GetRequiredDeclaredSymbol(property, cancellationToken);
 
             Debug.Assert(fieldDocument.Project == propertyDocument.Project);
             var project = fieldDocument.Project;
@@ -191,10 +189,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (fieldDocument == propertyDocument)
             {
                 var syntaxFacts = fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                var bannerService = fieldDocument.GetRequiredLanguageService<IFileBannerFactsService>();
                 if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(syntaxFacts, property, nodeToRemove) &&
-                    syntaxFacts.GetLeadingBlankLines(nodeToRemove).Length == 0)
+                    bannerService.GetLeadingBlankLines(nodeToRemove).Length == 0)
                 {
-                    updatedProperty = syntaxFacts.GetNodeWithoutLeadingBlankLines(updatedProperty);
+                    updatedProperty = bannerService.GetNodeWithoutLeadingBlankLines(updatedProperty);
                 }
             }
 
@@ -204,7 +203,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 // Same file.  Have to do this in a slightly complicated fashion.
                 var declaratorTreeRoot = await fieldDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var editor = new SyntaxEditor(declaratorTreeRoot, fieldDocument.Project.Solution.Workspace);
+                var editor = new SyntaxEditor(declaratorTreeRoot, fieldDocument.Project.Solution.Workspace.Services);
                 editor.ReplaceNode(property, updatedProperty);
                 editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
@@ -281,8 +280,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return newRoot;
             }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options, formattingRules, cancellationToken);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace.Services, options, formattingRules, cancellationToken);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(

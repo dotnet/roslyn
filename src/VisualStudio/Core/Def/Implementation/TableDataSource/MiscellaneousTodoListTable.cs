@@ -25,12 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => _tableManagerProvider = tableManagerProvider;
 
         public void StartListening(Workspace workspace, ITodoListProvider service)
-            => new MiscellaneousTodoListTable(workspace, service, _tableManagerProvider);
+            => _ = new MiscellaneousTodoListTable(workspace, service, _tableManagerProvider);
 
         private sealed class MiscellaneousTodoListTable : VisualStudioBaseTodoListTable
         {
-            public MiscellaneousTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
-                base(workspace, todoListProvider, IdentifierString, provider)
+            public MiscellaneousTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider)
+                : base(workspace, todoListProvider, IdentifierString, provider)
             {
                 ConnectWorkspaceEvents();
             }

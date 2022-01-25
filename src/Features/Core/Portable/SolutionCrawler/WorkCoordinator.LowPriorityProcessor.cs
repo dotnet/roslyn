@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -32,9 +30,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _workItemQueue = new AsyncProjectWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
@@ -54,14 +52,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
                             // process any available project work, preferring the active project.
+                            var preferableProjectId = Processor._documentTracker.SupportsDocumentTracking
+                                ? Processor._documentTracker.TryGetActiveDocument()?.ProjectId
+                                : null;
+
                             if (_workItemQueue.TryTakeAnyWork(
-                                Processor.GetActiveProjectId(), Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
+                                preferableProjectId, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
                                 out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // we do have work item for this project
                         var projectId = workItem.ProjectId;
                         var processedEverything = false;
-                        var processingSolution = Processor.CurrentSolution;
+                        var processingSolution = Processor._registration.GetSolutionToAnalyze();
 
                         try
                         {
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }

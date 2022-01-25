@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string equivalenceKey, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string? equivalenceKey, CancellationToken cancellationToken)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             return equivalenceKey == GetEquivalenceKey(node, model);
@@ -264,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             if (node.Parent is ArgumentSyntax argument && argument.Parent?.Parent is InvocationExpressionSyntax invocation)
             {
                 var symbol = model.GetSymbolInfo(invocation.Expression).Symbol;
-                if (!(symbol is IMethodSymbol method) || method.PartialImplementationPart is object)
+                if (symbol is not IMethodSymbol method || method.PartialImplementationPart is object)
                 {
                     // We don't handle partial methods yet
                     return null;
@@ -351,8 +349,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                         {
                             return typeArguments[0];
                         }
+
                         break;
                 }
+
                 return null;
             }
 
@@ -365,6 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 {
                     return parameterSyntax.Type;
                 }
+
                 return null;
             }
         }

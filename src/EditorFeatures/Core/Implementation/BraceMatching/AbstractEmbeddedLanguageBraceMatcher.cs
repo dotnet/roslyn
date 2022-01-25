@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     internal abstract class AbstractEmbeddedLanguageBraceMatcher : IBraceMatcher
     {
         public async Task<BraceMatchingResult?> FindBracesAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
             if (languagesProvider != null)
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                     if (braceMatcher != null)
                     {
                         var result = await braceMatcher.FindBracesAsync(
-                            document, position, cancellationToken).ConfigureAwait(false);
+                            document, position, options, cancellationToken).ConfigureAwait(false);
                         if (result != null)
                         {
                             return result;

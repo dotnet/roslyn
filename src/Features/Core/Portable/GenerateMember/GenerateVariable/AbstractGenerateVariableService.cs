@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         protected abstract bool TryInitializeExplicitInterfaceState(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IPropertySymbol propertySymbol, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression, out bool isInExecutableBlock, out bool isinConditionalAccessExpression);
 
-        protected abstract bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, OptionSet options, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot);
+        protected abstract bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot);
 
         public async Task<ImmutableArray<CodeAction>> GenerateVariableAsync(
             Document document,
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
 
-                if (canGenerateMember)
+                if (canGenerateMember && state.CanGeneratePropertyOrField())
                 {
                     // prefer fields over properties (and vice versa) depending on the casing of the member.
                     // lowercase -> fields.  title case -> properties.
@@ -64,7 +66,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     }
                     else
                     {
-
                         AddFieldCodeActions(actions, semanticDocument, state);
                         AddPropertyCodeActions(actions, semanticDocument, state);
                     }

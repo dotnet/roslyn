@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // implements the ASP.NET IsHidden rule
                     var lineVisibility = tree.GetLineVisibility(position, cancellationToken2);
-                    return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
+                    return lineVisibility is LineVisibility.Hidden or LineVisibility.BeforeFirstLineDirective;
                 },
                 cancellationToken);
         }
@@ -119,10 +117,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
-        public static async Task<bool> IsBeforeFirstTokenAsync(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public static bool IsBeforeFirstToken(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = syntaxTree.GetRoot(cancellationToken);
             var firstToken = root.GetFirstToken(includeZeroWidth: true, includeSkipped: true);
 
             return position <= firstToken.SpanStart;

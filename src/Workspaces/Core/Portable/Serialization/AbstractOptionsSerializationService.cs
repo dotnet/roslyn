@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     internal abstract class AbstractOptionsSerializationService : IOptionsSerializationService
     {
         public abstract void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
-        public abstract void WriteTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
+        public abstract void WriteTo(ParseOptions options, ObjectWriter writer);
 
         public abstract CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
         public abstract ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
@@ -116,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             cryptoPublicKey = reader.ReadArray<byte>().ToImmutableArrayOrEmpty();
 
-            delaySign = reader.ReadBoolean() ? (bool?)reader.ReadBoolean() : null;
+            delaySign = reader.ReadBoolean() ? reader.ReadBoolean() : null;
 
             platform = (Platform)reader.ReadInt32();
             generalDiagnosticOption = (ReportDiagnostic)reader.ReadInt32();
@@ -160,10 +162,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             strongNameProvider = new DesktopStrongNameProvider();
         }
 
-        protected static void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        protected static void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             writer.WriteInt32((int)options.Kind);
             writer.WriteInt32((int)options.DocumentationMode);
 

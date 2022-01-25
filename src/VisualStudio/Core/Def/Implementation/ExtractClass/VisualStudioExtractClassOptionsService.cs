@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable 
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,8 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.Formatting;
@@ -25,6 +21,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
@@ -34,21 +31,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IGlyphService _glyphService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioExtractClassOptionsService(
             IThreadingContext threadingContext,
             IGlyphService glyphService,
-            IWaitIndicator waitIndicator)
+            IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _threadingContext = threadingContext;
             _glyphService = glyphService;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
-        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ISymbol? selectedMember)
+        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ISymbol? selectedMember, CancellationToken cancellationToken)
         {
             var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
 
@@ -66,10 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
                         IsCheckable = true
                     });
 
-            using var cancellationTokenSource = new CancellationTokenSource();
-            var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
+            var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationToken);
 
-            var conflictingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token).Select(t => t.Name);
+            var conflictingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationToken).Select(t => t.Name);
             var candidateName = selectedType.Name + "Base";
             var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !conflictingTypeNames.Contains(name));
 
@@ -77,10 +73,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
                 ? string.Empty
                 : selectedType.ContainingNamespace.ToDisplayString();
 
-            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, selectedType, membersInType);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, selectedType, membersInType, cancellationToken);
 
             var viewModel = new ExtractClassViewModel(
-                _waitIndicator,
+                _uiThreadOperationExecutor,
                 notificationService,
                 memberViewModels,
                 memberToDependentsMap,
@@ -91,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
                 conflictingTypeNames.ToImmutableArray(),
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var dialog = new ExtractClassDialog(viewModel);
 
             var result = dialog.ShowModal();

@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 
@@ -20,20 +20,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ParseOptions parseOptions = null,
             string[] files = null,
+            string[] sourceGeneratedFiles = null,
             string[] metadataReferences = null,
             string extension = null,
             bool commonReferences = true)
         {
             var documentElements = new List<XElement>();
 
+            var index = 0;
+            extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
             if (files != null)
             {
-                var index = 0;
-                extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
-
                 foreach (var file in files)
                 {
                     documentElements.Add(CreateDocumentElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
+                }
+            }
+
+            if (sourceGeneratedFiles != null)
+            {
+                foreach (var file in sourceGeneratedFiles)
+                {
+                    documentElements.Add(CreateDocumentFromSourceGeneratorElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
                 }
             }
 
@@ -84,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else if (vbOptions != null)
             {
-                return new XAttribute(LanguageVersionAttributeName, CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString( vbOptions.LanguageVersion));
+                return new XAttribute(LanguageVersionAttributeName, CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(vbOptions.LanguageVersion));
             }
             else
             {
@@ -165,6 +173,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             return new XElement(DocumentElementName,
                 new XAttribute(FilePathAttributeName, filePath),
+                CreateParseOptionsElement(parseOptions),
+                code.Replace("\r\n", "\n"));
+        }
+
+        protected static XElement CreateDocumentFromSourceGeneratorElement(string code, string hintName, ParseOptions parseOptions = null)
+        {
+            return new XElement(DocumentFromSourceGeneratorElementName,
+                new XAttribute(FilePathAttributeName, hintName),
                 CreateParseOptionsElement(parseOptions),
                 code.Replace("\r\n", "\n"));
         }

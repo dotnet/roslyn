@@ -19,6 +19,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ReplaceMethodWithPropertyCodeRefactoringProvider();
 
+        private async Task TestWithAllCodeStyleOff(
+            string initialMarkup, string expectedMarkup,
+            ParseOptions? parseOptions = null, int index = 0)
+        {
+            await TestAsync(
+                initialMarkup, expectedMarkup, parseOptions,
+                index: index,
+                options: AllCodeStyleOff);
+        }
+
+        private OptionsCollection AllCodeStyleOff
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
+
+        private OptionsCollection PreferExpressionBodiedAccessors
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
+
+        private OptionsCollection PreferExpressionBodiedProperties
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+            };
+
+        private OptionsCollection PreferExpressionBodiedAccessorsAndProperties
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+            };
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithGetName()
         {
@@ -2360,42 +2398,97 @@ class C
 }");
         }
 
-        private async Task TestWithAllCodeStyleOff(
-            string initialMarkup, string expectedMarkup,
-            ParseOptions parseOptions = null, int index = 0)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
+        public async Task TestMethodWithTrivia_3()
         {
-            await TestAsync(
-                initialMarkup, expectedMarkup, parseOptions,
-                index: index,
-                options: AllCodeStyleOff);
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    [||]int Goo() //Vital Comment
+    {
+      return 1;
+    }
+}",
+@"class C
+{
+    //Vital Comment
+    int Goo => 1;
+}");
         }
 
-        private OptionsCollection AllCodeStyleOff
-            => new OptionsCollection(GetLanguage())
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-            };
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
+        public async Task TestMethodWithTrivia_4()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    int [||]GetGoo()    // Goo
+    {
+    }
+    void SetGoo(int i)    // SetGoo
+    {
+    }
+}",
+@"class C
+{
+    // Goo
+    // SetGoo
+    int Goo
+    {
+        get
+        {
+        }
 
-        private OptionsCollection PreferExpressionBodiedAccessors
-            => new OptionsCollection(GetLanguage())
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-            };
+        set
+        {
+        }
+    }
+}",
+index: 1);
+        }
 
-        private OptionsCollection PreferExpressionBodiedProperties
-            => new OptionsCollection(GetLanguage())
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
-            };
+        [WorkItem(57769, "https://github.com/dotnet/roslyn/issues/57769")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestInLinkedFile()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+class C
+{
+    int [||]GetP();
+    bool M()
+    {
+        return GetP() == 0;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+class C
+{
+    int P { get; }
 
-        private OptionsCollection PreferExpressionBodiedAccessorsAndProperties
-            => new OptionsCollection(GetLanguage())
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
-            };
+    bool M()
+    {
+        return P == 0;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>");
+        }
     }
 }

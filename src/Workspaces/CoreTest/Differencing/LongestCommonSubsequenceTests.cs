@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Text;
 using Xunit;
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             {
                 sb.AppendFormat("[{0},{1}]", actPair.Key, actPair.Value);
             }
+
             var actualPairsStr = sb.ToString();
             Assert.Equal(expectedPairsStr, actualPairsStr);
         }
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             foreach (var edit in edits)
             {
-                Assert.True(edit.Kind == EditKind.Delete || edit.Kind == EditKind.Insert || edit.Kind == EditKind.Update);
+                Assert.True(edit.Kind is EditKind.Delete or EditKind.Insert or EditKind.Update);
                 switch (edit.Kind)
                 {
                     case EditKind.Delete:

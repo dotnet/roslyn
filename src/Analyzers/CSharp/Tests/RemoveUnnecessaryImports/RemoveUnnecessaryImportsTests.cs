@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -409,6 +411,45 @@ namespace N
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestNestedUnusedUsings_FileScopedNamespace()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;
+using System.Collections.Generic;
+using System.Linq;|}|]
+
+namespace N;
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}
+",
+                FixedCode =
+@"namespace N;
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -500,6 +541,55 @@ class F
 {
     DateTime d;
 }");
+        }
+
+        [WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestNestedUsedUsings2_FileScopedNamespace()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;
+using System.Collections.Generic;
+using System.Linq;|}|]
+
+namespace N;
+
+[|using System;
+{|IDE0005:using System.Collections.Generic;|}|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}
+
+class F
+{
+    DateTime d;
+}",
+                FixedCode =
+@"namespace N;
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}
+
+class F
+{
+    DateTime d;
+}",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -1724,42 +1814,30 @@ class C
 }";
             await new VerifyCS.Test
             {
-                TestCode = code,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
-                    {
-                        var parseOptions = solution.GetProject(projectId).ParseOptions;
-                        return solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.None));
-                    },
+                    Sources = { code },
+                    DocumentationMode = DocumentationMode.None,
                 },
             }.RunAsync();
 
             // fully parsing doc comments; System is necessary
             await new VerifyCS.Test
             {
-                TestCode = code,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
-                    {
-                        var parseOptions = solution.GetProject(projectId).ParseOptions;
-                        return solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Parse));
-                    },
+                    Sources = { code },
+                    DocumentationMode = DocumentationMode.Parse,
                 },
             }.RunAsync();
 
             // fully parsing and diagnosing doc comments; System is necessary
             await new VerifyCS.Test
             {
-                TestCode = code,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
-                    {
-                        var parseOptions = solution.GetProject(projectId).ParseOptions;
-                        return solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Diagnose));
-                    },
+                    Sources = { code },
+                    DocumentationMode = DocumentationMode.Diagnose,
                 },
             }.RunAsync();
         }
@@ -1792,11 +1870,12 @@ class Program
         }
 
         [Theory]
-        [InlineData(0, Skip = "https://github.com/dotnet/roslyn/issues/41784")]
-        [InlineData(1, Skip = "https://github.com/dotnet/roslyn/issues/41784")]
-        [InlineData(2, Skip = "https://github.com/dotnet/roslyn/issues/41784")]
-        [InlineData(3, Skip = "https://github.com/dotnet/roslyn/issues/41784")]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
         [InlineData(4)]
+        [InlineData(5)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
         public async Task TestWarningLevel(int warningLevel)
@@ -1811,15 +1890,33 @@ class Program
     {
     }
 }";
-            var fixedCode = @"class Program
+            var fixedCode = warningLevel switch
+            {
+                0 => code,
+                _ => @"class Program
 {
     static void Main(string[] args)
     {
     }
-}";
+}",
+            };
+
+            var markupMode = warningLevel switch
+            {
+                // Hidden diagnostics are not reported for warning level 0
+                0 => MarkupMode.Ignore,
+
+                // But are reported for all other warning levels
+                _ => MarkupMode.Allow,
+            };
+
             await new VerifyCS.Test
             {
-                TestCode = code,
+                TestState =
+                {
+                    Sources = { code },
+                    MarkupHandling = markupMode,
+                },
                 FixedCode = fixedCode,
                 SolutionTransforms =
                 {

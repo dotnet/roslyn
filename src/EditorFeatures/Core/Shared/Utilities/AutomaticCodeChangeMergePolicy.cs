@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     /// </summary>
     internal class AutomaticCodeChangeMergePolicy : IMergeTextUndoTransactionPolicy
     {
-        public static readonly AutomaticCodeChangeMergePolicy Instance = new AutomaticCodeChangeMergePolicy();
+        public static readonly AutomaticCodeChangeMergePolicy Instance = new();
 
         public bool CanMerge(ITextUndoTransaction newerTransaction, ITextUndoTransaction olderTransaction)
         {

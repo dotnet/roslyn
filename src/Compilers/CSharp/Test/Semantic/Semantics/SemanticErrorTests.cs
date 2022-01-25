@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,7 +12,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -122,8 +123,8 @@ class Program
         {
             var text =
 @"using System;
-delegate void boo();
-public class abc
+delegate void @boo();
+public class @abc
 {
     public void bar() { System.Console.WriteLine(""bar""); }
     static public void far() { System.Console.WriteLine(""far""); }
@@ -198,7 +199,7 @@ class C
         public void CS0019ERR_BadBinaryOps06()
         {
             var text =
-@"delegate void boo(int x);
+@"delegate void @boo(int x);
 class C
 {
     static void Main(string[] args)
@@ -231,7 +232,7 @@ class C
         public void CS0019ERR_BadBinaryOps07()
         {
             var text =
-@"delegate void boo(int x);
+@"delegate void @boo(int x);
 class C
 {
     static void Main(string[] args)
@@ -265,7 +266,7 @@ class C
         {
             var text =
 @"using System;
-delegate void boo(int x);
+delegate void @boo(int x);
 class C
 {
     public void bar(int x) { Console.WriteLine("""", x); }
@@ -287,9 +288,15 @@ class C
                 // (12,16): error CS0019: Operator '+' cannot be applied to operands of type 'lambda expression' and 'method group'
                 //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @"(x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far").WithArguments("+", "lambda expression", "method group").WithLocation(12, 16),
+                // (12,70): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(12, 70),
                 // (13,16): error CS0019: Operator '+' cannot be applied to operands of type 'anonymous method' and 'method group'
                 //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group").WithLocation(13, 16),
+                // (13,83): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(13, 83)
                 );
         }
 
@@ -348,7 +355,7 @@ class C
         public void CS0019ERR_BadBinaryOps10()
         {
             var text =
-@"delegate void boo<T>(T x);
+@"delegate void @boo<T>(T x);
 class C
 {
     public void bar(int x) { System.Console.WriteLine(""bar:{0}"", x); }
@@ -423,7 +430,7 @@ class C
         public void CS0019ERR_BadBinaryOps11()
         {
             var text =
-@"delegate void boo<T>(T x);
+@"delegate void @boo<T>(T x);
 class C
 {
     static void far<T>(T x) { }
@@ -449,7 +456,7 @@ class C
         public void CS0019ERR_BadBinaryOps12()
         {
             var text =
-@"delegate void boo<T>(T x);
+@"delegate void @boo<T>(T x);
 class C
 {
     static void far<T>(T x) { }
@@ -877,7 +884,7 @@ class B : A<S>
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static int Main()
         {
@@ -896,7 +903,7 @@ namespace x
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -950,7 +957,7 @@ class C
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -1505,9 +1512,9 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,9): error CS0127: Since 'C.M1()' returns void, a return keyword must not be followed by an object expression
+                // (6,23): error CS0029: Cannot implicitly convert type '<throw expression>' to 'void'
                 //         return true ? throw null : M2();
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M1()").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 23));
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
@@ -1525,9 +1532,9 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,42): error CS0029: Cannot implicitly convert type 'void' to 'object'
+                // (6,29): error CS0029: Cannot implicitly convert type '<throw expression>' to 'void'
                 //         object obj = true ? throw null : M2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 42));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 29));
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
@@ -1566,12 +1573,9 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,29): error CS0029: Cannot implicitly convert type 'void' to 'object'
+                // (6,22): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         object obj = true ? M2() : M2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 29),
-                // (6,36): error CS0029: Cannot implicitly convert type 'void' to 'object'
-                //         object obj = true ? M2() : M2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 36));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true ? M2() : M2()").WithArguments("void", "object").WithLocation(6, 22));
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
@@ -1660,7 +1664,7 @@ class C
             var text = @"
 namespace x
 {
-    public class iii
+    public class @iii
     {
         public static iii operator ++(iii aa)
         {
@@ -1731,7 +1735,7 @@ public class Test
         public void CS0031ERR_ConstOutOfRange01()
         {
             var text =
-@"public class a
+@"public class @a
 {
     int num = (int)2147483648M; //CS0031
 }
@@ -2210,7 +2214,7 @@ interface I
     event System.Action E3 { add; remove; }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (4,30): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     event System.Action E1 { add; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(4, 30),
@@ -2512,7 +2516,7 @@ class Program
         }
     }
 }
-enum color
+enum @color
 {
     blue,
     green
@@ -2890,7 +2894,7 @@ class C
 class Program
 {
     private readonly int v = 5;
-    delegate int del(int i);
+    delegate int @del(int i);
     static void Main(string[] args)
     {
         del myDelegate = (int x) => x * v;
@@ -2906,12 +2910,12 @@ class Program
         public void CS0120ERR_ObjectRequired03()
         {
             var source =
-@"delegate int boo();
+@"delegate int @boo();
 interface I
 {
     int bar();
 }
-public struct abc : I
+public struct @abc : I
 {
     public int bar() { System.Console.WriteLine(""bar""); return 0x01; }
 }
@@ -3223,9 +3227,6 @@ class Test : Base
                 // (11,21): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         object o = (P p) => 0;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
-                // (11,20): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
-                //         object o = (P p) => 0;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(P p) => 0").WithArguments("lambda expression", "object"),
                 // (12,17): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         int x = P.X;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
@@ -3434,7 +3435,7 @@ public class C
         public void CS0123ERR_MethDelegateMismatch_01()
         {
             var text = @"
-delegate void boo(short x);
+delegate void @boo(short x);
 class C
 {
     static void far<T>(T x) { }
@@ -3457,7 +3458,7 @@ class C
         public void CS0123ERR_MethDelegateMismatch_02()
         {
             var text = @"
-delegate void boo(short x);
+delegate void @boo(short x);
 class C<T>
 {
     public static void far(T x) { }
@@ -4104,7 +4105,7 @@ class Test
             var text = @"
 namespace x
 {
-    public class a
+    public class @a
     {
         public static void Main(bool b)
         {
@@ -4157,12 +4158,12 @@ using System;
 
 namespace A
 {
-    class var { }
+    class @var { }
     class XAttribute : Attribute { }
 }
 namespace B
 {
-    class var { }
+    class @var { }
     class XAttribute : Attribute { }
     class X : Attribute { }
 }
@@ -4188,11 +4189,11 @@ using B;
 
 namespace A
 {
-    class var { }
+    class @var { }
 }
 namespace B
 {
-    class var { }
+    class @var { }
 }
 class Xyzzy
 {
@@ -4214,15 +4215,15 @@ class Xyzzy
         public void CS0144ERR_NoNewAbstract()
         {
             var text = @"
-interface ii
+interface @ii
 {
 }
 
-abstract class aa
+abstract class @aa
 {
 }
 
-public class a
+public class @a
 {
    public static void Main()
    {
@@ -4269,7 +4270,7 @@ class C
         public void CS0151ERR_IntegralTypeValueExpected()
         {
             var text = @"
-public class iii
+public class @iii
 {
    public static implicit operator int (iii aa)
    {
@@ -4309,7 +4310,7 @@ public class iii
             var text = @"
 namespace x
 {
-   public class a
+   public class @a
    {
       public static void Main()
       {
@@ -4340,7 +4341,7 @@ namespace x
         public void CS0153ERR_InvalidGotoCase()
         {
             var text = @"
-public class a
+public class @a
 {
    public static void Main()
    {
@@ -4801,11 +4802,11 @@ using System;
 
 namespace x
 {
-   public class b : Exception
+   public class @b : Exception
    {
    }
 
-   public class a
+   public class @a
    {
       public static void Main()
       {
@@ -5183,7 +5184,7 @@ namespace MyNamespace
         public void CS0158ERR_LabelShadow_02()
         {
             var text = @"
-delegate int del(int i);
+delegate int @del(int i);
 class C
 {
     static void Main(string[] args)
@@ -5413,7 +5414,7 @@ class Program
         public void CS0159ERR_LabelNotFound_8()
         {
             var text = @"
-delegate int del(int i);
+delegate int @del(int i);
 class C
 {
     static void Main(string[] args)
@@ -6423,7 +6424,7 @@ class Test
         public void CS0170ERR_UseDefViolationField()
         {
             var text = @"
-public struct error
+public struct @error
 {
    public int i;
 }
@@ -6527,9 +6528,9 @@ public class Square
                 // (21,16): error CS0172: Type of conditional expression cannot be determined because 'Square.Circle' and 'Square' implicitly convert to one another
                 //       var o1 = (1 == 1) ? aa : ii;   // CS0172
                 Diagnostic(ErrorCode.ERR_AmbigQM, "(1 == 1) ? aa : ii").WithArguments("Square.Circle", "Square").WithLocation(21, 16),
-                // (22,19): error CS8400: Feature 'target-typed conditional expression' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (22,19): error CS8957: Conditional expression is not valid in language version 8.0 because a common type was not found between 'Square.Circle' and 'Square'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
                 //       object o2 = (1 == 1) ? aa : ii;   // CS8652
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(1 == 1) ? aa : ii").WithArguments("target-typed conditional expression", "9.0").WithLocation(22, 19)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "(1 == 1) ? aa : ii").WithArguments("8.0", "Square.Circle", "Square", "9.0").WithLocation(22, 19)
                 );
         }
 
@@ -7354,7 +7355,7 @@ unsafe public class MyClass
 
             compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1,2]')
+IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'i[1,2]')
   Children(2):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'i')
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1,2]')
@@ -9241,6 +9242,49 @@ class C1
         }
 
         [Fact]
+        public void CS0266ERR_NoImplicitConvCast14()
+        {
+            string source = @"
+class C
+{
+    public unsafe void M(int* p, object o)
+    {
+        _ = p[o]; // error with span on 'o'
+        _ = p[0]; // ok
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,15): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         _ = p[o]; // error with span on 'o'
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS0266ERR_NoImplicitConvCast15()
+        {
+            string source = @"
+class C
+{
+    public void M(object o)
+    {
+        int[o] x;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[o];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[o]").WithLocation(6, 12),
+                // (6,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         int[o];
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 13),
+                // (6,16): warning CS0168: The variable 'x' is declared but never used
+                //         int[o] x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 16));
+        }
+
+        [Fact]
         public void CS0269ERR_UseDefViolationOut()
         {
             var text = @"
@@ -10865,7 +10909,7 @@ class Test
             var text = @"
 namespace x
 {
-   public class clx
+   public class @clx
    {
       public clx() : this()   // CS0516
       {
@@ -10949,7 +10993,7 @@ public class A
         public void CS0522ERR_StructWithBaseConstructorCall()
         {
             var text = @"
-public class clx
+public class @clx
 {
    public clx(int i)
    {
@@ -10960,7 +11004,7 @@ public class clx
    }
 }
 
-public struct cly
+public struct @cly
 {
    public cly(int i):base(0)   // CS0522
    // try the following line instead
@@ -11308,7 +11352,7 @@ class D : C
             var test = @"
 namespace x
 {
-    public class iii
+    public class @iii
     {
         ~iiii(){}
         public static void Main()
@@ -11832,7 +11876,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
-public delegate void dele();
+public delegate void @dele();
 
 public class ConClass
 {
@@ -11878,33 +11922,24 @@ class Test
 {
     public static void Main()
     {
-        var m = Main; // CS0815
-        var d = s => -1; // CS0815
-        var e = (string s) => 0; // CS0815
+        var m = Main;
+        var d = s => -1; // CS8917
+        var e = (string s) => 0;
         var p = null;//CS0815
-        var del = delegate(string a) { return -1; };// CS0815
+        var del = delegate(string a) { return -1; };
         var v = M(); // CS0815
     }
     static void M() {}
 }").VerifyDiagnostics(
-                // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
-                //         var m = Main; // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
-                // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var d = s => -1; // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-                // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var e = (string s) => 0; // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
+                // (7,17): error CS8917: The delegate type could not be inferred.
+                //         var d = s => -1; // CS8917
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "s => -1").WithLocation(7, 17),
                 // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         var p = null;//CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-                // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-                //         var del = delegate(string a) { return -1; };// CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>").WithLocation(9, 13),
                 // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var v = M(); // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void").WithLocation(11, 13));
         }
 
         [Fact]
@@ -11920,18 +11955,15 @@ var p = null;
 var del = delegate(string a) { return -1; };
 var v = M();     
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (4,5): error CS0815: Cannot assign method group to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = M").WithArguments("method group"),
-                // (5,5): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-                // (6,5): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
+                // (5,9): error CS8917: The delegate type could not be inferred.
+                // var d = s => -1; 
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "s => -1").WithLocation(5, 9),
                 // (7,5): error CS0815: Cannot assign <null> to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-                // (8,5): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
+                // var p = null;    
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>").WithLocation(7, 5),
                 // (9,1): error CS0670: Field cannot have void type
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "var"));
+                // var v = M();     
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "var").WithLocation(9, 1));
         }
 
         [Fact]
@@ -12567,12 +12599,21 @@ namespace TestNamespace
                 // (11,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             bool b2 = delegate() { } is Del;// CS0837
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } is Del").WithLocation(11, 23),
+                // (11,38): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(11, 38),
                 // (12,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             Del d1 = () => { } as Del;      // CS0837
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "() => { } as Del").WithLocation(12, 22),
+                // (12,32): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(12, 32),
                 // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             Del d2 = delegate() { } as Del; // CS0837
-                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22)
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22),
+                // (13,37): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(13, 37)
                 );
             CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
                 // (10,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
@@ -12843,7 +12884,7 @@ namespace ConsoleApplication3
 {
     class Program
     {
-        delegate string dg(int x);
+        delegate string @dg(int x);
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index(minSessions:5);
@@ -12895,7 +12936,7 @@ namespace ConsoleApplication3
 {
     class Program
     {
-        delegate string dg(int x);
+        delegate string @dg(int x);
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index();
@@ -12955,6 +12996,36 @@ class C
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "b[3]").WithLocation(25, 20),
                 // (26,20): error CS0832: An expression tree may not contain an assignment operator
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[4, 5] = null").WithLocation(26, 20));
+        }
+
+        [Fact]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument03()
+        {
+            var text =
+@"using System;
+using System.Collections;
+using System.Linq.Expressions;
+
+public class Collection : IEnumerable
+{
+    public void Add(int i, int j = 0) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class C {
+    public void M() {
+        Expression<Func<Collection>> expr =
+            () => new Collection { 1 }; // 1
+    }
+}";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (18,36): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                //             () => new Collection { 1 }; // 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "1").WithLocation(18, 36));
         }
 
         [Fact]
@@ -13617,7 +13688,7 @@ namespace ConsoleApplication1
             var text = @"
 namespace x
 {
-    public class a
+    public class @a
     {
         public a(char i)
         {
@@ -13642,7 +13713,7 @@ namespace x
             var text = @"
 namespace x
 {
-    public class a
+    public class @a
     {
         public a() : this(""string"") //CS1502, CS1503
         {
@@ -14472,9 +14543,9 @@ public class Test
         {
             var text = @"
 using System;
-delegate string func(int i);   // declare delegate
+delegate string @func(int i);   // declare delegate
 
-class a
+class @a
 {
     public static void Main()
     {
@@ -14545,9 +14616,9 @@ class Program
         {
             var text = @"
 using System;
-delegate string func(int i);   // declare delegate
+delegate string @func(int i);   // declare delegate
 
-class a
+class @a
 {
     public static void Main()
     {
@@ -14722,7 +14793,7 @@ class C
             var text = @"
 using System.Diagnostics;
 
-delegate void del();
+delegate void @del();
 
 class MakeAnError
 {
@@ -14749,7 +14820,7 @@ class MakeAnError
 using System;
 using System.Diagnostics;
 
-delegate void del();
+delegate void @del();
 
 class MakeAnError
 {
@@ -18058,6 +18129,29 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
         }
 
+        [Fact]
+        [WorkItem(54804, "https://github.com/dotnet/roslyn/issues/54804")]
+        public void BadNestedTypeof()
+        {
+            var source = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+var x = typeof(List<dynamic>); // 1
+x = typeof(nint); // 2
+x = typeof(List<nint>); // 3
+x = typeof(List<string?>); // 4
+x = typeof((int a, int b)); // 5
+x = typeof((int a, string? b)); // 6
+x = typeof(ValueTuple<int, int>); // ok
+";
+            CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(5)).VerifyDiagnostics();
+        }
+
         // CS1963ERR_ExpressionTreeContainsDynamicOperation --> SyntaxBinderTests
 
         [Fact]
@@ -18751,7 +18845,7 @@ class Program
         public void CS0164WRN_UnreferencedLabel()
         {
             var text = @"
-public class a
+public class @a
 {
    public int i = 0;
 
@@ -18769,12 +18863,12 @@ public class a
         public void CS0168WRN_UnreferencedVar01()
         {
             var text = @"
-public class clx
+public class @clx
 {
     public int i;
 }
 
-public class clz
+public class @clz
 {
     public static void Main()
     {
@@ -19090,7 +19184,7 @@ class Derived : ByRef
         public void CS0219WRN_UnreferencedVarAssg02()
         {
             var text = @"
-public class clx
+public class @clx
 {
     static void Main(string[] args)
     {
@@ -19105,7 +19199,7 @@ public class clx
         public void CS0219WRN_UnreferencedVarAssg03()
         {
             var text = @"
-public class clx
+public class @clx
 {
     static void Main(string[] args)
     {
@@ -19121,7 +19215,7 @@ public class clx
         public void CS0219WRN_UnreferencedVarAssg_StructString()
         {
             var text = @"
-class program
+class @program
 {
     static void Main(string[] args)
     {
@@ -19129,7 +19223,7 @@ class program
         string s = """";
     }
 }
-struct s1 { }
+struct @s1 { }
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,12): warning CS0219: The variable 'y' is assigned but its value is never used
@@ -20637,8 +20731,8 @@ ftftftft";
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
             };
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
-            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
-            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithWarningLevel(5)).VerifyDiagnostics(fullExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithWarningLevel(4)).VerifyDiagnostics(compatibleExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]
@@ -20948,7 +21042,7 @@ class B
         public void CS0675WRN_BitwiseOrSignExtend()
         {
             var text = @"
-public class sign
+public class @sign
 {
    public static void Main()
    {
@@ -22580,6 +22674,7 @@ public class Program
         var z8 = new Func<string, string>(ref Program.BarP); 
         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
         var z10 = new Func<string, string>(ref Id); // compat
+        var z11 = new Func<string, string>(ref new(x => x));
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
@@ -22600,7 +22695,11 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithArguments("Program.BarP").WithLocation(20, 43),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
+                // (23,48): error CS1510: A ref or out value must be an assignable variable
+                //         var z11 = new Func<string, string>(ref new(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new(x => x)").WithLocation(23, 48)
+                );
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (13,47): error CS0149: Method name expected
@@ -22632,7 +22731,11 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
                 // (22,48): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
                 //         var z10 = new Func<string, string>(ref Id); // compat
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48));
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48),
+                // (23,48): error CS1510: A ref or out value must be an assignable variable
+                //         var z11 = new Func<string, string>(ref new(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new(x => x)").WithLocation(23, 48)
+                );
         }
 
         [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
@@ -23302,9 +23405,9 @@ class Program
 }";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                // (5,26): error CS8917: The delegate type could not be inferred.
                 //         var a1 = checked((a) => a);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "a1 = checked((a) => a)").WithArguments("lambda expression"));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(a) => a").WithLocation(5, 26));
         }
 
         [Fact, WorkItem(543665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543665")]
@@ -23658,9 +23761,9 @@ class Program
                 // (14,18): error CS8026: Feature 'null propagation operator' is not available in C# 5. Please use language version 6 or greater.
                 //         var x1 = p.P1 ?.ToString;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "p.P1 ?.ToString").WithArguments("null propagating operator", "6").WithLocation(14, 18),
-                // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
+                // (14,24): error CS8977: 'method group' cannot be made nullable.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
                 );
         }
 
@@ -23685,10 +23788,10 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
-    //         var x1 = p.P1 ?.ToString;
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
-               );
+                // (14,24): error CS8977: 'method group' cannot be made nullable.
+                //         var x1 = p.P1 ?.ToString;
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
+                );
         }
 
 
@@ -23783,10 +23886,10 @@ class Program
 
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-    // (9,23): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //         var p = intPtr?.ToPointer();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(9, 23)
-               );
+                // (9,24): error CS8977: 'void*' cannot be made nullable.
+                //         var p = intPtr?.ToPointer();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToPointer()").WithArguments("void*").WithLocation(9, 24)
+                );
         }
 
         [Fact]
@@ -24184,15 +24287,15 @@ public ref struct S2
 }
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (10,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                // (10,19): error CS8977: 'S2' cannot be made nullable.
                 //         var x = o?.F();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(10, 18),
-                // (12,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(10, 19),
+                // (12,19): error CS8977: 'S2' cannot be made nullable.
                 //         var y = o?.F() ?? default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(12, 18),
-                // (14,18): error CS0023: Operator '?' cannot be applied to operand of type 'S1'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(12, 19),
+                // (14,19): error CS8977: 'S1' cannot be made nullable.
                 //         var z = o?.F().field ?? default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S1").WithLocation(14, 18)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F().field").WithArguments("S1").WithLocation(14, 19)
                );
         }
 

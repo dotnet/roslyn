@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -13,11 +15,17 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
 {
     public partial class UseExplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseExplicitTypeTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseExplicitTypeDiagnosticAnalyzer(), new UseExplicitTypeCodeFixProvider());
 
@@ -95,9 +103,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
-        public async Task NotOnAnonymousMethodExpression()
+        public async Task OnAnonymousMethodExpression()
         {
-            await TestMissingInRegularAndScriptAsync(
+            var before =
 @"using System;
 
 class Program
@@ -108,22 +116,50 @@ class Program
             return value != ""0"";
         };
     }
-}", new TestParameters(options: ExplicitTypeEverywhere()));
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
-        public async Task NotOnLambdaExpression()
-        {
-            await TestMissingInRegularAndScriptAsync(
+}";
+            var after =
 @"using System;
 
 class Program
 {
     void Method()
     {
-        [|var|] x = y => y * y;
+        Func<string, bool> comparer = delegate (string value) {
+            return value != ""0"";
+        };
     }
-}", new TestParameters(options: ExplicitTypeEverywhere()));
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task OnLambdaExpression()
+        {
+            var before =
+@"using System;
+
+class Program
+{
+    void Method()
+    {
+        [|var|] x = (int y) => y * y;
+    }
+}";
+            var after =
+@"using System;
+
+class Program
+{
+    void Method()
+    {
+        Func<int, int> x = (int y) => y * y;
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -360,9 +396,6 @@ class Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-#if !CODE_STYLE // TODO: Skipped tests in CodeStyle layer depend on new compiler API (IsNativeIntegerType) that is not available in CodeStyle layer.
-        // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
         public async Task InNativeIntIntrinsicType()
@@ -414,7 +447,6 @@ class Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
-#endif
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]
@@ -2512,6 +2544,50 @@ class Program
         const [|var|] v = 0;
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task WithNormalFuncSynthesizedLambdaType()
+        {
+            var before = @"
+class Program
+{
+    void Method()
+    {
+        [|var|] x = (int i) => i.ToString();
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method()
+    {
+        System.Func<int, string> x = (int i) => i.ToString();
+    }
+}";
+            // The type is not apparent and not intrinsic
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task WithAnonymousSynthesizedLambdaType()
+        {
+            var before = @"
+class Program
+{
+    void Method()
+    {
+        [|var|] x = (ref int i) => i.ToString();
+    }
+}";
+            // The type is apparent and not intrinsic
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeEverywhere()));
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeExceptWhereApparent()));
         }
     }
 }

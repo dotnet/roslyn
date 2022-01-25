@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,11 +19,17 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
 {
     public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public SimplifyTypeNamesTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new SimplifyTypeNamesCodeFixProvider());
 
@@ -113,6 +121,30 @@ namespace Root
         MyType c;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task UseAlias00_FileScopedNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace Root;
+
+using MyType = System.IO.File;
+
+class A
+{
+    [|System.IO.File|] c;
+}
+",
+@"namespace Root;
+
+using MyType = System.IO.File;
+
+class A
+{
+    MyType c;
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -530,6 +562,288 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToAliasIfConflict1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToAliasIfConflict2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType() => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType => 3;
+
+        void M()
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType = 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType = 3;
+
+        void M()
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        void M(System.ConsoleColor MyType)
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        void M(System.ConsoleColor MyType)
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToNamespaceAliasIfConflict()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            [|Root.Inner.Inner2|].Red.Goo();
+        }
+    }
+}",
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            Inner.Inner2.Red.Goo();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToNamespaceAliasIfNoConflict()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        void M()
+        {
+            [|Root.Inner.Inner2|].Red.Goo();
+        }
+    }
+}",
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        void M()
+        {
+            MyType.Red.Goo();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfConflictIsntType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        [|System.ConsoleColor|] x;
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        MyType x;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoMissingOnAmbiguousCref1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -743,6 +1057,40 @@ namespace Root
     {
         [|System|].Exception c;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyTypeName1_FileScopedNamespace()
+        {
+            var source =
+@"using System;
+
+namespace Root;
+
+class A
+{
+    [|System.Exception|] c;
+}";
+
+            await TestInRegularAndScriptAsync(source,
+@"using System;
+
+namespace Root;
+
+class A
+{
+    Exception c;
+}");
+            await TestActionCountAsync(source, 1);
+            await TestSpansAsync(
+@"using System;
+
+namespace Root;
+
+class A
+{
+    [|System|].Exception c;
 }");
         }
 
@@ -5861,6 +6209,54 @@ class Program
     static void Main(string[] args)
     {
         [|Console.Equals|]("""");
+    }
+}");
+        }
+
+        [WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestInvocationOffOfFunctionPointerInvocationResult1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.CompilerServices;
+
+public ref struct A
+{
+    private void Goo()
+    {
+    }
+
+    public readonly unsafe ref struct B
+    {
+        private readonly void* a;
+
+        public void Dispose()
+        {
+            [|((delegate*<ref byte, ref A>)(delegate*<ref byte, ref byte>)&Unsafe.As<byte, byte>)(ref *(byte*)a)|].Goo();
+        }
+    }
+}");
+        }
+
+        [WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestInvocationOffOfFunctionPointerInvocationResult2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public struct A
+{
+    private void Goo()
+    {
+    }
+
+    public readonly unsafe struct B
+    {
+        private readonly void* a;
+
+        public void Dispose()
+        {
+            [|((delegate*<ref byte, ref A>)&Unsafe.As<byte, A>)(ref *(byte*)a)|].Goo();
+        }
     }
 }");
         }

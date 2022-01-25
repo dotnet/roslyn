@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -65,6 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IFieldSymbol.IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                return _underlying.IsExplicitlyNamedTupleElement;
+            }
+        }
+
         bool IFieldSymbol.IsConst => _underlying.IsConst;
 
         bool IFieldSymbol.IsReadOnly => _underlying.IsReadOnly;
@@ -72,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool IFieldSymbol.IsVolatile => _underlying.IsVolatile;
 
         bool IFieldSymbol.IsFixedSizeBuffer => _underlying.IsFixedSizeBuffer;
+
+        int IFieldSymbol.FixedSize => _underlying.FixedSize;
 
         bool IFieldSymbol.HasConstantValue => _underlying.HasConstantValue;
 

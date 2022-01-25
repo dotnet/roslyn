@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -20,63 +17,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax,
             ParameterSymbol backingParameter,
             bool isOverride,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
-                binder: null,
                 syntax: syntax,
-                getSyntax: syntax,
-                setSyntax: syntax,
-                arrowExpression: null,
-                interfaceSpecifier: null,
+                hasGetAccessor: true,
+                hasSetAccessor: true,
+                isExplicitInterfaceImplementation: false,
+                explicitInterfaceType: null,
+                aliasQualifierOpt: null,
                 modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
-                isIndexer: false,
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
                 isAutoProperty: true,
-                hasAccessorList: false,
-                isInitOnly: true,
+                isExpressionBodied: false,
+                isInitOnly: ShouldUseInit(containingType),
                 RefKind.None,
                 backingParameter.Name,
+                indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
                 backingParameter.Locations[0],
-                typeOpt: backingParameter.TypeWithAnnotations,
-                hasParameters: false,
                 diagnostics)
         {
             BackingParameter = (SourceParameterSymbol)backingParameter;
         }
-
 
         public override IAttributeTargetSymbol AttributesOwner => BackingParameter as IAttributeTargetSymbol ?? this;
 
         protected override Location TypeLocation
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
 
-        protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
-            => new SyntaxTokenList();
-
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => BackingParameter.AttributeDeclarationList;
 
-        protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
-            // Nothing to do here
+            Debug.Assert(isAutoPropertyAccessor);
+            return CreateAccessorSymbol(isGet: true, CSharpSyntaxNode, diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateAccessorSymbol(
-            bool isGet,
-            CSharpSyntaxNode? syntax,
-            PropertySymbol? explicitlyImplementedPropertyOpt,
-            string? aliasQualifierOpt,
-            bool isAutoPropertyAccessor,
-            bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(syntax is object);
             Debug.Assert(isAutoPropertyAccessor);
+            return CreateAccessorSymbol(isGet: false, CSharpSyntaxNode, diagnostics);
+        }
 
+        private static bool ShouldUseInit(TypeSymbol container)
+        {
+            // the setter is always init-only in record class and in readonly record struct
+            return !container.IsStructType() || container.IsReadOnly;
+        }
+
+        private SourcePropertyAccessorSymbol CreateAccessorSymbol(
+            bool isGet,
+            CSharpSyntaxNode syntax,
+            BindingDiagnosticBag diagnostics)
+        {
+            var usesInit = !isGet && ShouldUseInit(ContainingType);
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 isGet,
-                usesInit: !isGet, // the setter is always init-only
+                usesInit,
                 ContainingType,
                 this,
                 _modifiers,
@@ -85,25 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
-            ArrowExpressionClauseSyntax syntax,
-            PropertySymbol? explicitlyImplementedPropertyOpt,
-            string? aliasQualifierOpt,
-            bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)
         {
-            // There should be no expression-bodied synthesized record properties
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
-        {
-            return ImmutableArray<ParameterSymbol>.Empty;
-        }
-
-        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
-        {
-            return BackingParameter.TypeWithAnnotations;
+            return (BackingParameter.TypeWithAnnotations,
+                    ImmutableArray<ParameterSymbol>.Empty);
         }
 
         protected override bool HasPointerTypeSyntactically

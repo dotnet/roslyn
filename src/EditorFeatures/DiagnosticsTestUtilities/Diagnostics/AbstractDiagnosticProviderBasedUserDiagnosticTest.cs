@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,19 +17,25 @@ using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
     {
-        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap =
-            new ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)>();
+        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = new();
+
+        protected AbstractDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
 
         internal abstract (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace);
 
@@ -44,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal virtual bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
         {
-            if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+            if (descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable))
             {
                 if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
                 {
@@ -52,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -68,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
-                    if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                    if (descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable))
                     {
                         // The title only displayed for rule configuration
                         continue;
@@ -157,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
             var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
-                dxs, fixer, testDriver, document, span, annotation, parameters.index);
+                dxs, fixer, testDriver, document, span, parameters.codeActionOptions, annotation, parameters.index);
 
             // If we are also testing non-fixable diagnostics,
             // then the result diagnostics need to include all diagnostics,
@@ -222,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private static void AssertNoAnalyzerExceptionDiagnostics(IEnumerable<Diagnostic> diagnostics)
 #pragma warning restore CS1574 // XML comment has cref attribute that could not be resolved
         {
-            var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));
+            var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.AnalyzerException));
             AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
         }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseNotPattern), Shared]
     internal partial class CSharpUseNotPatternCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -63,30 +61,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
-#if CODE_STYLE
-            Contract.Fail("We should have never gotten here as CODE_STYLE doesn't support C# 9 yet.");
-#else
-
             var notExpressionLocation = diagnostic.AdditionalLocations[0];
 
             var notExpression = (PrefixUnaryExpressionSyntax)notExpressionLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var parenthesizedExpression = (ParenthesizedExpressionSyntax)notExpression.Operand;
-            var isPattern = (IsPatternExpressionSyntax)parenthesizedExpression.Expression;
+            var oldExpression = parenthesizedExpression.Expression;
 
-            var updatedPattern = isPattern.WithPattern(UnaryPattern(Token(SyntaxKind.NotKeyword), isPattern.Pattern));
+            var updatedPattern = oldExpression switch
+            {
+                IsPatternExpressionSyntax isPattern => isPattern.WithPattern(UnaryPattern(Token(SyntaxKind.NotKeyword), isPattern.Pattern)),
+                BinaryExpressionSyntax { Right: TypeSyntax type } binaryIsExpression
+                    => IsPatternExpression(binaryIsExpression.Left, UnaryPattern(Token(SyntaxKind.NotKeyword), TypePattern(type))),
+                _ => throw ExceptionUtilities.UnexpectedValue(oldExpression)
+            };
+
             editor.ReplaceNode(
                 notExpression,
                 updatedPattern.WithPrependedLeadingTrivia(notExpression.GetLeadingTrivia())
                               .WithAppendedTrailingTrivia(notExpression.GetTrailingTrivia()));
-
-#endif
-
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, CSharpAnalyzersResources.Use_pattern_matching)
+                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpUseNotPatternCodeFixProvider))
             {
             }
         }

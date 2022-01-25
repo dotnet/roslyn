@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -26,7 +30,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestCSharpDefaultRules()
         {
-            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace(), LanguageNames.CSharp);
+            using var workspace = new AdhocWorkspace();
+
+            var service = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ISyntaxFormattingService>();
+            var rules = service.GetDefaultFormattingRules();
 
             Assert.NotNull(rules);
             Assert.NotEmpty(rules);
@@ -52,7 +59,9 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestVisualBasicDefaultFormattingRules()
         {
-            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace(), LanguageNames.VisualBasic);
+            using var workspace = new AdhocWorkspace();
+            var service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService<ISyntaxFormattingService>();
+            var rules = service.GetDefaultFormattingRules();
 
             Assert.NotNull(rules);
             Assert.NotEmpty(rules);
@@ -73,7 +82,9 @@ End Class
         private static void AssertFormat(string expected, SyntaxTree tree)
         {
             using var workspace = new AdhocWorkspace();
-            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace);
+
+            var options = SyntaxFormattingOptions.Default;
+            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services, options, CancellationToken.None);
             var actualFormattedText = formattedRoot.ToFullString();
 
             Assert.Equal(expected, actualFormattedText);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Host;
 
         protected virtual OptionSet UpdateOptions(OptionSet options)
-            => options.WithChangedOption(BlockStructureOptions.MaximumBannerLength, LanguageName, 120);
+            => options.WithChangedOption(BlockStructureOptions.Metadata.MaximumBannerLength, LanguageName, 120);
 
         private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
             => GetBlockSpansWorkerAsync(document, position);
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         {
             using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(UpdateOptions(workspace.Options)));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(UpdateOptions(workspace.CurrentSolution.Options)));
 
                 var hostDocument = workspace.Documents.Single();
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");

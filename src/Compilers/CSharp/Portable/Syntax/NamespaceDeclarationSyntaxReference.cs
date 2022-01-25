@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node = node.Parent;
             }
 
-            Debug.Assert(node is CompilationUnitSyntax || node is NamespaceDeclarationSyntax);
+            Debug.Assert(node is CompilationUnitSyntax || node is BaseNamespaceDeclarationSyntax);
 
             return node;
         }

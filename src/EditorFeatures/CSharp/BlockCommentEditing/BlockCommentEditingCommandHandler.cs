@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -35,18 +34,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public BlockCommentEditingCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
         {
             Contract.ThrowIfNull(undoHistoryRegistry);
             Contract.ThrowIfNull(editorOperationsFactoryService);
 
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _globalOptions = globalOptions;
         }
 
         public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
         private bool TryHandleReturnKey(ITextBuffer subjectBuffer, ITextView textView)
         {
-            if (!subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString))
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp))
                 return false;
 
             var caretPosition = textView.GetCaretPoint(subjectBuffer);

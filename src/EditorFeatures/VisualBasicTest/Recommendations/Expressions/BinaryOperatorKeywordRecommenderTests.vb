@@ -6,183 +6,185 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expres
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class BinaryOperatorKeywordRecommenderTests
+        Inherits RecommenderTests
+
         Private Shared ReadOnly s_expectedKeywords As String() = BinaryOperatorKeywordRecommender.KeywordList.Select(Function(k) k.Keyword).ToArray()
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInMethodDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInMethodDeclarationTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterLocalDeclarationNumericLiteralInitializerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim i As Integer = 1 |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllAfterLocalDeclarationNumericLiteralInitializerTest()
+            VerifyRecommendationsContain(<MethodBody>Dim i As Integer = 1 |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterNumberInAssignmentTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = 1 |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllAfterNumberInAssignmentTest()
+            VerifyRecommendationsContain(<MethodBody>x = 1 |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterStringInAssignmentTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = "asdf" |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllAfterStringInAssignmentTest()
+            VerifyRecommendationsContain(<MethodBody>x = "asdf" |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterObjectCreationInAssignmentTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = New Object() |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllAfterObjectCreationInAssignmentTest()
+            VerifyRecommendationsContain(<MethodBody>x = New Object() |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterObjectCreationInDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = New Object |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterObjectCreationInDeclarationTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = New Object |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterObjectCreationWithParensInDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = New Object() |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterObjectCreationWithParensInDeclarationTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = New Object() |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterAsNewInDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x As New Object |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterAsNewInDeclarationTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x As New Object |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterAsNewWithParensInDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x As New Object() |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterAsNewWithParensInDeclarationTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x As New Object() |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterMethodCallInAsNewClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x As New Object(Goo() |)</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllAfterMethodCallInAsNewClauseTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x As New Object(Goo() |)</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterPropertyAccessInAssignmentTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = Goo.Bar |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllAfterPropertyAccessInAssignmentTest()
+            VerifyRecommendationsContain(<MethodBody>x = Goo.Bar |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterMethodCallInAssignmentTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = Goo.Bar() |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllAfterMethodCallInAssignmentTest()
+            VerifyRecommendationsContain(<MethodBody>x = Goo.Bar() |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterDotInImportsTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>Imports System.|</File>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterDotInImportsTest()
+            VerifyRecommendationsMissing(<File>Imports System.|</File>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInSubLambdaParameterListTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Sub(x |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInSubLambdaParameterListTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = Sub(x |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInFunctionLambdaParameterListTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function(x |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInFunctionLambdaParameterListTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = Function(x |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInQueryVariableListTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = From y |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInQueryVariableListTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = From y |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInQueryVariableList2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = From y In {1, 2, 3} Let z |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInQueryVariableList2Test()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = From y In {1, 2, 3} Let z |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllInSubLambdaBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub(x As Integer) x |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllInSubLambdaBodyTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = Sub(x As Integer) x |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <WorkItem(541354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541354")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterStringLiteralTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>test = "F" |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AfterStringLiteralTest()
+            VerifyRecommendationsContain(<MethodBody>test = "F" |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllInFunctionLambdaBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Function(x As Integer) x |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllInFunctionLambdaBodyTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = Function(x As Integer) x |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInObjectMemberInitializer1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New goo() With {|</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInObjectMemberInitializer1Test()
+            VerifyRecommendationsMissing(<MethodBody>Dim y = New goo() With {|</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInObjectMemberInitializer2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New goo() With {.|</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInObjectMemberInitializer2Test()
+            VerifyRecommendationsMissing(<MethodBody>Dim y = New goo() With {.|</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInObjectMemberInitializer3Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New goo() With {.x|</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInObjectMemberInitializer3Test()
+            VerifyRecommendationsMissing(<MethodBody>Dim y = New goo() With {.x|</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInObjectMemberInitializer4Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim y = New goo() With {.x |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInObjectMemberInitializer4Test()
+            VerifyRecommendationsMissing(<MethodBody>Dim y = New goo() With {.x |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInCatchStatement1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub NoneInCatchStatement1Test()
+            VerifyRecommendationsMissing(<MethodBody>
                                              Try
                                              Catch ex |
                                          </MethodBody>, s_expectedKeywords)
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInCatchStatement2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub NoneInCatchStatement2Test()
+            VerifyRecommendationsMissing(<MethodBody>
                                              Try
                                              Catch ex As Exception |
                                          </MethodBody>, s_expectedKeywords)
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInDimArrayBounds1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim i(0 |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInDimArrayBounds1Test()
+            VerifyRecommendationsMissing(<MethodBody>Dim i(0 |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllInDimArrayBounds2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim i(0 To 4 |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllInDimArrayBounds2Test()
+            VerifyRecommendationsContain(<MethodBody>Dim i(0 To 4 |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInReDimArrayBounds1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>ReDim i(0 |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInReDimArrayBounds1Test()
+            VerifyRecommendationsMissing(<MethodBody>ReDim i(0 |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllInReDimArrayBounds2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ReDim i(0 To 4 |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub AllInReDimArrayBounds2Test()
+            VerifyRecommendationsContain(<MethodBody>ReDim i(0 To 4 |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterQueryFromTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim query = From |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterQueryFromTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim query = From |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterQueryAggregateTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim query = Aggregate |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterQueryAggregateTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim query = Aggregate |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInTypeArgumentListTest() As Task
+        Public Sub NoneInTypeArgumentListTest()
             Dim code =
             <File>
 Module M
@@ -192,115 +194,115 @@ Module M
 End Module
 </File>
 
-            Await VerifyRecommendationsMissingAsync(code, s_expectedKeywords)
-        End Function
+            VerifyRecommendationsMissing(code, s_expectedKeywords)
+        End Sub
 
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterAddHandlerEventNameTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>AddHandler System.Console.CancelKeyPress |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterAddHandlerEventNameTest()
+            VerifyRecommendationsMissing(<MethodBody>AddHandler System.Console.CancelKeyPress |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterAddHandlerIdentifierTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>AddHandler System.Console.CancelKeyPress, Goo |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterAddHandlerIdentifierTest()
+            VerifyRecommendationsContain(<MethodBody>AddHandler System.Console.CancelKeyPress, Goo |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterAddHandlerAddressOfIdentifierTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>AddHandler System.Console.CancelKeyPress, AddressOf Goo |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterAddHandlerAddressOfIdentifierTest()
+            VerifyRecommendationsMissing(<MethodBody>AddHandler System.Console.CancelKeyPress, AddressOf Goo |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterRemoveHandlerEventNameTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterRemoveHandlerEventNameTest()
+            VerifyRecommendationsMissing(<MethodBody>RemoveHandler System.Console.CancelKeyPress |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterRemoveHandlerIdentifierTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress, Goo |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterRemoveHandlerIdentifierTest()
+            VerifyRecommendationsContain(<MethodBody>RemoveHandler System.Console.CancelKeyPress, Goo |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterRemoveHandlerAddressOfIdentifierTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress, AddressOf Goo |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterRemoveHandlerAddressOfIdentifierTest()
+            VerifyRecommendationsMissing(<MethodBody>RemoveHandler System.Console.CancelKeyPress, AddressOf Goo |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterNamespaceAliasInImportsTest() As Task
+        Public Sub NoneAfterNamespaceAliasInImportsTest()
             Dim code =
             <File>
 Imports S |
 </File>
 
-            Await VerifyRecommendationsMissingAsync(code, s_expectedKeywords)
-        End Function
+            VerifyRecommendationsMissing(code, s_expectedKeywords)
+        End Sub
 
         <WorkItem(546505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546505")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoCrashInVariableDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x As New TypeInfo(New |)</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoCrashInVariableDeclarationTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x As New TypeInfo(New |)</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(544278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544278")>
-        Public Async Function NoneAfterMidStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Mid(s, 1, 1) |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterMidStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>Mid(s, 1, 1) |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(544576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544576")>
-        Public Async Function NoneAfterExternalMethodDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Declare Sub S Lib "L" Alias "A" |</ClassDeclaration>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterExternalMethodDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Declare Sub S Lib "L" Alias "A" |</ClassDeclaration>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(545988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545988")>
-        Public Async Function NoneAfterNamedArgumentTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Goo(f:=|</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneAfterNamedArgumentTest()
+            VerifyRecommendationsMissing(<MethodBody>Goo(f:=|</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(546659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
-        Public Async Function NoneInUsingStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Using Goo |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInUsingStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>Using Goo |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(531329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531329")>
-        Public Async Function NoneInForStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>For i = 1 |</MethodBody>, s_expectedKeywords)
-        End Function
+        Public Sub NoneInForStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>For i = 1 |</MethodBody>, s_expectedKeywords)
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <MethodBody>test = "F" 
 |</MethodBody>, s_expectedKeywords)
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <MethodBody>test = "F" _
 |</MethodBody>, s_expectedKeywords)
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <MethodBody>test = "F" _ ' Test
 |</MethodBody>, s_expectedKeywords)
-        End Function
+        End Sub
 
         <WorkItem(975804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/975804")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterIncompleteObjectCreationTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterIncompleteObjectCreationTest()
+            VerifyRecommendationsMissing(
 <MethodBody>Dim x = new Goo.|
 </MethodBody>, s_expectedKeywords)
-        End Function
+        End Sub
     End Class
 End Namespace

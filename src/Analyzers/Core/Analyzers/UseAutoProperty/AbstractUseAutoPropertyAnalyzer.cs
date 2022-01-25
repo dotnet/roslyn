@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         protected AbstractUseAutoPropertyAnalyzer()
-            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)
+            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, EnforceOnBuildValues.UseAutoProperty, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)
         {
         }
 
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
 
-            if (!(semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is IPropertySymbol property))
+            if (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is not IPropertySymbol property)
             {
                 return;
             }
@@ -207,7 +205,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             var fieldReference = getterField.DeclaringSyntaxReferences[0];
-            if (!(fieldReference.GetSyntax(cancellationToken) is TVariableDeclarator variableDeclarator))
+            if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator variableDeclarator)
             {
                 return;
             }
@@ -218,15 +216,20 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            if (!(variableDeclarator.Parent?.Parent is TFieldDeclaration fieldDeclaration))
+            if (variableDeclarator.Parent?.Parent is not TFieldDeclaration fieldDeclaration)
             {
                 return;
             }
 
             // Can't remove the field if it has attributes on it.
-            if (getterField.GetAttributes().Length > 0)
+            var attributes = getterField.GetAttributes();
+            var suppressMessageAttributeType = semanticModel.Compilation.SuppressMessageAttributeType();
+            foreach (var attribute in attributes)
             {
-                return;
+                if (attribute.AttributeClass != suppressMessageAttributeType)
+                {
+                    return;
+                }
             }
 
             if (!CanConvert(property))

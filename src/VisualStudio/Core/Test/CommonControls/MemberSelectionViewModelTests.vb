@@ -14,74 +14,11 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
     <[UseExportProvider]>
     Public Class MemberSelectionViewModelTests
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
-        Public Async Function SelectAllMemberMakeSelectAllBecomeChecked() As Task
-            Dim markUp = <Text><![CDATA[
-        interface Level2Interface
-        {
-        }
-
-        interface Level1Interface : Level2Interface
-        {
-        }
-
-        class Level1BaseClass: Level2Interface
-        {
-        }
-
-        class MyClass : Level1BaseClass, Level1Interface
-        {
-            public void G$$oo()
-            {
-            }
-
-            public double e => 2.717;
-
-            private double pi => 3.1416;
-        }"]]></Text>
-            Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            viewModel.SelectAll()
-
-            Assert.True(viewModel.SelectAllCheckBoxState)
-            Assert.False(viewModel.SelectAllCheckBoxThreeStateEnable)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
-        Public Async Function DeSelectAllMemberMakeSelectAllBecomeEmpty() As Task
-            Dim markUp = <Text><![CDATA[
-        interface Level2Interface
-        {
-        }
-
-        interface Level1Interface : Level2Interface
-        {
-        }
-
-        class Level1BaseClass: Level2Interface
-        {
-        }
-
-        class MyClass : Level1BaseClass, Level1Interface
-        {
-            public void G$$oo()
-            {
-            }
-
-            public double e => 2.717;
-
-            private double pi => 3.1416;
-        }"]]></Text>
-            Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            viewModel.DeselectAll()
-
-            Assert.False(viewModel.SelectAllCheckBoxState)
-            Assert.False(viewModel.SelectAllCheckBoxThreeStateEnable)
-        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
         Public Async Function SelectPublicMembers() As Task
             Dim markUp = <Text><![CDATA[
@@ -217,15 +154,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
             Assert.False(FindMemberByName("FooEvent", viewModel.Members).IsChecked)
         End Function
 
-        Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
+        Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.SymbolName.Equals(name))
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
             End If
+
             Return member
         End Function
 
-        Private Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of MemberSelectionViewModel)
+        Private Shared Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of MemberSelectionViewModel)
             Dim workspaceXml =
             <Workspace>
                 <Project Language=<%= languageName %> CommonReferences="true">
@@ -248,7 +186,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
                     Function(member) New PullMemberUpSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
                 Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, workspaceDoc.Project, CancellationToken.None)
                 Return New MemberSelectionViewModel(
-                    workspace.GetService(Of IWaitIndicator),
+                    workspace.GetService(Of IUIThreadOperationExecutor),
                     membersViewModel,
                     memberToDependents)
             End Using

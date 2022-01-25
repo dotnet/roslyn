@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
 using System;
@@ -338,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
             catch (CompilationErrorException e)
             {
-                return ImmutableArray.CreateRange(e.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning));
+                return ImmutableArray.CreateRange(e.Diagnostics.Where(d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning));
             }
         }
 

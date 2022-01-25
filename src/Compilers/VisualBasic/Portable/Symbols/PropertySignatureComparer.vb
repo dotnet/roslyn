@@ -165,6 +165,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         GoTo Done
                     End If
                 End If
+
+                If (comparisons And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 AndAlso
+                   prop1.SetMethod?.IsInitOnly <> prop2.SetMethod?.IsInitOnly Then
+
+                    results = results Or SymbolComparisonResults.PropertyInitOnlyMismatch
+                    If (stopIfAny And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 Then
+                        GoTo Done
+                    End If
+                End If
             End If
 
             If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch Or SymbolComparisonResults.TupleNamesMismatch)) <> 0 Then
@@ -187,6 +196,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 results = results Or MethodSignatureComparer.DetailedParameterCompare(prop1.Parameters, Nothing, prop2.Parameters, Nothing, comparisons, stopIfAny)
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done
+                End If
+            End If
+
+            If (comparisons And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then
+                If prop1.IsShared <> prop2.IsShared Then
+                    results = results Or SymbolComparisonResults.CallingConventionMismatch
+                    If (stopIfAny And SymbolComparisonResults.CallingConventionMismatch) <> 0 Then
+                        GoTo Done
+                    End If
                 End If
             End If
 

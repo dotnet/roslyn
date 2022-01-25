@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             lastDeclaration.Identifier.ValueText.Equals(identifierName.Identifier.ValueText) &&
                             CanReplaceInitialization(lastDeclaration.Initializer.Value, cancellationToken))
                         {
-                            Convert(lastDeclaration.Initializer.Value, variables.Count == 1 ? (SyntaxNode)previous : lastDeclaration);
+                            Convert(lastDeclaration.Initializer.Value, variables.Count == 1 ? previous : lastDeclaration);
                             return;
                         }
 

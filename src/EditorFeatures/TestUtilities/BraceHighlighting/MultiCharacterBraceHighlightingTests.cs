@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         private class TestBraceMatchingService : IBraceMatchingService
         {
             public async Task<BraceMatchingResult?> GetMatchingBracesAsync(
-                Document document, int position, CancellationToken cancellationToken = default)
+                Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
             {
                 var text = (await document.GetTextAsync(cancellationToken)).ToString();
                 var braces = GetMatchingBraces(text, position);

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -28,6 +26,8 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
         protected abstract bool CanNameofAccessNonPublicMembersFromAttributeArgument { get; }
 
+        protected abstract bool SupportsConstantInterpolatedStrings(Document document);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (debuggerAttributeTypeSymbol is null)
                 return;
 
-            var typeSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(type, context.CancellationToken);
+            var typeSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(type, context.CancellationToken);
 
-            if (!IsClassOrStruct(typeSymbol))
+            if (typeSymbol.IsStatic || !IsClassOrStruct(typeSymbol))
                 return;
 
             if (HasDebuggerDisplayAttribute(typeSymbol, compilation))
@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             context.RegisterRefactoring(new MyCodeAction(
                 priority,
-                FeaturesResources.Add_DebuggerDisplay_attribute,
                 c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c)));
         }
 
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 return null;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method);
+            var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
 
             var isDebuggerDisplayMethod = IsDebuggerDisplayMethod(methodSymbol);
             if (!isDebuggerDisplayMethod && !IsToStringMethod(methodSymbol))
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             => methodSymbol is { Name: DebuggerDisplayMethodName, Arity: 0, Parameters: { IsEmpty: true } };
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
-            => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
+            => typeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct;
 
         private static bool HasDebuggerDisplayAttribute(ITypeSymbol typeSymbol, Compilation compilation)
             => typeSymbol.GetAttributes()
@@ -114,17 +113,38 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Workspace.Services);
             var generator = editor.Generator;
 
-            var attributeArgument = CanNameofAccessNonPublicMembersFromAttributeArgument
-                ? generator.AddExpression(
-                    generator.AddExpression(
-                        generator.LiteralExpression(DebuggerDisplayPrefix),
-                        generator.NameOfExpression(generator.IdentifierName(DebuggerDisplayMethodName))),
-                    generator.LiteralExpression(DebuggerDisplaySuffix))
-                : generator.LiteralExpression(
+            SyntaxNode attributeArgument;
+            if (CanNameofAccessNonPublicMembersFromAttributeArgument)
+            {
+                if (SupportsConstantInterpolatedStrings(document))
+                {
+                    attributeArgument = generator.InterpolatedStringExpression(
+                        generator.CreateInterpolatedStringStartToken(isVerbatim: false),
+                        new SyntaxNode[]
+                        {
+                            generator.InterpolatedStringText(generator.InterpolatedStringTextToken("{{", "{{")),
+                            generator.Interpolation(generator.NameOfExpression(generator.IdentifierName(DebuggerDisplayMethodName))),
+                            generator.InterpolatedStringText(generator.InterpolatedStringTextToken("(),nq}}", "(),nq}}")),
+                        },
+                        generator.CreateInterpolatedStringEndToken());
+                }
+                else
+                {
+                    attributeArgument = generator.AddExpression(
+                        generator.AddExpression(
+                            generator.LiteralExpression(DebuggerDisplayPrefix),
+                            generator.NameOfExpression(generator.IdentifierName(DebuggerDisplayMethodName))),
+                        generator.LiteralExpression(DebuggerDisplaySuffix));
+                }
+            }
+            else
+            {
+                attributeArgument = generator.LiteralExpression(
                     DebuggerDisplayPrefix + DebuggerDisplayMethodName + DebuggerDisplaySuffix);
+            }
 
             var newAttribute = generator
                 .Attribute(generator.TypeExpression(debuggerAttributeTypeSymbol), new[] { attributeArgument })
@@ -134,7 +154,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             editor.AddAttribute(type, newAttribute);
 
-            var typeSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(type, cancellationToken);
+            var typeSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(type, cancellationToken);
 
             if (!typeSymbol.GetMembers().OfType<IMethodSymbol>().Any(IsDebuggerDisplayMethod))
             {
@@ -159,8 +179,8 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         {
             internal override CodeActionPriority Priority { get; }
 
-            public MyCodeAction(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Add_DebuggerDisplay_attribute, createChangedDocument, nameof(FeaturesResources.Add_DebuggerDisplay_attribute))
             {
                 Priority = priority;
             }

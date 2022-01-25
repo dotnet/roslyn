@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 
@@ -239,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             debugPlusMode As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
-            SyntaxTreeOptionsProvider As SyntaxTreeOptionsProvider,
+            syntaxTreeOptionsProvider As SyntaxTreeOptionsProvider,
             metadataReferenceResolver As MetadataReferenceResolver,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
@@ -348,6 +349,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
             Return importNames.ToImmutableAndFree()
+        End Function
+
+        Friend Overrides Function CreateDeterministicKeyBuilder() As DeterministicKeyBuilder
+            Return VisualBasicDeterministicKeyBuilder.Instance
         End Function
 
         ''' <summary>
@@ -671,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.CurrentLocalTime_internal_protected_set = value}
+            Return New VisualBasicCompilationOptions(Me) With {.CurrentLocalTime = value}
         End Function
 
         ''' <summary>
@@ -684,7 +689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.DebugPlusMode_internal_protected_set = debugPlusMode}
+            Return New VisualBasicCompilationOptions(Me) With {.DebugPlusMode = debugPlusMode}
         End Function
 
         ''' <summary>
@@ -909,7 +914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.ReferencesSupersedeLowerVersions_internal_protected_set = value}
+            Return New VisualBasicCompilationOptions(Me) With {.ReferencesSupersedeLowerVersions = value}
         End Function
 
         ''' <summary>
@@ -1126,12 +1131,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Hash.Combine(Me.ParseOptions, 0)))))))))))
         End Function
 
-        Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
+        Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic, cancellationToken As CancellationToken) As Diagnostic
             Return VisualBasicDiagnosticFilter.Filter(
                 diagnostic,
                 GeneralDiagnosticOption,
                 SpecificDiagnosticOptions,
-                SyntaxTreeOptionsProvider)
+                SyntaxTreeOptionsProvider,
+                cancellationToken)
         End Function
 
         '' 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH

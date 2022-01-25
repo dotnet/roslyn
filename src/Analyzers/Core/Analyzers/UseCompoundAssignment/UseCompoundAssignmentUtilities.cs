@@ -13,10 +13,13 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 {
     internal static class UseCompoundAssignmentUtilities
     {
+        internal const string Increment = nameof(Increment);
+        internal const string Decrement = nameof(Decrement);
+
         public static void GenerateMaps<TSyntaxKind>(
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds,
             out ImmutableDictionary<TSyntaxKind, TSyntaxKind> binaryToAssignmentMap,
-            out ImmutableDictionary<TSyntaxKind, TSyntaxKind> assignmentToTokenMap)
+            out ImmutableDictionary<TSyntaxKind, TSyntaxKind> assignmentToTokenMap) where TSyntaxKind : struct
         {
             var binaryToAssignmentBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>();
             var assignmentToTokenBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>();

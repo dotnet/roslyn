@@ -13,9 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class NamedPipeClientConnectionHost : IClientConnectionHost
@@ -38,11 +35,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private AsyncQueue<ListenResult>? _queue;
 
         public string PipeName { get; }
+        public ICompilerServerLogger Logger { get; }
         public bool IsListening { get; private set; }
 
-        internal NamedPipeClientConnectionHost(string pipeName)
+        internal NamedPipeClientConnectionHost(string pipeName, ICompilerServerLogger logger)
         {
             PipeName = pipeName;
+            Logger = logger;
         }
 
         public void BeginListening()
@@ -69,17 +68,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // large builds such as dotnet/roslyn or dotnet/runtime
             var listenCount = Math.Min(4, Environment.ProcessorCount);
             _listenTasks = new Task[listenCount];
-            int clientLoggingIdentifier = 0;
             for (int i = 0; i < listenCount; i++)
             {
-                var task = Task.Run(() => ListenCoreAsync(PipeName, _queue, GetNextClientLoggingIdentifier, _cancellationTokenSource.Token));
+                var task = Task.Run(() => ListenCoreAsync(PipeName, Logger, _queue, _cancellationTokenSource.Token));
                 _listenTasks[i] = task;
-            }
-
-            string GetNextClientLoggingIdentifier()
-            {
-                var count = Interlocked.Increment(ref clientLoggingIdentifier);
-                return $"Client{count}";
             }
         }
 
@@ -97,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
                 // Even though the Tasks created to run the compilation servers can never throw, 
-                // the CancellationToken from this source ends up getting passeed throughout the 
+                // the CancellationToken from this source ends up getting passed throughout the 
                 // named pipe infrastructure. Parts of that infrastructure hook into 
                 // CancellationToken.Register and those will throw during a Cancel operation. 
                 //
@@ -111,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
-                CompilerServerLogger.LogException(ex, $"Cancelling server listens threw an exception");
+                Logger.LogException(ex, $"Cancelling server listens threw an exception");
             }
 
             try
@@ -120,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
-                CompilerServerLogger.LogException(ex, $"Listen tasks threw exception during {nameof(EndListening)}");
+                Logger.LogException(ex, $"Listen tasks threw exception during {nameof(EndListening)}");
             }
 
             _queue.Complete();
@@ -174,8 +166,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <param name="cancellationToken">Used to cancel the connection sequence.</param>
         private static async Task ListenCoreAsync(
             string pipeName,
+            ICompilerServerLogger logger,
             AsyncQueue<ListenResult> queue,
-            Func<string> getClientLoggingIdentifier,
             CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -189,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // as Windows refusing to create the pipe for some reason 
                     // (out of handles?), or the pipe was disconnected before we 
                     // starting listening
-                    CompilerServerLogger.Log($"Constructing pipe and waiting for connections '{pipeName}'");
+                    logger.Log($"Constructing pipe and waiting for connections '{pipeName}'");
                     pipeStream = NamedPipeUtil.CreateServer(pipeName);
 
                     // The WaitForConnectionAsync API does not fully respect the provided CancellationToken
@@ -212,19 +204,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
 
                     await connectTask.ConfigureAwait(false);
-                    CompilerServerLogger.Log("Pipe connection established.");
-                    var connection = new NamedPipeClientConnection(pipeStream, getClientLoggingIdentifier());
+                    logger.Log("Pipe connection established.");
+                    var connection = new NamedPipeClientConnection(pipeStream, logger);
                     queue.Enqueue(new ListenResult(connection: connection));
                 }
                 catch (OperationCanceledException)
                 {
                     // Expected when the host is shutting down.
-                    CompilerServerLogger.Log($"Pipe connection cancelled");
+                    logger.Log($"Pipe connection cancelled");
                     pipeStream?.Dispose();
                 }
                 catch (Exception ex)
                 {
-                    CompilerServerLogger.LogException(ex, $"Pipe connection error");
+                    logger.LogException(ex, $"Pipe connection error");
                     queue.Enqueue(new ListenResult(exception: ex));
                     pipeStream?.Dispose();
                 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Gate to guard all mutable fields in this class.
         /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
         /// </summary>
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         /// <summary>
         /// A hashed checksum of the last command line we were set to.  We use this
@@ -193,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // We've computed what the base values should be; we now give an opportunity for any host-specific settings to be computed
             // before we apply them
-            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, this._ruleSetFile?.Target.Value);
+            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, _ruleSetFile?.Target.Value);
             parseOptions = ComputeParseOptionsWithHostValues(parseOptions);
 
             // For managed projects, AssemblyName has to be non-null, but the command line we get might be a partial command line

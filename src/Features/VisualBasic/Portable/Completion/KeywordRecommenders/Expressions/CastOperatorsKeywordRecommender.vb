@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -30,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             SyntaxKind.CULngKeyword,
             SyntaxKind.CUShortKeyword}
 
-        Protected Overloads Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overloads Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsAnyExpressionContext OrElse context.IsSingleLineStatementContext Then
                 Dim recommendedKeywords As New List(Of RecommendedKeyword)
 
@@ -62,10 +63,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                     Glyph.MethodPublic,
                     New TryCastExpressionDocumentation()))
 
-                Return recommendedKeywords
+                Return recommendedKeywords.ToImmutableArray()
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

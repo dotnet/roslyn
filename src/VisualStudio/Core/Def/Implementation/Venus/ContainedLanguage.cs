@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -99,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
                 if (!hierarchy.TryGetItemName(itemid, out filePath!))
                 {
-                    FatalError.Report(new System.Exception("Failed to get document moniker for a contained document"));
+                    FatalError.ReportAndPropagate(new InvalidOperationException("Failed to get document moniker for a contained document"));
                 }
             }
 
@@ -128,12 +126,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             // Get the ITextBuffer for the secondary buffer
             Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out var secondaryTextLines));
-            var secondaryVsTextBuffer = (IVsTextBuffer)secondaryTextLines;
-            SubjectBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(secondaryVsTextBuffer);
+            SubjectBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(secondaryTextLines)!;
 
             // Get the ITextBuffer for the primary buffer
             Marshal.ThrowExceptionForHR(bufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
-            DataBuffer = _editorAdaptersFactoryService.GetDataBuffer((IVsTextBuffer)primaryTextLines);
+            DataBuffer = _editorAdaptersFactoryService.GetDataBuffer(primaryTextLines)!;
 
             // Create our tagger
             var bufferTagAggregatorFactory = ComponentModel.GetService<IBufferTagAggregatorFactoryService>();
@@ -146,6 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 documentId = this.Project.AddSourceTextContainer(
                     SubjectBuffer.AsTextContainer(), filePath,
                     sourceCodeKind: SourceCodeKind.Regular, folders: default,
+                    designTimeOnly: true,
                     documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer));
             }
             else

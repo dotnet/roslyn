@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     // This is therefore implemented as a separate annotation.
     internal class DoNotAddImportsAnnotation
     {
-        public static readonly SyntaxAnnotation Annotation = new SyntaxAnnotation(Kind);
+        public static readonly SyntaxAnnotation Annotation = new(Kind);
         public const string Kind = "DoNotAddImports";
     }
 }

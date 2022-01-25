@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string XamlContentType = "XAML";
         public const string JavaScriptContentTypeName = "JavaScript";
         public const string TypeScriptContentTypeName = "TypeScript";
-
-        public const string CSharpLspContentTypeName = "C#_LSP";
-        public const string VBLspContentTypeName = "VB_LSP";
+        public const string FSharpContentType = "F#";
+        public const string FSharpSignatureHelpContentType = "F# Signature Help";
     }
 }

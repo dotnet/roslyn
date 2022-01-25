@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis
     {
         internal sealed class LoggingStrongNameFileSystem : StrongNameFileSystem
         {
-            private readonly TouchedFileLogger _loggerOpt;
+            private readonly TouchedFileLogger? _loggerOpt;
 
-            public LoggingStrongNameFileSystem(TouchedFileLogger logger, string tempPath)
-                : base(tempPath)
+            public LoggingStrongNameFileSystem(TouchedFileLogger? logger, string? customTempPath)
+                : base(customTempPath)
             {
                 _loggerOpt = logger;
             }
 
-            internal override bool FileExists(string fullPath)
+            internal override bool FileExists(string? fullPath)
             {
                 if (fullPath != null)
                 {

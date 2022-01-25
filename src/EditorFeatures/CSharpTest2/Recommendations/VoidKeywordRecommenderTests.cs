@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -47,6 +49,13 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -110,6 +119,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(@"global using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNamespace()
         {
             await VerifyKeywordAsync(@"namespace N {}
@@ -164,6 +180,22 @@ using Goo;");
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$
 using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"$$
+global using Goo;");
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"$$
+global using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -585,12 +617,12 @@ $$");
             => await VerifyKeywordAsync(@"class c { async $$ }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAsyncAsType()
-            => await VerifyAbsenceAsync(@"class c { async async $$ }");
+        public async Task TestAfterAsyncAsType()
+            => await VerifyKeywordAsync(@"class c { async async $$ }");
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction()
         {
@@ -607,7 +639,7 @@ class C
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction2()
         {
@@ -623,11 +655,11 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction3()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 class C
 {
     void M()
@@ -639,7 +671,7 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction4()
         {
@@ -655,7 +687,7 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction5()
         {
@@ -672,7 +704,7 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction6()
         {
@@ -688,7 +720,7 @@ class C
 
         [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction7()
         {
@@ -771,6 +803,35 @@ class C
 class C
 {
     delegate*$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
+        public async Task TestAfterReadonlyInStruct()
+        {
+            await VerifyKeywordAsync(@"
+struct S
+{
+    public readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterReadonlyInRecordStruct()
+        {
+            await VerifyKeywordAsync(@"
+record struct S
+{
+    public readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
+        public async Task TestNotAfterReadonlyInClass()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    public readonly $$");
         }
     }
 }

@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1188,8 +1191,9 @@ class Program
                     };
 
                     var substitutedSource = subst(substitutedSource0);
-                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
                     string expectedOutput;
+                    Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
                     if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
                     {
                         // Correct runtime behavior with no warning
@@ -4118,11 +4122,29 @@ class B : A
 
                 if (isFromMetadata)
                 {
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB);
+                    VerifyParamArrayAttribute(parameterB);
                 };
             };
 
             var verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");
+        }
+
+        private static void VerifyParamArrayAttribute(ParameterSymbol parameter, bool expected = true)
+        {
+            Assert.Equal(expected, parameter.IsParams);
+
+            var peParameter = (PEParameterSymbol)parameter;
+            var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);
+            var paramArrayAttributes = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.ParamArrayAttribute");
+
+            if (expected)
+            {
+                Assert.Equal(1, paramArrayAttributes.Count());
+            }
+            else
+            {
+                Assert.Empty(paramArrayAttributes);
+            }
         }
 
         [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]

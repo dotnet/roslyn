@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,7 +30,6 @@ using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -157,7 +158,7 @@ End Class";
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First();
 
-                var runner = CreateAnalyzerRunner(workspace);
+                var runner = CreateAnalyzerRunner();
 
                 var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
@@ -193,13 +194,13 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 // add host analyzer as global assets
-                var remotableDataService = workspace.Services.GetService<IRemotableDataService>();
+                var remotableDataService = workspace.Services.GetService<ISolutionAssetStorageProvider>();
                 var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);
 
-                var runner = CreateAnalyzerRunner(workspace);
+                var runner = CreateAnalyzerRunner();
                 var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
 
                 var compilationWithAnalyzers = (await project.GetCompilationAsync())
@@ -216,16 +217,12 @@ End Class";
             }
         }
 
-        private static InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner(Workspace workspace)
-        {
-            return new InProcOrRemoteHostAnalyzerRunner(
-                new DiagnosticAnalyzerInfoCache(),
-                workspace);
-        }
+        private static InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner()
+            => new(new DiagnosticAnalyzerInfoCache());
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default)
         {
-            var executor = CreateAnalyzerRunner(workspace);
+            var executor = CreateAnalyzerRunner();
 
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
@@ -240,7 +237,7 @@ End Class";
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
 
-        private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
+        private static TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
@@ -302,38 +299,6 @@ End Class";
             }
 
             public override Workspace Workspace => _workspace;
-        }
-
-        private sealed class InvokeThrowsCancellationConnection : RemoteServiceConnection
-        {
-            private readonly CancellationTokenSource _source;
-
-            public InvokeThrowsCancellationConnection(CancellationTokenSource source)
-            {
-                _source = source;
-            }
-
-            public override void Dispose()
-            {
-            }
-
-            public override Task RunRemoteAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            {
-                // cancel and throw cancellation exception
-                _source.Cancel();
-                _source.Token.ThrowIfCancellationRequested();
-
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            public override Task<T> RunRemoteAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
-            {
-                // cancel and throw cancellation exception
-                _source.Cancel();
-                _source.Token.ThrowIfCancellationRequested();
-
-                throw ExceptionUtilities.Unreachable;
-            }
         }
     }
 }

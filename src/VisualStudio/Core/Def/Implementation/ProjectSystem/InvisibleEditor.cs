@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -15,6 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Inter
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -27,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The text buffer. null if the object has been disposed.
         /// </summary>
-        private ITextBuffer _buffer;
+        private ITextBuffer? _buffer;
         private IVsTextLines _vsTextLines;
         private IVsInvisibleEditor _invisibleEditor;
         private OLE.Interop.IOleUndoManager? _manager;
@@ -116,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            _buffer = null!;
+            _buffer = null;
             _vsTextLines = null!;
 
             try
@@ -154,16 +153,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 GC.SuppressFinalize(this);
             }
-            catch (Exception ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical)) // critical severity, since this means we're not saving edited files
             {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
-#pragma warning disable CA1821 // Remove empty Finalizers
 #if DEBUG
         ~InvisibleEditor()
             => Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
 #endif
-#pragma warning restore CA1821 // Remove empty Finalizers
     }
 }

@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Text.RegularExpressions;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
 {
     // These tests came from tests found at:
-    // https://github.com/dotnet/corefx/blob/master/src/System.Text.RegularExpressions/tests/
+    // https://github.com/dotnet/corefx/blob/main/src/System.Text.RegularExpressions/tests/
     public partial class CSharpRegexParserTests
     {
         [Fact]

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -21,13 +19,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 SolutionStateChecksums _ => WellKnownSynchronizationKind.SolutionState,
                 ProjectStateChecksums _ => WellKnownSynchronizationKind.ProjectState,
                 DocumentStateChecksums _ => WellKnownSynchronizationKind.DocumentState,
-                ProjectChecksumCollection _ => WellKnownSynchronizationKind.Projects,
-                DocumentChecksumCollection _ => WellKnownSynchronizationKind.Documents,
-                TextDocumentChecksumCollection _ => WellKnownSynchronizationKind.TextDocuments,
-                AnalyzerConfigDocumentChecksumCollection _ => WellKnownSynchronizationKind.AnalyzerConfigDocuments,
-                ProjectReferenceChecksumCollection _ => WellKnownSynchronizationKind.ProjectReferences,
-                MetadataReferenceChecksumCollection _ => WellKnownSynchronizationKind.MetadataReferences,
-                AnalyzerReferenceChecksumCollection _ => WellKnownSynchronizationKind.AnalyzerReferences,
+                ChecksumCollection _ => WellKnownSynchronizationKind.ChecksumCollection,
                 SolutionInfo.SolutionAttributes _ => WellKnownSynchronizationKind.SolutionAttributes,
                 ProjectInfo.ProjectAttributes _ => WellKnownSynchronizationKind.ProjectAttributes,
                 DocumentInfo.DocumentAttributes _ => WellKnownSynchronizationKind.DocumentAttributes,
@@ -36,9 +28,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                 ProjectReference _ => WellKnownSynchronizationKind.ProjectReference,
                 MetadataReference _ => WellKnownSynchronizationKind.MetadataReference,
                 AnalyzerReference _ => WellKnownSynchronizationKind.AnalyzerReference,
-                TextDocumentState _ => WellKnownSynchronizationKind.RecoverableSourceText,
+                SerializableSourceText _ => WellKnownSynchronizationKind.SerializableSourceText,
                 SourceText _ => WellKnownSynchronizationKind.SourceText,
                 OptionSet _ => WellKnownSynchronizationKind.OptionSet,
+                SourceGeneratedDocumentIdentity _ => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
                 _ => throw ExceptionUtilities.UnexpectedValue(value),
             };
 

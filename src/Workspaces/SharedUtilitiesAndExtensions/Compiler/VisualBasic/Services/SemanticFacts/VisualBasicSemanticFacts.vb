@@ -55,14 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TryCast(expression, ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken)
         End Function
 
-        Public Function GenerateNameForExpression(semanticModel As SemanticModel,
-                                                  expression As SyntaxNode,
-                                                  capitalize As Boolean,
-                                                  cancellationToken As CancellationToken) As String Implements ISemanticFacts.GenerateNameForExpression
-            Return semanticModel.GenerateNameForExpression(
-                DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
-        End Function
-
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.GetDeclaredSymbol
             Dim location = token.GetLocation()
 
@@ -72,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Not TypeOf ancestor Is ExpressionRangeVariableSyntax AndAlso
                    Not TypeOf ancestor Is InferredFieldInitializerSyntax Then
 
-                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor)
+                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken)
 
                     If symbol IsNot Nothing Then
                         If symbol.Locations.Contains(location) Then
@@ -245,6 +237,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInsideNameOfExpression
             Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
+        End Function
+
+        Public Function GetLocalFunctionSymbols(compilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFacts.GetLocalFunctionSymbols
+            Return ImmutableArray(Of IMethodSymbol).Empty
+        End Function
+
+        Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInExpressionTree
+            Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
         End Function
     End Class
 End Namespace

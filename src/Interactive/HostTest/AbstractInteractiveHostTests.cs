@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 extern alias InteractiveHost;
 using System;
 using System.Collections.Generic;
@@ -179,7 +177,7 @@ STDOUT: {_synchronizedOutput}
             var markPrefix = '\uFFFF';
             var mark = markPrefix + Guid.NewGuid().ToString();
 
-            await remoteService!.JsonRpc.InvokeAsync(nameof(InteractiveHost.Service.RemoteConsoleWriteAsync), Encoding.UTF8.GetBytes(mark), isError).ConfigureAwait(false);
+            await remoteService!.JsonRpc.InvokeAsync(nameof(InteractiveHost.Service.RemoteConsoleWriteAsync), InteractiveHost.OutputEncoding.GetBytes(mark), isError).ConfigureAwait(false);
             while (true)
             {
                 var data = writer.Prefix(mark, ref _outputReadPosition[isError ? 0 : 1]);

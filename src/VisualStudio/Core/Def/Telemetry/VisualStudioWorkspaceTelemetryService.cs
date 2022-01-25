@@ -2,27 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
     [ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
     internal sealed class VisualStudioWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
     {
+        private readonly VisualStudioWorkspace _workspace;
         private readonly IGlobalOptionService _optionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioWorkspaceTelemetryService(IGlobalOptionService optionsService)
+        public VisualStudioWorkspaceTelemetryService(
+            VisualStudioWorkspace workspace,
+            IGlobalOptionService optionsService)
         {
+            _workspace = workspace;
             _optionsService = optionsService;
         }
 
@@ -31,6 +38,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 CodeMarkerLogger.Instance,
                 new EtwLogger(_optionsService),
                 new VSTelemetryLogger(telemetrySession),
+                new FileLogger(_optionsService),
                 Logger.GetLogger());
+
+        protected override void TelemetrySessionInitialized()
+        {
+            _ = Task.Run(async () =>
+            {
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
+                if (client == null)
+                {
+                    return;
+                }
+
+                var settings = SerializeCurrentSessionSettings();
+                Contract.ThrowIfNull(settings);
+
+                // initialize session in the remote service
+                _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                    (service, cancellationToken) => service.InitializeTelemetrySessionAsync(Process.GetCurrentProcess().Id, settings, cancellationToken),
+                    CancellationToken.None).ConfigureAwait(false);
+            });
+        }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
             // So, we skip these fields for hash computation of code style options.
-            if (!(this.DefaultValue is ICodeStyleOption))
+            if (this.DefaultValue is not ICodeStyleOption)
             {
                 hash = unchecked((hash * (int)0xA5555529) + this.DefaultValue?.GetHashCode() ?? 0);
                 hash = unchecked((hash * (int)0xA5555529) + this.Type.GetHashCode());

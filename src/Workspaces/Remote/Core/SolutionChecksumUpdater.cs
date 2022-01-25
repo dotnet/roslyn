@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Threading;
@@ -13,6 +17,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// This class runs against the in-process workspace, and when it sees changes proactively pushes them to
+    /// the out-of-process workspace through the <see cref="IRemoteAssetSynchronizationService"/>.
+    /// </summary>
     internal sealed class SolutionChecksumUpdater : GlobalOperationAwareIdleProcessor
     {
         private readonly Workspace _workspace;
@@ -25,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Remote
         // hold the async token from WaitAsync so ExecuteAsync can complete it
         private IAsyncToken _currentToken;
 
-        public SolutionChecksumUpdater(Workspace workspace, IAsynchronousOperationListenerProvider listenerProvider, CancellationToken shutdownToken)
+        public SolutionChecksumUpdater(Workspace workspace, IGlobalOptionService globalOptions, IAsynchronousOperationListenerProvider listenerProvider, CancellationToken shutdownToken)
             : base(listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater),
                    workspace.Services.GetService<IGlobalOperationNotificationService>(),
-                   workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
+                   TimeSpan.FromMilliseconds(globalOptions.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS)), shutdownToken)
         {
             _workspace = workspace;
             _textChangeQueue = new TaskQueue(Listener, TaskScheduler.Default);
@@ -135,12 +143,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteHost,
-                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                     solution,
-                    new object[] { checksum, solution.WorkspaceVersion },
-                    callbackTarget: null,
+                    (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, checksum, solution.WorkspaceVersion, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
         }
@@ -205,14 +210,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteHost,
-                    nameof(IRemoteHostService.SynchronizeTextAsync),
-                    solution: null,
-                    new object[] { oldDocument.Id, state.Text, textChanges },
-                    callbackTarget: null,
+                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                    (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, state.Text, textChanges, cancellationToken),
                     CancellationToken).ConfigureAwait(false);
-
             }, CancellationToken);
         }
     }

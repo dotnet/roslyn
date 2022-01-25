@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -43,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
-            RoslynDebug.Assert(context.Compilation is object);
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var preference = options.GetOption(
                 CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
@@ -71,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
-            RoslynDebug.Assert(context.Compilation is object);
             var preference = options.GetOption(
                 CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!preference.Value ||

@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -5201,10 +5200,10 @@ End Module        </file>
 BC30311: Value of type 'Integer' cannot be converted to 'base'.
                 For i = New base To New first()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33038: Type 'base' must define operator '-' to be used in a 'For' statement.
+BC33038: Type 'base' must define operator '+' to be used in a 'For' statement.
                 For j = New base To New first() step new second()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33038: Type 'base' must define operator '+' to be used in a 'For' statement.
+BC33038: Type 'base' must define operator '-' to be used in a 'For' statement.
                 For j = New base To New first() step new second()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC33038: Type 'base' must define operator '&lt;=' to be used in a 'For' statement.
@@ -16522,7 +16521,7 @@ BC36548: Cannot convert anonymous type to an expression tree because a property 
     </file>
     </compilation>, {Net40.SystemCore})
 
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation,
     <expected>
 BC36549: Anonymous type property 'y' cannot be used in the definition of a lambda expression within the same initialization list.
             Dim x = New With {.y = 1, .z = From y In "" Select .y}
@@ -21546,7 +21545,7 @@ End Class
 
         <WorkItem(938459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938459")>
         <Fact>
-        Public Sub UnimplementedMethodsIncorrectSquiggleLocationInterfaceInheritenceOrdering()
+        Public Sub UnimplementedMethodsIncorrectSquiggleLocationInterfaceInheritanceOrdering()
             Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file>

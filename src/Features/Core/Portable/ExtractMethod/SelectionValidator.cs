@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,12 +24,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected readonly SemanticDocument SemanticDocument;
         protected readonly TextSpan OriginalSpan;
-        protected readonly OptionSet Options;
+        protected readonly ExtractMethodOptions Options;
 
         protected SelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
-            OptionSet options)
+            ExtractMethodOptions options)
         {
             Contract.ThrowIfNull(document);
 
@@ -96,6 +99,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         protected static Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainingSpan<T>(
+            ISyntaxFacts syntaxFacts,
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
         {
             // use top-down approach to find smallest statement range that contains given span.
@@ -134,10 +138,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     spine.Add(stmt);
                 }
 
-                if (textSpan.End <= stmt.Span.End && spine.Any(s => s.Parent == stmt.Parent))
+                if (textSpan.End <= stmt.Span.End && spine.Any(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, stmt)))
                 {
                     // malformed code or selection can make spine to have more than an elements
-                    firstStatement = spine.First(s => s.Parent == stmt.Parent);
+                    firstStatement = spine.First(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, stmt));
                     lastStatement = stmt;
 
                     spine.Clear();
@@ -150,6 +154,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             return new Tuple<SyntaxNode, SyntaxNode>(firstStatement, lastStatement);
+
+            static bool CanMergeExistingSpineWithCurrent(ISyntaxFacts syntaxFacts, T existing, T current)
+                => syntaxFacts.AreStatementsInSameContainer(existing, current);
         }
 
         protected static Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainedInSpan<T>(

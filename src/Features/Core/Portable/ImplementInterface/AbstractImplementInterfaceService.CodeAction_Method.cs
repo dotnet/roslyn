@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool useExplicitInterfaceSymbol,
                 string memberName)
             {
-                var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                 var updatedMethod = method.EnsureNonConflictingNames(State.ClassOrStructType, syntaxFacts);
 

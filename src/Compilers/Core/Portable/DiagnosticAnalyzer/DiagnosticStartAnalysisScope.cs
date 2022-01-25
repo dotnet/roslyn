@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -213,10 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
-        // Issue with enforcing nullability attributes in OHI https://github.com/dotnet/roslyn/issues/42169
-#pragma warning disable CS8765 // Type of parameter doesn't match overridden member because of nullability attributes.
-        internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
-#pragma warning restore CS8765
+        internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
             return compilationAnalysisValueProvider.TryGetValue(key, out value);
@@ -361,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class HostSessionStartAnalysisScope : HostAnalysisScope
     {
         private ImmutableHashSet<DiagnosticAnalyzer> _concurrentAnalyzers = ImmutableHashSet<DiagnosticAnalyzer>.Empty;
-        private ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeConfigurationMap = new ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
+        private readonly ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeConfigurationMap = new ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
 
         public bool IsConcurrentAnalyzer(DiagnosticAnalyzer analyzer)
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     /// </summary>
     internal partial class TriviaDataFactory : AbstractTriviaDataFactory
     {
-        public TriviaDataFactory(TreeData treeInfo, AnalyzerConfigOptions options)
+        public TriviaDataFactory(TreeData treeInfo, SyntaxFormattingOptions options)
             : base(treeInfo, options)
         {
         }

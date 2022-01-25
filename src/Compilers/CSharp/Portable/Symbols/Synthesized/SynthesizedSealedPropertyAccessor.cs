@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -88,8 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref useSiteDiagnostics));
+#if DEBUG
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref discardedUseSiteInfo));
+#endif
                 return overriddenAccessibility;
             }
         }

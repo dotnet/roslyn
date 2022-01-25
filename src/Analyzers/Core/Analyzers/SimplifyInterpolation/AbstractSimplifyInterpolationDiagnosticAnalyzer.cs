@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
     {
         protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
+                  EnforceOnBuildValues.SimplifyInterpolation,
                   CodeStyleOptions2.PreferSimplifiedInterpolation,
                   new LocalizableResourceString(nameof(AnalyzersResources.Simplify_interpolation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                   new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         protected abstract IVirtualCharService GetVirtualCharService();
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
+
+        protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 return;
             }
 
-            Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+            GetHelpers().UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                 GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
                 out var formatString, out var unnecessaryLocations);
 

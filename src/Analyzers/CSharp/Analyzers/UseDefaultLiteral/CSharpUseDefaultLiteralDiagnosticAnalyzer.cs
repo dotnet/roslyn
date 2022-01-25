@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     {
         public CSharpUseDefaultLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
+                   EnforceOnBuildValues.UseDefaultLiteral,
                    CSharpCodeStyleOptions.PreferSimpleDefaultExpression,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_default_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -39,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;
             if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, preference.Value, context.SemanticModel, cancellationToken))
-            {
                 return;
-            }
 
             var fadeSpan = TextSpan.FromBounds(defaultExpression.OpenParenToken.SpanStart, defaultExpression.CloseParenToken.Span.End);
 

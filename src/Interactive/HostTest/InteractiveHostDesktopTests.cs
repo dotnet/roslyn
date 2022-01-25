@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 extern alias InteractiveHost;
 
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -67,15 +63,9 @@ System.Console.Error.WriteLine(""error-\u7890!"");
             Assert.Equal("4\r\n", error);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46414")]
         public async Task StackOverflow()
         {
-            // Windows Server 2008 (OS v6.0), Vista (OS v6.0) and XP (OS v5.1) ignores SetErrorMode and shows crash dialog, which would hang the test:
-            if (Environment.OSVersion.Version < new Version(6, 1, 0, 0))
-            {
-                return;
-            }
-
             var process = Host.TryGetProcess();
 
             await Execute(@"
@@ -91,7 +81,8 @@ goo(0,1,2,3,4,5,6,7,8,9)
 
             // Hosting process exited with exit code ###.
             var errorOutput = (await ReadErrorOutputToEnd()).Trim();
-            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, process!.ExitCode), errorOutput);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                "Process is terminated due to StackOverflowException.\n" + string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, process!.ExitCode), errorOutput);
 
             await Execute(@"1+1");
             output = await ReadOutputToEnd();

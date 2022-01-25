@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -13262,7 +13264,8 @@ expectedOutput: "-100");
                 emittingPdb: false,
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
-                diagnostics: diagnostics,
+                emitMethodBodies: true,
+                diagnostics: new BindingDiagnosticBag(diagnostics),
                 filterOpt: null,
                 entryPointOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -17171,6 +17174,49 @@ class Program
 }
 ";
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Skipped, expectedOutput: @"");
+        }
+
+        [Fact]
+        [WorkItem(51228, "https://github.com/dotnet/roslyn/issues/51228")]
+        public void Issue51228()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static Task<object> t;
+
+    static async Task Main(string[] args)
+    {
+        Task<object> task = MethodAsync();
+        GetReference(__makeref(task));
+        object result = await task;
+        System.Console.WriteLine(result);
+        System.Console.WriteLine(task == t);
+    }
+
+    static void GetReference(TypedReference reference)
+    {
+        t = __refvalue(reference, Task<object>);
+        System.Console.WriteLine(__reftype(reference));
+    }
+
+    static async Task<object> MethodAsync()
+    {
+        await Task.FromResult(1);
+        await Task.FromResult(2);
+        return ""Success"";
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: @"
+System.Threading.Tasks.Task`1[System.Object]
+Success
+True
+").VerifyDiagnostics();
         }
     }
 }

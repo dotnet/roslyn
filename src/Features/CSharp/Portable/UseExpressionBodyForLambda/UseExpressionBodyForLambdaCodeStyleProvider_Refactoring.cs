@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
-            if (CanOfferUseExpressionBody(option, lambdaNode))
+            if (CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion()))
             {
                 result.Add(new MyCodeAction(
                     UseExpressionBodyTitle.ToString(),

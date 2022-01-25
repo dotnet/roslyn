@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Differencing
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     internal sealed class LongestCommonSubstring : LongestCommonSubsequence<string>
     {
-        private static readonly LongestCommonSubstring s_instance = new LongestCommonSubstring();
+        private static readonly LongestCommonSubstring s_instance = new();
 
         private LongestCommonSubstring()
         {

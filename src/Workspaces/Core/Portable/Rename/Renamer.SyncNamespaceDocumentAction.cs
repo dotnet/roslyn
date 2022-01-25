@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (document.Project.Language == LanguageNames.CSharp)
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var targetNamespace = WorkspacePathUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
+                    var targetNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts, document.Project.DefaultNamespace);
 
                     if (targetNamespace is null)
                     {

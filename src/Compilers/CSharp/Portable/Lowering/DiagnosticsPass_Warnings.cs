@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -247,7 +249,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckBinaryOperator(BoundBinaryOperator node)
         {
-            if ((object)node.MethodOpt == null)
+            if (node.Method is MethodSymbol method)
+            {
+                if (_inExpressionLambda && method.IsAbstract && method.IsStatic)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                }
+            }
+            else
             {
                 CheckUnsafeType(node.Left);
                 CheckUnsafeType(node.Right);
@@ -264,10 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression left = node.Left;
 
-            if (!node.Operator.Kind.IsDynamic() && !node.LeftConversion.IsIdentity && node.LeftConversion.Exists)
+            if (!node.Operator.Kind.IsDynamic() && node.LeftConversion is BoundConversion { Conversion: { IsIdentity: false, Exists: true } conversion })
             {
                 // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
-                left = new BoundConversion(left.Syntax, left, node.LeftConversion, node.Operator.Kind.IsChecked(),
+                left = new BoundConversion(left.Syntax, left, conversion, node.Operator.Kind.IsChecked(),
                                            explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: null, type: node.Operator.LeftType);
             }
 

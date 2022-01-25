@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Function IParameterTypeInformationGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IParameterTypeInformation.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim paramType As TypeSymbol = _underlyingParameter.Type
-            Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property IParameterListEntryIndex As UShort Implements Cci.IParameterListEntry.Index
@@ -47,5 +47,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return CType(_underlyingParameter.Ordinal, UShort)
             End Get
         End Property
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
     End Class
 End Namespace

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<ImmutableArray<INamedTypeSymbol>> DescendInheritanceTreeAsync(
             INamedTypeSymbol type,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
@@ -85,20 +83,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // are passed in.  There is no need to check D as there's no way it could
             // contribute an intermediate type that affects A or C.  We only need to check
             // A, B and C
+            //
+            // An exception to the above rule is if we're just searching a single project.
+            // in that case there can be no intermediary projects that could add types.
+            // So we can just limit ourselves to that single project.
 
             // First find all the projects that could potentially reference this type.
-            var projectsThatCouldReferenceType = await GetProjectsThatCouldReferenceTypeAsync(
-                type, solution, searchInMetadata, cancellationToken).ConfigureAwait(false);
+            List<Project> orderedProjectsToExamine;
 
-            // Now, based on the list of projects that could actually reference the type,
-            // and the list of projects the caller wants to search, find the actual list of
-            // projects we need to search through.
-            //
-            // This list of projects is properly topologically ordered.  Because of this we
-            // can just process them in order from first to last because we know no project
-            // in this list could affect a prior project.
-            var orderedProjectsToExamine = GetOrderedProjectsToExamine(
-                solution, projects, projectsThatCouldReferenceType);
+            if (projects.Count == 1)
+            {
+                orderedProjectsToExamine = projects.ToList();
+            }
+            else
+            {
+                var projectsThatCouldReferenceType = await GetProjectsThatCouldReferenceTypeAsync(
+                    type, solution, searchInMetadata, cancellationToken).ConfigureAwait(false);
+
+                // Now, based on the list of projects that could actually reference the type,
+                // and the list of projects the caller wants to search, find the actual list of
+                // projects we need to search through.
+                //
+                // This list of projects is properly topologically ordered.  Because of this we
+                // can just process them in order from first to last because we know no project
+                // in this list could affect a prior project.
+                orderedProjectsToExamine = GetOrderedProjectsToExamine(
+                    solution, projects, projectsThatCouldReferenceType);
+            }
 
             // The final set of results we'll be returning.
             using var _1 = GetSymbolSet(out var result);
@@ -280,7 +291,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // Get all the projects that depend on 'project' as well as 'project' itself.
             return dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id)
-                                               .Concat(project.Id);
+                                  .Concat(project.Id);
         }
 
         private static List<Project> GetOrderedProjectsToExamine(
@@ -377,7 +388,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 foreach (var reference in compilation.References)
                 {
-                    if (!(reference is PortableExecutableReference peReference))
+                    if (reference is not PortableExecutableReference peReference)
                         continue;
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -488,7 +499,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         case SpecialType.System_Object:
                             await AddMatchingTypesAsync(
                                 cachedModels,
-                                projectIndex.ClassesThatMayDeriveFromSystemObject,
+                                projectIndex.ClassesAndRecordsThatMayDeriveFromSystemObject,
                                 result: tempBuffer,
                                 predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object,
                                 cancellationToken).ConfigureAwait(false);

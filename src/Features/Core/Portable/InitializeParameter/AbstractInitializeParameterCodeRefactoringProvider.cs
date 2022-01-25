@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -54,6 +52,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document,
+            TParameterSyntax parameterSyntax,
             IParameterSymbol parameter,
             SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid,
-            SyntaxNode? statementToAddAfterOpt, TStatementSyntax statement);
+            SyntaxNode? statementToAddAfter, TStatementSyntax statement);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -104,12 +103,21 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            // We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
+            // as we use it later on in our computations.
+            var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
+            if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
+            {
+                return;
+            }
+
             if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
             {
                 // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
-                context.RegisterRefactorings(await GetRefactoringsForSingleParameterAsync(
-                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+                var refactorings = await GetRefactoringsForSingleParameterAsync(
+                    document, selectedParameter, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+                context.RegisterRefactorings(refactorings, context.Span);
             }
 
             // List with parameterNodes that pass all checks
@@ -127,9 +135,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 // Looks like we can offer a refactoring for more than one parameter. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
-                context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
+                var refactorings = await GetRefactoringsForAllParametersAsync(
                     document, functionDeclaration, methodSymbol, blockStatementOpt,
-                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false));
+                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false);
+                context.RegisterRefactorings(refactorings, context.Span);
             }
 
             return;
@@ -137,10 +146,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             static bool TryGetParameterSymbol(
                 SyntaxNode parameterNode,
                 SemanticModel semanticModel,
-                out IParameterSymbol parameter,
+                [NotNullWhen(true)] out IParameterSymbol? parameter,
                 CancellationToken cancellationToken)
             {
-                parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                parameter = (IParameterSymbol?)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
 
                 return parameter != null && parameter.Name != "";
             }
@@ -148,7 +157,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected bool CanOfferRefactoring(
             SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken, [MaybeNullWhen(false)] out IBlockOperation? blockStatementOpt)
+            CancellationToken cancellationToken, out IBlockOperation? blockStatementOpt)
         {
             blockStatementOpt = null;
 
@@ -165,7 +174,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
 
             var operation = semanticModel.GetOperation(
-                syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
+                syntaxFacts.IsAnonymousFunctionExpression(functionDeclaration) ? functionDeclaration : functionBody,
                 cancellationToken);
 
             if (operation == null)
@@ -243,8 +252,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))
             {
-                if (memberReference.Member is IFieldSymbol ||
-                    memberReference.Member is IPropertySymbol)
+                if (memberReference.Member is IFieldSymbol or
+                    IPropertySymbol)
                 {
                     fieldOrProperty = memberReference.Member;
                     return true;
@@ -257,8 +266,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Composition;
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.DocumentHighligh
             return highlightSpans.SelectAsArray(x => new HighlightSpan(x.TextSpan, FSharpHighlightSpanKindHelpers.ConvertTo(x.Kind)));
         }
 
-        public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var highlights = await _service.GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
             return highlights.SelectAsArray(x => new DocumentHighlights(x.Document, MapHighlightSpans(x.HighlightSpans)));

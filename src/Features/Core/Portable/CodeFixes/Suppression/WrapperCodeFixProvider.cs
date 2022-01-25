@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var projectDiagnostics = diagnostics.Where(d => !d.Location.IsInSource).ToImmutableArray();
             if (!projectDiagnostics.IsEmpty)
             {
-                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
+                var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
                 RegisterSuppressionFixes(context, suppressionFixes);
             }
         }

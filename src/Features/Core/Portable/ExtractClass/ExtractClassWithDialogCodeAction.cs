@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable 
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         private readonly IExtractClassOptionsService _service;
 
         public TextSpan Span { get; }
-        public override string Title => FeaturesResources.Pull_members_up_to_new_base_class;
+        public override string Title => FeaturesResources.Extract_base_class;
 
         public ExtractClassWithDialogCodeAction(
             Document document,
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         public override object? GetOptions(CancellationToken cancellationToken)
         {
             var extractClassService = _service ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IExtractClassOptionsService>();
-            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMember)
+            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMember, cancellationToken)
                 .WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
@@ -62,10 +60,6 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         {
             if (options is ExtractClassOptions extractClassOptions)
             {
-                // Find the original type
-                var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
                 // Map the symbols we're removing to annotations
                 // so we can find them easily
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
@@ -75,7 +69,6 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                     _selectedTypeDeclarationNode,
                     cancellationToken).ConfigureAwait(false);
 
-                var fileBanner = syntaxFacts.GetFileBanner(root);
                 var namespaceService = _document.GetRequiredLanguageService<AbstractExtractInterfaceService>();
 
                 // Create the symbol for the new type 
@@ -106,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                         _document.Project.Id,
                         _document.Folders,
                         newType,
-                        fileBanner,
+                        _document,
                         cancellationToken).ConfigureAwait(false);
 
                 // Update the original type to have the new base
@@ -220,7 +213,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarationNode = root.GetAnnotatedNodes(typeAnnotation).Single();
 
-            return (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(declarationNode, cancellationToken);
+            return (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(declarationNode, cancellationToken);
         }
 
         private static async Task<Solution> GetSolutionWithBaseAddedAsync(

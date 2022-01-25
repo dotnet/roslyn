@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,15 +23,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbol = graphBuilder.GetSymbol(node);
+                var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                 if (symbol != null)
                 {
                     foreach (var newSymbol in await GetCalledMethodSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var newNode = await graphBuilder.AddNodeAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
-                        graphBuilder.AddLink(node, CodeLinkCategories.Calls, newNode);
+                        var newNode = await graphBuilder.AddNodeAsync(newSymbol, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        graphBuilder.AddLink(node, CodeLinkCategories.Calls, newNode, cancellationToken);
                     }
                 }
             }

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
 
         public ISyntaxClassifier Classifier { get; }
-        public IDocumentHighlightsService DocumentHighlightsService { get; }
-        public CompletionProvider CompletionProvider { get; }
+        public IDocumentHighlightsService? DocumentHighlightsService { get; }
+        public EmbeddedLanguageCompletionProvider CompletionProvider { get; }
 
         public RegexEmbeddedLanguage(
             AbstractEmbeddedLanguageFeaturesProvider provider,
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             CompletionProvider = new RegexEmbeddedCompletionProvider(this);
         }
 
+#nullable disable
         internal async Task<(RegexTree tree, SyntaxToken token)> TryGetTreeAndTokenAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
@@ -48,8 +50,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return default;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, this.Info);
-            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, this.Info);
+            var tree = detector?.TryParseRegexPattern(token, semanticModel, cancellationToken);
             return tree == null ? default : (tree, token);
         }
 

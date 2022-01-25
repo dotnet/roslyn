@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,23 +16,37 @@ namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal abstract partial class AbstractTodoCommentsIncrementalAnalyzer : IncrementalAnalyzerBase
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private string? _lastOptionText = null;
         private ImmutableArray<TodoCommentDescriptor> _lastDescriptors = default;
+
+        /// <summary>
+        /// Set of documents that we have reported an non-empty set of todo comments for.  Used so that we don't bother
+        /// notifying the host about documents with empty-todo lists (the common case). Note: no locking is needed for
+        /// this set as the incremental analyzer is guaranteed to make all calls sequentially to us.
+        /// </summary>
+        private readonly HashSet<DocumentId> _documentsWithTodoComments = new();
 
         protected AbstractTodoCommentsIncrementalAnalyzer()
         {
         }
 
-        protected abstract Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
+        protected abstract ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
 
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => e.Option == TodoCommentOptions.TokenList;
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            // Just report this back as there being no more comments for this document.
-            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken);
+            // Remove the doc id from what we're tracking to prevent unbounded growth in the set.
+
+            // If the doc that is being removed is not in the set of docs we've told the host has todo comments,
+            // then no need to notify the host at all about it.
+            if (!_documentsWithTodoComments.Remove(documentId))
+                return Task.CompletedTask;
+
+            // Otherwise, report that there should now be no todo comments for this doc.
+            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
         }
 
         private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(Document document)
@@ -66,24 +79,26 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
             // Convert the roslyn-level results to the more VS oriented line/col data.
             using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
-            await ConvertAsync(
+            await TodoComment.ConvertAsync(
                 document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
+            var data = converted.ToImmutable();
+            if (data.IsEmpty)
+            {
+                // Remove this doc from the set of docs with todo comments in it. If this was a doc that previously
+                // had todo comments in it, then fall through and notify the host so it can clear them out.
+                // Otherwise, bail out as there's no need to inform the host of this.
+                if (!_documentsWithTodoComments.Remove(document.Id))
+                    return;
+            }
+            else
+            {
+                // Doc has some todo comments, record that, and let the host know.
+                _documentsWithTodoComments.Add(document.Id);
+            }
+
             // Now inform VS about this new information
-            await ReportTodoCommentDataAsync(document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task ConvertAsync(
-            Document document,
-            ImmutableArray<TodoComment> todoComments,
-            ArrayBuilder<TodoCommentData> converted,
-            CancellationToken cancellationToken)
-        {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var comment in todoComments)
-                converted.Add(comment.CreateSerializableData(document, sourceText, syntaxTree));
+            await ReportTodoCommentDataAsync(document.Id, data, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -425,15 +427,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable;
+
         internal ResultProperties ResultProperties
         {
             get { return _lazyResultProperties; }
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             ImmutableArray<LocalSymbol> declaredLocalsArray;
-            var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray, out _lazyResultProperties);
+            var body = _generateMethodBody(this, diagnostics.DiagnosticBag, out declaredLocalsArray, out _lazyResultProperties);
             var compilation = compilationState.Compilation;
 
             _lazyReturnType = TypeWithAnnotations.Create(CalculateReturnType(compilation, body));
@@ -453,11 +457,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             // Check for use-site diagnostics (e.g. missing types in the signature).
-            DiagnosticInfo useSiteDiagnosticInfo = null;
-            this.CalculateUseSiteDiagnostic(ref useSiteDiagnosticInfo);
-            if (useSiteDiagnosticInfo != null && useSiteDiagnosticInfo.Severity == DiagnosticSeverity.Error)
+            UseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            this.CalculateUseSiteDiagnostic(ref useSiteInfo);
+            if (useSiteInfo.DiagnosticInfo != null && useSiteInfo.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
             {
-                diagnostics.Add(useSiteDiagnosticInfo, this.Locations[0]);
+                diagnostics.Add(useSiteInfo.DiagnosticInfo, this.Locations[0]);
                 return;
             }
 
@@ -473,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         declaredLocals,
                         body,
                         declaredLocalsArray,
-                        diagnostics);
+                        diagnostics.DiagnosticBag);
 
                     // Verify local declaration names.
                     foreach (var local in declaredLocals)
@@ -488,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     // Rewrite references to placeholder "locals".
-                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, _container, declaredLocals, body, diagnostics);
+                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, _container, declaredLocals, body, diagnostics.DiagnosticBag);
 
                     if (diagnostics.HasAnyErrors())
                     {
@@ -593,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         compilation.Conversions,
                         _displayClassVariables,
                         body,
-                        diagnostics);
+                        diagnostics.DiagnosticBag);
 
                     if (body.HasErrors)
                     {
@@ -673,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             if ((object)_thisParameter != null)
             {
-                var typeNameKind = GeneratedNames.GetKind(_thisParameter.TypeWithAnnotations.Type.Name);
+                var typeNameKind = GeneratedNameParser.GetKind(_thisParameter.TypeWithAnnotations.Type.Name);
                 if (typeNameKind != GeneratedNameKind.None && typeNameKind != GeneratedNameKind.AnonymousType)
                 {
                     Debug.Assert(typeNameKind == GeneratedNameKind.LambdaDisplayClass ||
@@ -711,5 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return localPosition;
         }
+
+        internal override bool IsNullableAnalysisEnabled() => false;
     }
 }

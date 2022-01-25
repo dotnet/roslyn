@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Structure
 
         public override string Language => LanguageNames.FSharp;
 
-        public override async Task<BlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken)
+        public override async Task<BlockStructure> GetBlockStructureAsync(Document document, BlockStructureOptions options, CancellationToken cancellationToken)
         {
             var blockStructure = await _service.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
             if (blockStructure != null)

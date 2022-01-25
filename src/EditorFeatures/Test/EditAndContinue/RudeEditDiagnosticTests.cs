@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,21 +28,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 RudeEditKind.ActiveStatementUpdate,
                 RudeEditKind.PartiallyExecutedActiveStatementUpdate,
-                RudeEditKind.PartiallyExecutedActiveStatementDelete,
-                RudeEditKind.DeleteActiveStatement,
                 RudeEditKind.UpdateExceptionHandlerOfActiveTry,
                 RudeEditKind.UpdateTryOrCatchWithActiveFinally,
                 RudeEditKind.UpdateCatchHandlerAroundActiveStatement,
                 RudeEditKind.FieldKindUpdate,
                 RudeEditKind.TypeKindUpdate,
                 RudeEditKind.AccessorKindUpdate,
-                RudeEditKind.MethodKindUpdate,
                 RudeEditKind.DeclareLibraryUpdate,
                 RudeEditKind.DeclareAliasUpdate,
-                RudeEditKind.ChangingConstructorVisibility,
                 RudeEditKind.InsertDllImport,
-                RudeEditKind.MethodBodyAdd,
-                RudeEditKind.MethodBodyDelete,
                 RudeEditKind.GenericMethodUpdate,
                 RudeEditKind.GenericTypeUpdate,
                 RudeEditKind.ExperimentalFeaturesEnabled,
@@ -50,13 +46,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
+                RudeEditKind.NotSupportedByRuntime,
+                RudeEditKind.MakeMethodAsync,
+                RudeEditKind.MakeMethodIterator,
+                RudeEditKind.ChangeImplicitMainReturnType
             };
 
             var arg2 = new HashSet<RudeEditKind>()
             {
-                RudeEditKind.ConstraintKindUpdate,
                 RudeEditKind.InsertIntoStruct,
-                RudeEditKind.ConstraintKindUpdate,
                 RudeEditKind.InsertIntoStruct,
                 RudeEditKind.ChangingCapturedVariableType,
                 RudeEditKind.AccessingCapturedVariableInLambda,
@@ -65,6 +63,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
                 RudeEditKind.MemberBodyInternalError,
+                RudeEditKind.ChangingNonCustomAttribute
             };
 
             var arg3 = new HashSet<RudeEditKind>()

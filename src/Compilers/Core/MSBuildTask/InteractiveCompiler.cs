@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
@@ -21,8 +19,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         public InteractiveCompiler()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
         }
 
         #region Properties - Please keep these alphabetized.

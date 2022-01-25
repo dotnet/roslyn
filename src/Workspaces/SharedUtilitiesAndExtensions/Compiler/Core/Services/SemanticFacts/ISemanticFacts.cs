@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,7 +11,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal interface ISemanticFacts
+    internal partial interface ISemanticFacts
     {
         /// <summary>
         /// True if this language supports implementing an interface by signature only. If false,
@@ -59,8 +61,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
 
-        string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken);
-
         ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
 
         bool LastEnumValueHasInitializer(INamedTypeSymbol namedTypeSymbol);
@@ -94,5 +94,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 #nullable disable
 
         bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Finds all local function definitions within the syntax references for a given <paramref name="symbol"/>
+        /// </summary>
+        ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken);
+
+        bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
     }
 }

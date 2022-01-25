@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor
     internal class SolutionPreviewResult : ForegroundThreadAffinitizedObject
     {
         private readonly IList<SolutionPreviewItem> _previews;
-        public readonly SolutionChangeSummary ChangeSummary;
+        public readonly SolutionChangeSummary? ChangeSummary;
 
-        public SolutionPreviewResult(IThreadingContext threadingContext, SolutionPreviewItem preview, SolutionChangeSummary changeSummary = null)
+        public SolutionPreviewResult(IThreadingContext threadingContext, SolutionPreviewItem preview, SolutionChangeSummary? changeSummary = null)
             : this(threadingContext, new List<SolutionPreviewItem> { preview }, changeSummary)
         {
         }
 
-        public SolutionPreviewResult(IThreadingContext threadingContext, IList<SolutionPreviewItem> previews, SolutionChangeSummary changeSummary = null)
+        public SolutionPreviewResult(IThreadingContext threadingContext, IList<SolutionPreviewItem>? previews, SolutionChangeSummary? changeSummary = null)
             : base(threadingContext)
         {
             _previews = previews ?? SpecializedCollections.EmptyList<SolutionPreviewItem>();
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public bool IsEmpty => _previews.Count == 0;
 
-        public async Task<IReadOnlyList<object>> GetPreviewsAsync(DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<object>?> GetPreviewsAsync(DocumentId? preferredDocumentId = null, ProjectId? preferredProjectId = null, CancellationToken cancellationToken = default)
         {
             AssertIsForeground();
             cancellationToken.ThrowIfCancellationRequested();
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         /// <summary>Merge two different previews into one final preview result.  The final preview will
         /// have a concatenation of all the inidivual previews contained within each result.</summary>
-        internal static SolutionPreviewResult Merge(SolutionPreviewResult result1, SolutionPreviewResult result2)
+        internal static SolutionPreviewResult? Merge(SolutionPreviewResult? result1, SolutionPreviewResult? result2)
         {
             if (result1 == null)
             {

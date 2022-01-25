@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -75,7 +77,7 @@ unsafe class C
     <OutputType>Library</OutputType>
     <RootNamespace>{ProjectName}</RootNamespace>
     <AssemblyName>{ProjectName}</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Debug|x86'"">
     <OutputPath>bin\x86\Debug\</OutputPath>

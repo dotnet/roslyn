@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic

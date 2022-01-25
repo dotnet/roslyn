@@ -8,16 +8,12 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.CSharp;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     /// <summary>
@@ -56,19 +52,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         internal static readonly TimeSpan GCTimeout = TimeSpan.FromSeconds(30);
 
         private readonly ICompilerServerHost _compilerServerHost;
+        private readonly ICompilerServerLogger _logger;
         private readonly IClientConnectionHost _clientConnectionHost;
         private readonly IDiagnosticListener _diagnosticListener;
         private State _state;
         private Task? _timeoutTask;
         private Task? _gcTask;
         private Task<IClientConnection>? _listenTask;
-        private List<Task<CompletionData>> _connectionList = new List<Task<CompletionData>>();
+        private readonly List<Task<CompletionData>> _connectionList = new List<Task<CompletionData>>();
         private TimeSpan? _keepAlive;
         private bool _keepAliveIsDefault;
 
         internal ServerDispatcher(ICompilerServerHost compilerServerHost, IClientConnectionHost clientConnectionHost, IDiagnosticListener? diagnosticListener = null)
         {
             _compilerServerHost = compilerServerHost;
+            _logger = compilerServerHost.Logger;
             _clientConnectionHost = clientConnectionHost;
             _diagnosticListener = diagnosticListener ?? new EmptyDiagnosticListener();
         }
@@ -102,24 +100,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     _clientConnectionHost.EndListening();
                 }
 
-                // This type is responsible for cleaning up resources associated with _listenTask. Once EndListening
-                // is complete this task is guaranteed to be completed. If it ran to completion we need to 
-                // dispose of the value.
-                Console.WriteLine(_listenTask?.Status);
-                Debug.Assert(_listenTask is null || _listenTask.IsCompleted);
-                if (_listenTask?.Status == TaskStatus.RanToCompletion)
+                if (_listenTask is not null)
                 {
-                    try
+                    // This type is responsible for cleaning up resources associated with _listenTask. Once EndListening
+                    // is complete this task is guaranteed to be either completed or have a task scheduled to complete
+                    // it. If it ran to completion we need to dispose of the value.
+                    if (!_listenTask.IsCompleted)
                     {
-                        _listenTask.Result.Dispose();
+                        // Wait for the task to complete
+                        _listenTask.ContinueWith(_ => { }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default)
+                            .Wait(CancellationToken.None);
                     }
-                    catch (Exception ex)
+
+                    if (_listenTask.Status == TaskStatus.RanToCompletion)
                     {
-                        CompilerServerLogger.LogException(ex, $"Error disposing of {nameof(_listenTask)}");
+                        try
+                        {
+                            _listenTask.Result.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogException(ex, $"Error disposing of {nameof(_listenTask)}");
+                        }
                     }
                 }
             }
-            CompilerServerLogger.Log($"End ListenAndDispatchConnections");
+            _logger.Log($"End ListenAndDispatchConnections");
         }
 
         public void ListenAndDispatchConnectionsCore(CancellationToken cancellationToken)
@@ -212,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return;
             }
 
-            CompilerServerLogger.Log($"Shutting down server: {reason}");
+            _logger.Log($"Shutting down server: {reason}");
             Debug.Assert(_state == State.Running);
             Debug.Assert(_clientConnectionHost.IsListening);
 
@@ -224,13 +230,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private void RunGC()
         {
             _gcTask = null;
-            for (int i = 0; i < 10; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-            GC.Collect();
+            GC.GetTotalMemory(forceFullCollection: true);
         }
 
         private void MaybeCreateListenTask()
@@ -285,27 +285,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 switch (completionData.Reason)
                 {
                     case CompletionReason.RequestCompleted:
-                        CompilerServerLogger.Log("Client request completed");
+                        _logger.Log("Client request completed");
 
                         if (completionData.NewKeepAlive is { } keepAlive)
                         {
-                            CompilerServerLogger.Log($"Client changed keep alive to {keepAlive}");
+                            _logger.Log($"Client changed keep alive to {keepAlive}");
                             ChangeKeepAlive(keepAlive);
                         }
 
                         if (completionData.ShutdownRequest)
                         {
-                            CompilerServerLogger.Log("Client requested shutdown");
+                            _logger.Log("Client requested shutdown");
                             shutdown = true;
                         }
 
                         break;
                     case CompletionReason.RequestError:
-                        CompilerServerLogger.LogError("Client request failed");
+                        _logger.LogError("Client request failed");
                         shutdown = true;
                         break;
                     default:
-                        CompilerServerLogger.LogError("Unexpected enum value");
+                        _logger.LogError("Unexpected enum value");
                         shutdown = true;
                         break;
                 }

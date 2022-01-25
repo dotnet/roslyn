@@ -4,89 +4,90 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class DoKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DoInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, {"Do", "Do Until", "Do While"})
-        End Function
+        Public Sub DoInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, {"Do", "Do Until", "Do While"})
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DoInLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub DoInLambdaTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
 |
         End Sub</MethodBody>, "Do")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DoAfterStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub DoAfterStatementTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x
 |</MethodBody>, "Do")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DoAfterExitKeywordTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub DoAfterExitKeywordTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Exit |
 Loop</MethodBody>, "Do")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DoAfterContinueKeywordTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub DoAfterContinueKeywordTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Continue |
 Loop</MethodBody>, "Do")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DoNotAfterContinueKeywordOutsideLoopTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub DoNotAfterContinueKeywordOutsideLoopTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Continue |
 </MethodBody>, "Do")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DoNotAfterExitKeywordOutsideLoopTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub DoNotAfterExitKeywordOutsideLoopTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Exit |
 </MethodBody>, "Do")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoDoAfterExitInsideLambdaInsideDoLoopTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub NoDoAfterExitInsideLambdaInsideDoLoopTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Do
 Dim x = Sub()
             Exit |
         End Sub
 Loop
 </MethodBody>, "Do")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DoAfterExitInsideDoLoopInsideLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub DoAfterExitInsideDoLoopInsideLambdaTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
             Do
                 Exit |
             Loop
         End Sub
 </MethodBody>, "Do")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DoNotInsideSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub DoNotInsideSingleLineLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub() |
 </MethodBody>, "Do")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterExitInFinallyBlockTest() As Task
+        Public Sub NotAfterExitInFinallyBlockTest()
             Dim code =
 <MethodBody>
 Do
@@ -95,7 +96,7 @@ Do
         Exit |
 </MethodBody>
 
-            Await VerifyRecommendationsMissingAsync(code, "Do")
-        End Function
+            VerifyRecommendationsMissing(code, "Do")
+        End Sub
     End Class
 End Namespace

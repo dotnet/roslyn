@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AsyncStateMachine stateMachineType,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
-                DiagnosticBag diagnostics)
+                BindingDiagnosticBag diagnostics)
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(!TypeSymbol.Equals(method.IteratorElementTypeWithAnnotations.Type, null, TypeCompareKind.ConsiderEverything2));
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_isEnumerable != method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation));
             }
 
-            protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+            protected override void VerifyPresenceOfRequiredAPIs(BindingDiagnosticBag bag)
             {
                 base.VerifyPresenceOfRequiredAPIs(bag);
 

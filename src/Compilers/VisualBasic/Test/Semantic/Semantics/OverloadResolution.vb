@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -52,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                 Return OverloadResolution.MethodInvocationOverloadResolution(
                         methodGroup, arguments, argumentNames, binder, includeEliminatedCandidates:=includeEliminatedCandidates, lateBindingIsAllowed:=lateBindingIsAllowed, callerInfoOpt:=Nothing,
-                        useSiteDiagnostics:=Nothing)
+                        useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             End Function
         End Module
     End Namespace

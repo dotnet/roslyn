@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1289,7 +1291,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 null,
-                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType.GetCciAdapter()),
                 out peBytes,
                 out pdbBytes);
 
@@ -1409,7 +1411,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 pdbPath,
-                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType.GetCciAdapter()),
                 out peBytes,
                 out pdbBytes);
             var symReader = SymReaderFactory.CreateReader(pdbBytes);
@@ -1544,7 +1546,8 @@ namespace System
                 }
             }
 
-            public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;
+            public override SymbolChanges EncSymbolChanges => _builder.EncSymbolChanges;
+            public override EmitBaseline PreviousGeneration => _builder.PreviousGeneration;
 
             public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _builder.SourceAssemblyOpt;
 

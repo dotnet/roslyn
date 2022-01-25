@@ -91,12 +91,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
                 If simpleName IsNot Nothing Then
                     Return simpleName
                 End If
+
                 qn = TryCast(left, QualifiedNameSyntax)
             End While
+
             Return Nothing
         End Function
 
-        Protected Overrides Async Function ReplaceNodeAsync(node As SyntaxNode, containerName As String, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Protected Overrides Async Function ReplaceNodeAsync(node As SyntaxNode, containerName As String, resultingSymbolIsType As Boolean, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim simpleName = DirectCast(node, SimpleNameSyntax)
 
             Dim leadingTrivia = simpleName.GetLeadingTrivia()

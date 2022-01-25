@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -55,8 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
             }
 
-            var actual = TreeToText(sourceText, tree).Replace("\"", "\"\"");
-            Assert.Equal(expected.Replace("\"", "\"\""), actual);
+            const string DoubleQuoteEscaping = "\"\"";
+            var actual = TreeToText(sourceText, tree)
+                .Replace("\"", DoubleQuoteEscaping)
+                .Replace("&quot;", DoubleQuoteEscaping);
+            Assert.Equal(expected.Replace("\"", DoubleQuoteEscaping), actual);
         }
 
         private void TryParseSubTrees(
@@ -68,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
-            while (current != "@\"\"" && current != "\"\"")
+            while (current is not "@\"\"" and not "\"\"")
             {
                 current = current.Substring(0, current.Length - 2) + "\"";
                 TryParseTree(current, options, conversionFailureOk: true,
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
             // Trim the input from the left and make sure tree invariants hold
             current = stringText;
-            while (current != "@\"\"" && current != "\"\"")
+            while (current is not "@\"\"" and not "\"\"")
             {
                 if (current[0] == '@')
                 {
@@ -183,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
 
             Assert.True(regex.GetGroupNumbers().OrderBy(v => v).SequenceEqual(
-                tree.CaptureNumbersToSpan.Keys.OrderBy(v => v).Select(v => (int)v)));
+                tree.CaptureNumbersToSpan.Keys.OrderBy(v => v)));
 
             Assert.True(regex.GetGroupNames().Where(v => !int.TryParse(v, out _)).OrderBy(v => v).SequenceEqual(
                 tree.CaptureNamesToSpan.Keys.OrderBy(v => v)));
@@ -219,16 +224,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                         GetTextAttribute(text, d.Span))));
 
         private static XAttribute GetTextAttribute(SourceText text, TextSpan span)
-            => new XAttribute("Text", text.ToString(span));
+            => new("Text", text.ToString(span));
 
         private XElement NodeToElement(RegexNode node)
         {
+            if (node is RegexAlternationNode alternationNode)
+                return AlternationToElement(alternationNode, alternationNode.SequenceList.NodesAndTokens.Length);
+
             var element = new XElement(node.Kind.ToString());
             foreach (var child in node)
-            {
                 element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
-            }
 
+            return element;
+        }
+
+        private XElement AlternationToElement(RegexAlternationNode alternationNode, int end)
+        {
+            // to keep tests in sync with how we used to structure alternations, we specially handle this node.
+            // First, if the node only has a single element, then just print that element as that's what would
+            // normally be inlined into the parent.
+            if (end == 1)
+                return NodeToElement(alternationNode.SequenceList.NodesAndTokens[0].Node);
+
+            var element = new XElement(alternationNode.Kind.ToString());
+            element.Add(AlternationToElement(alternationNode, end - 2));
+            element.Add(TokenToElement(alternationNode.SequenceList.NodesAndTokens[end - 2].Token));
+            element.Add(NodeToElement(alternationNode.SequenceList.NodesAndTokens[end - 1].Node));
             return element;
         }
 
@@ -321,6 +342,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             position += virtualChars.Length;
         }
 
+        private static string And(params string[] regexes)
+        {
+            var conj = $"({regexes[regexes.Length - 1]})";
+            for (var i = regexes.Length - 2; i >= 0; i--)
+                conj = $"(?({regexes[i]}){conj}|[0-[0]])";
+
+            return conj;
+        }
+
+        private static string Not(string regex)
+            => $"(?({regex})[0-[0]]|.*)";
+
         [Fact]
         public void TestDeepRecursion()
         {
@@ -341,6 +374,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.False(token.IsMissing);
             Assert.False(chars.IsDefaultOrEmpty);
             Assert.Null(tree);
+        }
+
+        [Fact]
+        public void TestNoStackOverflow()
+        {
+            for (var i = 1; i < 1200; i++)
+            {
+                var text = new string('(', i);
+                var (token, _, chars) = JustParseTree($@"@""{text}""", RegexOptions.None, conversionFailureOk: false);
+                Assert.False(token.IsMissing);
+                Assert.False(chars.IsDefaultOrEmpty);
+            }
         }
     }
 }

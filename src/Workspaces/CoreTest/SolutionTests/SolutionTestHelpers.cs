@@ -5,12 +5,32 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class SolutionTestHelpers
     {
+        public static Workspace CreateWorkspace(Type[]? additionalParts = null)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+
+        public static Workspace CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations()
+            => CreateWorkspace(new[]
+            {
+                typeof(TestProjectCacheService),
+                typeof(TestTemporaryStorageService)
+            });
+
+        public static Workspace CreateWorkspaceWithPartialSemanticsAndWeakCompilations()
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageService) });
+
+#nullable disable
+
         public static void TestProperty<T, TValue>(T instance, Func<T, TValue, T> factory, Func<T, TValue> getter, TValue validNonDefaultValue, bool defaultThrows = false)
             where T : class
         {

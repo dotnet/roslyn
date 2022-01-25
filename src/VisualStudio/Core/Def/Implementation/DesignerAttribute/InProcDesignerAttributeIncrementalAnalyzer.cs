@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -15,16 +17,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
     {
         private readonly IDesignerAttributeListener _listener;
 
-        public InProcDesignerAttributeIncrementalAnalyzer(Workspace workspace, IDesignerAttributeListener listener)
-            : base(workspace)
+        public InProcDesignerAttributeIncrementalAnalyzer(IDesignerAttributeListener listener)
         {
             _listener = listener;
         }
 
-        protected override Task ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        protected override ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
             => _listener.OnProjectRemovedAsync(projectId, cancellationToken);
 
-        protected override Task ReportDesignerAttributeDataAsync(List<DesignerAttributeData> data, CancellationToken cancellationToken)
-            => _listener.ReportDesignerAttributeDataAsync(data.ToImmutableArray(), cancellationToken);
+        protected override ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+            => _listener.ReportDesignerAttributeDataAsync(data, cancellationToken);
     }
 }

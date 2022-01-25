@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -12,24 +14,26 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 {
     internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
     {
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
         private readonly ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> _symbolToMemberViewMap;
 
         public MemberSelectionViewModel(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             ImmutableArray<PullMemberUpSymbolViewModel> members,
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
             TypeKind destinationTypeKind = TypeKind.Class)
         {
-            _waitIndicator = waitIndicator;
-            _members = members;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
+            // Use public property to hook property change events up
+            Members = members;
             _symbolToDependentsMap = dependentsMap;
             _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
 
@@ -42,41 +46,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
         public ImmutableArray<PullMemberUpSymbolViewModel> Members
         {
             get => _members;
-            set => SetProperty(ref _members, value);
-        }
-
-        private bool? _selectAllCheckBoxState;
-        public bool? SelectAllCheckBoxState
-        {
-            get => _selectAllCheckBoxState;
-            set => SetProperty(ref _selectAllCheckBoxState, value);
-        }
-
-        private bool _selectAllCheckBoxThreeStateEnable;
-        public bool SelectAllCheckBoxThreeStateEnable
-        {
-            get => _selectAllCheckBoxThreeStateEnable;
-            set => SetProperty(ref _selectAllCheckBoxThreeStateEnable, value);
-        }
-
-        public void UpdateSelectAllCheckBoxState()
-        {
-            var checkableMembers = Members.WhereAsArray(member => member.IsCheckable);
-            var checkedCount = checkableMembers.Where(member => member.IsChecked).Count();
-            if (checkedCount == checkableMembers.Length)
+            set
             {
-                SelectAllCheckBoxState = true;
-                SelectAllCheckBoxThreeStateEnable = false;
+                var oldMembers = _members;
+                if (SetProperty(ref _members, value))
+                {
+                    // If we have registered for events before, remove the handlers
+                    // to be a good citizen in the world 
+                    if (!oldMembers.IsDefaultOrEmpty)
+                    {
+                        foreach (var oldMember in oldMembers)
+                        {
+                            oldMember.PropertyChanged -= MemberPropertyChangedHandler;
+                        }
+                    }
+
+                    foreach (var member in _members)
+                    {
+                        member.PropertyChanged += MemberPropertyChangedHandler;
+                    }
+                }
             }
-            else if (checkedCount > 0)
+        }
+
+        private void MemberPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(PullMemberUpSymbolViewModel.IsChecked))
             {
-                SelectAllCheckBoxThreeStateEnable = true;
-                SelectAllCheckBoxState = null;
-            }
-            else
-            {
-                SelectAllCheckBoxState = false;
-                SelectAllCheckBoxThreeStateEnable = false;
+                // Hook the CheckedMembers property change to each individual member checked status change
+                NotifyPropertyChanged(nameof(CheckedMembers));
             }
         }
 
@@ -94,20 +92,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             var checkedMembers = Members
               .WhereAsArray(member => member.IsChecked && member.IsCheckable);
 
-            var waitResult = _waitIndicator.Wait(
+            var result = _uiThreadOperationExecutor.Execute(
                     title: ServicesVSResources.Pull_Members_Up,
-                    message: ServicesVSResources.Calculating_dependents,
-                    allowCancel: true,
+                    defaultDescription: ServicesVSResources.Calculating_dependents,
+                    allowCancellation: true,
                     showProgress: true,
                     context =>
                     {
                         foreach (var member in Members)
                         {
-                            _symbolToDependentsMap[member.Symbol].Wait(context.CancellationToken);
+                            _symbolToDependentsMap[member.Symbol].Wait(context.UserCancellationToken);
                         }
                     });
 
-            if (waitResult == WaitIndicatorResult.Completed)
+            if (result == UIThreadOperationStatus.Completed)
             {
                 foreach (var member in checkedMembers)
                 {
@@ -142,19 +140,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             {
                 member.IsMakeAbstractCheckable = !isInterface;
             }
-
-            UpdateSelectAllCheckBoxState();
         }
 
-        private void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> members, bool isChecked = true)
+        private static void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> members, bool isChecked = true)
         {
             foreach (var member in members.Where(viewModel => viewModel.IsCheckable))
             {
                 member.IsChecked = isChecked;
             }
-
-            UpdateSelectAllCheckBoxState();
-            NotifyPropertyChanged(nameof(CheckedMembers));
         }
 
         private ImmutableHashSet<ISymbol> FindDependentsRecursively(ISymbol member)

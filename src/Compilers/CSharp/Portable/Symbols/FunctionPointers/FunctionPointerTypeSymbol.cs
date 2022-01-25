@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class FunctionPointerTypeSymbol : TypeSymbol
     {
-        public static FunctionPointerTypeSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+        public static FunctionPointerTypeSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
             => new FunctionPointerTypeSymbol(
                 FunctionPointerMethodSymbol.CreateFromSource(
                     syntax,
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsSealed => false;
         // Pointers do not support boxing, so they really have no base type.
         internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
-        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => ManagedKind.Unmanaged;
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Unmanaged;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitFunctionPointerType(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitFunctionPointerType(this);
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitFunctionPointerType(this, a);
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, t2))
             {
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return Signature.Equals(other.Signature, compareKind, isValueTypeOverrideOpt);
+            return Signature.Equals(other.Signature, compareKind);
         }
 
         public override int GetHashCode()
@@ -141,13 +140,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return madeChanges;
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo? fromSignature = Signature.GetUseSiteDiagnostic();
+            UseSiteInfo<AssemblySymbol> fromSignature = Signature.GetUseSiteInfo();
 
-            if (fromSignature?.Code == (int)ErrorCode.ERR_BindToBogus && fromSignature.Arguments.AsSingleton() == (object)Signature)
+            if (fromSignature.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BindToBogus && fromSignature.DiagnosticInfo.Arguments.AsSingleton() == (object)Signature)
             {
-                return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+                return new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
             }
 
             return fromSignature;
@@ -206,25 +205,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool IsCallingConventionModifier(NamedTypeSymbol modifierType)
         {
-            return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+            Debug.Assert(modifierType.ContainingAssembly is not null || modifierType.IsErrorType());
+            return (object?)modifierType.ContainingAssembly == modifierType.ContainingAssembly?.CorLibrary
                    && modifierType.Arity == 0
                    && modifierType.Name != "CallConv"
                    && modifierType.Name.StartsWith("CallConv", StringComparison.Ordinal)
-#pragma warning disable IDE0055 // Formatting wants to put the braces at the beginning of the line https://github.com/dotnet/roslyn/issues/46284
-                   && modifierType.ContainingNamespace is
-                      {
-                          Name: "CompilerServices",
-                          ContainingNamespace:
-                          {
-                              Name: "Runtime",
-                              ContainingNamespace:
-                              {
-                                  Name: "System",
-                                  ContainingNamespace: { IsGlobalNamespace: true }
-                              }
-                          }
-                      };
-#pragma warning restore IDE0055
+                   && modifierType.IsCompilerServicesTopLevelType();
+        }
+
+        internal override bool IsRecord => false;
+
+        internal override bool IsRecordStruct => false;
+
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
     }
 }

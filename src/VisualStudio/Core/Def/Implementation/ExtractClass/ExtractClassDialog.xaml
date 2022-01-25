@@ -7,6 +7,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:controls="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls"
              mc:Ignorable="d" 
              Title="{Binding ElementName=dialog, Path=ExtractClassTitle}"
              WindowStartupLocation="CenterOwner"
@@ -27,7 +28,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ContentPresenter Grid.Row="0" Content="{Binding ElementName=dialog, Path=DestinationSelectionControl}" />
+        <controls:NewTypeDestinationSelection Grid.Row="0" ViewModel="{Binding ElementName=dialog, Path=ViewModel.DestinationViewModel}" />
 
         <GroupBox x:Uid="MemberSelectionGroupBox"
                   x:Name="MemberSelectionGroupBox"

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3652,6 +3654,9 @@ public class Vec
                 // (8,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is 3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is 3").WithLocation(8, 13),
+                // (8,25): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         if (delegate {} is 3) {}
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(8, 25),
                 // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is 4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
@@ -3664,6 +3669,9 @@ public class Vec
                 // (12,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is var x3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is var x3").WithLocation(12, 13),
+                // (12,25): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         if (delegate {} is var x3) {}
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(12, 25),
                 // (13,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is var x4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", "(int, <null>)").WithLocation(13, 13)
@@ -4206,7 +4214,7 @@ class Program
         Console.WriteLine(a is nameof);
     }
 }
-class nameof { }
+class @nameof { }
 ";
             var expectedOutput =
 @"True
@@ -4441,7 +4449,7 @@ public class C
             // pattern)
             var source =
 @"
-public class var {}
+public class @var {}
 unsafe public class Typ
 {
     public static void Main(int* a, var* c, Typ* e)
@@ -4965,7 +4973,7 @@ public class Program738490379
             string Type() => types[r.Next(types.Length)];
             string Pattern(int d = 5)
             {
-                switch (r.Next(d <= 1 ? 9 : 12))
+                switch (r.Next(d <= 1 ? 9 : 13))
                 {
                     default:
                         return Expression(); // a "constant" pattern
@@ -4981,11 +4989,13 @@ public class Program738490379
                     case 8:
                         return "(" + Pattern(d - 1) + ")";
                     case 9:
-                        return makeRecursivePattern(d);
+                        return r.Next(2) == 0 ? makeRecursivePattern(d) : makeListPattern(d);
                     case 10:
                         return Pattern(d - 1) + " and " + Pattern(d - 1);
                     case 11:
                         return Pattern(d - 1) + " or " + Pattern(d - 1);
+                    case 12:
+                        return ".." + (r.Next(2) == 0 ? Pattern(d - 1) : null);
                 }
 
                 string makeRecursivePattern(int d)
@@ -5000,6 +5010,12 @@ public class Program738490379
                         bool haveIdentifier = r.Next(2) == 0;
                         return $"{(haveType ? Type() : null)} {(haveParens ? $"({makePatternList(d - 1, false)})" : null)} {(haveCurlies ? $"{"{ "}{makePatternList(d - 1, true)}{" }"}" : null)} {(haveIdentifier ? " x" + r.Next(10) : null)}";
                     }
+                }
+
+                string makeListPattern(int d)
+                {
+                    bool haveIdentifier = r.Next(2) == 0;
+                    return $"[{makePatternList(d - 1, false)}]{(haveIdentifier ? " x" + r.Next(10) : null)}";
                 }
 
                 string makePatternList(int d, bool propNames)
@@ -6401,7 +6417,7 @@ class Program
         }
 
         [Fact, WorkItem(20103, "https://github.com/dotnet/roslyn/issues/20103")]
-        public void TestNullInInPattern()
+        public void TestNullInIsPattern()
         {
             var source =
 @"using System;
@@ -7180,6 +7196,46 @@ public class C
         }
 
         [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_05()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public ref struct R
+{
+    public R RProp => throw null;
+    public S SProp => throw null;
+    public static implicit operator R(Span<int> span) => throw null;
+}
+public struct S
+{
+    public R RProp => throw null;
+    public S SProp => throw null;
+}
+public class C
+{
+    public void M1(ref R r, ref S s)
+    {
+        R outer = stackalloc int[100];
+        if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+        if (outer is { SProp.RProp: var sr0 }) r = sr0; // OK
+        if (outer is { SProp.SProp: var ss0 }) s = ss0; // OK
+        if (outer is { RProp.SProp: var rs0 }) s = rs0; // OK
+        if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+        if (outer is { SProp: { RProp: var sr1 }}) r = sr1; // OK
+        if (outer is { SProp: { SProp: var ss1 }}) s = ss1; // OK
+        if (outer is { RProp: { SProp: var rs1 }}) s = rs1; // OK
+    }
+}").VerifyDiagnostics(
+                // (19,52): error CS8352: Cannot use local 'rr0' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr0").WithArguments("rr0").WithLocation(19, 52),
+                // (23,56): error CS8352: Cannot use local 'rr1' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr1").WithArguments("rr1").WithLocation(23, 56));
+        }
+
+        [Fact]
         [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
         public void EscapeScopeInSubpatternOfNonRefType()
         {
@@ -7306,6 +7362,52 @@ class C
             comp.VerifyDiagnostics(
                 );
             CompileAndVerify(comp, expectedOutput: "in catch");
+        }
+
+        [Fact, WorkItem(50301, "https://github.com/dotnet/roslyn/issues/50301")]
+        public void SymbolsForSwitchExpressionLocals()
+        {
+            var source = @"
+class C
+{
+    static string M(object o)
+    {
+        return o switch
+        {
+            int i => $""Number: {i}"",
+            _ => ""Don't know""
+        };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyPdb("C.M", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""10"" endColumn=""11"" document=""1"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x22"" startLine=""9"" startColumn=""18"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x28"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2a"">
+        <scope startOffset=""0xf"" endOffset=""0x22"">
+          <local name=""i"" il_index=""0"" il_start=""0xf"" il_end=""0x22"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
         }
     }
 }

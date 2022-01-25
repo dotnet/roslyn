@@ -17,13 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend NotInheritable Class VisualBasicIndentationService
         Inherits AbstractIndentationService(Of CompilationUnitSyntax)
 
-        Public Shared ReadOnly DefaultInstance As New VisualBasicIndentationService()
         Public Shared ReadOnly WithoutParameterAlignmentInstance As New VisualBasicIndentationService(NoOpFormattingRule.Instance)
 
         Private ReadOnly _specializedIndentationRule As AbstractFormattingRule
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             Me.New(Nothing)
         End Sub
@@ -41,8 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 formattingRules As IEnumerable(Of AbstractFormattingRule),
                 root As CompilationUnitSyntax,
                 line As TextLine,
-                optionService As IOptionService,
-                optionSet As OptionSet,
+                options As SyntaxFormattingOptions,
                 ByRef token As SyntaxToken,
                 Optional neverUseWhenHavingMissingToken As Boolean = True) As Boolean
 
@@ -87,8 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 ' check whether current token is first token of a statement
                 Return statement.GetFirstToken() = token
             End If
-
-            Dim options = optionSet.AsAnalyzerConfigOptions(optionService, root.Language)
 
             ' now, regular case. ask formatting rule to see whether we should use token formatter or not
             Dim lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, options)

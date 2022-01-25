@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -24,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         public AbstractDiagnosticsAdornmentTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
-            IForegroundNotificationService notificationService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
+            : base(threadingContext, diagnosticService, globalOptions, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
         {
         }
 

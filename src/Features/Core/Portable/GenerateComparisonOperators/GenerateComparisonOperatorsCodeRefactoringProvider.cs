@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
 {
     using static CodeGenerationSymbolFactory;
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.GenerateComparisonOperators), Shared]
     internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactoringProvider
     {
         private const string LeftName = "left";
@@ -46,14 +44,14 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
         {
             var (document, textSpan, cancellationToken) = context;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, fullHeader: true, out var typeDeclaration) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
+            if (!helpers.IsOnTypeHeader(root, textSpan.Start, fullHeader: true, out var typeDeclaration) &&
+                !helpers.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
             }
@@ -138,10 +136,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             INamedTypeSymbol comparableType,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var containingType = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
+            var containingType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
             var compareMethod = TryGetCompareMethodImpl(containingType, comparableType)!;
 
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
@@ -151,14 +148,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 generator, semanticModel.Compilation, containingType, comparableType,
                 GenerateLeftExpression(generator, comparableType, compareMethod));
 
-            return await codeGenService.AddMembersAsync(
-                document.Project.Solution,
-                containingType,
-                operators,
-                new CodeGenerationOptions(
-                    contextLocation: typeDeclaration.GetLocation(),
-                    options: options,
-                    parseOptions: typeDeclaration.SyntaxTree.Options), cancellationToken).ConfigureAwait(false);
+            var context = new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation());
+
+            return await codeGenService.AddMembersAsync(document.Project.Solution, containingType, operators, context, cancellationToken).ConfigureAwait(false);
         }
 
         private static SyntaxNode GenerateLeftExpression(

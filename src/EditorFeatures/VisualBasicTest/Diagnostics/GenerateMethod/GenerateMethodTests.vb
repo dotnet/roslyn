@@ -2635,7 +2635,7 @@ Class M1
         sub1(Of Integer, String)(New Integer() {1, 2, 3}, New String() {"a", "b"})
     End Sub
 
-    Private Sub sub1(Of T1, T2)(v1() As T1, v2() As T2)
+    Private Sub sub1(Of T1, T2)(vs1() As T1, vs2() As T2)
         Throw New NotImplementedException()
     End Sub
 End Class

@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The target framework of the project being built or resolved. This property is only valid for SDK-style projects
         /// during the <see cref="ProjectLoadOperation.Resolve"/> operation.
         /// </summary>
-        public string TargetFramework { get; }
+        public string? TargetFramework { get; }
 
         /// <summary>
         /// The amount of time elapsed for this operation.
         /// </summary>
         public TimeSpan ElapsedTime { get; }
 
-        internal ProjectLoadProgress(string filePath, ProjectLoadOperation operation, string targetFramework, TimeSpan elapsedTime)
+        internal ProjectLoadProgress(string filePath, ProjectLoadOperation operation, string? targetFramework, TimeSpan elapsedTime)
         {
             FilePath = filePath;
             Operation = operation;

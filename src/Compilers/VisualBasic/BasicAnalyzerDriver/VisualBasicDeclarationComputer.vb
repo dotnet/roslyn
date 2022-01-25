@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     getSymbol As Boolean,
                                                     builder As ArrayBuilder(Of DeclarationInfo),
                                                     cancellationToken As CancellationToken)
-            ComputeDeclarationsCore(model, model.SyntaxTree.GetRoot(),
+            ComputeDeclarationsCore(model, model.SyntaxTree.GetRoot(cancellationToken),
                                     Function(node, level) Not node.Span.OverlapsWith(span) OrElse InvalidLevel(level),
                                     getSymbol, builder, Nothing, cancellationToken)
         End Sub

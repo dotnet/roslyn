@@ -2,15 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
 {
@@ -21,6 +26,54 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpRefactoringHelpersService()
         {
+        }
+
+        protected override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
+
+        public override bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
+        {
+            var token = root.FindToken(position);
+            var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
+            typeDeclaration = typeDecl;
+
+            if (typeDecl == null)
+                return false;
+
+            RoslynDebug.AssertNotNull(typeDeclaration);
+            if (position < typeDecl.OpenBraceToken.Span.End ||
+                position > typeDecl.CloseBraceToken.Span.Start)
+            {
+                return false;
+            }
+
+            var line = sourceText.Lines.GetLineFromPosition(position);
+            if (!line.IsEmptyOrWhitespace())
+                return false;
+
+            var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
+            if (member == null)
+            {
+                // There are no members, or we're after the last member.
+                return true;
+            }
+            else
+            {
+                // We're within a member.  Make sure we're in the leading whitespace of
+                // the member.
+                if (position < member.SpanStart)
+                {
+                    foreach (var trivia in member.GetLeadingTrivia())
+                    {
+                        if (!trivia.IsWhitespaceOrEndOfLine())
+                            return false;
+
+                        if (trivia.FullSpan.Contains(position))
+                            return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         protected override IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode? node, ISyntaxFactsService syntaxFacts)

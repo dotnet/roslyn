@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Persistence;
@@ -17,8 +15,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FactoryReuse()
         {
-            var composition1 = FeaturesTestCompositions.Features.AddParts(typeof(TestPersistenceService), typeof(TestOptionsServiceFactory));
-            var composition2 = FeaturesTestCompositions.Features.AddParts(typeof(TestOptionsServiceFactory), typeof(TestPersistenceService));
+            var composition1 = FeaturesTestCompositions.Features.AddParts(typeof(TestProjectCacheService), typeof(TestOptionsServiceFactory));
+            var composition2 = FeaturesTestCompositions.Features.AddParts(typeof(TestOptionsServiceFactory), typeof(TestProjectCacheService));
             Assert.Same(composition1.ExportProviderFactory, composition2.ExportProviderFactory);
         }
 

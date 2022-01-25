@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             _options = options;
         }
 
-        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
         {
-            var cachedOptions = new CachedOptions(options);
+            var cachedOptions = new CachedOptions(options.Options);
 
             if (cachedOptions == _options)
             {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
-            if (!(node is SwitchSectionSyntax section))
+            if (node is not SwitchSectionSyntax section)
             {
                 return;
             }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AnonymousMethodExpressionSyntax anonymousMethod:
                     SetAlignmentBlockOperation(list, anonymousMethod, anonymousMethod.Block);
                     return;
-                case ObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
+                case BaseObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, objectCreation, objectCreation.Initializer);
                     return;
                 case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation:
@@ -177,6 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return;
                 case SwitchExpressionSyntax switchExpression:
                     SetAlignmentBlockOperation(list, switchExpression.GetFirstToken(), switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case WithExpressionSyntax withExpression:
+                    SetAlignmentBlockOperation(list, withExpression.GetFirstToken(), withExpression.Initializer.OpenBraceToken, withExpression.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
                 case PropertyPatternClauseSyntax propertyPatternClause:
                     if (propertyPatternClause.Parent is RecursivePatternSyntax { Parent: { } recursivePatternParent })
@@ -261,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (node is ElseClauseSyntax elseClause && elseClause.Statement != null)
             {
-                if (!(elseClause.Statement is BlockSyntax || elseClause.Statement is IfStatementSyntax))
+                if (elseClause.Statement is not (BlockSyntax or IfStatementSyntax))
                 {
                     AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
                 }

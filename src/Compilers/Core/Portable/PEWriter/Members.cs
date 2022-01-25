@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -473,7 +471,7 @@ namespace Microsoft.Cci
         /// Returns types of awaiter slots allocated on the state machine,
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
-        ImmutableArray<ITypeReference> StateMachineAwaiterSlots { get; }
+        ImmutableArray<ITypeReference?> StateMachineAwaiterSlots { get; }
 
         ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
@@ -502,12 +500,6 @@ namespace Microsoft.Cci
             get;
             // ^ requires this.IsGeneric;
         }
-
-        /// <summary>
-        /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
-        /// </summary> 
-        bool IsImplicitlyDeclared { get; }
 
         /// <summary>
         /// True if this method has a non empty collection of SecurityAttributes or the System.Security.SuppressUnmanagedCodeSecurityAttribute.
@@ -1000,15 +992,36 @@ namespace Microsoft.Cci
                 return true;
             }
 
+            bool acceptBasedOnVisibility = true;
+
             switch (member.Visibility)
             {
                 case TypeMemberVisibility.Private:
-                    return context.IncludePrivateMembers;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers;
+                    break;
                 case TypeMemberVisibility.Assembly:
                 case TypeMemberVisibility.FamilyAndAssembly:
-                    return context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    break;
             }
-            return true;
+
+            if (acceptBasedOnVisibility)
+            {
+                return true;
+            }
+
+            if (method?.IsStatic == true)
+            {
+                foreach (var methodImplementation in method.ContainingTypeDefinition.GetExplicitImplementationOverrides(context))
+                {
+                    if (methodImplementation.ImplementingMethod == method)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

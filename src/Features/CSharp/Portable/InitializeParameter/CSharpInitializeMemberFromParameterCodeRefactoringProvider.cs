@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpInitializeMemberFromParameterCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter), Shared]
     [ExtensionOrder(Before = nameof(CSharpAddParameterCheckCodeRefactoringProvider))]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.Wrapping)]
     internal class CSharpInitializeMemberFromParameterCodeRefactoringProvider :
@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
-        protected override SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
-            => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);
+        protected override SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement)
+            => InitializeParameterHelpers.TryGetLastStatement(blockStatement);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfter, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);

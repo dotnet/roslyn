@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Fix_all_0_in_1">
         <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">{1}'의 모든 '{0}' 수정</target>
+        <target state="translated">'{1}'의 모든 '{0}' 수정</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0_in_Solution">

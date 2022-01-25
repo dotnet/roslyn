@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.Serialization
 {
     // TODO: Kind might not actually needed. see whether we can get rid of this
@@ -13,17 +15,12 @@ namespace Microsoft.CodeAnalysis.Serialization
         ProjectState,
         DocumentState,
 
-        Projects,
-        Documents,
-        TextDocuments,
-        AnalyzerConfigDocuments,
-        ProjectReferences,
-        MetadataReferences,
-        AnalyzerReferences,
+        ChecksumCollection,
 
         SolutionAttributes,
         ProjectAttributes,
         DocumentAttributes,
+        SourceGeneratedDocumentIdentity,
 
         CompilationOptions,
         ParseOptions,
@@ -33,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         SourceText,
         OptionSet,
 
-        RecoverableSourceText,
+        SerializableSourceText,
 
         //
 

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The default <see cref="CompletionRules"/> if none is otherwise specified.
         /// </summary>
-        public static readonly CompletionRules Default = new CompletionRules(
+        public static readonly CompletionRules Default = new(
             dismissIfEmpty: false,
             dismissIfLastCharacterDeleted: false,
             defaultCommitCharacters: s_defaultCommitKeys,

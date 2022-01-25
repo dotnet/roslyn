@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -690,7 +692,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             this.FileName = currentFileName;
         }
 
-        private string UpdateExtension(string currentFileName, string desiredFileExtension, string undesiredFileExtension)
+        private static string UpdateExtension(string currentFileName, string desiredFileExtension, string undesiredFileExtension)
         {
             if (currentFileName.EndsWith(desiredFileExtension, StringComparison.OrdinalIgnoreCase))
             {

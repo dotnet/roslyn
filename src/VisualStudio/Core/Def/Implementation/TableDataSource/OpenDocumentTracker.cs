@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal class OpenDocumentTracker<TItem>
         where TItem : TableItem
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>> _map =
-            new Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>>();
+            new();
 
         private readonly Workspace _workspace;
 
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void StopTracking(Solution solution, ProjectId projectId = null)
+        private void StopTracking(Solution solution, ProjectId? projectId = null)
         {
             lock (_gate)
             {
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     break;
 
                 case WorkspaceChangeKind.DocumentRemoved:
-                    StopTracking(e.DocumentId);
+                    StopTracking(e.DocumentId!);
                     break;
 
                 default:

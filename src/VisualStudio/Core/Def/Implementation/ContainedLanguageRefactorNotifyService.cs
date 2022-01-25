@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [Export(typeof(IRefactorNotifyService))]
     internal sealed class ContainedLanguageRefactorNotifyService : IRefactorNotifyService
     {
-        private static readonly SymbolDisplayFormat s_qualifiedDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_qualifiedDisplayFormat = new(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
@@ -66,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        private ContainedLanguageRenameType GetRenameType(ISymbol symbol)
+        private static ContainedLanguageRenameType GetRenameType(ISymbol symbol)
         {
             if (symbol is INamespaceSymbol)
             {
@@ -76,10 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 return ContainedLanguageRenameType.CLRT_CLASS;
             }
-            else if (symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Field ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property)
+            else if (symbol.Kind is SymbolKind.Event or
+                SymbolKind.Field or
+                SymbolKind.Method or
+                SymbolKind.Property)
             {
                 return ContainedLanguageRenameType.CLRT_CLASSMEMBER;
             }

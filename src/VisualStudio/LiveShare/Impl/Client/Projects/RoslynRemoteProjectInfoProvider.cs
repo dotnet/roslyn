@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -70,23 +72,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 // This is also the case for files for which TypeScript adds the generated TypeScript buffer to a different project.
                 var filesTasks = project.SourceFiles
                     .Where(f => f.Scheme != SystemUriSchemeExternal)
-                    .Where(f => !this._secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
+                    .Where(f => !_secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
-                string language;
-                switch (project.Language)
-                {
-                    case LanguageNames.CSharp:
-                        language = StringConstants.CSharpLspLanguageName;
-                        break;
-                    case LanguageNames.VisualBasic:
-                        language = StringConstants.VBLspLanguageName;
-                        break;
-                    default:
-                        language = project.Language;
-                        break;
-                }
-                var projectInfo = CreateProjectInfo(project.Name, language, files.Select(f => f.LocalPath).ToImmutableArray());
+                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray());
                 projectInfos.Add(projectInfo);
             }
 

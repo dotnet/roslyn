@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,33 +15,32 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
-    internal abstract class AbstractDocumentationCommentCommandHandler<TDocumentationComment, TMemberNode> :
+    internal abstract class AbstractDocumentationCommentCommandHandler :
         IChainedCommandHandler<TypeCharCommandArgs>,
         ICommandHandler<ReturnKeyCommandArgs>,
         ICommandHandler<InsertCommentCommandArgs>,
         IChainedCommandHandler<OpenLineAboveCommandArgs>,
         IChainedCommandHandler<OpenLineBelowCommandArgs>
-        where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
-        where TMemberNode : SyntaxNode
     {
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         protected AbstractDocumentationCommentCommandHandler(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            Contract.ThrowIfNull(waitIndicator);
+            Contract.ThrowIfNull(uiThreadOperationExecutor);
             Contract.ThrowIfNull(undoHistoryRegistry);
             Contract.ThrowIfNull(editorOperationsFactoryService);
 
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
@@ -57,13 +54,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
-        private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+        private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
             => service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
 
-        private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+        private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
             => service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, cancellationToken);
 
-        private static DocumentationCommentSnippet? InsertOnCommandInvoke(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentOptionSet options, CancellationToken cancellationToken)
+        private static DocumentationCommentSnippet? InsertOnCommandInvoke(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
             => service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken);
 
         private static void ApplySnippet(DocumentationCommentSnippet snippet, ITextBuffer subjectBuffer, ITextView textView)
@@ -76,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         private static bool CompleteComment(
             ITextBuffer subjectBuffer,
             ITextView textView,
-            Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentOptionSet, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
+            Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentationCommentOptions, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
             CancellationToken cancellationToken)
         {
             var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
@@ -95,13 +92,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var options = DocumentationCommentOptions.From(documentOptions);
 
-            var snippet = getSnippetAction(service, syntaxTree, text, caretPosition, documentOptions, cancellationToken);
+            var snippet = getSnippetAction(service, syntaxTree, text, caretPosition, options, cancellationToken);
             if (snippet != null)
             {
                 ApplySnippet(snippet, subjectBuffer, textView);
                 return true;
             }
+
             return false;
         }
 
@@ -118,6 +117,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
+            // Don't execute in cloud environment, as we let LSP handle that
+            if (args.SubjectBuffer.IsInLspEditorContext())
+            {
+                return;
+            }
+
             CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
         }
 
@@ -126,6 +131,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
+            // Don't execute in cloud environment, as we let LSP handle that
+            if (args.SubjectBuffer.IsInLspEditorContext())
+            {
+                return false;
+            }
+
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
 
@@ -187,14 +198,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             {
                 return CommandState.Unavailable;
             }
+
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
             var isValidTargetMember = false;
-            _waitIndicator.Wait("IntelliSense", allowCancel: true, action: c =>
+            _uiThreadOperationExecutor.Execute("IntelliSense", defaultDescription: "", allowCancellation: true, showProgress: false, action: c =>
             {
-                var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(c.CancellationToken);
-                var text = syntaxTree.GetText(c.CancellationToken);
-                isValidTargetMember = service.IsValidTargetMember(syntaxTree, text, caretPosition, c.CancellationToken);
+                var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(c.UserCancellationToken);
+                var text = syntaxTree.GetText(c.UserCancellationToken);
+                isValidTargetMember = service.IsValidTargetMember(syntaxTree, text, caretPosition, c.UserCancellationToken);
             });
 
             return isValidTargetMember
@@ -317,8 +329,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var options = DocumentationCommentOptions.From(documentOptions);
 
-            var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(documentOptions, currentLine, previousLine);
+            var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(options, currentLine, previousLine);
             if (snippet != null)
             {
                 ApplySnippet(snippet, subjectBuffer, textView);

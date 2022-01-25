@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -178,10 +180,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.TypeNode,
                 cancellationToken).ConfigureAwait(false);
 
-            var syntaxFactsService = refactoringResult.DocumentToExtractFrom.GetLanguageService<ISyntaxFactsService>();
-            var originalDocumentSyntaxRoot = await refactoringResult.DocumentToExtractFrom.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var fileBanner = syntaxFactsService.GetFileBanner(originalDocumentSyntaxRoot);
-
             var (unformattedInterfaceDocument, _) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
                 symbolMapping.AnnotatedSolution,
                 containingNamespaceDisplay,
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.DocumentToExtractFrom.Project.Id,
                 refactoringResult.DocumentToExtractFrom.Folders,
                 extractedInterfaceSymbol,
-                fileBanner,
+                refactoringResult.DocumentToExtractFrom,
                 cancellationToken).ConfigureAwait(false);
 
             var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
@@ -252,7 +250,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 navigationDocumentId: refactoringResult.DocumentToExtractFrom.Id);
         }
 
-        internal static Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
+        internal static async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
             Document document,
             INamedTypeSymbol type,
             IEnumerable<ISymbol> extractableMembers,
@@ -264,10 +262,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, type, extractableMembers);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
 
             var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
-            return service.GetExtractInterfaceOptionsAsync(
+            return await service.GetExtractInterfaceOptionsAsync(
                 syntaxFactsService,
                 notificationService,
                 extractableMembers.ToList(),
@@ -275,7 +274,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 conflictingTypeNames.ToList(),
                 containingNamespace,
                 generatedNameTypeParameterSuffix,
-                document.Project.Language);
+                document.Project.Language,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 var document = solution.GetDocument(documentId);
                 var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(currentRoot, solution.Workspace);
+                var editor = new SyntaxEditor(currentRoot, solution.Workspace.Services);
 
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
                 var typeReference = syntaxGenerator.TypeExpression(extractedInterfaceSymbol);
@@ -419,7 +419,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         internal virtual bool IsExtractableMember(ISymbol m)
         {
             if (m.IsStatic ||
-                m.DeclaredAccessibility != Accessibility.Public)
+                m.DeclaredAccessibility != Accessibility.Public ||
+                m.Name == "<Clone>$") // TODO: Use WellKnownMemberNames.CloneMethodName when it's public.
             {
                 return false;
             }

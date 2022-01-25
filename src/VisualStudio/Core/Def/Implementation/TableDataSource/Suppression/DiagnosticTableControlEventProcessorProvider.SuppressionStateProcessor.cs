@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal partial class DiagnosticTableControlEventProcessorProvider
     {
-        private partial class SuppressionStateEventProcessor : EventProcessor
+        private class SuppressionStateEventProcessor : EventProcessor
         {
             private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
 

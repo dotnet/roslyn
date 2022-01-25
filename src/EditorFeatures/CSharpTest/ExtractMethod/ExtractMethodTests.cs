@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10374,7 +10376,7 @@ namespace ClassLibrary9
             var service = new CSharpExtractMethodService();
             Assert.NotNull(await Record.ExceptionAsync(async () =>
             {
-                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: null, CancellationToken.None);
+                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: ExtractMethodOptions.Default, CancellationToken.None);
             }));
         }
 
@@ -10390,7 +10392,7 @@ namespace ClassLibrary9
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
-            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false);
+            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false, ExtractMethodOptions.Default, CancellationToken.None);
         }
 
         [WpfFact]
@@ -11246,12 +11248,14 @@ local = [|true|];
 ";
             var expected = @"
 bool local;
-local = NewMethod();
 
 bool NewMethod()
 {
     return true;
-}";
+}
+
+local = NewMethod();
+";
             await TestExtractMethodAsync(code, expected);
         }
 

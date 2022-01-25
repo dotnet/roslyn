@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
             if (token.IsKind(SyntaxKind.GreaterThanToken))
             {
-                if (!(token.Parent is XmlElementStartTagSyntax parentStartTag))
+                if (token.Parent is not XmlElementStartTagSyntax parentStartTag)
                 {
                     return;
                 }
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            if (!(parentStartTag.Parent is XmlElementSyntax parentElement))
+            if (parentStartTag.Parent is not XmlElementSyntax parentElement)
             {
                 return false;
             }

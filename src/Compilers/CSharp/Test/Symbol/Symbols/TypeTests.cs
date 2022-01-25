@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class TypeTests : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         [WorkItem(30023, "https://github.com/dotnet/roslyn/issues/30023")]
         public void Bug18280()
         {
@@ -89,19 +91,19 @@ interface B {
             Assert.Equal(Accessibility.Internal, s.DeclaredAccessibility);
         }
 
-        [Fact]
-        public void InheritedTypesCrossTrees()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void InheritedTypesCrossTrees(string ob, string cb)
         {
-            var text = @"namespace MT {
+            var text = @"namespace MT " + ob + @"
     public interface IGoo { void Goo(); }
     public interface IGoo<T, R> { R Goo(T t); }
-}
+" + cb + @"
 ";
-            var text1 = @"namespace MT {
+            var text1 = @"namespace MT " + ob + @"
     public interface IBar<T> : IGoo { void Bar(T t); }
-}
+" + cb + @"
 ";
-            var text2 = @"namespace NS {
+            var text2 = @"namespace NS " + ob + @"
     using System;
     using MT;
     public class A<T> : IGoo<T, string>, IBar<string> {
@@ -111,11 +113,11 @@ interface B {
     }
 
     public class B : A<int> {}
-}
+" + cb + @"
 ";
-            var text3 = @"namespace NS {
+            var text3 = @"namespace NS " + ob + @"
     public class C : B {}
-}
+" + cb + @"
 ";
 
             var comp = CreateCompilation(new[] { text, text1, text2, text3 });
@@ -2342,17 +2344,17 @@ class C
             var m1 = (IMethodSymbol)c.GetMember("M1");
             Assert.NotNull(m1);
             Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
-            Assert.Empty(m1.CallingConventionTypes);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
 
             var m2 = (IMethodSymbol)c.GetMember("M2");
             Assert.NotNull(m2);
             Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
-            Assert.Empty(m2.CallingConventionTypes);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
 
             var m3 = (IMethodSymbol)c.GetMember("M3");
             Assert.NotNull(m3);
             Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
-            Assert.Empty(m3.CallingConventionTypes);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
         }
 
         [Fact]
@@ -2390,17 +2392,17 @@ class C
             var m1 = (IMethodSymbol)c.GetMember("M1");
             Assert.NotNull(m1);
             Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
-            Assert.Empty(m1.CallingConventionTypes);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
 
             var m2 = (IMethodSymbol)c.GetMember("M2");
             Assert.NotNull(m2);
             Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
-            Assert.Empty(m2.CallingConventionTypes);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
 
             var m3 = (IMethodSymbol)c.GetMember("M3");
             Assert.NotNull(m3);
             Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
-            Assert.Empty(m3.CallingConventionTypes);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
         }
     }
 }

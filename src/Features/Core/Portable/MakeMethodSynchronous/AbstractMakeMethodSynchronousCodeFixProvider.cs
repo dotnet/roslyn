@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, currentSolution.Workspace);
+            var editor = new SyntaxEditor(root, currentSolution.Workspace.Services);
 
             foreach (var location in group)
             {
@@ -199,7 +201,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             //  await <expr>.M(...).ConfigureAwait(...)
 
             var expressionNode = nameNode;
-            if (syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
+            if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) ||
+                syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
             {
                 expressionNode = nameNode.Parent;
             }

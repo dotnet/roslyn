@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -46,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     _firstStatementOrFieldToReplace = firstStatementOrFieldToReplace;
                     _lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
 
-                    Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent);
+                    Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent
+                        || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(_firstStatementOrFieldToReplace, _lastStatementOrFieldToReplace));
                 }
 
                 public SyntaxNode Generate()
@@ -353,6 +357,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return node.WithStatement(ReplaceStatementIfNeeded(node.Statement));
                 }
 
+                public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+                {
+                    if (node != ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitInterfaceDeclaration(node);
+                    }
+
+                    return GetUpdatedTypeDeclaration(node);
+                }
+
                 public override SyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
                 {
                     if (node != ContainerOfStatementsOrFieldToReplace)
@@ -371,8 +385,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.VisitClassDeclaration(node);
                     }
 
-                    var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
-                    return node.WithMembers(newMembers);
+                    return GetUpdatedTypeDeclaration(node);
+                }
+
+                public override SyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
+                {
+                    if (node != ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitRecordDeclaration(node);
+                    }
+
+                    return GetUpdatedTypeDeclaration(node);
                 }
 
                 public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
@@ -382,8 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.VisitStructDeclaration(node);
                     }
 
-                    var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
-                    return node.WithMembers(newMembers);
+                    return GetUpdatedTypeDeclaration(node);
                 }
 
                 public override SyntaxNode VisitAccessorList(AccessorListSyntax node)
@@ -406,6 +428,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
 
                     var newMembers = VisitList(ReplaceMembers(node.Members, global: true));
+                    return node.WithMembers(newMembers);
+                }
+
+                private SyntaxNode GetUpdatedTypeDeclaration(TypeDeclarationSyntax node)
+                {
+                    var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
                     return node.WithMembers(newMembers);
                 }
             }

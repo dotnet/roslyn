@@ -11,7 +11,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         Friend Function ParseExpression(
             Optional pendingPrecedence As OperatorPrecedence = OperatorPrecedence.PrecedenceNone,

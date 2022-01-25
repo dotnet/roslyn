@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -26,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool SupportGetDiagnostics => false;
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => ImmutableArray<DiagnosticData>.Empty;
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => new(ImmutableArray<DiagnosticData>.Empty);
 
         public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
@@ -77,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language, ProjectId projectId)
         {
+            // Perf: if we don't have any diagnostics at all, just return right away; this avoids loading the analyzers
+            // which may have not been loaded if you didn't do too much in your session.
+            if (_analyzerHostDiagnosticsMap.Count == 0)
+                return;
+
             var analyzers = analyzerReference.GetAnalyzers(language);
             ClearAnalyzerDiagnostics(analyzers, projectId);
         }
@@ -140,10 +144,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null);
         }
 
-        private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new HostArgsId(this, analyzer, project?.Id);
+        private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new(this, analyzer, project?.Id);
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
@@ -177,9 +181,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _projectId = projectId;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
-                if (!(obj is HostArgsId other))
+                if (obj is not HostArgsId other)
                 {
                     return false;
                 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +9,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -19,14 +18,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     internal static class CodeFixVerifierHelper
     {
-        public static void VerifyStandardProperties(DiagnosticAnalyzer analyzer, bool verifyHelpLink = false)
+        public static void VerifyStandardProperty(DiagnosticAnalyzer analyzer, AnalyzerProperty property)
         {
-            VerifyMessageTitle(analyzer);
-            VerifyMessageDescription(analyzer);
-
-            if (verifyHelpLink)
+            switch (property)
             {
-                VerifyMessageHelpLinkUri(analyzer);
+                case AnalyzerProperty.Title:
+                    VerifyMessageTitle(analyzer);
+                    return;
+
+                case AnalyzerProperty.Description:
+                    VerifyMessageDescription(analyzer);
+                    return;
+
+                case AnalyzerProperty.HelpLink:
+                    VerifyMessageHelpLinkUri(analyzer);
+                    return;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(property);
             }
         }
 
@@ -34,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             foreach (var descriptor in analyzer.SupportedDiagnostics)
             {
-                if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                if (descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable))
                 {
                     // The title only displayed for rule configuration
                     continue;
@@ -61,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             // Local function
             static bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
             {
-                if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                if (descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable))
                 {
                     if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
                     {

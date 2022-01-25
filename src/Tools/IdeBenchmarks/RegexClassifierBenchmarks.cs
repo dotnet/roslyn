@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -82,8 +84,12 @@ class Program
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
             var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            var options = ClassificationOptions.From(document.Project);
 
-            await service.AddSemanticClassificationsAsync(document, span,
+            await service.AddSemanticClassificationsAsync(
+                document,
+                span,
+                options,
                 extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                 extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
                 results,

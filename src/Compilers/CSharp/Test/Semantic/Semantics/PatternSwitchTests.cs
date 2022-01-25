@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -694,6 +695,240 @@ null";
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        public void Subsumption09()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object o = null;
+        switch (o)
+        {
+            case I1 and Base:
+                break;
+            case Derived s: // 1
+                break;
+        }
+
+        switch (o)
+        {
+            case Base and I1:
+                break;
+            case Derived s: // 2
+                break;
+        }
+
+        switch (o)
+        {
+            case Base and not null:
+                break;
+            case Derived s: // 3
+                break;
+        }
+
+        switch (o) {
+            case ValueType and int and 1:
+                break;
+            case int and 1: // 4
+                break;
+        }
+
+        switch (o) {
+            case int and 1:
+                break;
+            case ValueType and int and 1: // 5
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base:
+                break;
+            case Derived s: // 6
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base { F1: 1 }:
+                break;
+            case Derived { F2: 1 }:
+                break;
+            case Derived { P1: 1 }:
+                break;
+            case Derived { F1: 1 } s: // 7
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base { P1: 1 }:
+                break;
+            case Derived { F1: 1 }:
+                break;
+            case Derived { P2: 1 }:
+                break;
+            case Derived { P1: 1 } s: // 8
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base(1, _):
+                break;
+            case Derived(2, _):
+                break;
+            case Derived(1, _, _):
+                break;
+            case Derived(1, _) s: // 9
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base { F3: (1, _) }:
+                break;
+            case Derived { F3: (_, 1) }:
+                break;
+            case Derived { F3: (1, _) } s: // 10
+                break;
+        }
+
+        switch (o)
+        {
+            case I2 and Base:
+                break;
+            case Base and I2: // 11
+                break;
+        }
+
+        switch (o)
+        {
+            case Base and I2:
+                break;
+            case I2 and Base: // 12
+                break;
+        }
+    }
+}
+
+interface I1 {}
+interface I2 {}
+
+class Base : I1
+{
+    public int F1 = 0;
+    public int F2 = 0;
+    public object F3 = null;
+    public int P1 {get; set;}
+    public int P2 {get; set;}
+    public void Deconstruct(out int x, out int y) => throw null;
+    public void Deconstruct(out int x, out int y, out int z) => throw null;
+}
+
+class Derived : Base, I2
+{
+}
+";
+            var compilation = CreateCompilation(new[] { source, _iTupleSource }, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 1
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(11, 18),
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 2
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(19, 18),
+                // (27,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 3
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(27, 18),
+                // (34,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case int and 1: // 4
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int and 1").WithLocation(34, 18),
+                // (41,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case ValueType and int and 1: // 5
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "ValueType and int and 1").WithLocation(41, 18),
+                // (49,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived s: // 6
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived s").WithLocation(49, 18),
+                // (61,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived { F1: 1 } s: // 7
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived { F1: 1 } s").WithLocation(61, 18),
+                // (73,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived { P1: 1 } s: // 8
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived { P1: 1 } s").WithLocation(73, 18),
+                // (85,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived(1, _) s: // 9
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived(1, _) s").WithLocation(85, 18),
+                // (95,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived { F3: (1, _) } s: // 10
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived { F3: (1, _) } s").WithLocation(95, 18),
+                // (103,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Base and I2: // 11
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Base and I2").WithLocation(103, 18),
+                // (111,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case I2 and Base: // 12
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "I2 and Base").WithLocation(111, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        public void Subsumption10()
+        {
+            var source =
+@"
+using System;
+public class C {
+    public void M1(object o) {
+        switch (o) {
+            case IConvertible and IComparable:
+                break;
+            case int:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case int:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(51192, "https://github.com/dotnet/roslyn/issues/51192")]
+        public void Subsumption11()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object o = null;
+        switch (o)
+        {
+            case IComparable and object:
+                break;
+            case string s: // error: subsumed by previous case
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case string s: // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "string s").WithLocation(11, 18)
                 );
         }
 
@@ -3037,6 +3272,37 @@ static class Ex
             Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
         }
 
+        [Fact]
+        [WorkItem(46593, "https://github.com/dotnet/roslyn/issues/46593")]
+        public void NameofInWhenClause()
+        {
+            var source =
+@"struct Outer
+{
+    struct S
+    {
+        static void M(string q)
+        {
+            S s = new S();
+            System.Console.Write(s switch
+            {
+                { P: 1 } when nameof(Q) == q => 1,
+                { P: 2 } => 2,
+                _ => 3,
+            });
+        }
+
+        int P => 1;
+    }
+
+    public int Q => 1;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                );
+        }
+
         [Fact, WorkItem(20210, "https://github.com/dotnet/roslyn/issues/20210")]
         public void SwitchOnNull_20210()
         {
@@ -3133,6 +3399,126 @@ static class Ex
                 //           case false:    // error: subsumed (12 of 12)
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(49, 16)
                 );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_01()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 2 == 1 => 4,
+            int i when i % 2 == 0 => 5,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_02()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 2 == 1 => 4,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact, WorkItem(47164, "https://github.com/dotnet/roslyn/issues/47164")]
+        public void MultipleWhenClausesToFailure_03()
+        {
+            var source =
+@"class Sample
+{
+    void M(int q)
+    {
+        _ = q switch
+        {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            int i when i % 3 == 0 => 4,
+            int i when i % 3 == 1 => 5,
+            int i when i % 3 == 2 => 6,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                // (5,15): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         _ = q switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(5, 15)
+                );
+        }
+
+        [Fact]
+        public void MultiplePathsToState_01()
+        {
+            var source =
+@"class Sample
+{
+    void M(int a, int b)
+    {
+        _ = (a, b) switch
+        {
+            (0, 0) => 0,
+            (0, 1) => 1,
+            (0, 2) => 2,
+
+            (1, 0) => 5,
+            (1, 1) => 6,
+            (1, 2) => 7,
+
+            _ => 10,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyEmitDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(51930, "https://github.com/dotnet/roslyn/issues/51930")]
+        public void AssignSwitchToRefReturningMethod()
+        {
+            var source = @"
+GetRef() = 1 switch { _ => await System.Threading.Tasks.Task.FromResult(1) };
+ref int GetRef() => throw null;";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.<<Main>$>g__GetRef|0_0()' because it returns by reference
+                // GetRef() = 1 switch { _ => await System.Threading.Tasks.Task.FromResult(1) };
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetRef()").WithArguments("Program.<<Main>$>g__GetRef|0_0()").WithLocation(2, 1)
+            );
         }
     }
 }

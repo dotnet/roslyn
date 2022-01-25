@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,46 +29,30 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// <summary>
         /// Gets, filters, and orders code fixes.
         /// </summary>
-        public static async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetFilterAndOrderCodeFixesAsync(
+        public static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetFilterAndOrderCodeFixesAsync(
             Workspace workspace,
             ICodeFixService codeFixService,
             Document document,
             TextSpan selection,
-            bool includeSuppressionFixes,
-            bool isBlocking,
+            CodeActionRequestPriority priority,
+            CodeActionOptions options,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
-            // It may seem strange that we kick off a task, but then immediately 'Wait' on 
-            // it. However, it's deliberate.  We want to make sure that the code runs on 
-            // the background so that no one takes an accidentally dependency on running on 
-            // the UI thread.
-            var fixes = await Task.Run(
-                () => codeFixService.GetFixesAsync(
-                document, selection, includeSuppressionFixes, isBlocking,
-                addOperationScope, cancellationToken), cancellationToken).ConfigureAwait(false);
+            // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally
+            // run any of this on the UI thread and potentially allow any code to take a dependency on that.
+            var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
+                document,
+                selection,
+                priority,
+                options,
+                addOperationScope,
+                cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            var filteredFixes = FilterOnAnyThread(fixes);
-            var organizedFixes = OrganizeFixes(workspace, filteredFixes, includeSuppressionFixes);
+            var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
+            var organizedFixes = OrganizeFixes(workspace, filteredFixes);
 
             return organizedFixes;
-        }
-
-        private static ImmutableArray<CodeFixCollection> FilterOnAnyThread(ImmutableArray<CodeFixCollection> collections)
-        {
-            return collections.Select(c => FilterIndividuallyOnAnyThread(c)).WhereNotNull().ToImmutableArray();
-        }
-
-        private static CodeFixCollection? FilterIndividuallyOnAnyThread(CodeFixCollection collection)
-        {
-            var applicableFixes = collection.Fixes;
-            return applicableFixes.Length == 0
-                ? null
-                : applicableFixes.Length == collection.Fixes.Length
-                    ? collection
-                    : new CodeFixCollection(
-                        collection.Provider, collection.TextSpan, applicableFixes,
-                        collection.FixAllState, collection.SupportedScopes, collection.FirstDiagnostic);
         }
 
         /// <summary>
@@ -78,14 +60,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// </summary>
         private static ImmutableArray<UnifiedSuggestedActionSet> OrganizeFixes(
             Workspace workspace,
-            ImmutableArray<CodeFixCollection> fixCollections,
-            bool includeSuppressionFixes)
+            ImmutableArray<CodeFixCollection> fixCollections)
         {
-            var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<UnifiedSuggestedAction>>();
+            var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<IUnifiedSuggestedAction>>();
             using var _ = ArrayBuilder<CodeFixGroupKey>.GetInstance(out var order);
 
             // First group fixes by diagnostic and priority.
-            GroupFixes(workspace, fixCollections, map, order, includeSuppressionFixes);
+            GroupFixes(workspace, fixCollections, map, order);
 
             // Then prioritize between the groups.
             var prioritizedFixes = PrioritizeFixGroups(map.ToImmutable(), order.ToImmutable(), workspace);
@@ -98,22 +79,17 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static void GroupFixes(
            Workspace workspace,
            ImmutableArray<CodeFixCollection> fixCollections,
-           IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
-           ArrayBuilder<CodeFixGroupKey> order,
-           bool includeSuppressionFixes)
+           IDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
+           ArrayBuilder<CodeFixGroupKey> order)
         {
             foreach (var fixCollection in fixCollections)
-            {
-                ProcessFixCollection(
-                    workspace, map, order, includeSuppressionFixes, fixCollection);
-            }
+                ProcessFixCollection(workspace, map, order, fixCollection);
         }
 
         private static void ProcessFixCollection(
             Workspace workspace,
-            IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
+            IDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
             ArrayBuilder<CodeFixGroupKey> order,
-            bool includeSuppressionFixes,
             CodeFixCollection fixCollection)
         {
             var fixes = fixCollection.Fixes;
@@ -127,11 +103,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
             // Add suppression fixes to the end of a given SuggestedActionSet so that they
             // always show up last in a group.
-            if (includeSuppressionFixes)
-            {
-                AddCodeActions(workspace, map, order, fixCollection,
-                    GetFixAllSuggestedActionSet, supressionCodeFixes);
-            }
+            AddCodeActions(workspace, map, order, fixCollection,
+                GetFixAllSuggestedActionSet, supressionCodeFixes);
 
             return;
 
@@ -144,7 +117,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         }
 
         private static void AddCodeActions(
-            Workspace workspace, IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
+            Workspace workspace, IDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
             ArrayBuilder<CodeFixGroupKey> order, CodeFixCollection fixCollection,
             Func<CodeAction, UnifiedSuggestedActionSet?> getFixAllSuggestedActionSet,
             ImmutableArray<CodeFix> codeFixes)
@@ -158,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             return;
 
             // Local functions
-            UnifiedSuggestedAction GetUnifiedSuggestedAction(CodeAction action, CodeFix fix)
+            IUnifiedSuggestedAction GetUnifiedSuggestedAction(CodeAction action, CodeFix fix)
             {
                 if (action.NestedCodeActions.Length > 0)
                 {
@@ -185,15 +158,15 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         }
 
         private static void AddFix(
-            CodeFix fix, UnifiedSuggestedAction suggestedAction,
-            IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
+            CodeFix fix, IUnifiedSuggestedAction suggestedAction,
+            IDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
             ArrayBuilder<CodeFixGroupKey> order)
         {
             var groupKey = GetGroupKey(fix);
             if (!map.ContainsKey(groupKey))
             {
                 order.Add(groupKey);
-                map[groupKey] = ImmutableArray.CreateBuilder<UnifiedSuggestedAction>();
+                map[groupKey] = ImmutableArray.CreateBuilder<IUnifiedSuggestedAction>();
             }
 
             map[groupKey].Add(suggestedAction);
@@ -234,11 +207,10 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 return null;
             }
 
-            using var fixAllSuggestedActionsDisposer = ArrayBuilder<UnifiedFixAllSuggestedAction>.GetInstance(
-                out var fixAllSuggestedActions);
+            using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
             foreach (var scope in supportedScopes)
             {
-                var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
+                var fixAllStateForScope = fixAllState.With(scope: scope, codeActionEquivalenceKey: action.EquivalenceKey);
                 var fixAllSuggestedAction = new UnifiedFixAllSuggestedAction(
                     workspace, action, action.Priority, fixAllStateForScope, firstDiagnostic);
 
@@ -249,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 categoryName: null,
                 actions: fixAllSuggestedActions.ToImmutable(),
                 title: CodeFixesResources.Fix_all_occurrences_in,
-                priority: UnifiedSuggestedActionSetPriority.None,
+                priority: UnifiedSuggestedActionSetPriority.Lowest,
                 applicableToSpan: null);
         }
 
@@ -262,27 +234,27 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// <see cref="UnifiedSuggestedActionSetPriority.Medium"/> by default.
         /// The only exception is the case where a <see cref="UnifiedSuggestedActionSet"/> only contains suppression fixes -
         /// the priority of such <see cref="UnifiedSuggestedActionSet"/>s is set to
-        /// <see cref="UnifiedSuggestedActionSetPriority.None"/> so that suppression fixes
+        /// <see cref="UnifiedSuggestedActionSetPriority.Lowest"/> so that suppression fixes
         /// always show up last after all other fixes (and refactorings) for the selected line of code.
         /// </remarks>
         private static ImmutableArray<UnifiedSuggestedActionSet> PrioritizeFixGroups(
-            ImmutableDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
+            ImmutableDictionary<CodeFixGroupKey, IList<IUnifiedSuggestedAction>> map,
             ImmutableArray<CodeFixGroupKey> order,
             Workspace workspace)
         {
             using var _1 = ArrayBuilder<UnifiedSuggestedActionSet>.GetInstance(out var nonSuppressionSets);
             using var _2 = ArrayBuilder<UnifiedSuggestedActionSet>.GetInstance(out var suppressionSets);
-            using var _3 = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var bulkConfigurationActions);
+            using var _3 = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var bulkConfigurationActions);
 
             foreach (var groupKey in order)
             {
                 var actions = map[groupKey];
 
-                var nonSuppressionActions = actions.Where(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction));
+                var nonSuppressionActions = actions.Where(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction)).ToImmutableArray();
                 AddUnifiedSuggestedActionsSet(nonSuppressionActions, groupKey, nonSuppressionSets);
 
                 var suppressionActions = actions.Where(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
-                    !IsBulkConfigurationAction(a.OriginalCodeAction));
+                    !IsBulkConfigurationAction(a.OriginalCodeAction)).ToImmutableArray();
                 AddUnifiedSuggestedActionsSet(suppressionActions, groupKey, suppressionSets);
 
                 bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.OriginalCodeAction)));
@@ -294,8 +266,11 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             if (bulkConfigurationActions.Count > 0)
             {
                 var bulkConfigurationSet = new UnifiedSuggestedActionSet(
-                    UnifiedPredefinedSuggestedActionCategoryNames.CodeFix, bulkConfigurationActions.ToArray(),
-                    title: null, priority: UnifiedSuggestedActionSetPriority.None, applicableToSpan: null);
+                    UnifiedPredefinedSuggestedActionCategoryNames.CodeFix,
+                    bulkConfigurationActions.ToImmutable(),
+                    title: null,
+                    priority: UnifiedSuggestedActionSetPriority.Lowest,
+                    applicableToSpan: null);
                 suppressionSets.Add(bulkConfigurationSet);
             }
 
@@ -303,7 +278,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 // Wrap the suppression/configuration actions within another top level suggested action
                 // to avoid clutter in the light bulb menu.
-                var suppressOrConfigureCodeAction = new NoChangeAction(CodeFixesResources.Suppress_or_Configure_issues);
+                var suppressOrConfigureCodeAction = new NoChangeAction(CodeFixesResources.Suppress_or_Configure_issues, nameof(CodeFixesResources.Suppress_or_Configure_issues));
                 var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
                     workspace, codeAction: suppressOrConfigureCodeAction,
                     codeActionPriority: suppressOrConfigureCodeAction.Priority, provider: null,
@@ -314,9 +289,9 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 var (span, category) = CombineSpansAndCategory(suppressionSets);
                 var wrappingSet = new UnifiedSuggestedActionSet(
                     category,
-                    actions: SpecializedCollections.SingletonEnumerable(wrappingSuggestedAction),
+                    actions: ImmutableArray.Create<IUnifiedSuggestedAction>(wrappingSuggestedAction),
                     title: CodeFixesResources.Suppress_or_Configure_issues,
-                    priority: UnifiedSuggestedActionSetPriority.None,
+                    priority: UnifiedSuggestedActionSetPriority.Lowest,
                     applicableToSpan: span);
                 sets = sets.Add(wrappingSet);
             }
@@ -324,7 +299,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             return sets;
 
             // Local functions
-            static (TextSpan? span, string category) CombineSpansAndCategory(IEnumerable<UnifiedSuggestedActionSet> sets)
+            static (TextSpan? span, string category) CombineSpansAndCategory(ArrayBuilder<UnifiedSuggestedActionSet> sets)
             {
                 // We are combining the spans and categories of the given set of suggested action sets
                 // to generate a result span containing the spans of individual suggested action sets and
@@ -351,8 +326,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                         }
                     }
 
-                    Debug.Assert(set.CategoryName == UnifiedPredefinedSuggestedActionCategoryNames.CodeFix ||
-                                 set.CategoryName == UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix);
+                    Debug.Assert(set.CategoryName is UnifiedPredefinedSuggestedActionCategoryNames.CodeFix or
+                                 UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix);
 
                     // If this set contains an error fix, then change the result category to ErrorFix
                     if (set.CategoryName == UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix)
@@ -361,13 +336,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     }
                 }
 
-                var combinedSpan = minStart >= 0 ? new TextSpan(minStart, maxEnd) : (TextSpan?)null;
+                var combinedSpan = minStart >= 0 ? TextSpan.FromBounds(minStart, maxEnd) : (TextSpan?)null;
                 return (combinedSpan, category);
             }
         }
 
         private static void AddUnifiedSuggestedActionsSet(
-            IEnumerable<UnifiedSuggestedAction> actions,
+            ImmutableArray<IUnifiedSuggestedAction> actions,
             CodeFixGroupKey groupKey,
             ArrayBuilder<UnifiedSuggestedActionSet> sets)
         {
@@ -379,7 +354,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 Debug.Assert(groupKey.Item1.HasTextSpan);
                 var category = GetFixCategory(groupKey.Item1.Severity);
                 sets.Add(new UnifiedSuggestedActionSet(
-                    category, group, title: null, priority: priority, applicableToSpan: groupKey.Item1.GetTextSpan()));
+                    category, group.ToImmutableArray(), title: null, priority, applicableToSpan: groupKey.Item1.GetTextSpan()));
             }
         }
 
@@ -412,18 +387,19 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeRefactoringService codeRefactoringService,
             Document document,
             TextSpan selection,
-            bool isBlocking,
+            CodeActionRequestPriority priority,
+            CodeActionOptions options,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
         {
-            // It may seem strange that we kick off a task, but then immediately 'Wait' on 
-            // it. However, it's deliberate.  We want to make sure that the code runs on 
-            // the background so that no one takes an accidentally dependency on running on 
+            // It may seem strange that we kick off a task, but then immediately 'Wait' on
+            // it. However, it's deliberate.  We want to make sure that the code runs on
+            // the background so that no one takes an accidentally dependency on running on
             // the UI thread.
             var refactorings = await Task.Run(
                 () => codeRefactoringService.GetRefactoringsAsync(
-                    document, selection, isBlocking, addOperationScope,
+                    document, selection, priority, options, addOperationScope,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);
@@ -477,16 +453,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// </remarks>
         private static UnifiedSuggestedActionSet OrganizeRefactorings(Workspace workspace, CodeRefactoring refactoring)
         {
-            using var refactoringSuggestedActionsDisposer = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(
-                out var refactoringSuggestedActions);
+            using var refactoringSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var refactoringSuggestedActions);
 
             foreach (var codeAction in refactoring.CodeActions)
             {
                 if (codeAction.action.NestedCodeActions.Length > 0)
                 {
                     var nestedActions = codeAction.action.NestedCodeActions.SelectAsArray(
-                        na => new UnifiedCodeRefactoringSuggestedAction(
-                            workspace, na, na.Priority, refactoring.Provider));
+                        na => (IUnifiedSuggestedAction)new UnifiedCodeRefactoringSuggestedAction(workspace, na, na.Priority, refactoring.Provider));
 
                     var set = new UnifiedSuggestedActionSet(
                         categoryName: null,
@@ -512,7 +486,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // An action set:
             // - gets the the same priority as the highest priority action within in.
             // - gets `applicableToSpan` of the first action:
-            //   - E.g. the `applicableToSpan` closest to current selection might be a more correct 
+            //   - E.g. the `applicableToSpan` closest to current selection might be a more correct
             //     choice. All actions created by one Refactoring have usually the same `applicableSpan`
             //     and therefore the complexity of determining the closest one isn't worth the benefit
             //     of slightly more correct orderings in certain edge cases.
@@ -527,7 +501,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static UnifiedSuggestedActionSetPriority GetUnifiedSuggestedActionSetPriority(CodeActionPriority key)
             => key switch
             {
-                CodeActionPriority.None => UnifiedSuggestedActionSetPriority.None,
+                CodeActionPriority.Lowest => UnifiedSuggestedActionSetPriority.Lowest,
                 CodeActionPriority.Low => UnifiedSuggestedActionSetPriority.Low,
                 CodeActionPriority.Medium => UnifiedSuggestedActionSetPriority.Medium,
                 CodeActionPriority.High => UnifiedSuggestedActionSetPriority.High,
@@ -539,22 +513,21 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// Should be called with the results from <see cref="GetFilterAndOrderCodeFixesAsync"/>
         /// and <see cref="GetFilterAndOrderCodeRefactoringsAsync"/>.
         /// </summary>
-        public static ImmutableArray<UnifiedSuggestedActionSet>? FilterAndOrderActionSets(
+        public static ImmutableArray<UnifiedSuggestedActionSet> FilterAndOrderActionSets(
             ImmutableArray<UnifiedSuggestedActionSet> fixes,
             ImmutableArray<UnifiedSuggestedActionSet> refactorings,
-            TextSpan? selectionOpt)
+            TextSpan? selectionOpt,
+            int currentActionCount)
         {
             // Get the initial set of action sets, with refactorings and fixes appropriately
             // ordered against each other.
             var result = GetInitiallyOrderedActionSets(selectionOpt, fixes, refactorings);
             if (result.IsEmpty)
-            {
-                return null;
-            }
+                return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
 
             // Now that we have the entire set of action sets, inline, sort and filter
             // them appropriately against each other.
-            var allActionSets = InlineActionSetsIfDesirable(result);
+            var allActionSets = InlineActionSetsIfDesirable(result, currentActionCount);
             var orderedActionSets = OrderActionSets(allActionSets, selectionOpt);
             var filteredSets = FilterActionSetsByTitle(orderedActionSets);
 
@@ -615,20 +588,18 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         private static UnifiedSuggestedActionSet WithPriority(
             UnifiedSuggestedActionSet set, UnifiedSuggestedActionSetPriority priority)
-            => new UnifiedSuggestedActionSet(set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
+            => new(set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
 
         private static ImmutableArray<UnifiedSuggestedActionSet> InlineActionSetsIfDesirable(
-            ImmutableArray<UnifiedSuggestedActionSet> allActionSets)
+            ImmutableArray<UnifiedSuggestedActionSet> actionSets,
+            int currentActionCount)
         {
-            // If we only have a single set of items, and that set only has three max suggestion 
+            // If we only have a single set of items, and that set only has three max suggestion
             // offered. Then we can consider inlining any nested actions into the top level list.
             // (but we only do this if the parent of the nested actions isn't invokable itself).
-            if (allActionSets.Sum(a => a.Actions.Count()) > 3)
-            {
-                return allActionSets;
-            }
-
-            return allActionSets.SelectAsArray(InlineActions);
+            return currentActionCount + actionSets.Sum(a => a.Actions.Count()) > 3
+                ? actionSets
+                : actionSets.SelectAsArray(InlineActions);
         }
 
         private static UnifiedSuggestedActionSet InlineActions(UnifiedSuggestedActionSet actionSet)

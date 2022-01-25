@@ -25,13 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => _tableManagerProvider = tableManagerProvider;
 
         public void StartListening(Workspace workspace, ITodoListProvider service)
-            => new VisualStudioTodoListTable(workspace, service, _tableManagerProvider);
+            => _ = new VisualStudioTodoListTable(workspace, service, _tableManagerProvider);
 
         internal class VisualStudioTodoListTable : VisualStudioBaseTodoListTable
         {
             // internal for testing
-            internal VisualStudioTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
-                base(workspace, todoListProvider, IdentifierString, provider)
+            internal VisualStudioTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider)
+                : base(workspace, todoListProvider, IdentifierString, provider)
             {
                 ConnectWorkspaceEvents();
             }

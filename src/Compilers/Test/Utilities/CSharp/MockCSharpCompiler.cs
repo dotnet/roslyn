@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
         }
 
-        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null)
-            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader())
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null)
+            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader(), driverCache)
         {
             _analyzers = analyzers.NullToEmpty();
             _generators = generators.NullToEmpty();
@@ -55,15 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLogger)
-            => CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt: default);
+            => CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt: default, globalDiagnosticOptionsOpt: default);
 
         public override Compilation CreateCompilation(
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLogger,
-            ImmutableArray<AnalyzerConfigOptionsResult> syntaxDiagOptionsOpt)
+            ImmutableArray<AnalyzerConfigOptionsResult> syntaxDiagOptionsOpt,
+            AnalyzerConfigOptionsResult globalDiagnosticOptionsOpt)
         {
-            Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt);
+            Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt, globalDiagnosticOptionsOpt);
             return Compilation;
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -10,12 +12,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -35,15 +39,17 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             private readonly SyntaxNode _node;
             private readonly ISymbolSearchService _symbolSearchService;
-            private readonly bool _searchReferenceAssemblies;
+            private readonly AddImportOptions _options;
             private readonly ImmutableArray<PackageSource> _packageSources;
 
             public SymbolReferenceFinder(
                 AbstractAddImportFeatureService<TSimpleNameSyntax> owner,
-                Document document, SemanticModel semanticModel,
-                string diagnosticId, SyntaxNode node,
+                Document document,
+                SemanticModel semanticModel,
+                string diagnosticId,
+                SyntaxNode node,
                 ISymbolSearchService symbolSearchService,
-                bool searchReferenceAssemblies,
+                AddImportOptions options,
                 ImmutableArray<PackageSource> packageSources,
                 CancellationToken cancellationToken)
             {
@@ -54,10 +60,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _node = node;
 
                 _symbolSearchService = symbolSearchService;
-                _searchReferenceAssemblies = searchReferenceAssemblies;
+                _options = options;
                 _packageSources = packageSources;
 
-                if (_searchReferenceAssemblies || packageSources.Length > 0)
+                if (options.SearchReferenceAssemblies || packageSources.Length > 0)
                 {
                     Contract.ThrowIfNull(symbolSearchService);
                 }
@@ -172,7 +178,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
 
                 inAttributeContext = syntaxFacts.IsAttributeName(nameNode);
-                hasIncompleteParentMember = syntaxFacts.HasIncompleteParentMember(nameNode);
+                hasIncompleteParentMember = nameNode?.Parent?.RawKind == syntaxFacts.SyntaxKinds.IncompleteMember;
                 looksGeneric = syntaxFacts.LooksGeneric(nameNode);
             }
 
@@ -213,11 +219,13 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 var typeSymbols = OfType<ITypeSymbol>(symbols);
 
-                // Only keep symbols which are accessible from the current location.
+                var editorBrowserInfo = new EditorBrowsableInfo(_semanticModel.Compilation);
+
+                // Only keep symbols which are accessible from the current location and that are allowed by the current
+                // editor browsable rules.
                 var accessibleTypeSymbols = typeSymbols.WhereAsArray(
-                    s => ArityAccessibilityAndAttributeContextAreCorrect(
-                        s.Symbol, arity, inAttributeContext,
-                        hasIncompleteParentMember, looksGeneric));
+                    s => ArityAccessibilityAndAttributeContextAreCorrect(s.Symbol, arity, inAttributeContext, hasIncompleteParentMember, looksGeneric) &&
+                         s.Symbol.IsEditorBrowsable(_options.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
 
                 // These types may be contained within namespaces, or they may be nested 
                 // inside generic types.  Record these namespaces/types if it would be 
@@ -302,16 +310,17 @@ namespace Microsoft.CodeAnalysis.AddImport
                     // 'Black' did not bind.  We want to find a type called 'Color' that will actually
                     // allow 'Black' to bind.
                     var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
-                    if (syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
+                    if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) ||
+                        syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                     {
-                        var expression =
-                            syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true) ??
-                            syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);
-                        if (expression is TSimpleNameSyntax)
+                        var expression = syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode)
+                            ? syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true)
+                            : syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);
+                        if (expression is TSimpleNameSyntax simpleName)
                         {
                             // Check if the expression before the dot binds to a property or field.
                             var symbol = _semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
-                            if (symbol?.Kind == SymbolKind.Property || symbol?.Kind == SymbolKind.Field)
+                            if (symbol?.Kind is SymbolKind.Property or SymbolKind.Field)
                             {
                                 // Check if we have the 'Color Color' case.
                                 var propertyOrFieldType = symbol.GetSymbolType();
@@ -320,7 +329,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                                 {
                                     // Try to look up 'Color' as a type.
                                     var symbolResults = await searchScope.FindDeclarationsAsync(
-                                        symbol.Name, (TSimpleNameSyntax)expression, SymbolFilter.Type).ConfigureAwait(false);
+                                        symbol.Name, simpleName, SymbolFilter.Type).ConfigureAwait(false);
 
                                     // Return results that have accessible members.
                                     var namedTypeSymbols = OfType<INamedTypeSymbol>(symbolResults);
@@ -413,30 +422,26 @@ namespace Microsoft.CodeAnalysis.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForCollectionInitializerMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode))
+                if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out _) &&
+                    !_syntaxFacts.IsSimpleName(_node) &&
+                    _owner.IsAddMethodContext(_node, _semanticModel))
                 {
-                    return ImmutableArray<SymbolReference>.Empty;
+                    var symbols = await searchScope.FindDeclarationsAsync(
+                        nameof(IList.Add), nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
+
+                    // Note: there is no desiredName for these search results.  We're searching for
+                    // extension methods called "Add", but we have no intention of renaming any 
+                    // of the existing user code to that name.
+                    var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
+
+                    var viableMethods = GetViableExtensionMethods(
+                        methodSymbols, _node.Parent, searchScope.CancellationToken);
+
+                    return GetNamespaceSymbolReferences(searchScope,
+                        viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
                 }
 
-                _syntaxFacts.GetNameAndArityOfSimpleName(_node, out var name, out var arity);
-                if (name != null || !_owner.IsAddMethodContext(_node, _semanticModel))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                var symbols = await searchScope.FindDeclarationsAsync(
-                    nameof(IList.Add), nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
-
-                // Note: there is no desiredName for these search results.  We're searching for
-                // extension methods called "Add", but we have no intention of renaming any 
-                // of the existing user code to that name.
-                var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
-
-                var viableMethods = GetViableExtensionMethods(
-                    methodSymbols, _node.Parent, searchScope.CancellationToken);
-
-                return GetNamespaceSymbolReferences(searchScope,
-                    viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
+                return ImmutableArray<SymbolReference>.Empty;
             }
 
             /// <summary>

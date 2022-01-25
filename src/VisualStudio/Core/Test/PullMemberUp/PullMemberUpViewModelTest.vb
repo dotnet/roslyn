@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PullMemberUp
@@ -13,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.PullMemberUp
     <[UseExportProvider]>
@@ -39,13 +39,17 @@ class MyClass : Level1BaseClass, Level1Interface
     }
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
             Assert.Equal("Level1BaseClass", baseTypeTree(0).SymbolName)
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
             Assert.Equal("Level2Interface", baseTypeTree(0).BaseTypeNodes(0).SymbolName)
             Assert.Equal("Level2Interface", baseTypeTree(1).BaseTypeNodes(0).SymbolName)
             Assert.Empty(baseTypeTree(0).BaseTypeNodes(0).BaseTypeNodes)
             Assert.Empty(baseTypeTree(1).BaseTypeNodes(0).BaseTypeNodes)
+
+            Assert.False(viewModel.OkButtonEnabled)
+            viewModel.SelectedDestination = baseTypeTree(0)
+            Assert.True(viewModel.OkButtonEnabled)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
@@ -78,7 +82,7 @@ class MyClass : Level1BaseClass, Level1Interface
 </Workspace>]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
 
             ' C# types will be showed
             Assert.Equal("ITestInterface", baseTypeTree(0).SymbolName)
@@ -118,7 +122,7 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
 
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
             viewModel.SelectedDestination = baseTypeTree(1)
@@ -163,7 +167,7 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
 
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
             viewModel.SelectedDestination = baseTypeTree(1)
@@ -206,7 +210,7 @@ class MyClass : Level1BaseClass, Level1Interface
     internal float gravitational = 6.67e-11;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
+            Dim baseTypeTree = viewModel.DestinationTreeNodeViewModel.BaseTypeNodes
 
             ' First select an interface, all checkbox will be disable as the previous test.
             Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
@@ -221,15 +225,16 @@ class MyClass : Level1BaseClass, Level1Interface
             Next
         End Function
 
-        Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
+        Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.SymbolName.Equals(name))
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
             End If
+
             Return member
         End Function
 
-        Private Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of PullMemberUpDialogViewModel)
+        Private Shared Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of PullMemberUpDialogViewModel)
             Dim workspaceXml =
             <Workspace>
                 <Project Language=<%= languageName %> CommonReferences="true">
@@ -253,9 +258,9 @@ class MyClass : Level1BaseClass, Level1Interface
                     Function(member) New PullMemberUpSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
                 Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, workspaceDoc.Project, CancellationToken.None)
                 Return New PullMemberUpDialogViewModel(
-                    workspace.GetService(Of IWaitIndicator),
+                    workspace.GetService(Of IUIThreadOperationExecutor),
                     membersViewModel,
-                    baseTypeTree.BaseTypeNodes,
+                    baseTypeTree,
                     memberToDependents)
             End Using
         End Function

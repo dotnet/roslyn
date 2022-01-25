@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -1278,7 +1280,7 @@ namespace B
 
             var (_, action) = await GetCodeActionsAsync(workspace, default);
             var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
-            var result = ApplyOperationsAndGetSolution(workspace, operations);
+            var result = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
 
             // Make sure both linked documents are changed.
             foreach (var id in workspace.Documents.Select(d => d.Id))

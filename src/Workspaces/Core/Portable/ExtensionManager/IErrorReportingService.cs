@@ -2,21 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Extensions
 {
     internal interface IErrorReportingService : IWorkspaceService
     {
         /// <summary>
-        /// Show error info in an active view.
-        ///
-        /// Different host can have different definition on what active view means.
+        /// Name of the host to be used in error messages (e.g. "Visual Studio").
         /// </summary>
-        void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items);
+        string HostDisplayName { get; }
 
         /// <summary>
         /// Show global error info.
@@ -24,14 +21,10 @@ namespace Microsoft.CodeAnalysis.Extensions
         /// this kind error info should be something that affects whole roslyn such as
         /// background compilation is disabled due to memory issue and etc
         /// </summary>
-        void ShowGlobalErrorInfo(string message, params InfoBarUI[] items);
+        void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items);
 
         void ShowDetailedErrorInfo(Exception exception);
 
-        /// <summary>
-        /// Shows info-bar reporting ServiceHub process crash.
-        /// "Unfortunately a process used by Visual Studio has encountered an unrecoverable error".
-        /// </summary>
-        void ShowRemoteHostCrashedErrorInfo(Exception? exception);
+        void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception);
     }
 }

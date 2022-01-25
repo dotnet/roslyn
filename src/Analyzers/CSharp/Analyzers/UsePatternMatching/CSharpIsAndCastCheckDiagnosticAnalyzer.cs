@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -30,10 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckDiagnosticAnalyzer();
+        public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new();
 
         public CSharpIsAndCastCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,
+                   EnforceOnBuildValues.InlineIsType,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
             // in projects targeting a lesser version.
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
+            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
             {
                 return;
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -12,11 +14,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 {
     internal static class Extensions
     {
-        private static readonly SymbolDisplayFormat s_typeDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_typeDisplayFormat = new(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance);
 
-        private static readonly SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_memberDisplayFormat = new(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
             memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface | SymbolDisplayMemberOptions.IncludeParameters,
@@ -96,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public static bool IsVenus(this Project project)
         {
-            if (!(project.Solution.Workspace is VisualStudioWorkspaceImpl workspace))
+            if (project.Solution.Workspace is not VisualStudioWorkspaceImpl workspace)
             {
                 return false;
             }
@@ -120,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             var result = project.Name;
 
-            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
+            if (project.Solution.Workspace is not VisualStudioWorkspace workspace)
             {
                 return result;
             }
@@ -140,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 var builder = new StringBuilder(result);
 
-                while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
+                while (parentHierarchy is not null and not IVsSolution)
                 {
                     if (parentHierarchy.TryGetName(out var parentName))
                     {

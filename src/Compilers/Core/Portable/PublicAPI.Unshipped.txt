@@ -1,43 +1,29 @@
-*REMOVED*Microsoft.CodeAnalysis.Compilation.CreateFunctionPointerTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol returnType, Microsoft.CodeAnalysis.RefKind returnRefKind, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> parameterTypes, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.RefKind> parameterRefKinds) -> Microsoft.CodeAnalysis.IFunctionPointerTypeSymbol
-Microsoft.CodeAnalysis.Compilation.CreateFunctionPointerTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol returnType, Microsoft.CodeAnalysis.RefKind returnRefKind, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> parameterTypes, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.RefKind> parameterRefKinds, System.Reflection.Metadata.SignatureCallingConvention callingConvention = System.Reflection.Metadata.SignatureCallingConvention.Default, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol> callingConventionTypes = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol>)) -> Microsoft.CodeAnalysis.IFunctionPointerTypeSymbol
-Microsoft.CodeAnalysis.CommandLineArguments.SkipAnalyzers.get -> bool
-Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext
-Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AdditionalFile.get -> Microsoft.CodeAnalysis.AdditionalText
-Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
-Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
-Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
-Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.AdditionalFileDiagnostics.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.AdditionalText, System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>>
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText file, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText file, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
-Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.get -> int
-Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.set -> void
-Microsoft.CodeAnalysis.IMethodSymbol.CallingConvention.get -> System.Reflection.Metadata.SignatureCallingConvention
-Microsoft.CodeAnalysis.IMethodSymbol.CallingConventionTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol>
-Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.UseExplicitManagedCallingConventionSpecifier = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
-Microsoft.CodeAnalysis.GeneratorDriverRunResult.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
-Microsoft.CodeAnalysis.GeneratorDriverRunResult.GeneratedTrees.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SyntaxTree>
-Microsoft.CodeAnalysis.GeneratorDriverRunResult.Results.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratorRunResult>
-Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
-Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.SyntaxTreeOptionsProvider() -> void
-abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.IsGenerated(Microsoft.CodeAnalysis.SyntaxTree tree) -> bool?
-abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.TryGetDiagnosticValue(Microsoft.CodeAnalysis.SyntaxTree tree, string diagnosticId, out Microsoft.CodeAnalysis.ReportDiagnostic severity) -> bool
-Microsoft.CodeAnalysis.GeneratorRunResult.GeneratedSources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratedSourceResult>
-const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointMethodName = "<Main>$" -> string
-const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointTypeName = "<Program>$" -> string
-Microsoft.CodeAnalysis.CompilationOptions.SyntaxTreeOptionsProvider.get -> Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
-Microsoft.CodeAnalysis.CompilationOptions.WithSyntaxTreeOptionsProvider(Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider provider) -> Microsoft.CodeAnalysis.CompilationOptions
-Microsoft.CodeAnalysis.Operations.IPatternOperation.NarrowedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterAdditionalFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext> action) -> void
-virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterAdditionalFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext> action) -> void
-Microsoft.CodeAnalysis.GeneratedSourceResult
-Microsoft.CodeAnalysis.GeneratedSourceResult.HintName.get -> string
-Microsoft.CodeAnalysis.GeneratedSourceResult.SourceText.get -> Microsoft.CodeAnalysis.Text.SourceText
-Microsoft.CodeAnalysis.GeneratedSourceResult.SyntaxTree.get -> Microsoft.CodeAnalysis.SyntaxTree
-Microsoft.CodeAnalysis.GeneratorDriver.GetRunResult() -> Microsoft.CodeAnalysis.GeneratorDriverRunResult
-Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation compilation, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver
-Microsoft.CodeAnalysis.GeneratorDriverRunResult
-Microsoft.CodeAnalysis.GeneratorRunResult
-Microsoft.CodeAnalysis.GeneratorRunResult.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
-Microsoft.CodeAnalysis.GeneratorRunResult.Exception.get -> System.Exception
-Microsoft.CodeAnalysis.GeneratorRunResult.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator
+
+Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
+Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
+Microsoft.CodeAnalysis.IOperation.OperationList
+Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.OperationList() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Count.get -> int
+Microsoft.CodeAnalysis.IOperation.OperationList.First() -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Last() -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.Reverse() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed
+Microsoft.CodeAnalysis.IOperation.OperationList.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Reset() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Reset() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Reversed() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+*REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>! nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>! computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>! tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>! computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>! trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>! computeReplacementTrivia) -> TRoot!
+static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>? nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>? computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>? tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>? computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>? trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>? computeReplacementTrivia) -> TRoot!

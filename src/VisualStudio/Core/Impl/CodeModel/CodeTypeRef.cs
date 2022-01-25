@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // Breaking changes from the legacy code model.
 //
 // CodeType: In the legacy Visual Basic code model, this property might return null. However, in
@@ -47,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal ITypeSymbol LookupTypeSymbol()
         {
-            if (!(CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) is ITypeSymbol typeSymbol))
+            if (CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) is not ITypeSymbol typeSymbol)
             {
                 throw Exceptions.ThrowEFail();
             }

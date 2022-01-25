@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -21,7 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternMatchingAsAndNullCheck), Shared]
     internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var statementParentScopes);
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var languageVersion = ((CSharpParseOptions)tree.Options).LanguageVersion;
+            var languageVersion = tree.Options.LanguageVersion();
 
             foreach (var diagnostic in diagnostics)
             {
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             void RemoveStatement(StatementSyntax statement)
             {
                 editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-                if (statement.Parent is BlockSyntax || statement.Parent is SwitchSectionSyntax)
+                if (statement.Parent is BlockSyntax or SwitchSectionSyntax)
                 {
                     statementParentScopes.Add(statement.Parent);
                 }
@@ -146,14 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             if (!comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
                 return isPatternExpression;
 
-#if !CODE_STYLE
             if (languageVersion >= LanguageVersion.CSharp9)
             {
                 // In C# 9 and higher, convert to `x is not string s`.
                 return isPatternExpression.WithPattern(
                     SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), isPatternExpression.Pattern));
             }
-#endif
 
             // In C# 8 and lower, convert to `!(x is string s)`
             return SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, isPatternExpression.Parenthesize());
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument)
+                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpAsAndNullCheckCodeFixProvider))
             {
             }
         }

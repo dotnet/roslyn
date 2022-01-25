@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -64,7 +66,7 @@ public class App : C
 
             // ---------------------------
             // Metadata symbols
-            var typesym = comp2.SourceModule.GlobalNamespace.GetTypeMembers("App").FirstOrDefault() as INamedTypeSymbol;
+            var typesym = comp2.SourceModule.GlobalNamespace.GetTypeMembers("App").FirstOrDefault();
 
             // 'D'
             var member01 = (typesym.GetMembers("myEvent").Single() as IEventSymbol).Type;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.InteractiveWindow;
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         bool ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
         {
             var window = OpenInteractiveWindow(focus: false);
-            using (context.OperationContext.AddScope(allowCancellation: true, InteractiveEditorFeaturesResources.Executing_selection_in_Interactive_Window))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesWpfResources.Executing_selection_in_Interactive_Window))
             {
                 var submission = GetSelectedText(args, context.OperationContext.UserCancellationToken);
                 if (!string.IsNullOrWhiteSpace(submission))
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             using (var edit = buffer.CreateEdit())
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true,
-                InteractiveEditorFeaturesResources.Copying_selection_to_Interactive_Window))
+                EditorFeaturesWpfResources.Copying_selection_to_Interactive_Window))
             {
                 var text = GetSelectedText(args, context.OperationContext.UserCancellationToken);
 

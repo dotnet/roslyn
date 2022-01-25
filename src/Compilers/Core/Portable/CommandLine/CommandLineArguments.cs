@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -124,6 +122,11 @@ namespace Microsoft.CodeAnalysis
         /// Absolute path of the documentation comment XML file or null if not specified.
         /// </summary>
         public string? DocumentationPath { get; internal set; }
+
+        /// <summary>
+        /// Absolute path of the directory to place generated files in, or <c>null</c> to not emit any generated files.
+        /// </summary>
+        public string? GeneratedFilesOutputDirectory { get; internal set; }
 
         /// <summary>
         /// Options controlling the generation of a SARIF log file containing compilation or
@@ -487,6 +490,9 @@ namespace Microsoft.CodeAnalysis
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                         diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_NoAnalyzerInAssembly, analyzerReference.FullPath);
                         break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerReferencesFramework, analyzerReference.FullPath, e.TypeName!);
+                        break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
                     default:
                         return;
@@ -518,12 +524,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // All analyzer references are registered now, we can start loading them:
+            // All analyzer references are registered now, we can start loading them.
             foreach (var resolvedReference in resolvedReferences)
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
-                if (!skipAnalyzers)
-                    resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                resolvedReference.AddAnalyzers(analyzerBuilder, language, shouldIncludeAnalyzer);
                 resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
@@ -532,6 +537,9 @@ namespace Microsoft.CodeAnalysis
 
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();
+
+            // If we are skipping analyzers, ensure that we only add suppressors.
+            bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
         }
 
         private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)

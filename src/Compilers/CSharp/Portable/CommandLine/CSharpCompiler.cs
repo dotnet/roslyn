@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,13 +9,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -26,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal const string ResponseFileName = "csc.rsp";
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
-        private readonly string _tempDirectory;
+        private readonly string? _tempDirectory;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
-            : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache = null, ICommonCompilerFileSystem? fileSystem = null)
+            : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader, driverCache, fileSystem)
         {
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
             _tempDirectory = buildPaths.TempDirectory;
@@ -40,9 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Compilation? CreateCompilation(
             TextWriter consoleOutput,
-            TouchedFileLogger touchedFilesLogger,
-            ErrorLogger errorLogger,
-            ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions)
+            TouchedFileLogger? touchedFilesLogger,
+            ErrorLogger? errorLogger,
+            ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions,
+            AnalyzerConfigOptionsResult globalConfigOptions)
         {
             var parseOptions = Arguments.ParseOptions;
 
@@ -54,14 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceFiles = Arguments.SourceFiles;
             var trees = new SyntaxTree?[sourceFiles.Length];
-            var normalizedFilePaths = new string[sourceFiles.Length];
+            var normalizedFilePaths = new string?[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
-                Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
-                {
-                    try
+                RoslynParallel.For(
+                    0,
+                    sourceFiles.Length,
+                    UICultureUtilities.WithCurrentUICulture<int>(i =>
                     {
                         //NOTE: order of trees is important!!
                         trees[i] = ParseFile(
@@ -71,12 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             sourceFiles[i],
                             diagnosticBag,
                             out normalizedFilePaths[i]);
-                    }
-                    catch (Exception e) when (FatalError.Report(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }));
+                    }),
+                    CancellationToken.None);
             }
             else
             {
@@ -94,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
-            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation: null))
             {
                 Debug.Assert(hadErrors);
                 return null;
@@ -120,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Arguments.TouchedFilesPath != null)
             {
+                Debug.Assert(touchedFilesLogger is object);
                 foreach (var path in uniqueFilePaths)
                 {
                     touchedFilesLogger.AddRead(path);
@@ -153,13 +149,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MetadataReferenceResolver referenceDirectiveResolver;
             var resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);
-            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation: null))
             {
                 return null;
             }
 
             var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
-            var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions);
+            var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalConfigOptions);
 
             return CSharpCompilation.Create(
                 Arguments.CompilationName,
@@ -180,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool addedDiagnostics,
             CommandLineSourceFile file,
             DiagnosticBag diagnostics,
-            out string normalizedFilePath)
+            out string? normalizedFilePath)
         {
             var fileDiagnostics = new List<DiagnosticInfo>();
             var content = TryReadFileContent(file, fileDiagnostics, out normalizedFilePath);
@@ -239,34 +235,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected override string GetOutputFileName(Compilation compilation, CancellationToken cancellationToken)
         {
-            if (Arguments.OutputFileName == null)
+            if (Arguments.OutputFileName is object)
             {
-                Debug.Assert(Arguments.CompilationOptions.OutputKind.IsApplication());
+                return Arguments.OutputFileName;
+            }
 
-                var comp = (CSharpCompilation)compilation;
+            Debug.Assert(Arguments.CompilationOptions.OutputKind.IsApplication());
 
-                Symbol? entryPoint = comp.ScriptClass;
-                if (entryPoint is null)
+            var comp = (CSharpCompilation)compilation;
+
+            Symbol? entryPoint = comp.ScriptClass;
+            if (entryPoint is null)
+            {
+                var method = comp.GetEntryPoint(cancellationToken);
+                if (method is object)
                 {
-                    var method = comp.GetEntryPoint(cancellationToken);
-                    if (method is object)
-                    {
-                        entryPoint = method.PartialImplementationPart ?? method;
-                    }
-                    else
-                    {
-                        // no entrypoint found - an error will be reported and the compilation won't be emitted
-                        return "error";
-                    }
+                    entryPoint = method.PartialImplementationPart ?? method;
                 }
+                else
+                {
+                    // no entrypoint found - an error will be reported and the compilation won't be emitted
+                    return "error";
+                }
+            }
 
-                string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
-                return Path.ChangeExtension(entryPointFileName, ".exe");
-            }
-            else
-            {
-                return base.GetOutputFileName(compilation, cancellationToken);
-            }
+            string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
+            return Path.ChangeExtension(entryPointFileName, ".exe");
         }
 
         internal override bool SuppressDefaultResponseFile(IEnumerable<string> args)
@@ -378,18 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag diagnostics)
+        private protected override GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            // https://github.com/dotnet/roslyn/issues/42565: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
-            if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
-            {
-                return input;
-            }
-
-            var driver = new CSharpGeneratorDriver(parseOptions, generators, analyzerConfigProvider, additionalTexts);
-            driver.RunFullGeneration(input, out var compilationOut, out var generatorDiagnostics);
-            diagnostics.AddRange(generatorDiagnostics);
-            return compilationOut;
+            return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigOptionsProvider);
         }
     }
 }

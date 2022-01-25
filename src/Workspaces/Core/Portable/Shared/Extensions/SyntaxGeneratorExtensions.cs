@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -48,11 +51,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ImmutableDictionary<string, string> parameterToNewMemberMap,
             bool addNullChecks,
             bool preferThrowExpression,
-            bool generateProperties)
+            bool generateProperties,
+            bool isContainedInUnsafeType)
         {
             var newMembers = generateProperties
-                ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap)
-                : CreateFieldsForParameters(parameters, parameterToNewMemberMap);
+                ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType)
+                : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType);
             var statements = factory.CreateAssignmentStatements(
                 semanticModel, parameters, parameterToExistingMemberMap, parameterToNewMemberMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: containingTypeOpt.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
-                modifiers: new DeclarationModifiers(),
+                modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(p => p.RequiresUnsafeModifier())),
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
@@ -95,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreateFieldsForParameters(
-            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewFieldMap)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewFieldMap, bool isContainedInUnsafeType)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                         attributes: default,
                         accessibility: Accessibility.Private,
-                        modifiers: default,
+                        modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                         type: parameter.Type,
                         name: fieldName));
                 }
@@ -117,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
-            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewPropertyMap)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterToNewPropertyMap, bool isContainedInUnsafeType)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
@@ -129,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     result.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: default,
                         accessibility: Accessibility.Public,
-                        modifiers: default,
+                        modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                         type: parameter.Type,
                         refKind: RefKind.None,
                         explicitInterfaceImplementations: ImmutableArray<IPropertySymbol>.Empty,
@@ -171,27 +175,35 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
             => factory.ObjectCreationExpression(
-                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName),
                 factory.NameOfExpression(
-                    factory.IdentifierName(parameter.Name)));
+                    factory.IdentifierName(parameter.Name))).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
 
         public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,
             SemanticModel semanticModel,
             IParameterSymbol parameter)
         {
-            var identifier = factory.IdentifierName(parameter.Name);
-            var nullExpr = factory.NullLiteralExpression();
-            var condition = factory.SupportsPatterns(semanticModel.SyntaxTree.Options)
-                ? factory.IsPatternExpression(identifier, factory.ConstantPattern(nullExpr))
-                : factory.ReferenceEqualsExpression(identifier, nullExpr);
+            var condition = factory.CreateNullCheckExpression(semanticModel, parameter.Name);
+            var throwStatement = factory.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter);
 
-            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
+            // generates: if (s is null) { throw new ArgumentNullException(nameof(s)); }
             return factory.IfStatement(
-               condition,
-                SpecializedCollections.SingletonEnumerable(
-                    factory.ThrowStatement(CreateNewArgumentNullException(
-                        factory, semanticModel.Compilation, parameter))));
+                condition,
+                SpecializedCollections.SingletonEnumerable(throwStatement));
+        }
+
+        public static SyntaxNode CreateThrowArgumentNullExceptionStatement(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
+            => factory.ThrowStatement(CreateNewArgumentNullException(factory, compilation, parameter));
+
+        public static SyntaxNode CreateNullCheckExpression(this SyntaxGenerator factory, SemanticModel semanticModel, string identifierName)
+        {
+            var identifier = factory.IdentifierName(identifierName);
+            var nullExpr = factory.NullLiteralExpression();
+            var condition = factory.SyntaxGeneratorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
+                ? factory.SyntaxGeneratorInternal.IsPatternExpression(identifier, factory.SyntaxGeneratorInternal.ConstantPattern(nullExpr))
+                : factory.ReferenceEqualsExpression(identifier, nullExpr);
+            return condition;
         }
 
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(

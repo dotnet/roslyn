@@ -4,9 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -16,16 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Const s_unicodeEllipsis = ChrW(&H2026)
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(SymbolCompletionProvider)
-        End Function
-
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
@@ -1357,7 +1347,7 @@ Class C
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
                 glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
-                displayTextSuffix:=Nothing, matchingFilters:=Nothing)
+                displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, matchingFilters:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -2761,7 +2751,7 @@ Class C
 End Class
 </Text>.Value
 
-            Await VerifyProviderCommitAsync(markup, "class", expected, "("c, "")
+            Await VerifyProviderCommitAsync(markup, "class", expected, "("c)
         End Function
 
         <WorkItem(543104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")>
@@ -3248,6 +3238,8 @@ Public Class Goo
     End Sub
 End Class
 ]]></Text>.Value
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -3255,8 +3247,9 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -3265,8 +3258,7 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -3859,6 +3851,9 @@ Public Class Goo
     Public bar As Integer
 End Class
 ]]></Text>.Value
+
+            HideAdvancedMembers = True
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -3866,8 +3861,9 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = False
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -3876,8 +3872,7 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4011,6 +4006,9 @@ Public Class Goo
     End Property
 End Class
 ]]></Text>.Value
+
+            HideAdvancedMembers = True
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4018,8 +4016,9 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = False
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -4028,8 +4027,7 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4109,15 +4107,8 @@ Public Class Goo
     End Sub
 End Class
 ]]></Text>.Value
-            Await VerifyItemInEditorBrowsableContextsAsync(
-                markup:=markup,
-                referencedCode:=referencedCode,
-                item:="Goo",
-                expectedSymbolsSameSolution:=1,
-                expectedSymbolsMetadataReference:=1,
-                sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -4126,8 +4117,18 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = False
+
+            Await VerifyItemInEditorBrowsableContextsAsync(
+                markup:=markup,
+                referencedCode:=referencedCode,
+                item:="Goo",
+                expectedSymbolsSameSolution:=1,
+                expectedSymbolsMetadataReference:=1,
+                sourceLanguage:=LanguageNames.VisualBasic,
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4275,6 +4276,9 @@ Public Class C
     Public Event Handler As DelegateType
 End Class
 ]]></Text>.Value
+
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4282,8 +4286,9 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -4292,8 +4297,7 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4360,6 +4364,9 @@ End Class
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)>
 Public Delegate Sub DelegateType()
 ]]></Text>.Value
+
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4367,8 +4374,9 @@ Public Delegate Sub DelegateType()
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -4377,8 +4385,7 @@ Public Delegate Sub DelegateType()
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4560,6 +4567,9 @@ End Class
 Public Class Goo
 End Class
 ]]></Text>.Value
+
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4567,8 +4577,9 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -4577,8 +4588,7 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4596,6 +4606,9 @@ End Class
 Public Class Goo
 End Class
 ]]></Text>.Value
+
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4603,8 +4616,9 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -4613,8 +4627,7 @@ End Class
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4635,6 +4648,9 @@ Namespace NS
     End Class
 End Namespace
 ]]></Text>.Value
+
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4642,8 +4658,9 @@ End Namespace
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -4652,8 +4669,7 @@ End Namespace
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4760,6 +4776,8 @@ Public Structure Goo
 End Structure
 ]]></Text>.Value
 
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4767,8 +4785,9 @@ End Structure
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -4777,8 +4796,7 @@ End Structure
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4855,6 +4873,9 @@ Public Enum Goo
     A
 End Enum
 ]]></Text>.Value
+
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4862,8 +4883,9 @@ End Enum
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -4872,8 +4894,7 @@ End Enum
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -4997,6 +5018,9 @@ End Class
 Public Interface Goo
 End Interface
 ]]></Text>.Value
+
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -5004,8 +5028,9 @@ End Interface
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -5014,8 +5039,7 @@ End Interface
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -5033,6 +5057,9 @@ End Class
 Public Interface Goo
 End Interface
 ]]></Text>.Value
+
+            HideAdvancedMembers = False
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -5040,8 +5067,9 @@ End Interface
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = True
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -5050,8 +5078,7 @@ End Interface
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -5078,8 +5105,7 @@ public class Goo
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.CSharp,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.CSharp)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -5106,8 +5132,7 @@ public class Goo
                 expectedSymbolsSameSolution:=0,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.CSharp,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.CSharp)
         End Function
 #End Region
 
@@ -5379,7 +5404,7 @@ Class C
     Inherits [Inherits].
 "
 
-            Await VerifyProviderCommitAsync(markup, "Inherits", expected, "."c, "")
+            Await VerifyProviderCommitAsync(markup, "Inherits", expected, "."c)
         End Function
 
         <WorkItem(546801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546801")>
@@ -5542,7 +5567,7 @@ Class DG
 End Class
 "
 
-            Await VerifyProviderCommitAsync(markup, "G(Of " & s_unicodeEllipsis & ")", expected, "("c, "")
+            Await VerifyProviderCommitAsync(markup, "G(Of " & s_unicodeEllipsis & ")", expected, "("c)
         End Function
 
         <WorkItem(579186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579186")>
@@ -5583,7 +5608,7 @@ Class DG
     Inherits G(
 End Class
 "
-            Await VerifyProviderCommitAsync(markup, "G", expected, "("c, "")
+            Await VerifyProviderCommitAsync(markup, "G", expected, "("c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5759,7 +5784,7 @@ Class C
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Dim expectedDescription = $"({FeaturesResources.field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_context
+            Dim expectedDescription = $"({FeaturesResources.field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
         End Function
 
@@ -5784,7 +5809,7 @@ Class DG
     Function Bar() as G(Of
 End Class</code>.Value
 
-            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, Nothing, "")
+            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, Nothing)
         End Function
 
         <WorkItem(909121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909121")>
@@ -5809,7 +5834,7 @@ Class DG
     Function Bar() as G(
 End Class</code>.Value
 
-            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, "("c, "")
+            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, "("c)
         End Function
 
         <WorkItem(668159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/668159")>
@@ -6292,7 +6317,7 @@ Class Await
     End Sub
 End Class]]></code>.Value
 
-            Await VerifyProviderCommitAsync(text, "Await", expected, "]"c, Nothing)
+            Await VerifyProviderCommitAsync(text, "Await", expected, "]"c)
         End Function
 
         <WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
@@ -6314,7 +6339,7 @@ Class [Class]
     End Sub
 End Class]]></code>.Value
 
-            Await VerifyProviderCommitAsync(text, "Class", expected, "]"c, Nothing)
+            Await VerifyProviderCommitAsync(text, "Class", expected, "]"c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6343,6 +6368,34 @@ Class [Class]
 End Class]]></code>.Value
 
             Await VerifyItemExistsAsync(text, "ToString")
+        End Function
+
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_1() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt?.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Day")
+            Await VerifyItemIsAbsentAsync(text, "Value")
+        End Function
+
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_2() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Value")
+            Await VerifyItemIsAbsentAsync(text, "Day")
         End Function
 
         <WorkItem(1041269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
@@ -6816,6 +6869,22 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(46472, "https://github.com/dotnet/roslyn/issues/46472")>
+        Public Async Function TestAllowCompletionInNameOfArgumentContext17() As Task
+            Dim text =
+<code><![CDATA[
+Public Class C
+  Event Bar()
+  
+Public Sub Baz()
+    Dim s = NameOf($$
+  End Sub
+End Class]]></code>.Value
+
+            Await VerifyItemExistsAsync(text, "Bar")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAllowCompletionInInterpolationExpressionContext1() As Task
             Dim text =
 <code><![CDATA[
@@ -7261,8 +7330,7 @@ End Module
             Await VerifyProviderCommitAsync(markupBeforeCommit:=String.Format(text, "$$"),
                                  itemToCommit:="Delegate",
                                  expectedCodeAfterCommit:=String.Format(text, "[Delegate]"),
-                                 commitChar:=Nothing,
-                                 textTypedSoFar:="")
+                                 commitChar:=Nothing)
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7740,6 +7808,7 @@ End Namespace
             For index = 2 To 8
                 Await VerifyItemExistsAsync(text, "Item" + index.ToString())
             Next
+
             Await VerifyItemExistsAsync(text, "ToString")
 
             Await VerifyItemIsAbsentAsync(text, "Item1")
@@ -7804,11 +7873,11 @@ End Namespace
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing, flags:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing, flags:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
             End Using
 
         End Function
@@ -8418,7 +8487,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
+            TargetTypedCompletionFilterFeatureFlag = True
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8433,7 +8502,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestNoTargetTypeFilterWithExperimentDisabled() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, False)
+            TargetTypedCompletionFilterFeatureFlag = False
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8448,7 +8517,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
+            TargetTypedCompletionFilterFeatureFlag = True
             Dim markup =
 "Class C
     Dim intField As Integer

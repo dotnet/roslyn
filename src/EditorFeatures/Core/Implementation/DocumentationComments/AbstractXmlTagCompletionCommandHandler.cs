@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -34,7 +36,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Ensure completion and any other buffer edits happen first.
             nextHandler();
 
-            if (args.TypedChar != '>' && args.TypedChar != '/')
+            var cancellationToken = context.OperationContext.UserCancellationToken;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            try
+            {
+                ExecuteCommandWorker(args, context);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextHandler().
+            }
+        }
+
+        private void ExecuteCommandWorker(TypeCharCommandArgs args, CommandExecutionContext context)
+        {
+            if (args.TypedChar is not '>' and not '/')
             {
                 return;
             }

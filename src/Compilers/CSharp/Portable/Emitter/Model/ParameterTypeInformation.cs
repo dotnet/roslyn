@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(_underlyingParameter.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            return ((PEModuleBuilder)context.Module).Translate(_underlyingParameter.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
         }
 
         ushort Cci.IParameterListEntry.Index
@@ -62,6 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override string ToString()
         {
             return _underlyingParameter.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
     }
 
@@ -101,6 +115,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         ushort Cci.IParameterListEntry.Index
         {
             get { return _ordinal; }
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -233,12 +231,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
@@ -482,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
@@ -497,19 +495,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
             return TryGetValueCore(key, valueProvider, out value);
         }
 
-        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             throw new NotImplementedException();
@@ -588,7 +586,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
@@ -603,12 +601,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
@@ -650,12 +648,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
+        /// <summary>
+        /// Optional filter span for which to compute diagnostics.
+        /// </summary>
+        internal TextSpan? FilterSpan { get; }
+
         public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(semanticModel, options, reportDiagnostic, isSupportedDiagnostic, filterSpan: null, cancellationToken)
+        {
+        }
+
+        internal SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, TextSpan? filterSpan, CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterSpan = filterSpan;
             _cancellationToken = cancellationToken;
         }
 
@@ -1397,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="SyntaxNode"/>.
         /// </summary>
-        public Compilation? Compilation => _semanticModel?.Compilation;
+        public Compilation Compilation => _semanticModel?.Compilation ?? throw new InvalidOperationException();
 
         /// <summary>
         /// Options specified for the analysis.

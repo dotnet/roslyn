@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,14 +35,14 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
         /// The top level version of the project when we retrieved <see cref="SemanticModel"/>.  As long as this is the
         /// same we can continue getting speculative models to use.
         /// </summary>
-        public readonly VersionStamp TopLevelSementicVersion;
+        public readonly VersionStamp TopLevelSemanticVersion;
 
         public SemanticModelReuseInfo(SemanticModel previousNonSpeculativeSemanticModel, SemanticModel currentSemanticModel, SyntaxNode bodyNode, VersionStamp topLevelSementicVersion)
         {
             PreviousNonSpeculativeSemanticModel = previousNonSpeculativeSemanticModel;
             CurrentSemanticModel = currentSemanticModel;
             BodyNode = bodyNode;
-            TopLevelSementicVersion = topLevelSementicVersion;
+            TopLevelSemanticVersion = topLevelSementicVersion;
         }
     }
 
@@ -92,7 +90,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 };
             }
 
-            public async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+            public async ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 var reuseService = document.GetRequiredLanguageService<ISemanticModelReuseLanguageService>();
 
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 var reuseInfo = reuseInfoOpt.Value;
 
                 // can only reuse the cache if nothing top level changed.
-                if (reuseInfo.TopLevelSementicVersion != topLevelSemanticVersion)
+                if (reuseInfo.TopLevelSemanticVersion != topLevelSemanticVersion)
                     return null;
 
                 // If multiple callers are asking for the exact same body, they can share the exact same semantic model.

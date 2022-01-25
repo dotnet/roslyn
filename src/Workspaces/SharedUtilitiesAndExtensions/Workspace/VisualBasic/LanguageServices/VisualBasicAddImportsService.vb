@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImports
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -57,6 +58,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                                                FirstOrDefault()?.Alias
         End Function
 
+        Protected Overrides Function PlaceImportsInsideNamespaces(preferences As CodeGenerationPreferences) As Boolean
+            ' Visual Basic doesn't support imports inside namespaces
+            Return False
+        End Function
+
         Protected Overrides Function IsStaticUsing(usingOrAlias As ImportsStatementSyntax) As Boolean
             ' Visual Basic doesn't support static imports
             Return False
@@ -84,12 +90,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                 staticUsingContainer As SyntaxNode,
                 aliasContainer As SyntaxNode,
                 placeSystemNamespaceFirst As Boolean,
+                allowInHiddenRegions As Boolean,
                 root As SyntaxNode,
                 cancellationToken As CancellationToken) As SyntaxNode
 
             Dim compilationUnit = DirectCast(root, CompilationUnitSyntax)
 
-            If Not compilationUnit.CanAddImportsStatements(cancellationToken) Then
+            If Not compilationUnit.CanAddImportsStatements(allowInHiddenRegions, cancellationToken) Then
                 Return compilationUnit
             End If
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     // Test list drawn from Microsoft.CodeAnalysis.CSharp.ConversionKind
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IConversionExpression : SemanticModelTestBase
     {
         #region Implicit Conversions
 
@@ -5214,7 +5216,7 @@ class Class
         }
         #endregion
 
-        private class ExpectedSymbolVerifier
+        internal class ExpectedSymbolVerifier
         {
             public static SyntaxNode VariableDeclaratorSelector(SyntaxNode syntaxNode) =>
                 ((VariableDeclaratorSyntax)syntaxNode).Initializer.Value;

@@ -2,48 +2,76 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 {
     internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
     {
+        private readonly List<MemberSymbolViewModel> _allMembers;
+
         public List<MemberSymbolViewModel> MemberContainers { get; set; }
         public List<OptionViewModel> Options { get; set; }
+
+        /// <summary>
+        /// <see langword="true"/> if 'Select All' was chosen.  <see langword="false"/> if 'Deselect All' was chosen.
+        /// </summary>
+        public bool SelectedAll { get; set; }
 
         internal PickMembersDialogViewModel(
             IGlyphService glyphService,
             ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options)
+            ImmutableArray<PickMembersOption> options,
+            bool selectAll)
         {
-            MemberContainers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).ToList();
+            _allMembers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).ToList();
+            MemberContainers = _allMembers;
             Options = options.Select(o => new OptionViewModel(o)).ToList();
+
+            if (selectAll)
+            {
+                SelectAll();
+            }
+            else
+            {
+                DeselectAll();
+            }
+        }
+
+        internal void Filter(string searchText)
+        {
+            searchText = searchText.Trim();
+            MemberContainers = searchText.Length == 0
+                ? _allMembers
+                : _allMembers.Where(m => m.SymbolAutomationText.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+            NotifyPropertyChanged(nameof(MemberContainers));
         }
 
         internal void DeselectAll()
         {
+            SelectedAll = false;
             foreach (var memberContainer in MemberContainers)
-            {
                 memberContainer.IsChecked = false;
-            }
         }
 
         internal void SelectAll()
         {
+            SelectedAll = true;
             foreach (var memberContainer in MemberContainers)
-            {
                 memberContainer.IsChecked = true;
-            }
         }
 
         private int? _selectedIndex;
+
         public int? SelectedIndex
         {
             get
@@ -94,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             }
         }
 
+        [MemberNotNullWhen(true, nameof(SelectedIndex))]
         public bool CanMoveUp
         {
             get
@@ -108,6 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             }
         }
 
+        [MemberNotNullWhen(true, nameof(SelectedIndex))]
         public bool CanMoveDown
         {
             get
@@ -124,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         internal void MoveUp()
         {
-            Debug.Assert(CanMoveUp);
+            Contract.ThrowIfFalse(CanMoveUp);
 
             var index = SelectedIndex.Value;
             Move(MemberContainers, index, delta: -1);
@@ -132,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         internal void MoveDown()
         {
-            Debug.Assert(CanMoveDown);
+            Contract.ThrowIfFalse(CanMoveDown);
 
             var index = SelectedIndex.Value;
             Move(MemberContainers, index, delta: 1);

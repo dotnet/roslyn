@@ -730,7 +730,7 @@ class {|unresolve3:$$D|} // Rename to C
         Public Sub RenameTypeAcrossFiles(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-                    <Project Language="C#">
+                    <Project Language="C#" CommonReferences="true">
                         <Document>
                             class [|$$Goo|]
                             {
@@ -754,6 +754,42 @@ class {|unresolve3:$$D|} // Rename to C
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeAcrossFiles_WithoutCommonReferences(host As RenameTestHost)
+            ' without a reference to mscorlib, compiler can't find types like System.Void.  This causes it to have
+            ' overload resolution errors for `new Goo();` which causes rename to not update the constructor calls.  This
+            ' should not normally ever hit a realistic user scenario.  The test exists just to document our behavior
+            ' here.
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#">
+                        <Document>
+                            class [|$$Goo|]
+                            {
+                                void Blah()
+                                {
+                                    {|stmt1:Goo|} f = new {|conflict:Goo|}();
+                                }
+                            }
+                        </Document>
+                        <Document>
+                            class FogBar
+                            {
+                                void Blah()
+                                {
+                                    {|stmt2:Goo|} f = new {|conflict:Goo|}();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="BarBaz")
+
+                result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
@@ -1446,6 +1482,35 @@ partial class Test
             End Using
         End Sub
 
+        <Theory, WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtendedPartialMethodParameter(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+
+using System;
+
+public partial class Test
+{
+    public partial void Goo(object [|$$o|])
+    {
+    }
+}
+
+partial class Test
+{
+    public partial void Goo(object [|o|]);
+}
+
+                       </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="BarBaz")
+
+            End Using
+        End Sub
+
         <WorkItem(528820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528820")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicAnonymousKey(host As RenameTestHost)
@@ -1819,6 +1884,31 @@ End Module
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtendedPartialMethods_1_CS(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            partial class Goo
+                            {
+                                public partial void [|F|]();
+                            }
+                            partial class Goo
+                            {
+                                public partial void [|$$F|]()
+                                {
+                                    throw new System.Exception("F");
+                                }
+                            }
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Bar")
+
+            End Using
+        End Sub
+
+        <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_2_CS(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1838,7 +1928,30 @@ End Module
                             </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
+            End Using
+        End Sub
 
+        <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtendedPartialMethods_2_CS(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            partial class Goo
+                            {
+                                public partial void [|$$F|]();
+                            }
+                            partial class Goo
+                            {
+                                public partial void [|F|]()
+                                {
+                                    throw new System.Exception("F");
+                                }
+                            }
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Bar")
             End Using
         End Sub
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -25,21 +28,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         public async Task TestExceptionInComputePreview()
         {
             using var workspace = CreateWorkspaceFromOptions("class D {}", new TestParameters());
+
+            var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+            var errorReported = false;
+            errorReportingService.OnError = message => errorReported = true;
+
             await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
+            Assert.True(errorReported);
         }
 
         [WpfFact]
         public void TestExceptionInDisplayText()
         {
             using var workspace = CreateWorkspaceFromOptions("class D {}", new TestParameters());
+
+            var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+            var errorReported = false;
+            errorReportingService.OnError = message => errorReported = true;
+
             DisplayText(workspace, new ErrorCases.ExceptionInCodeAction());
+            Assert.True(errorReported);
         }
 
         [WpfFact]
         public async Task TestExceptionInActionSets()
         {
             using var workspace = CreateWorkspaceFromOptions("class D {}", new TestParameters());
+
+            var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+            var errorReported = false;
+            errorReportingService.OnError = message => errorReported = true;
+
             await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
+
+            Assert.True(errorReported);
         }
 
         private static async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)

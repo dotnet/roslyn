@@ -6,9 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Differencing
 {
     // Based on general algorithm described in  
@@ -38,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Returns a match map of <paramref name="oldRoot"/> descendants to <paramref name="newRoot"/> descendants.
         /// </summary>
         public Match<TNode> ComputeMatch(TNode oldRoot, TNode newRoot, IEnumerable<KeyValuePair<TNode, TNode>>? knownMatches = null)
-            => new Match<TNode>(oldRoot, newRoot, this, knownMatches);
+            => new(oldRoot, newRoot, this, knownMatches);
 
         /// <summary>
         /// Calculates the distance [0..1] of two nodes.
@@ -103,15 +100,25 @@ namespace Microsoft.CodeAnalysis.Differencing
             return parent!;
         }
 
-        internal TNode GetAncestor(TNode node, int level)
+        internal bool TryGetAncestor(TNode node, int level, [MaybeNullWhen(false)] out TNode ancestor)
         {
             while (level > 0)
             {
-                node = GetParent(node);
+                if (TryGetParent(node, out var parent))
+                {
+                    node = parent;
+                }
+                else
+                {
+                    ancestor = default;
+                    return false;
+                }
+
                 level--;
             }
 
-            return node;
+            ancestor = node;
+            return true;
         }
 
         /// <summary>

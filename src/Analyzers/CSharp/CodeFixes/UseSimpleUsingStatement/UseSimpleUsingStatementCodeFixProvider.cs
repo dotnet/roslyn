@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseSimpleUsingStatement), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -116,9 +118,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             switch (usingStatement.Statement)
             {
                 case BlockSyntax blockSyntax:
+                    var statements = blockSyntax.Statements;
+                    if (!statements.Any())
+                    {
+                        return blockSyntax.CloseBraceToken.LeadingTrivia;
+                    }
+
+                    var openBraceTrailingTrivia = blockSyntax.OpenBraceToken.TrailingTrivia;
+                    var usingHasEndOfLineTrivia = usingStatement.CloseParenToken.TrailingTrivia
+                        .Any(SyntaxKind.EndOfLineTrivia);
+                    if (!usingHasEndOfLineTrivia)
+                    {
+                        var newFirstStatement = statements.First()
+                            .WithPrependedLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                        statements = statements.Replace(statements.First(), newFirstStatement);
+                    }
+
+                    if (openBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                    {
+                        var newFirstStatement = statements.First()
+                            .WithPrependedLeadingTrivia(openBraceTrailingTrivia);
+                        statements = statements.Replace(statements.First(), newFirstStatement);
+                    }
+
+                    var closeBraceTrailingTrivia = blockSyntax.CloseBraceToken.TrailingTrivia;
+                    if (closeBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                    {
+                        var newLastStatement = statements.Last()
+                            .WithAppendedTrailingTrivia(closeBraceTrailingTrivia);
+                        statements = statements.Replace(statements.Last(), newLastStatement);
+                    }
+
                     // if we hit a block, then inline all the statements in the block into
                     // the final list of statements.
-                    result.AddRange(blockSyntax.Statements);
+                    result.AddRange(statements);
                     return blockSyntax.CloseBraceToken.LeadingTrivia;
                 case UsingStatementSyntax childUsing when childUsing.Declaration != null:
                     // If we have a directly nested using-statement, then recurse into that
@@ -130,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                     result.Add(anythingElse);
                     return default;
             }
+
             return default;
         }
 
@@ -140,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 usingStatement.UsingKeyword,
                 modifiers: default,
                 usingStatement.Declaration,
-                Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(ElasticCarriageReturnLineFeed);
+                Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

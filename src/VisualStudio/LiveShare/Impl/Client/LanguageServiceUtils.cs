@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -33,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return true;
             }
+
             try
             {
                 t = ((JObject)json).ToObject<T>();

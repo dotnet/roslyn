@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         }
 
         public override void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
+            SyntaxToken token, SemanticModel semanticModel, ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (_info.CharLiteralTokenKind != token.RawKind &&

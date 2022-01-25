@@ -2,8 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -114,8 +119,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableDictionary<string, string> properties,
-            bool displayIfNoReferences) :
-            this(
+            bool displayIfNoReferences)
+            : this(
                 tags,
                 displayParts,
                 nameDisplayParts,
@@ -153,8 +158,24 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-        public abstract bool CanNavigateTo(Workspace workspace);
-        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab);
+        [Obsolete("Override CanNavigateToAsync instead", error: false)]
+        public abstract bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken);
+        [Obsolete("Override TryNavigateToAsync instead", error: false)]
+        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
+
+        public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return Task.FromResult(CanNavigateTo(workspace, cancellationToken));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,

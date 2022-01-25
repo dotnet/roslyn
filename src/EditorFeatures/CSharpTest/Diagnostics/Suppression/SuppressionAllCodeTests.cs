@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             await TestSuppressionWithAttributeAsync(
                 TestResource.AllInOneCSharpCode,
                 CSharpParseOptions.Default,
-                digInto: n => !(n is StatementSyntax) || n is BlockSyntax,
+                digInto: n => n is not StatementSyntax or BlockSyntax,
                 verifier: t => t.IndexOf("SuppressMessage", StringComparison.Ordinal) >= 0);
         }
     }

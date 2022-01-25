@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static SpacingWithinParenthesesOption? ConvertToSpacingOption(string value)
             => s_spacingWithinParenthesisOptionsEditorConfigMap.TryGetValue(value, out var option)
                ? option
-               : (SpacingWithinParenthesesOption?)null;
+               : null;
 
         private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet)
         {
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (value)
                 {
                     Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
                 }
             }
 
@@ -94,10 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return option;
             }
+
             if (s_legacyNewLineOptionsEditorConfigMap.TryGetValue(value, out var legacyOption))
             {
                 return legacyOption;
             }
+
             return null;
         }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (value)
                 {
                     Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
                 }
             }
 

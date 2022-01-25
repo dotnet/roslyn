@@ -2,14 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -36,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Host
             //    return false;
             //}
 
-            public Task<string?> ResolveAssemblyPathAsync(ProjectId projectId, string assemblyName, string? fullyQualifiedTypeName, CancellationToken cancellationToken)
+            public string? ResolveAssemblyPath(ProjectId projectId, string assemblyName, string? fullyQualifiedTypeName)
             {
                 // Assembly path resolution not supported at the default workspace level.
-                return SpecializedTasks.Null<string>();
+                return null;
             }
         }
     }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -107,7 +106,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzerStates[index];
         }
 
-        public async Task OnCompilationEventsGeneratedAsync(ImmutableArray<CompilationEvent> compilationEvents, AnalyzerDriver driver, CancellationToken cancellationToken)
+        public async Task OnCompilationEventsGeneratedAsync(
+            Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents,
+            AsyncQueue<CompilationEvent> eventQueue,
+            ImmutableArray<AdditionalText> additionalFiles,
+            AnalyzerDriver driver,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -115,10 +119,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 using (_gate.DisposableWait(cancellationToken))
                 {
-                    OnCompilationEventsGenerated_NoLock(compilationEvents);
+                    // Defer the call to 'getCompilationEvents' until we know cancellation is no longer possible
+                    OnCompilationEventsGenerated_NoLock(getCompilationEvents(eventQueue, additionalFiles));
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

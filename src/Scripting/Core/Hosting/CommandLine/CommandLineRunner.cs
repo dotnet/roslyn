@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
 
             var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
-            if (_compiler.ReportDiagnostics(errors, _console.Error, errorLogger))
+            if (_compiler.ReportDiagnostics(errors, _console.Error, errorLogger, compilation: null))
             {
                 return CommonCompiler.Failed;
             }
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             catch (CompilationErrorException e)
             {
-                _compiler.ReportDiagnostics(e.Diagnostics, _console.Error, errorLogger);
+                _compiler.ReportDiagnostics(e.Diagnostics, _console.Error, errorLogger, compilation: null);
                 return CommonCompiler.Failed;
             }
             catch (Exception e)

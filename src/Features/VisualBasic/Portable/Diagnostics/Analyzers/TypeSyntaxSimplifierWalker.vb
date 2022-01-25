@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Private ReadOnly _ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
         Private ReadOnly _cancellationToken As CancellationToken
 
-        Private _diagnostics As List(Of Diagnostic)
+        Private _diagnostics As ImmutableArray(Of Diagnostic).Builder
 
         ''' <summary>
         ''' Set of type and namespace names that have an alias associated with them.  i.e. if the
@@ -50,16 +50,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         ''' </summary>
         Private ReadOnly _aliasedNames As ImmutableHashSet(Of String)
 
-        Public ReadOnly Property HasDiagnostics As Boolean
+        Public ReadOnly Property Diagnostics As ImmutableArray(Of Diagnostic)
             Get
-                Return _diagnostics IsNot Nothing AndAlso _diagnostics.Count > 0
+                Return If(_diagnostics?.ToImmutable(), ImmutableArray(Of Diagnostic).Empty)
             End Get
         End Property
 
-        Public ReadOnly Property Diagnostics As List(Of Diagnostic)
+        Public ReadOnly Property DiagnosticsBuilder As ImmutableArray(Of Diagnostic).Builder
             Get
                 If _diagnostics Is Nothing Then
-                    Interlocked.CompareExchange(_diagnostics, New List(Of Diagnostic)(), Nothing)
+                    Interlocked.CompareExchange(_diagnostics, ImmutableArray.CreateBuilder(Of Diagnostic)(), Nothing)
                 End If
 
                 Return _diagnostics
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 Return False
             End If
 
-            Diagnostics.Add(diagnostic)
+            DiagnosticsBuilder.Add(diagnostic)
             Return True
         End Function
     End Class

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -91,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // Save metadata reading failure so that future compilations created 
                 // with this reference snapshot fail consistently in the same way.
-                if (e is IOException || e is BadImageFormatException)
+                if (e is IOException or BadImageFormatException)
                 {
                     _error = e;
                 }

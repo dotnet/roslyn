@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ReferenceEquals(_lazyEnumUnderlyingType, ErrorTypeSymbol.UnknownResultType))
                 {
-                    DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+                    BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
                     if ((object)Interlocked.CompareExchange(ref _lazyEnumUnderlyingType, this.GetEnumUnderlyingType(diagnostics), ErrorTypeSymbol.UnknownResultType) ==
                         (object)ErrorTypeSymbol.UnknownResultType)
                     {
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamedTypeSymbol GetEnumUnderlyingType(DiagnosticBag diagnostics)
+        private NamedTypeSymbol GetEnumUnderlyingType(BindingDiagnosticBag diagnostics)
         {
             if (this.TypeKind != TypeKind.Enum)
             {
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol defaultUnderlyingType = compilation.GetSpecialType(SpecialType.System_Int32);
-            Binder.ReportUseSiteDiagnostics(defaultUnderlyingType, diagnostics, this.Locations[0]);
+            Binder.ReportUseSite(defaultUnderlyingType, diagnostics, this.Locations[0]);
             return defaultUnderlyingType;
         }
 

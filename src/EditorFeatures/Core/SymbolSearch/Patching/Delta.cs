@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch.Patching
                 editable = editable_;
             }
 
-            public static DeltaInput Empty = new DeltaInput();
+            public static DeltaInput Empty = new();
         }
 
         [StructLayout(LayoutKind.Sequential)]

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTokenList modifiers,
             SyntaxToken identifier,
             ParameterListSyntax parameterList,
-            ConstructorInitializerSyntax initializer,
+            ConstructorInitializerSyntax? initializer,
             BlockSyntax body)
             => ConstructorDeclaration(
                 attributeLists,
@@ -58,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTokenList modifiers,
             SyntaxToken identifier,
             ParameterListSyntax parameterList,
-            ConstructorInitializerSyntax initializer,
-            BlockSyntax body,
+            ConstructorInitializerSyntax? initializer,
+            BlockSyntax? body,
             SyntaxToken semicolonToken)
             => ConstructorDeclaration(
                 attributeLists,

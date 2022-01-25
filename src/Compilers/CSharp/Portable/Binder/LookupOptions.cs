@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -98,6 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Do not consider symbols that are method type parameters.
         /// </summary>
         MustNotBeMethodTypeParameter = 1 << 14,
+
+        /// <summary>
+        /// Consider only symbols that are abstract.
+        /// </summary>
+        MustBeAbstract = 1 << 15,
     }
 
     internal static class LookupOptionExtensions

@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -78,6 +81,43 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+        List<int> list = new List<int>();
+        Console.WriteLine(list.Count);
+    }
+}
+";
+            return AssertCodeCleanupResult(expected, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public Task SortGlobalUsings()
+        {
+            var code = @"using System.Threading.Tasks;
+using System.Threading;
+global using System.Collections.Generic;
+global using System;
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        Barrier b = new Barrier(0);
+        var list = new List<int>();
+        Console.WriteLine(list.Count);
+    }
+}
+";
+
+            var expected = @"global using System;
+global using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+internal class Program
+{
+    private static async Task Main(string[] args)
+    {
+        Barrier b = new Barrier(0);
         List<int> list = new List<int>();
         Console.WriteLine(list.Count);
     }
@@ -522,6 +562,8 @@ namespace A
         {
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
+            var options = CodeActionOptions.Default;
+
             var solution = workspace.CurrentSolution
                 .WithOptions(workspace.Options
                     .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
@@ -547,7 +589,7 @@ namespace A
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), CancellationToken.None);
+                document, enabledDiagnostics, new ProgressTracker(), options, CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

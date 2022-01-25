@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -91,10 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _ordinal; }
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            Debug.Assert(isValueTypeOverrideOpt == null);
-
             if (ReferenceEquals(this, t2))
             {
                 return true;
@@ -127,7 +127,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get { return false; }
+        }
+
         public override bool HasReferenceTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool IsReferenceTypeFromConstraintTypes
         {
             get { return false; }
         }

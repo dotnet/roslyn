@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1404,6 +1406,124 @@ namespace A.Extension
 }
 ",
 parseOptions: null);
+        }
+
+        [Fact]
+        [WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        public async Task TestMethodConflictWithGenericExtension()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace A
+{
+    public abstract class Goo
+    {
+        public abstract object Bar( Type type );
+    }
+
+    public class Test
+    {
+        public void TestMethod(Goo arg)
+        {
+            arg.[|Bar<object>()|];
+
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class Extension
+    {
+        public static T Bar<T>( this Goo @this )
+            => (T)@this.Bar( typeof( T ) );
+    }
+}",
+@"using A.Extensions;
+
+namespace A
+{
+    public abstract class Goo
+    {
+        public abstract object Bar( Type type );
+    }
+
+    public class Test
+    {
+        public void TestMethod(Goo arg)
+        {
+            arg.Bar<object>();
+
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class Extension
+    {
+        public static T Bar<T>( this Goo @this )
+            => (T)@this.Bar( typeof( T ) );
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        public async Task TestMethodConflictWithConditionalGenericExtension()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace A
+{
+    public abstract class Goo
+    {
+        public abstract object Bar( Type type );
+    }
+
+    public class Test
+    {
+        public void TestMethod(Goo arg)
+        {
+            arg?.[|Bar<object>()|];
+
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class Extension
+    {
+        public static T Bar<T>( this Goo @this )
+            => (T)@this.Bar( typeof( T ) );
+    }
+}",
+@"using A.Extensions;
+
+namespace A
+{
+    public abstract class Goo
+    {
+        public abstract object Bar( Type type );
+    }
+
+    public class Test
+    {
+        public void TestMethod(Goo arg)
+        {
+            arg?.Bar<object>();
+
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class Extension
+    {
+        public static T Bar<T>( this Goo @this )
+            => (T)@this.Bar( typeof( T ) );
+    }
+}");
         }
     }
 }

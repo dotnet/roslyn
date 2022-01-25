@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
@@ -18,12 +15,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
     {
         public readonly EmbeddedLanguageInfo Info;
 
-        public ISyntaxClassifier Classifier { get; }
+        // We don't currently expose a classifier for Date/Time literals.  However, one could always be added in the future.
+        public ISyntaxClassifier? Classifier => null;
 
         public DateAndTimeEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
             Info = info;
-            Classifier = new FallbackSyntaxClassifier(info);
         }
 
         internal async Task<SyntaxToken?> TryGetDateAndTimeTokenAtPositionAsync(
@@ -42,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = DateAndTimePatternDetector.TryGetOrCreate(semanticModel, this.Info);
             return detector != null && detector.IsDateAndTimeToken(token, syntaxFacts, cancellationToken)
-                ? token : (SyntaxToken?)null;
+                ? token : null;
         }
 
         private static SyntaxToken GetToken(ISyntaxFactsService syntaxFacts, SyntaxNode root, int position)

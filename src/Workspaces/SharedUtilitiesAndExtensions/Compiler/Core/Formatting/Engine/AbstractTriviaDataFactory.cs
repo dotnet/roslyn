@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private const int IndentationLevelCacheSize = 20;
 
         protected readonly TreeData TreeInfo;
-        protected readonly AnalyzerConfigOptions Options;
+        protected readonly SyntaxFormattingOptions Options;
 
         protected readonly bool UseTabs;
         protected readonly int TabSize;
@@ -26,10 +24,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly Whitespace[] _spaces;
         private readonly Whitespace?[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
 
-        protected AbstractTriviaDataFactory(TreeData treeInfo, AnalyzerConfigOptions options)
+        protected AbstractTriviaDataFactory(TreeData treeInfo, SyntaxFormattingOptions options)
         {
             Contract.ThrowIfNull(treeInfo);
-            Contract.ThrowIfNull(options);
 
             this.TreeInfo = treeInfo;
             this.Options = options;
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private void EnsureWhitespaceTriviaInfo(int lineIndex, int indentationLevel)
         {
-            Contract.ThrowIfFalse(lineIndex >= 0 && lineIndex < LineBreakCacheSize);
+            Contract.ThrowIfFalse(lineIndex is >= 0 and < LineBreakCacheSize);
             Contract.ThrowIfFalse(indentationLevel >= 0 && indentationLevel < _whitespaces.Length / _whitespaces.Rank);
 
             // set up caches

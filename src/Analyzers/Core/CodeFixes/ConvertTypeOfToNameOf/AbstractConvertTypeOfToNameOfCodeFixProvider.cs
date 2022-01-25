@@ -12,17 +12,12 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
     internal abstract class AbstractConvertTypeOfToNameOfCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private static string s_codeFixTitle;
-        public AbstractConvertTypeOfToNameOfCodeFixProvider()
-        {
-            s_codeFixTitle = GetCodeFixTitle();
-        }
-
         public sealed override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId);
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
@@ -30,8 +25,9 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
+                GetCodeFixTitle(),
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-               context.Diagnostics);
+                context.Diagnostics);
             return Task.CompletedTask;
         }
 
@@ -39,32 +35,32 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                ConvertTypeOfToNameOf(semanticModel, editor, node);
+                ConvertTypeOfToNameOf(semanticModel, editor, node, cancellationToken);
             }
         }
 
         /// <Summary>
         ///  Method converts typeof(...).Name to nameof(...)
         /// </Summary>
-        public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, SyntaxNode nodeToReplace)
+        public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, SyntaxNode nodeToReplace, CancellationToken cancellationToken)
         {
-            var typeExpression = GetSymbolTypeExpression(semanticModel, nodeToReplace);
+            var typeExpression = GetSymbolTypeExpression(semanticModel, nodeToReplace, cancellationToken);
             var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
             editor.ReplaceNode(nodeToReplace, nameOfSyntax);
         }
 
-        protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node);
+        protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
 
         protected abstract string GetCodeFixTitle();
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(s_codeFixTitle, createChangedDocument, s_codeFixTitle)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
@@ -28,50 +30,21 @@ namespace Microsoft.CodeAnalysis.Structure
             _triviaProviderMap = defaultTriviaOutlinerMap;
         }
 
-        /// <summary>
-        /// Keep in sync with <see cref="ProvideBlockStructureAsync"/>
-        /// </summary>
         public override void ProvideBlockStructure(BlockStructureContext context)
         {
             try
             {
-                var syntaxRoot = context.Document.GetSyntaxRootSynchronously(context.CancellationToken);
+                var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
+                using var spans = TemporaryArray<BlockSpan>.Empty;
+                BlockSpanCollector.CollectBlockSpans(
+                    syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
 
-                ProvideBlockStructureWorker(context, syntaxRoot);
+                foreach (var span in spans)
+                    context.AddBlockSpan(span);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        /// <summary>
-        /// Keep in sync with <see cref="ProvideBlockStructure"/>
-        /// </summary>
-        public override async Task ProvideBlockStructureAsync(BlockStructureContext context)
-        {
-            try
-            {
-                var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-                ProvideBlockStructureWorker(context, syntaxRoot);
-            }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        private void ProvideBlockStructureWorker(
-            BlockStructureContext context, SyntaxNode syntaxRoot)
-        {
-            using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var spans);
-            BlockSpanCollector.CollectBlockSpans(
-                context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
-
-            foreach (var span in spans)
-            {
-                context.AddBlockSpan(span);
             }
         }
     }

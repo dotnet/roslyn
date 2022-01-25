@@ -8,9 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -22,15 +19,21 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<SyntaxTree> _lazyGeneratedTrees;
 
-        internal GeneratorDriverRunResult(ImmutableArray<GeneratorRunResult> results)
+        internal GeneratorDriverRunResult(ImmutableArray<GeneratorRunResult> results, TimeSpan elapsedTime)
         {
             this.Results = results;
+            ElapsedTime = elapsedTime;
         }
 
         /// <summary>
         /// The individual result of each <see cref="ISourceGenerator"/> that was run in this generator pass, one per generator.
         /// </summary>
         public ImmutableArray<GeneratorRunResult> Results { get; }
+
+        /// <summary>
+        /// The wall clock time that this generator pass took to execute.
+        /// </summary>
+        internal TimeSpan ElapsedTime { get; }
 
         /// <summary>
         /// The <see cref="Diagnostic"/>s produced by all generators run during this generation pass.
@@ -74,14 +77,17 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorRunResult
     {
-        internal GeneratorRunResult(ISourceGenerator generator, ImmutableArray<GeneratedSourceResult> generatedSources, ImmutableArray<Diagnostic> diagnostics, Exception? exception)
+        internal GeneratorRunResult(ISourceGenerator generator, ImmutableArray<GeneratedSourceResult> generatedSources, ImmutableArray<Diagnostic> diagnostics, ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> namedSteps, ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps, Exception? exception, TimeSpan elapsedTime)
         {
             Debug.Assert(exception is null || (generatedSources.IsEmpty && diagnostics.Length == 1));
 
             this.Generator = generator;
             this.GeneratedSources = generatedSources;
             this.Diagnostics = diagnostics;
+            this.TrackedSteps = namedSteps;
+            this.TrackedOutputSteps = outputSteps;
             this.Exception = exception;
+            this.ElapsedTime = elapsedTime;
         }
 
         /// <summary>
@@ -111,10 +117,25 @@ namespace Microsoft.CodeAnalysis
         /// collection will contain a single diagnostic indicating that the generator failed.
         /// </remarks>
         public Exception? Exception { get; }
+
+        /// <summary>
+        /// The wall clock time that elapsed while this generator was running.
+        /// </summary>
+        internal TimeSpan ElapsedTime { get; }
+
+        /// <summary>
+        /// A collection of the named incremental steps executed during the generator pass this result represents.
+        /// </summary>
+        public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedSteps { get; }
+
+        /// <summary>
+        /// A collection of the named incremental steps executed during the generator pass this result represents.
+        /// </summary>
+        public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedOutputSteps { get; }
     }
 
     /// <summary>
-    /// Represents the results of an <see cref="ISourceGenerator"/> calling <see cref="SourceGeneratorContext.AddSource(string, SourceText)"/>.
+    /// Represents the results of an <see cref="ISourceGenerator"/> calling <see cref="GeneratorExecutionContext.AddSource(string, SourceText)"/>.
     /// </summary>
     /// <remarks>
     /// This contains the original <see cref="SourceText"/> added by the generator, along with the parsed representation of that text in <see cref="SyntaxTree"/>.

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,12 +21,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseLocalFunction), Shared]
     internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private static readonly TypeSyntax s_objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
@@ -87,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var currentRoot = root.TrackNodes(nodesToTrack);
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var languageVersion = ((CSharpParseOptions)semanticModel.SyntaxTree.Options).LanguageVersion;
+            var languageVersion = semanticModel.SyntaxTree.Options.LanguageVersion();
             var makeStaticIfPossible = languageVersion >= LanguageVersion.CSharp8 &&
                 options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
 
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var currentAnonymousFunction = currentRoot.GetCurrentNode(anonymousFunction);
 
                 currentRoot = ReplaceAnonymousWithLocalFunction(
-                    document.Project.Solution.Workspace, currentRoot,
+                    document.Project.Solution.Workspace.Services, currentRoot,
                     currentLocalDeclaration, currentAnonymousFunction,
                     delegateType.DelegateInvokeMethod, parameterList, makeStatic);
 
@@ -147,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static SyntaxNode ReplaceAnonymousWithLocalFunction(
-            Workspace workspace, SyntaxNode currentRoot,
+            HostWorkspaceServices services, SyntaxNode currentRoot,
             LocalDeclarationStatementSyntax localDeclaration, AnonymousFunctionExpressionSyntax anonymousFunction,
             IMethodSymbol delegateMethod, ParameterListSyntax parameterList, bool makeStatic)
         {
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 .WithTriviaFrom(localDeclaration)
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
-            var editor = new SyntaxEditor(currentRoot, workspace);
+            var editor = new SyntaxEditor(currentRoot, services);
             editor.ReplaceNode(localDeclaration, newLocalFunctionStatement);
 
             var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();

@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,7 +18,17 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
-        public static async Task WriteDataAsync(ObjectWriter writer, IRemotableDataService remotableDataService, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
+        internal static readonly PipeOptions PipeOptionsWithUnlimitedWriterBuffer = new(pauseWriterThreshold: long.MaxValue);
+
+        public static void WriteData(
+            ObjectWriter writer,
+            SolutionAsset? singleAsset,
+            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
+            ISerializerService serializer,
+            SolutionReplicationContext context,
+            int scopeId,
+            Checksum[] checksums,
+            CancellationToken cancellationToken)
         {
             writer.WriteInt32(scopeId);
 
@@ -28,42 +39,121 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            if (checksums.Length == 1)
+            if (singleAsset != null)
             {
-                var checksum = checksums[0];
-                var remotableData = (await remotableDataService.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? RemotableData.Null;
                 writer.WriteInt32(1);
-
-                await WriteRemotableData(writer, checksum, remotableData, cancellationToken).ConfigureAwait(false);
+                WriteAsset(writer, serializer, context, checksums[0], singleAsset, cancellationToken);
                 return;
             }
 
-            var remotableDataMap = await remotableDataService.GetRemotableDataAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
-            writer.WriteInt32(remotableDataMap.Count);
+            Debug.Assert(assetMap != null);
+            writer.WriteInt32(assetMap.Count);
 
-            foreach (var (checksum, remotableData) in remotableDataMap)
+            foreach (var (checksum, asset) in assetMap)
             {
-                await WriteRemotableData(writer, checksum, remotableData, cancellationToken).ConfigureAwait(false);
+                WriteAsset(writer, serializer, context, checksum, asset, cancellationToken);
             }
 
-            static async Task WriteRemotableData(ObjectWriter writer, Checksum checksum, RemotableData remotableData, CancellationToken cancellationToken)
+            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, Checksum checksum, SolutionAsset asset, CancellationToken cancellationToken)
             {
+                Debug.Assert(asset.Kind != WellKnownSynchronizationKind.Null, "We should not be sending null assets");
                 checksum.WriteTo(writer);
-                writer.WriteInt32((int)remotableData.Kind);
+                writer.WriteInt32((int)asset.Kind);
 
-                await remotableData.WriteObjectToAsync(writer, cancellationToken).ConfigureAwait(false);
+                // null is already indicated by checksum and kind above:
+                if (asset.Value is not null)
+                {
+                    serializer.Serialize(asset.Value, writer, context, cancellationToken);
+                }
+            }
+        }
+
+        public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(PipeReader pipeReader, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        {
+            // We can cancel at entry, but once the pipe operations are scheduled we rely on both operations running to
+            // avoid deadlocks (the exception handler in 'copyTask' ensures progress is made in the blocking read).
+            cancellationToken.ThrowIfCancellationRequested();
+            var mustNotCancelToken = CancellationToken.None;
+
+            // Workaround for https://github.com/AArnott/Nerdbank.Streams/issues/361
+            var mustNotCancelUntilBugFix = CancellationToken.None;
+
+            // Workaround for ObjectReader not supporting async reading.
+            // Unless we read from the RPC stream asynchronously and with cancallation support we might deadlock when the server cancels.
+            // https://github.com/dotnet/roslyn/issues/47861
+
+            // Use local pipe to avoid blocking the current thread on networking IO.
+            var localPipe = new Pipe(PipeOptionsWithUnlimitedWriterBuffer);
+
+            Exception? copyException = null;
+
+            // start a task on a thread pool thread copying from the RPC pipe to a local pipe:
+            var copyTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await pipeReader.CopyToAsync(localPipe.Writer, mustNotCancelUntilBugFix).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    copyException = e;
+                }
+                finally
+                {
+                    await localPipe.Writer.CompleteAsync(copyException).ConfigureAwait(false);
+                }
+            }, mustNotCancelToken);
+
+            // blocking read from the local pipe on the current thread:
+            try
+            {
+                using var stream = localPipe.Reader.AsStream(leaveOpen: false);
+                return ReadData(stream, scopeId, checksums, serializerService, mustNotCancelUntilBugFix);
+            }
+            catch (EndOfStreamException) when (IsEndOfStreamExceptionExpected(copyException, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                throw copyException ?? ExceptionUtilities.Unreachable;
+            }
+            finally
+            {
+                // Make sure to complete the copy and pipes before returning, otherwise the caller could complete the
+                // reader and/or writer while they are still in use.
+                await copyTask.ConfigureAwait(false);
+            }
+
+            // Local functions
+            static bool IsEndOfStreamExceptionExpected(Exception? copyException, CancellationToken cancellationToken)
+            {
+                // The local pipe is only closed in the 'finally' block of 'copyTask'. If the reader fails with an
+                // EndOfStreamException, we known 'copyTask' has already completed its work.
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // The writer closed early due to a cancellation request.
+                    return true;
+                }
+
+                if (copyException is not null)
+                {
+                    // An exception occurred while attempting to copy data to the local pipe. Catch and throw the
+                    // exception that occurred during that copy operation.
+                    return true;
+                }
+
+                // The reader attempted to read more data than was copied to the local pipe. Avoid catching the
+                // exception to reveal the faulty read stack in telemetry.
+                return false;
             }
         }
 
         public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
+            Debug.Assert(!checksums.Contains(Checksum.Null));
+
             using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
 
-            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
-
-            // We only get a reader for data transmitted between live processes.
-            // This data should always be correct as we're never persisting the data between sessions.
-            Contract.ThrowIfNull(reader);
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
             var responseScopeId = reader.ReadInt32();
             Contract.ThrowIfFalse(scopeId == responseScopeId);
@@ -80,6 +170,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
+
+                Debug.Assert(result != null, "We should not be requesting null assets");
 
                 results.Add((responseChecksum, result));
             }

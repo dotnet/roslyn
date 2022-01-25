@@ -454,7 +454,8 @@ End Namespace
                 Dim symbol = comp.GetSpecialType(special)
                 Assert.NotNull(symbol)
 
-                If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Then
+                If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
+                   special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
                 Else
                     Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
@@ -484,7 +485,9 @@ End Namespace
 
                 If special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses Then
+                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -541,7 +544,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
-                         WellKnownType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
+                         WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -607,7 +610,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
-                         WellKnownType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
+                         WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -693,7 +696,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
-                         WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -835,7 +838,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
-                         WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

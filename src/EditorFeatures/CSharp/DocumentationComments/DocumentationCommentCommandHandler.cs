@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,15 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class DocumentationCommentCommandHandler
-        : AbstractDocumentationCommentCommandHandler<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
+        : AbstractDocumentationCommentCommandHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentationCommentCommandHandler(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
-            : base(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
+            : base(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService)
         {
         }
 

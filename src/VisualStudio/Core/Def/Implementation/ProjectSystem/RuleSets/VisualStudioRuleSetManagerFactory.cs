@@ -3,38 +3,34 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [ExportWorkspaceServiceFactory(typeof(VisualStudioRuleSetManager), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioRuleSetManagerFactory : IWorkspaceServiceFactory
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly FileChangeWatcherProvider _fileChangeWatcherProvider;
-        private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioRuleSetManagerFactory(
+            IThreadingContext threadingContext,
             FileChangeWatcherProvider fileChangeWatcherProvider,
-            IForegroundNotificationService foregroundNotificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _fileChangeWatcherProvider = fileChangeWatcherProvider;
-            _foregroundNotificationService = foregroundNotificationService;
             _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new VisualStudioRuleSetManager(_fileChangeWatcherProvider.Watcher, _foregroundNotificationService, _listener);
+            => new VisualStudioRuleSetManager(_threadingContext, _fileChangeWatcherProvider.Watcher, _listener);
     }
 }

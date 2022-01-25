@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -29,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly bool _logPerformanceInfo;
+        private readonly Action? _onAnalysisException;
 
         private readonly ImmutableArray<DiagnosticAnalyzer> _compilationBasedAnalyzersInAnalysisScope;
 
@@ -39,12 +39,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentAnalysisScope analysisScope,
             CompilationWithAnalyzers? compilationWithAnalyzers,
             InProcOrRemoteHostAnalyzerRunner diagnosticAnalyzerRunner,
-            bool logPerformanceInfo)
+            bool logPerformanceInfo,
+            Action? onAnalysisException = null)
         {
             AnalysisScope = analysisScope;
             _compilationWithAnalyzers = compilationWithAnalyzers;
             _diagnosticAnalyzerRunner = diagnosticAnalyzerRunner;
             _logPerformanceInfo = logPerformanceInfo;
+            _onAnalysisException = onAnalysisException;
 
             var compilationBasedAnalyzers = compilationWithAnalyzers?.Analyzers.ToImmutableHashSet();
             _compilationBasedAnalyzersInAnalysisScope = compilationBasedAnalyzers != null
@@ -134,10 +136,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
 
+            // Remap diagnostic locations, if required.
+            diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
+
 #if DEBUG
             var diags = await diagnostics.ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
             Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, _compilationWithAnalyzers.Compilation).Count());
-            Debug.Assert(diagnostics.Length == diags.ConvertToLocalDiagnostics(textDocument, span).Count());
+            //Debug.Assert(diagnostics.Length == diags.ConvertToLocalDiagnostics(textDocument, span).Count());
 #endif
 
             return diagnostics;
@@ -147,9 +152,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             RoslynDebug.Assert(_compilationWithAnalyzers != null);
 
-            var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
-                _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
-            return resultAndTelemetry.AnalysisResult;
+            try
+            {
+                var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
+                    _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
+                return resultAndTelemetry.AnalysisResult;
+            }
+            catch
+            {
+                _onAnalysisException?.Invoke();
+                throw;
+            }
         }
 
         private async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsAsync(DiagnosticAnalyzer analyzer, TextSpan? span, CancellationToken cancellationToken)
@@ -280,18 +293,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // make sure what we got from range is same as what we got from whole diagnostics
                 var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var rangeDeclaractionDiagnostics = model.GetDeclarationDiagnostics(span.Value).ToArray();
-                var rangeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(span.Value).ToArray();
+                var rangeDeclaractionDiagnostics = model.GetDeclarationDiagnostics(span.Value, cancellationToken).ToArray();
+                var rangeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(span.Value, cancellationToken).ToArray();
                 var rangeDiagnostics = rangeDeclaractionDiagnostics.Concat(rangeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
 
-                var wholeDeclarationDiagnostics = model.GetDeclarationDiagnostics().ToArray();
-                var wholeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics().ToArray();
+                var wholeDeclarationDiagnostics = model.GetDeclarationDiagnostics(cancellationToken: cancellationToken).ToArray();
+                var wholeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(cancellationToken: cancellationToken).ToArray();
                 var wholeDiagnostics = wholeDeclarationDiagnostics.Concat(wholeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
 
                 if (!AnalyzerHelper.AreEquivalent(rangeDiagnostics, wholeDiagnostics))
                 {
                     // otherwise, report non-fatal watson so that we can fix those cases
-                    FatalError.ReportWithoutCrash(new Exception("Bug in GetDiagnostics"));
+                    FatalError.ReportAndCatch(new Exception("Bug in GetDiagnostics"));
 
                     // make sure we hold onto these for debugging.
                     GC.KeepAlive(rangeDeclaractionDiagnostics);
@@ -322,6 +335,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 bool shouldInclude(Diagnostic d) => span.Value.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
             }
 #endif
+        }
+
+        private static async Task<ImmutableArray<DiagnosticData>> RemapDiagnosticLocationsIfRequiredAsync(
+            TextDocument textDocument,
+            ImmutableArray<DiagnosticData> diagnostics,
+            CancellationToken cancellationToken)
+        {
+            if (diagnostics.IsEmpty)
+            {
+                return diagnostics;
+            }
+
+            // Check if IWorkspaceVenusSpanMappingService is present for remapping.
+            var diagnosticSpanMappingService = textDocument.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
+            if (diagnosticSpanMappingService == null)
+            {
+                return diagnostics;
+            }
+
+            // Round tripping the diagnostics should ensure they get correctly remapped.
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(diagnostics.Length, out var builder);
+            foreach (var diagnosticData in diagnostics)
+            {
+                var diagnostic = await diagnosticData.ToDiagnosticAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
+                builder.Add(DiagnosticData.Create(diagnostic, textDocument));
+            }
+
+            return builder.ToImmutable();
         }
     }
 }

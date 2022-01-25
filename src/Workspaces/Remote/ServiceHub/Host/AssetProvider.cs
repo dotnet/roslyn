@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,18 +22,22 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly ISerializerService _serializerService;
         private readonly int _scopeId;
-        private readonly AssetStorage _assetStorage;
+        private readonly SolutionAssetCache _assetCache;
+        private readonly IAssetSource _assetSource;
 
-        public AssetProvider(int scopeId, AssetStorage assetStorage, ISerializerService serializerService)
+        public AssetProvider(int scopeId, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
         {
             _scopeId = scopeId;
-            _assetStorage = assetStorage;
+            _assetCache = assetCache;
+            _assetSource = assetSource;
             _serializerService = serializerService;
         }
 
         public override async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            if (_assetStorage.TryGetAsset(checksum, out T asset))
+            Debug.Assert(checksum != Checksum.Null);
+
+            if (_assetCache.TryGetAsset<T>(checksum, out var asset))
             {
                 return asset;
             }
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // TODO: what happen if service doesn't come back. timeout?
                 var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
 
-                _assetStorage.TryAddAsset(checksum, value);
+                _assetCache.TryAddAsset(checksum, value);
                 return (T)value;
             }
         }
@@ -68,6 +71,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
+            var timer = new Stopwatch();
+            timer.Start();
+
             // this will pull in assets that belong to the given solution checksum to this remote host.
             // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
             // to get actual data GetAssetAsync should be used. and that will return actual data and if there is any missing data in cache, GetAssetAsync
@@ -80,6 +86,14 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var syncer = new ChecksumSynchronizer(this);
                 await syncer.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            }
+
+            timer.Stop();
+
+            // report telemetry to help correlate slow solution sync with UI delays
+            if (timer.ElapsedMilliseconds > 1000)
+            {
+                Logger.Log(FunctionId.AssetService_Perf, KeyValueLogMessage.Create(map => map["SolutionSyncTime"] = timer.ElapsedMilliseconds));
             }
         }
 
@@ -107,24 +121,28 @@ namespace Microsoft.CodeAnalysis.Remote
             //
             // even if it got expired after this for whatever reason, functionality wise everything will still work, 
             // just perf will be impacted since we will fetch it from data source (VS)
-            return _assetStorage.TryGetAsset<object>(checksum, out _);
+            return _assetCache.TryGetAsset<object>(checksum, out _);
         }
 
         public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
+            Debug.Assert(!checksums.Contains(Checksum.Null));
+
             using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
                 var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (checksum, value) in assets)
                 {
-                    _assetStorage.TryAddAsset(checksum, value);
+                    _assetCache.TryAddAsset(checksum, value);
                 }
             }
         }
 
         private async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
+            Debug.Assert(checksum != Checksum.Null);
+
             using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
             checksums.Add(checksum);
 
@@ -134,12 +152,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<ImmutableArray<(Checksum checksum, object value)>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
+            Debug.Assert(!checksums.Contains(Checksum.Null));
+
             if (checksums.Count == 0)
             {
                 return ImmutableArray<(Checksum, object)>.Empty;
             }
 
-            return await _assetStorage.GetAssetSource().GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            return await _assetSource.GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }

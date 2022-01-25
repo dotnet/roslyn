@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,6 +25,16 @@ namespace Microsoft.CodeAnalysis
         /// The default warning level, which is also used for non-error diagnostics.
         /// </summary>
         internal const int DefaultWarningLevel = 4;
+
+        /// <summary>
+        /// The warning level used for hidden and info diagnostics. Because these diagnostics interact with other editor features, we want them to always be produced unless /warn:0 is set.
+        /// </summary>
+        internal const int InfoAndHiddenWarningLevel = 1;
+
+        /// <summary>
+        /// The maximum warning level represented by a large value of 9999.
+        /// </summary>
+        internal const int MaxWarningLevel = 9999;
 
         /// <summary>
         /// Creates a <see cref="Diagnostic"/> instance.
@@ -163,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="severity">The diagnostic's effective severity.</param>
         /// <param name="defaultSeverity">The diagnostic's default severity.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
-        /// <param name="warningLevel">The warning level, between 1 and 4 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
+        /// <param name="warningLevel">The warning level, greater than 0 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
         /// <param name="title">An optional short localizable title describing the diagnostic.</param>
         /// <param name="description">An optional longer localizable description for the diagnostic.</param>
         /// <param name="helpLink">An optional hyperlink that provides more detailed information regarding the diagnostic.</param>
@@ -212,7 +220,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="severity">The diagnostic's effective severity.</param>
         /// <param name="defaultSeverity">The diagnostic's default severity.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
-        /// <param name="warningLevel">The warning level, between 1 and 4 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
+        /// <param name="warningLevel">The warning level, greater than 0 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
         /// <param name="isSuppressed">Flag indicating whether the diagnostic is suppressed by a source suppression.</param>
         /// <param name="title">An optional short localizable title describing the diagnostic.</param>
         /// <param name="description">An optional longer localizable description for the diagnostic.</param>
@@ -390,7 +398,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets custom tags for the diagnostic.
         /// </summary>
-        internal virtual IReadOnlyList<string> CustomTags { get { return (IReadOnlyList<string>)this.Descriptor.CustomTags; } }
+        internal virtual ImmutableArray<string> CustomTags { get { return this.Descriptor.ImmutableCustomTags; } }
 
         /// <summary>
         /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/> 

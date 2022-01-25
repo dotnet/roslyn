@@ -2,18 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
     internal readonly struct ReferenceHolder<T> : IEquatable<ReferenceHolder<T>>
         where T : class?
     {
-        [AllowNull, MaybeNull]
-        private readonly T _strongReference;
+        private readonly T? _strongReference;
         private readonly WeakReference<T>? _weakReference;
         private readonly int _hashCode;
 
@@ -32,7 +28,7 @@ namespace Roslyn.Utilities
         }
 
         public static ReferenceHolder<T> Strong(T value)
-            => new ReferenceHolder<T>(value);
+            => new(value);
 
         public static ReferenceHolder<T> Weak(T value)
         {
@@ -45,8 +41,7 @@ namespace Roslyn.Utilities
             return new ReferenceHolder<T>(new WeakReference<T>(value), ReferenceEqualityComparer.GetHashCode(value));
         }
 
-        [return: MaybeNull]
-        public T TryGetTarget()
+        public T? TryGetTarget()
         {
             if (_weakReference is object)
                 return _weakReference.GetTarget();
@@ -102,7 +97,7 @@ namespace Roslyn.Utilities
             /// <param name="hashCode">The hash code of the collected value.</param>
             /// <returns>A weak <see cref="ReferenceHolder{T}"/> which was already collected.</returns>
             public static ReferenceHolder<T> ReleasedWeak(int hashCode)
-                => new ReferenceHolder<T>(new WeakReference<T>(null!), hashCode);
+                => new(new WeakReference<T>(null!), hashCode);
         }
     }
 }

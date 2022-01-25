@@ -13,15 +13,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
     internal abstract class AbstractParenthesesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractParenthesesDiagnosticAnalyzer(
-            string descriptorId, LocalizableString title, LocalizableString message)
+            string descriptorId, EnforceOnBuild enforceOnBuild, LocalizableString title, LocalizableString message, bool isUnnecessary = false)
             : base(descriptorId,
+                   enforceOnBuild,
                    options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.RelationalBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses, CodeStyleOptions2.OtherParentheses),
-                   title, message)
-        {
-        }
-
-        protected AbstractParenthesesDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> diagnosticDescriptors)
-            : base(diagnosticDescriptors)
+                   title,
+                   message,
+                   isUnnecessary: isUnnecessary)
         {
         }
 

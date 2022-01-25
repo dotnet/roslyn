@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -246,6 +248,8 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         InlineRenameFileRenameInfo GetFileRenameInfo();
     }
+
+#nullable enable
 
     /// <summary>
     /// Language service that allows a language to participate in the editor's inline rename feature.

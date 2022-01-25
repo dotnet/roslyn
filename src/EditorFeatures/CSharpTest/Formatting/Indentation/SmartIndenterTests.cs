@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
@@ -168,6 +171,11 @@ namespace NS
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 4,
+                expectedIndentation: 4);
         }
 
         [WpfFact]
@@ -199,6 +207,32 @@ namespace NS
                 code,
                 indentationLine: 4,
                 expectedIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void FileScopedNamespace()
+        {
+            var code = @"using System;
+
+namespace NS;
+
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 1,
+                expectedIndentation: 0);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 2,
+                expectedIndentation: 0);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 4,
+                expectedIndentation: 0);
         }
 
         [WpfFact]
@@ -496,6 +530,50 @@ namespace NS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExtendedPropertyPattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExtendedPropertyPattern_WithPattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+            A.B: 1,
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+            AssertSmartIndent(
+                code,
+                indentationLine: 9,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Block()
         {
             var code = @"using System;
@@ -662,6 +740,32 @@ namespace NS
                 code,
                 indentationLine: 6,
                 expectedIndentation: 8);
+        }
+
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/50063")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(50063, "https://github.com/dotnet/roslyn/issues/50063")]
+        [InlineData("do")]
+        [InlineData("for (;;)")]
+        [InlineData("if (true)")]
+        [InlineData("void localFunction()")]
+        [InlineData("static void localFunction()")]
+        public void EmbeddedStatement2(string statement)
+        {
+            var code = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+{statement}
+
+    }}
+}}
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 4);
         }
 
         [WorkItem(537883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]
@@ -1896,7 +2000,7 @@ class Class
 
         [WorkItem(648068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648068")]
         [WorkItem(674611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674611")]
-        [WpfFact(Skip = "674611"), Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)]
         public void AtBeginningOfSpanInNugget()
         {
             var markup = @"class Program
@@ -2600,8 +2704,8 @@ class C
                 expectedIndentation: 8);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/15813"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public void DontCreateIndentOperationForBrokenBracketedArgumentList()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void CreateIndentOperationForBrokenBracketedArgumentList()
         {
             var code = @"
 class Program
@@ -2613,12 +2717,11 @@ class Program
     }
 }
 ";
-            // Need to confirm expected behavior after discard/deconstruction parsing changes
-            // https://github.com/dotnet/roslyn/issues/15813
+
             AssertSmartIndent(
                 code,
                 indentationLine: 6,
-                expectedIndentation: 8);
+                expectedIndentation: 12);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
@@ -2910,7 +3013,7 @@ return;
                 using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormattingRules);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
                     .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 var subjectDocument = workspace.Documents.Single();
 
@@ -2958,7 +3061,7 @@ return;
                 using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
                     .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 TestIndentation(workspace, indentationLine, expectedIndentation);
             }
@@ -2990,7 +3093,7 @@ return;
                 using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
                     .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 var wpfTextView = workspace.Documents.First().GetTextView();
                 var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;

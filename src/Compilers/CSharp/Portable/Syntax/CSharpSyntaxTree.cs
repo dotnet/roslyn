@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -312,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new syntax tree from a syntax node.
         /// </summary>
-        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options = null, string path = "", Encoding? encoding = null)
+        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options = null, string? path = "", Encoding? encoding = null)
         {
 #pragma warning disable CS0618 // We are calling into the obsolete member as that's the one that still does the real work
             return Create(root, options, path, encoding, diagnosticOptions: null);
@@ -331,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxTree Create(
             CSharpSyntaxNode root,
             CSharpParseOptions? options,
-            string path,
+            string? path,
             Encoding? encoding,
             // obsolete parameter -- unused
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
@@ -392,6 +391,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 directives: InternalSyntax.DirectiveStack.Empty,
                 diagnosticOptions: null,
                 cloneRoot: false);
+        }
+
+        /// <summary>
+        /// Produces a syntax tree by parsing the source text lazily. The syntax tree is realized when
+        /// <see cref="CSharpSyntaxTree.GetRoot(CancellationToken)"/> is called.
+        /// </summary>
+        internal static SyntaxTree ParseTextLazy(
+            SourceText text,
+            CSharpParseOptions? options = null,
+            string path = "")
+        {
+            return new LazySyntaxTree(text, options ?? CSharpParseOptions.Default, path, diagnosticOptions: null);
         }
 
         // The overload that has more parameters is itself obsolete, as an intentional break to allow future
@@ -597,6 +608,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region LinePositions and Locations
 
+        private CSharpLineDirectiveMap GetDirectiveMap()
+        {
+            if (_lazyLineDirectiveMap == null)
+            {
+                // Create the line directive map on demand.
+                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
+            }
+
+            return _lazyLineDirectiveMap;
+        }
+
         /// <summary>
         /// Gets the location in terms of path, line and column for a given span.
         /// </summary>
@@ -607,9 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </returns>
         /// <remarks>The values are not affected by line mapping directives (<c>#line</c>).</remarks>
         public override FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default)
-        {
-            return new FileLinePositionSpan(this.FilePath, GetLinePosition(span.Start), GetLinePosition(span.End));
-        }
+            => new(FilePath, GetLinePosition(span.Start, cancellationToken), GetLinePosition(span.End, cancellationToken));
 
         /// <summary>
         /// Gets the location in terms of path, line and column after applying source line mapping directives (<c>#line</c>).
@@ -628,25 +648,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </para>
         /// </returns>
         public override FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default)
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
+            => GetDirectiveMap().TranslateSpan(GetText(cancellationToken), this.FilePath, span);
 
-            return _lazyLineDirectiveMap.TranslateSpan(this.GetText(cancellationToken), this.FilePath, span);
-        }
-
+        /// <inheritdoc/>
         public override LineVisibility GetLineVisibility(int position, CancellationToken cancellationToken = default)
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
+            => GetDirectiveMap().GetLineVisibility(GetText(cancellationToken), position);
 
-            return _lazyLineDirectiveMap.GetLineVisibility(this.GetText(cancellationToken), position);
+        /// <inheritdoc/>
+        public override IEnumerable<LineMapping> GetLineMappings(CancellationToken cancellationToken = default)
+        {
+            var map = GetDirectiveMap();
+            Debug.Assert(map.Entries.Length >= 1);
+            return (map.Entries.Length == 1) ? Array.Empty<LineMapping>() : map.GetLineMappings(GetText(cancellationToken).Lines);
         }
 
         /// <summary>
@@ -657,30 +670,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="isHiddenPosition">When the method returns, contains a boolean value indicating whether this span is considered hidden or not.</param>
         /// <returns>A resulting <see cref="FileLinePositionSpan"/>.</returns>
         internal override FileLinePositionSpan GetMappedLineSpanAndVisibility(TextSpan span, out bool isHiddenPosition)
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
-
-            return _lazyLineDirectiveMap.TranslateSpanAndVisibility(this.GetText(), this.FilePath, span, out isHiddenPosition);
-        }
+            => GetDirectiveMap().TranslateSpanAndVisibility(GetText(), FilePath, span, out isHiddenPosition);
 
         /// <summary>
         /// Gets a boolean value indicating whether there are any hidden regions in the tree.
         /// </summary>
         /// <returns>True if there is at least one hidden region.</returns>
         public override bool HasHiddenRegions()
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
-
-            return _lazyLineDirectiveMap.HasAnyHiddenRegions();
-        }
+            => GetDirectiveMap().HasAnyHiddenRegions();
 
         /// <summary>
         /// Given the error code and the source location, get the warning state based on <c>#pragma warning</c> directives.
@@ -714,29 +711,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NullableContextState GetNullableContextState(int position)
             => GetNullableContextStateMap().GetContextState(position);
 
-        /// <summary>
-        /// Returns true if there are any nullable directives that enable annotations, warnings, or both.
-        /// This does not include any restore directives.
-        /// </summary>
-        internal bool HasNullableEnables() => GetNullableContextStateMap().HasNullableEnables();
+        internal bool? IsNullableAnalysisEnabled(TextSpan span) => GetNullableContextStateMap().IsNullableAnalysisEnabled(span);
 
-        internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider)
+        internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider, CancellationToken cancellationToken)
         {
-            return provider?.IsGenerated(this) ?? isGeneratedHeuristic();
+            return provider?.IsGenerated(this, cancellationToken) switch
+            {
+                null or GeneratedKind.Unknown => isGeneratedHeuristic(),
+                GeneratedKind kind => kind != GeneratedKind.NotGenerated
+            };
 
             bool isGeneratedHeuristic()
             {
-                if (_lazyIsGeneratedCode == ThreeState.Unknown)
+                if (_lazyIsGeneratedCode == GeneratedKind.Unknown)
                 {
                     // Create the generated code status on demand
                     bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
                             this,
                             isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
                             cancellationToken: default);
-                    _lazyIsGeneratedCode = isGenerated.ToThreeState();
+                    _lazyIsGeneratedCode = isGenerated ? GeneratedKind.MarkedGenerated : GeneratedKind.NotGenerated;
                 }
 
-                return _lazyIsGeneratedCode == ThreeState.True;
+                return _lazyIsGeneratedCode == GeneratedKind.MarkedGenerated;
             }
         }
 
@@ -744,12 +741,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private CSharpPragmaWarningStateMap? _lazyPragmaWarningStateMap;
         private StrongBox<NullableContextStateMap>? _lazyNullableContextStateMap;
 
-        private ThreeState _lazyIsGeneratedCode = ThreeState.Unknown;
+        private GeneratedKind _lazyIsGeneratedCode = GeneratedKind.Unknown;
 
-        private LinePosition GetLinePosition(int position)
-        {
-            return this.GetText().Lines.GetLinePosition(position);
-        }
+        private LinePosition GetLinePosition(int position, CancellationToken cancellationToken)
+            => GetText(cancellationToken).Lines.GetLinePosition(position);
 
         /// <summary>
         /// Gets a <see cref="Location"/> for the specified text <paramref name="span"/>.
@@ -932,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxTree Create(
             CSharpSyntaxNode root,
             CSharpParseOptions? options,
-            string path,
+            string? path,
             Encoding? encoding,
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
             => Create(root, options, path, encoding, diagnosticOptions, isGeneratedCode: null);

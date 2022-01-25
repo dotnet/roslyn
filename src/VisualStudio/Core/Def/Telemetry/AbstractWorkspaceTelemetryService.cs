@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,22 +26,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             Contract.ThrowIfFalse(CurrentSession is null);
 
             Logger.SetLogger(CreateLogger(telemetrySession));
-            WatsonReporter.RegisterTelemetrySesssion(telemetrySession);
+            FaultReporter.RegisterTelemetrySesssion(telemetrySession);
 
             CurrentSession = telemetrySession;
+
+            TelemetrySessionInitialized();
+        }
+
+        protected virtual void TelemetrySessionInitialized()
+        {
         }
 
         public bool HasActiveSession
-            => CurrentSession != null;
+            => CurrentSession != null && CurrentSession.IsOptedIn;
 
         public string? SerializeCurrentSessionSettings()
             => CurrentSession?.SerializeSettings();
 
         public void RegisterUnexpectedExceptionLogger(TraceSource logger)
-            => WatsonReporter.RegisterLogger(logger);
+            => FaultReporter.RegisterLogger(logger);
 
         public void UnregisterUnexpectedExceptionLogger(TraceSource logger)
-            => WatsonReporter.UnregisterLogger(logger);
+            => FaultReporter.UnregisterLogger(logger);
 
         public void ReportApiUsage(HashSet<ISymbol> symbols, Guid solutionSessionId, Guid projectGuid)
         {

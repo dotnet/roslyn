@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                             highlights.Add(.GreaterThanToken.Span)
                         End If
                     End With
+
                     highlights.Add(.EndTag.Span)
                 End If
 

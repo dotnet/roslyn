@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 extern alias InteractiveHost;
 
 using System.Collections.Generic;
@@ -17,13 +20,14 @@ using Xunit;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     [UseExportProvider]
     public class ResetInteractiveTests
     {
-        private string WorkspaceXmlStr =>
+        private const string WorkspaceXmlStr =
 @"<Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""ResetInteractiveVisualBasicSubproject"" CommonReferences=""true"">
         <Document FilePath=""VisualBasicDocument""></Document>
@@ -77,13 +81,13 @@ namespace ResetInteractiveTestsDocument
             void executeSubmission(object _, string code) => executedSubmissionCalls.Add(code);
             testHost.Evaluator.OnExecute += executeSubmission;
 
-            var waitIndicator = workspace.GetService<IWaitIndicator>();
+            var uiThreadOperationExecutor = workspace.GetService<IUIThreadOperationExecutor>();
             var editorOptionsFactoryService = workspace.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactoryService.GetOptions(testHost.Window.CurrentLanguageBuffer);
             var newLineCharacter = editorOptions.GetNewLineCharacter();
 
             var resetInteractive = new TestResetInteractive(
-                waitIndicator,
+                uiThreadOperationExecutor,
                 editorOptionsFactoryService,
                 CreateReplReferenceCommand,
                 CreateImport,
@@ -118,6 +122,7 @@ namespace ResetInteractiveTestsDocument
             {
                 expectedSubmissions.AddRange(expectedReferences.Select(r => r + newLineCharacter));
             }
+
             if (expectedUsings.Any())
             {
                 expectedSubmissions.Add(string.Join(newLineCharacter, expectedUsings) + newLineCharacter);

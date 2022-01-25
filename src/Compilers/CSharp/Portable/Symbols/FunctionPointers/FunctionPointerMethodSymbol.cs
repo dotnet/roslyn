@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<FunctionPointerParameterSymbol> _parameters;
         private ImmutableHashSet<CustomModifier>? _lazyCallingConventionModifiers;
 
-        public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+        public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             ArrayBuilder<CustomModifier> customModifiers = ArrayBuilder<CustomModifier>.GetInstance();
             CallingConvention callingConvention = getCallingConvention(typeBinder.Compilation, syntax.CallingConvention, customModifiers, diagnostics);
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (returnType.IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, returnTypeParameter.Location, returnType);
+                    diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(useWarning: false), returnTypeParameter.Location, returnType);
                 }
                 else if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 suppressUseSiteDiagnostics);
 
-            static CallingConvention getCallingConvention(CSharpCompilation compilation, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, DiagnosticBag diagnostics)
+            static CallingConvention getCallingConvention(CSharpCompilation compilation, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, BindingDiagnosticBag diagnostics)
             {
                 switch (callingConventionSyntax?.ManagedOrUnmanagedKeyword.Kind())
                 {
@@ -186,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(unexpected);
                 }
 
-                static CallingConvention handleSingleConvention(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, ArrayBuilder<CustomModifier> customModifiers, DiagnosticBag diagnostics)
+                static CallingConvention handleSingleConvention(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, ArrayBuilder<CustomModifier> customModifiers, BindingDiagnosticBag diagnostics)
                 {
                     checkUnmanagedSupport(compilation, specifier.GetLocation(), diagnostics);
                     CustomModifier? modifier = handleIndividualUnrecognizedSpecifier(specifier, compilation, diagnostics);
@@ -197,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return CallingConvention.Unmanaged;
                 }
 
-                static CustomModifier? handleIndividualUnrecognizedSpecifier(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, DiagnosticBag diagnostics)
+                static CustomModifier? handleIndividualUnrecognizedSpecifier(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
                 {
                     string specifierText = specifier.Name.ValueText;
                     if (string.IsNullOrEmpty(specifierText))
@@ -220,15 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_TypeMustBePublic, specifier.GetLocation(), specifierType);
                     }
 
-                    if (specifierType.GetUseSiteDiagnostic() is DiagnosticInfo diagnostic)
-                    {
-                        diagnostics.Add(diagnostic, specifier.GetLocation());
-                    }
+                    diagnostics.Add(specifierType.GetUseSiteInfo(), specifier.GetLocation());
 
                     return CSharpCustomModifier.CreateOptional(specifierType);
                 }
 
-                static void checkUnmanagedSupport(CSharpCompilation compilation, Location errorLocation, DiagnosticBag diagnostics)
+                static void checkUnmanagedSupport(CSharpCompilation compilation, Location errorLocation, BindingDiagnosticBag diagnostics)
                 {
                     if (!compilation.Assembly.RuntimeSupportsUnmanagedSignatureCallingConvention)
                     {
@@ -516,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers,
             FunctionPointerTypeSyntax syntax,
             Binder typeBinder,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool suppressUseSiteDiagnostics)
         {
             RefCustomModifiers = refCustomModifiers;
@@ -628,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> CallingConventionTypes
+        internal override ImmutableArray<NamedTypeSymbol> UnmanagedCallingConventionTypes
         {
             get
             {
@@ -699,22 +695,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return Equals(method, compareKind, isValueTypeOverride: null);
+            return Equals(method, compareKind);
         }
 
-        internal bool Equals(FunctionPointerMethodSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
+        internal bool Equals(FunctionPointerMethodSymbol other, TypeCompareKind compareKind)
         {
             return ReferenceEquals(this, other) ||
-                (EqualsNoParameters(other, compareKind, isValueTypeOverride)
-                 && _parameters.SequenceEqual(other._parameters, (compareKind, isValueTypeOverride),
-                     (param1, param2, args) => param1.MethodEqualityChecks(param2, args.compareKind, args.isValueTypeOverride)));
+                (EqualsNoParameters(other, compareKind)
+                 && _parameters.SequenceEqual(other._parameters, compareKind,
+                     (param1, param2, compareKind) => param1.MethodEqualityChecks(param2, compareKind)));
         }
 
-        private bool EqualsNoParameters(FunctionPointerMethodSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
+        private bool EqualsNoParameters(FunctionPointerMethodSymbol other, TypeCompareKind compareKind)
         {
             if (CallingConvention != other.CallingConvention
                 || !FunctionPointerTypeSymbol.RefKindEquals(compareKind, RefKind, other.RefKind)
-                || !ReturnTypeWithAnnotations.Equals(other.ReturnTypeWithAnnotations, compareKind, isValueTypeOverride))
+                || !ReturnTypeWithAnnotations.Equals(other.ReturnTypeWithAnnotations, compareKind))
             {
                 return false;
             }
@@ -761,14 +757,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
         public override MethodKind MethodKind => MethodKind.FunctionPointerSignature;
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo? info = null;
+            UseSiteInfo<AssemblySymbol> info = default;
             CalculateUseSiteDiagnostic(ref info);
 
             if (CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments))
             {
-                MergeUseSiteDiagnostics(ref info, new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this));
+                MergeUseSiteInfo(ref info, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this)));
             }
 
             return info;
@@ -824,6 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
         internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => throw ExceptionUtilities.Unreachable;
@@ -832,5 +829,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override DllImportData GetDllImportData() => throw ExceptionUtilities.Unreachable;
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable;
         internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable;
+        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             Contract.ThrowIfNull(symbol);
             Contract.ThrowIfNull(within);
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
 
             failedThroughTypeCheck = false;
             switch (symbol.Kind)
@@ -103,8 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case SymbolKind.PointerType:
                     return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck);
 
-                case SymbolKindEx.FunctionPointerType:
-#if !CODE_STYLE
+                case SymbolKind.FunctionPointerType:
                     var funcPtrSignature = ((IFunctionPointerTypeSymbol)symbol).Signature;
                     if (!IsSymbolAccessibleCore(funcPtrSignature.ReturnType, within, null, out failedThroughTypeCheck))
                     {
@@ -120,9 +117,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
 
                     return true;
-#else
-                    return false;
-#endif
 
                 case SymbolKind.NamedType:
                     return IsNamedTypeAccessible((INamedTypeSymbol)symbol, within);
@@ -166,9 +160,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // If it's a synthesized operator on a pointer, use the pointer's PointedAtType.
                     // Note: there are currently no synthesized operators on function pointer types. If that
                     // ever changes, updated the below assert and fix the code
-#if !CODE_STYLE
                     Debug.Assert(!(symbol.IsKind(SymbolKind.Method) && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator && symbol.ContainingSymbol.IsKind(SymbolKind.FunctionPointerType)));
-#endif
                     if (symbol.IsKind(SymbolKind.Method) &&
                         ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&
                         symbol.ContainingSymbol.IsKind(SymbolKind.PointerType))
@@ -187,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         // an assembly.
         private static bool IsNamedTypeAccessible(INamedTypeSymbol type, ISymbol within)
         {
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
             Contract.ThrowIfNull(type);
 
             if (type.IsErrorType())
@@ -225,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Accessibility declaredAccessibility,
             ISymbol within)
         {
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
             Contract.ThrowIfNull(assembly);
             var withinAssembly = (within as IAssemblySymbol) ?? ((INamedTypeSymbol)within).ContainingAssembly;
 
@@ -262,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol? throughType,
             out bool failedThroughTypeCheck)
         {
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
             Contract.ThrowIfNull(containingType);
 
             failedThroughTypeCheck = false;
@@ -421,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol within,
             INamedTypeSymbol originalContainingType)
         {
-            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol or IAssemblySymbol);
 
             var withinType = within as INamedTypeSymbol;
             if (withinType == null)

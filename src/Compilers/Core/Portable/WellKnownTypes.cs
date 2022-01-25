@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -255,10 +253,10 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T1,
         System_ValueTuple_T2,
         System_ValueTuple_T3,
-        System_ValueTuple_T4,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T4,
         System_ValueTuple_T5,
         System_ValueTuple_T6,
         System_ValueTuple_T7,
@@ -312,12 +310,14 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_IsExternalInit,
         System_Runtime_InteropServices_OutAttribute,
-        System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,
 
         System_Text_StringBuilder,
 
-        NextAvailable,
+        System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
 
+        System_ArgumentNullException,
+
+        NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
 
@@ -563,10 +563,10 @@ namespace Microsoft.CodeAnalysis
             "System.ValueTuple`1",
             "System.ValueTuple`2",
             "System.ValueTuple`3",
-            "System.ValueTuple`4",
 
             "", // extension marker
 
+            "System.ValueTuple`4",
             "System.ValueTuple`5",
             "System.ValueTuple`6",
             "System.ValueTuple`7",
@@ -621,12 +621,13 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.NativeIntegerAttribute",
             "System.Runtime.CompilerServices.IsExternalInit",
             "System.Runtime.InteropServices.OutAttribute",
-            "System.Runtime.CompilerServices.PreserveBaseOverridesAttribute",
 
             "System.Text.StringBuilder",
+            "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
+            "System.ArgumentNullException",
         };
 
-        private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
+        private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
 
         static WellKnownTypes()
         {
@@ -676,7 +677,7 @@ namespace Microsoft.CodeAnalysis
                     typeIdName = typeIdName.Substring(0, separator);
                 }
 
-                Debug.Assert(name == typeIdName, "Enum name and type name must match");
+                Debug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
             }
 
             Debug.Assert((int)WellKnownType.ExtSentinel == 255);

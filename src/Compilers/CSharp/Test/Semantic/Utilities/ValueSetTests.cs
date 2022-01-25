@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Xunit;
 
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class ValueSetTests
     {
-        private static Random Random = new Random();
+        private static readonly Random Random = new Random();
 
         [Theory]
         [InlineData(0)]
@@ -593,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ForByte, ForSByte, ForShort, ForUShort,
                 ForInt, ForUInt, ForLong, ForULong,
                 ForFloat, ForDouble, ForDecimal, ForNint,
-                ForNuint, ForChar
+                ForNuint, ForChar, ForLength,
                 })
             {
                 for (int i = 0; i < 100; i++)
@@ -617,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ForByte, ForSByte, ForShort, ForUShort,
                 ForInt, ForUInt, ForLong, ForULong,
                 ForDecimal, ForNint,
-                ForNuint, ForChar })
+                ForNuint, ForChar, ForLength })
             {
                 for (int i = 0; i < 100; i++)
                 {
@@ -867,7 +869,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     ForString,
                     ForDecimal,
                     ForNint,
-                    ForNuint
+                    ForNuint,
+                    ForLength,
             };
             ConstantValue badConstant = ConstantValue.Bad;
             foreach (IValueSetFactory fac in ctors)

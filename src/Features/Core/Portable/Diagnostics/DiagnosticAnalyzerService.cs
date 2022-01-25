@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -71,18 +70,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics, diagnosticId: null, includeSuppressedDiagnostics, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
+                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(
+                    document, range, diagnostics, shouldIncludeDiagnostic: null, includeSuppressedDiagnostics, CodeActionRequestPriority.None, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.False;
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+            Document document,
+            TextSpan? range,
+            Func<string, bool>? shouldIncludeDiagnostic,
+            bool includeSuppressedDiagnostics,
+            CodeActionRequestPriority priority,
+            Func<string, IDisposable?>? addOperationScope,
+            CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(document, range, diagnosticId, includeSuppressedDiagnostics, blockForData: true, addOperationScope, cancellationToken), cancellationToken);
+                return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
+                    document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, priority,
+                    blockForData: true, addOperationScope, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
@@ -169,16 +178,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
-        }
-
-        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
-        {
-            if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
-            {
-                return analyzer.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation);
-            }
-
-            return false;
         }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
