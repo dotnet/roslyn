@@ -3334,8 +3334,8 @@ $$
             Test(workspace, expectedResult:=False)
         End Sub
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")>
         Public Sub FunctionPointerCallingConvention()
             Dim workspace =
 <Workspace>
