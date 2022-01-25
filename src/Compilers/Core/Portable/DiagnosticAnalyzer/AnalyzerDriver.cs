@@ -2867,12 +2867,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Func<SyntaxNode, bool>? additionalFilter = semanticModel.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
-
             bool shouldAddNode(SyntaxNode node) => (descendantDeclsToSkip == null || !descendantDeclsToSkip.Contains(node)) && (additionalFilter is null || additionalFilter(node));
             var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {
                 if (shouldAddNode(node) &&
+                    !semanticModel.ShouldSkipSyntaxNodeAnalysis(node, declaredSymbol) &&
                     (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node)))
                 {
                     nodeBuilder.Add(node);
