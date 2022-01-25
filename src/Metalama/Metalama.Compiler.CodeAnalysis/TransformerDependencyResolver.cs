@@ -38,7 +38,7 @@ namespace Metalama.Compiler
                     {
                         // HACK: The proper way to do this would be to switch from List<DiagnosticInfo> to DiagnosticBag here and several levels in the call graph above this method.
                         // But using MetalamaCompilerMessageProvider requires less changes to Roslyn code, hopefully making future maintanance of the fork easier.
-                        diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)ErrorCode.ERR_TransformerNotFound, transformerName));
+                        diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformerNotFound, transformerName));
                     }
                     else
                     {
@@ -99,7 +99,7 @@ namespace Metalama.Compiler
                 var cycleNodes = cycleStack.Select(cursor => transformersCopy[cursor].GetDisplayName());
                 var cycleNodesString = string.Join(", ", cycleNodes);
 
-                diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)ErrorCode.ERR_TransformerCycleFound, cycleNodesString));
+                diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformerCycleFound, cycleNodesString));
 
                 return;
             }
@@ -134,7 +134,7 @@ namespace Metalama.Compiler
                     // Transformers "{1}" and "{2}" are not strongly ordered. 
                     // Their order of execution is nondeterministic.
                     diagnostics.Add(new DiagnosticInfo(
-                        MetalamaCompilerMessageProvider.Instance, (int)ErrorCode.ERR_TransformersNotOrdered,
+                        MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformersNotOrdered,
                         orderedTransformers[i - 1].GetDisplayName(), orderedTransformers[i].GetDisplayName()));
                 }
 

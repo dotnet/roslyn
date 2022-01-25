@@ -52,7 +52,7 @@ object DebugBuild : BuildType({
 
   dependencies {
 
-        snapshot(AbsoluteId("Metalama_PostSharpBackstageSettings_DebugBuild")) {
+        snapshot(AbsoluteId("Metalama_MetalamaBackstage_DebugBuild")) {
                      onDependencyFailure = FailureAction.FAIL_TO_START
                 }
 
@@ -89,7 +89,7 @@ object ReleaseBuild : BuildType({
 
   dependencies {
 
-        snapshot(AbsoluteId("Metalama_PostSharpBackstageSettings_ReleaseBuild")) {
+        snapshot(AbsoluteId("Metalama_MetalamaBackstage_ReleaseBuild")) {
                      onDependencyFailure = FailureAction.FAIL_TO_START
                 }
 
@@ -126,7 +126,7 @@ object PublicBuild : BuildType({
 
   dependencies {
 
-        snapshot(AbsoluteId("Metalama_PostSharpBackstageSettings_PublicBuild")) {
+        snapshot(AbsoluteId("Metalama_MetalamaBackstage_PublicBuild")) {
                      onDependencyFailure = FailureAction.FAIL_TO_START
                 }
 
@@ -162,7 +162,7 @@ object Deploy : BuildType({
 
             artifacts {
                 cleanDestination = true
-                artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public"
+                artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Public/Shipping/**/*=>artifacts/packages/Public/Shipping"
             }
         }
     }

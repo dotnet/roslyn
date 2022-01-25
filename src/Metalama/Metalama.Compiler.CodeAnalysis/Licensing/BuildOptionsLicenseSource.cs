@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
-using PostSharp.Backstage.Licensing.Consumption.Sources;
+using Metalama.Backstage.Licensing.Consumption.Sources;
 
 namespace Metalama.Compiler.Licensing
 {
@@ -13,7 +13,7 @@ namespace Metalama.Compiler.Licensing
     /// Provides licenses parsed from license keys given using
     /// the MetalamaLicense MSBuild property / global analyzer option.
     /// </summary>
-    internal class BuildOptionsLicenseSource : LicenseStringsLicenseSourceBase
+    internal class BuildOptionsLicenseSource : LicenseSourceBase
     {
         private readonly AnalyzerConfigOptionsProvider _analyzerConfigProvider;
 

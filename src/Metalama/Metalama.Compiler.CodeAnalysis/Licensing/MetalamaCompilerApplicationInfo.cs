@@ -6,7 +6,8 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using PostSharp.Backstage.Extensibility;
+using Metalama.Backstage.Diagnostics;
+using Metalama.Backstage.Extensibility;
 
 namespace Metalama.Compiler.Licensing
 {
@@ -19,13 +20,13 @@ namespace Metalama.Compiler.Licensing
         /// Initializes a new instance of the <see cref="MetalamaCompilerApplicationInfo"/> class.
         /// </summary>
         /// <exception cref="InvalidOperationException">Some of the required assembly metadata were not found.</exception>
-        public MetalamaCompilerApplicationInfo()
+        public MetalamaCompilerApplicationInfo(bool isLongRunningProcess)
         {
             var metadataAttributes =
                 typeof(MetalamaCompilerApplicationInfo).Assembly.GetCustomAttributes(typeof(AssemblyMetadataAttribute),
                     inherit: false);
 
-            Version? version = null;
+            string? version = null;
             bool? isPrerelease = null;
             DateTime? buildDate = null;
 
@@ -40,9 +41,8 @@ namespace Metalama.Compiler.Licensing
                     case "MetalamaCompilerVersion":
                         if (!string.IsNullOrEmpty(metadataAttribute.Value))
                         {
-                            var versionParts = metadataAttribute.Value.Split('-');
-                            version = Version.Parse(versionParts[0]);
-                            isPrerelease = versionParts.Length > 1;
+                            version = metadataAttribute.Value;
+                            isPrerelease = version.Contains('-');
                         }
 
                         break;
@@ -71,16 +71,20 @@ namespace Metalama.Compiler.Licensing
             this.Version = version!;
             this.IsPrerelease = isPrerelease!.Value;
             this.BuildDate = buildDate!.Value;
+            this.IsLongRunningProcess = isLongRunningProcess;
         }
 
         /// <inheritdoc />
         public DateTime BuildDate { get; }
 
+        public ProcessKind ProcessKind => ProcessKind.Compiler;
+        public bool IsLongRunningProcess { get; }
+
         /// <inheritdoc />
         public string Name => "Metalama Compiler";
 
         /// <inheritdoc />
-        public Version Version { get; }
+        public string Version { get; }
 
         /// <inheritdoc />
         public bool IsPrerelease { get; }

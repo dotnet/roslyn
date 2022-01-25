@@ -11,18 +11,18 @@ using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Metalama.Compiler;
-using PostSharp.Backstage.Licensing.Consumption;
-using Microsoft.CodeAnalysis.Test.Utilities.Mocks;
+using Metalama.Backstage.Extensibility;
+using Metalama.Backstage.Licensing.Consumption;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal class MockCSharpCompiler : CSharpCompiler
     {
+        private readonly bool _bypassLicensing;
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly ImmutableArray<ISourceGenerator> _generators;
         // <Metalama>
         private readonly ImmutableArray<ISourceTransformer> _transformers;
-        private readonly ILicenseConsumptionManager _customLicenseConsumptionManager;
         // </Metalama>
         internal Compilation Compilation;
         internal AnalyzerOptions AnalyzerOptions;
@@ -42,12 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _analyzers = analyzers.NullToEmpty();
             _generators = generators.NullToEmpty();
             // <Metalama>
+            _bypassLicensing = bypassLicensing;
             _transformers = transformers.NullToEmpty();
-
-            if (bypassLicensing)
-            {
-                _customLicenseConsumptionManager = new DummyLicenseConsumptionManager();
-            }
             // </Metalama>
         }
 
@@ -113,7 +109,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         }
 
         // <Metalama>
-        protected override ILicenseConsumptionManager GetCustomLicenseConsumptionManager() => _customLicenseConsumptionManager;
+        protected override void AddLicenseConsumptionManager(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
+            ServiceProviderBuilder serviceProviderBuilder)
+        {
+            if (!this._bypassLicensing)
+            {
+                base.AddLicenseConsumptionManager(analyzerConfigOptionsProvider, serviceProviderBuilder);
+            }
+            
+        }
+
+        protected override bool IsLongRunningProcess => false;
         // </Metalama>
     }
 }

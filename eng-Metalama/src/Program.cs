@@ -34,7 +34,7 @@ var product = new Product
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Features.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg" ),
-    Dependencies = new[] { Dependencies.PostSharpEngineering, Dependencies.PostSharpBackstageSettings, Dependencies.Roslyn },
+    Dependencies = new[] { Dependencies.PostSharpEngineering, Dependencies.MetalamaBackstage, Dependencies.Roslyn },
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
     KeepEditorConfig = true,
 };

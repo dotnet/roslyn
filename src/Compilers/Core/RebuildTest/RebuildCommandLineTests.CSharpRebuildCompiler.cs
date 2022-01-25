@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 : base(CSharpCommandLineParser.Default, responseFile: null, args, StandardBuildPaths, additionalReferenceDirectories: null, new DefaultAnalyzerAssemblyLoader())
             {
             }
+            
+            // <Metalama>
+            protected override bool IsLongRunningProcess => false;
+            // </Metalama>
         }
     }
 }

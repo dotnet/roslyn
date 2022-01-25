@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundBadExpression Error()
                 {
                     _diagnostics.Add(new DiagnosticInfo(
-                        MetalamaCompilerMessageProvider.Instance, (int)Metalama.Compiler.ErrorCode.ERR_InvalidIntrinsicUse, rewrittenArguments[0].Syntax, method), syntax.Location);
+                        MetalamaCompilerMessageProvider.Instance, (int)Metalama.Compiler.MetalamaErrorCode.ERR_InvalidIntrinsicUse, rewrittenArguments[0].Syntax, method), syntax.Location);
 
                     return _factory.BadExpression(_compilation.GetSpecialType(SpecialType.System_Void));
                 }

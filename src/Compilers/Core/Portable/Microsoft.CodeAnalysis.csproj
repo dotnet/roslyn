@@ -24,7 +24,7 @@
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>MetalamaCompilerVersion</_Parameter1>
-      <_Parameter2>$(Version)</_Parameter2>
+      <_Parameter2>$(MetalamaCompilerVersion)</_Parameter2>
     </AssemblyAttribute>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>MetalamaCompilerBuildDate</_Parameter1>
@@ -51,7 +51,7 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
     <!-- <Metalama> -->
-    <PackageReference Include="PostSharp.Backstage.Settings" Version="$(PostSharpBackstageSettingsVersion)" />
+    <PackageReference Include="Metalama.Backstage" Version="$(MetalamaBackstageVersion)" />
     <!-- </Metalama> -->
   </ItemGroup>
   <ItemGroup>
