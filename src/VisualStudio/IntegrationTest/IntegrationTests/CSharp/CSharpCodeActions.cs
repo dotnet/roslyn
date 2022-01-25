@@ -818,6 +818,8 @@ dotnet_diagnostic.CS0168.severity = ");
 
             VisualStudio.Editor.SendKeys("error");
 
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
+
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
