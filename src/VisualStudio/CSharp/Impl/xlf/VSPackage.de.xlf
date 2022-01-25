@@ -129,11 +129,10 @@ Beim Generieren von Eigenschaften;
 ausgelöste Eigenschaften bevorzugen;
 automatische Eigenschaften bevorzugen;
 regex;
-regular expression;
-Use enhanced colors;
-Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</target>
+regulärer Ausdruck;
+Erweiterte Farben verwenden;
+Editor-Farbschema;
+Vererbungsrand;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -302,10 +301,10 @@ Vervollständigungsliste in Argumentlisten automatisch anzeigen (experimentell);
 \Übereinstimmende Teile der Vervollständigungslistenelemente anzeigen;
 Vervollständigungselementfilter anzeigen;
 Anweisung bei Semikolon automatisch abschließen;
-Ausschnittverhalten;
-Ausschnitte nie einschließen;
-Ausschnitte immer einschließen;
-Ausschnitte einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird;
+Schnipselverhalten;
+Schnipsel nie einschließen;
+Schnipsel immer einschließen;
+Schnipsel einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird;
 Verhalten der EINGABETASTE;
 Nie neue Zeile beim Drücken der EINGABETASTE einfügen;
 Neue Zeile beim Drücken der EINGABETASTE nur nach einem vollständig eingegebenen Wort einfügen;

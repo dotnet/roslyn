@@ -129,11 +129,10 @@ Durant la génération de propriétés;
 préférer les propriétés de levée d'exceptions;
 préférer les propriétés automatiques;
 regex;
-regular expression;
-Use enhanced colors;
-Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</target>
+expression régulière;
+Utiliser des couleurs améliorées;
+Modèle de couleurs de l'éditeur;
+Marge d'héritage;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

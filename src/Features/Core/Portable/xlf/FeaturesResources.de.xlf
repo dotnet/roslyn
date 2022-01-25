@@ -3767,7 +3767,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
-        <target state="translated">Hinweis: Drücken Sie zweimal die TAB-TASTE, um den Ausschnitt "{0}" einzufügen.</target>
+        <target state="translated">Hinweis: Drücken Sie zweimal die TAB-TASTE, um den Schnipsel "{0}" einzufügen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
@@ -4352,7 +4352,7 @@ Diese Version wird verwendet in: {2}</target>
       </trans-unit>
       <trans-unit id="Snippets">
         <source>Snippets</source>
-        <target state="translated">Codeausschnitte</target>
+        <target state="translated">Codeschnipsel</target>
         <note />
       </trans-unit>
       <trans-unit id="All_lowercase">
