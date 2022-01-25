@@ -3333,5 +3333,23 @@ $$
 
             Test(workspace, expectedResult:=False)
         End Sub
+
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub FunctionPointerCallingConvention()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+public unsafe class C
+{
+    delegate* unmanaged[St$$dcall]<void> f0;
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
     End Class
 End Namespace
