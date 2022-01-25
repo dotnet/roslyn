@@ -1249,7 +1249,7 @@ public class C
         }
 
         [Fact]
-        public async Task RS1024_CustomComparer()
+        public async Task RS1024_CustomComparer_Instance_Is_Interface()
         {
             var code = @"
 using System.Collections.Generic;
@@ -1285,7 +1285,7 @@ internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
         }
 
         [Fact]
-        public async Task RS1024_CustomComparer2()
+        public async Task RS1024_CustomComparer_Instance_Is_Type()
         {
             var code = @"
 using System.Collections.Generic;
