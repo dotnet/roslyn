@@ -1972,8 +1972,19 @@ static class E
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: @"byte[]"). // The behavior has changed
+            // The behavior has changed
+            // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
+            CompileAndVerify(comp, expectedOutput: @"byte[]").
                 VerifyDiagnostics();
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            // PROTOTYPE(UTF8StringLiterals) : Confirm we are comfortable with not changing semantics based on language version and keeping an error for this scenario.
+            // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
+            comp.VerifyDiagnostics(
+                // (9,31): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Console.WriteLine(p.M(""));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("Utf8 String Literals").WithLocation(9, 31)
+                );
         }
 
         [Fact]

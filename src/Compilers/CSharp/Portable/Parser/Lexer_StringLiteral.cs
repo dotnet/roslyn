@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
+                // PROTOTYPE(UTF8StringLiterals) : Should the suffix be case-insensitive?
                 if (!inDirective && TextWindow.PeekChar() == 'u' && TextWindow.PeekChar(1) == '8')
                 {
                     info.Kind = SyntaxKind.UTF8StringLiteralToken;
@@ -193,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _builder.Append(ch);
             }
 
+            // PROTOTYPE(UTF8StringLiterals) : Should the suffix be case-insensitive?
             if (TextWindow.PeekChar() == 'u' && TextWindow.PeekChar(1) == '8')
             {
                 info.Kind = SyntaxKind.UTF8StringLiteralToken;
