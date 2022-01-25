@@ -83,7 +83,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             _threadingContext = componentModel.GetService<IThreadingContext>();
             var globalOptions = componentModel.GetService<IGlobalOptionService>();
 
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            _workspace = componentModel.GetService<VisualStudioWorkspace>();
             _ = new ForceLowMemoryMode(globalOptions);
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
@@ -96,7 +96,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             }
 
             // set logger at start up
-            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, workspace.Services);
+            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, _workspace.Services);
         }
         #endregion
 
