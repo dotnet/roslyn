@@ -275,6 +275,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Die Klasse \{0} kann nicht in den Zeichenbereich aufgenommen werden.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
       </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
         <target state="translated">Erfassungsgruppennummern müssen kleiner oder gleich Int32.MaxValue sein.</target>
@@ -2430,6 +2435,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Die Auswahl enthält einen lokalen Funktionsaufruf ohne Deklaration.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_symbol_has_no_implementations">
+        <source>The symbol has no implementations.</source>
+        <target state="new">The symbol has no implementations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Timeout_SourceLink">
         <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
         <target state="translated">Timeout beim Herunterladen von Quellcode aus SourceLink. Nachfolgende Anforderungen sind möglicherweise erfolgreich.</target>
@@ -2780,6 +2790,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">„{0}“ wurde über SourceLink gefunden, aber die temporäre Datei konnte nicht gelesen werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_implementations">
+        <source>'{0}' implementations</source>
+        <target state="new">'{0}' implementations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">"{0}" ist hier nicht NULL.</target>
@@ -2788,6 +2803,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
         <target state="translated">"{0}" darf hier NULL sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>'{0}' references</source>
+        <target state="new">'{0}' references</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Tagging;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var project = solution.GetRequiredProject(projectId);
 
-                await CompilationAvailableTaggerEventSource.ComputeCompilationInCurrentProcessAsync(project, cancellationToken).ConfigureAwait(false);
+                await CompilationAvailableHelpers.ComputeCompilationInCurrentProcessAsync(project, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }
