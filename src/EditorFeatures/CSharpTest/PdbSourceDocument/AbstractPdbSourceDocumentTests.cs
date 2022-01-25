@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             // to be available.
             var composition = EditorTestCompositions.EditorFeatures
                 .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
-                .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
+                .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider), typeof(TestSourceLinkService));
 
             var workspace = TestWorkspace.Create(@$"
 <Workspace>

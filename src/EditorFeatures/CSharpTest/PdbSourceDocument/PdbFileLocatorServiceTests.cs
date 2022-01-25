@@ -6,7 +6,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,8 +35,10 @@ public class C
                 var pdbFilePath = Path.Combine(path, "SourceLink.pdb");
                 File.Move(GetPdbPath(path), pdbFilePath);
 
-                var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath);
-                var service = new PdbFileLocatorService(sourceLinkService, logger: null);
+                var exportProvider = (IMefHostExportProvider)project.Solution.Workspace.Services.HostServices;
+                Assert.IsType<TestSourceLinkService>(exportProvider.GetExportedValue<ISourceLinkService>()).Initialize(pdbFilePath: pdbFilePath);
+                Assert.Empty(exportProvider.GetExportedValues<IPdbSourceDocumentLogger>());
+                var service = Assert.IsType<PdbFileLocatorService>(exportProvider.GetExportedValue<IPdbFileLocatorService>());
 
                 using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
@@ -63,8 +67,10 @@ public class C
                 var pdbFilePath = Path.Combine(path, "SourceLink.pdb");
                 File.Move(GetPdbPath(path), pdbFilePath);
 
-                var sourceLinkService = new TestSourceLinkService(pdbFilePath);
-                var service = new PdbFileLocatorService(sourceLinkService, logger: null);
+                var exportProvider = (IMefHostExportProvider)project.Solution.Workspace.Services.HostServices;
+                Assert.IsType<TestSourceLinkService>(exportProvider.GetExportedValue<ISourceLinkService>()).Initialize(pdbFilePath: pdbFilePath);
+                Assert.Empty(exportProvider.GetExportedValues<IPdbSourceDocumentLogger>());
+                var service = Assert.IsType<PdbFileLocatorService>(exportProvider.GetExportedValue<IPdbFileLocatorService>());
 
                 using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
@@ -91,8 +97,10 @@ public class C
                 var pdbFilePath = Path.Combine(path, "SourceLink.pdb");
                 File.Move(GetPdbPath(path), pdbFilePath);
 
-                var sourceLinkService = new TestSourceLinkService(pdbFilePath: null);
-                var service = new PdbFileLocatorService(sourceLinkService, logger: null);
+                var exportProvider = (IMefHostExportProvider)project.Solution.Workspace.Services.HostServices;
+                Assert.IsType<TestSourceLinkService>(exportProvider.GetExportedValue<ISourceLinkService>()).Initialize(pdbFilePath: null);
+                Assert.Empty(exportProvider.GetExportedValues<IPdbSourceDocumentLogger>());
+                var service = Assert.IsType<PdbFileLocatorService>(exportProvider.GetExportedValue<IPdbFileLocatorService>());
 
                 using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 

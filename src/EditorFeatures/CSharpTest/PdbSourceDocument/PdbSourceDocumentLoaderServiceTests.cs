@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Security.Cryptography;
@@ -10,7 +9,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -37,8 +38,10 @@ public class C
                 var sourceFilePath = Path.Combine(path, "SourceLink.cs");
                 File.Move(GetSourceFilePath(path), sourceFilePath);
 
-                var sourceLinkService = new Lazy<ISourceLinkService>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
-                var service = new PdbSourceDocumentLoaderService(sourceLinkService, logger: null);
+                var exportProvider = (IMefHostExportProvider)project.Solution.Workspace.Services.HostServices;
+                Assert.IsType<TestSourceLinkService>(exportProvider.GetExportedValue<ISourceLinkService>()).Initialize(sourceFilePath: sourceFilePath);
+                Assert.Empty(exportProvider.GetExportedValues<IPdbSourceDocumentLogger>());
+                var service = Assert.IsType<PdbSourceDocumentLoaderService>(exportProvider.GetExportedValue<IPdbSourceDocumentLoaderService>());
 
                 using var hash = SHA256.Create();
                 var fileHash = hash.ComputeHash(File.ReadAllBytes(sourceFilePath));
@@ -70,8 +73,10 @@ public class C
                 var sourceFilePath = Path.Combine(path, "SourceLink.cs");
                 File.Move(GetSourceFilePath(path), sourceFilePath);
 
-                var sourceLinkService = new Lazy<ISourceLinkService>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
-                var service = new PdbSourceDocumentLoaderService(sourceLinkService, logger: null);
+                var exportProvider = (IMefHostExportProvider)project.Solution.Workspace.Services.HostServices;
+                Assert.IsType<TestSourceLinkService>(exportProvider.GetExportedValue<ISourceLinkService>()).Initialize(sourceFilePath: sourceFilePath);
+                Assert.Empty(exportProvider.GetExportedValues<IPdbSourceDocumentLogger>());
+                var service = Assert.IsType<PdbSourceDocumentLoaderService>(exportProvider.GetExportedValue<IPdbSourceDocumentLoaderService>());
 
                 var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.None, default, null, SourceLinkUrl: null);
                 var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), CancellationToken.None);

@@ -4,12 +4,12 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private readonly IPdbSourceDocumentLogger? _logger;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PdbFileLocatorService(
             [Import(AllowDefault = true)] ISourceLinkService? sourceLinkService,
             [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
