@@ -96,11 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var currentSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol as IMethodSymbol;
-
             // guess the best candidate if needed and determine parameter index
             var arguments = invocationExpression.ArgumentList.Arguments;
-            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, ref currentSymbol, out var parameterIndex);
+            var candidates = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is IMethodSymbol exactMatch
+                ? ImmutableArray.Create(exactMatch)
+                : methods;
+            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndex);
 
             // if the symbol could be bound, replace that item in the symbol list
             if (currentSymbol?.IsGenericMethod == true)
@@ -123,38 +124,28 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var invokedType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type;
             IMethodSymbol? currentSymbol;
-            if (invokedType is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
+            if (invokedType is INamedTypeSymbol { TypeKind: TypeKind.Delegate } expressionType)
             {
-                var invokeMethod = GetDelegateInvokeMethod(invocationExpression, semanticModel, within, expressionType, cancellationToken);
-
-                if (invokeMethod is null)
-                {
-                    return null;
-                }
-
-                currentSymbol = invokeMethod;
+                currentSymbol = GetDelegateInvokeMethod(invocationExpression, semanticModel, within, expressionType, cancellationToken);
             }
             else if (invokedType is IFunctionPointerTypeSymbol functionPointerType)
             {
-                var signature = functionPointerType.Signature;
-                currentSymbol = signature;
+                currentSymbol = functionPointerType.Signature;
             }
             else
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
-            // guess the best candidate if needed and determine parameter index
-            var methods = ImmutableArray.Create(currentSymbol);
+            if (currentSymbol is null)
+            {
+                return null;
+            }
+
+            // determine parameter index
             var arguments = invocationExpression.ArgumentList.Arguments;
             var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
             _ = LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out var parameterIndex);
-
-            // if the symbol could be bound, replace that item in the symbol list
-            if (currentSymbol?.IsGenericMethod == true)
-            {
-                methods = methods.SelectAsArray(m => Equals(currentSymbol.OriginalDefinition, m) ? currentSymbol : m);
-            }
 
             // present items and select
             var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();

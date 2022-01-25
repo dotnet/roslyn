@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             // get the candidate methods
+            ImmutableArray<IMethodSymbol> methods;
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
-            var methods = ImmutableArray<IMethodSymbol>.Empty;
             if (type.TypeKind == TypeKind.Delegate)
             {
                 var invokeMethod = type.DelegateInvokeMethod;
@@ -101,9 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             // guess the best candidate if needed and determine parameter index
-            var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol as IMethodSymbol;
             var arguments = objectCreationExpression.ArgumentList.Arguments;
-            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, ref currentSymbol, out var parameterIndex);
+            var candidates = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol is IMethodSymbol exactMatch
+                ? ImmutableArray.Create(exactMatch)
+                : methods;
+            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, out var currentSymbol, out var parameterIndex);
 
             // present items and select
             ImmutableArray<SignatureHelpItem> items;

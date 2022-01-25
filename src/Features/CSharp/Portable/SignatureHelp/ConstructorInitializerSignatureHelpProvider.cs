@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -88,28 +89,30 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             // get the candidate methods
             var currentConstructor = semanticModel.GetDeclaredSymbol(constructorInitializer.Parent!, cancellationToken);
 
-            var accessibleConstructors = type.InstanceConstructors
-                                             .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))
-                                             .WhereAsArray(c => c.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
-                                             .Sort(semanticModel, constructorInitializer.SpanStart);
+            var constructors = type.InstanceConstructors
+                             .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))
+                             .WhereAsArray(c => c.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
+                             .Sort(semanticModel, constructorInitializer.SpanStart);
 
-            if (!accessibleConstructors.Any())
+            if (!constructors.Any())
             {
                 return null;
             }
 
             // guess the best candidate if needed and determine parameter index
-            var currentSymbol = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol as IMethodSymbol;
             var arguments = constructorInitializer.ArgumentList.Arguments;
-            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, accessibleConstructors, arguments, ref currentSymbol, out var parameterIndex);
+            var candidates = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol is IMethodSymbol exactSymbol
+                ? ImmutableArray.Create(exactSymbol)
+                : constructors;
+            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndex);
 
             // present items and select
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
             var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
-            var items = accessibleConstructors.SelectAsArray(m => Convert(m, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
-            var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentSymbol);
+            var items = constructors.SelectAsArray(m => Convert(m, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
+            var selectedItem = TryGetSelectedIndex(constructors, currentSymbol);
 
             return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
         }

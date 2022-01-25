@@ -101,18 +101,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         internal static class LightweightOverloadResolution
         {
             internal static void RefineOverloadAndPickParameter(Document document, int position, SemanticModel semanticModel,
-                ImmutableArray<IMethodSymbol> accessibleOverloads, SeparatedSyntaxList<ArgumentSyntax> arguments,
-                ref IMethodSymbol? currentSymbol, out int parameterIndex)
+                ImmutableArray<IMethodSymbol> candidates, SeparatedSyntaxList<ArgumentSyntax> arguments,
+                out IMethodSymbol? currentSymbol, out int parameterIndex)
             {
                 var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
-                if (currentSymbol is null)
+                if (candidates.Length == 1)
                 {
-                    (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, accessibleOverloads, position, semanticModel, semanticFactsService);
+                    // The compiler told us the correct overload or we only have one choice, but we need to find out the parameter to highlight given cursor position
+                    currentSymbol = candidates[0];
+                    _ = FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
                 }
                 else
                 {
-                    // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
-                    _ = FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+                    (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, candidates, position, semanticModel, semanticFactsService);
                 }
             }
 
@@ -353,16 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             internal static int TryGetArgumentIndex(SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
             {
                 if (arguments.Count == 0)
-                {
-                    return -1;
-                }
-
-                if (position < arguments.Span.Start)
-                {
-                    return -1;
-                }
-
-                if (position > arguments.Span.End)
                 {
                     return -1;
                 }

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Utilities;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
         private static ImmutableArray<SignatureHelpItem> ConvertDelegateTypeConstructor(
-            Syntax.BaseObjectCreationExpressionSyntax objectCreationExpression,
+            BaseObjectCreationExpressionSyntax objectCreationExpression,
             IMethodSymbol invokeMethod,
             SemanticModel semanticModel,
             IStructuralTypeDisplayService structuralTypeDisplayService,
