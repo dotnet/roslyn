@@ -9,18 +9,14 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -35,7 +31,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 [ProvidesMethod(VSInternalMethods.TextDocumentInlineCompletionName)]
 internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList>
 {
-    public static ImmutableArray<string> BuiltInSnippets = ImmutableArray.Create(
+    /// <summary>
+    /// The set of built in snippets from, typically found in
+    /// C:\Program Files\Microsoft Visual Studio\2022\VS_INSTANCE\VC#\Snippets\1033\Visual C#
+    /// These are currently the only snippets supported.
+    /// </summary>
+    public static ImmutableHashSet<string> BuiltInSnippets = ImmutableHashSet.Create(
         "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
@@ -81,11 +82,12 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
         // Find the snippet with shortcut text that matches the typed word.
         var wordText = sourceText.GetSubText(wordOnLeft.Value).ToString();
-        var matchingSnippetInfo = snippetInfo.Single(s => wordText.Equals(s.Shortcut, StringComparison.OrdinalIgnoreCase));
+        if (!BuiltInSnippets.Contains(wordText, StringComparer.OrdinalIgnoreCase))
+        {
+            return new VSInternalInlineCompletionList();
+        }
 
-        // Convert xml snippets
-        // Include function calls (see SnippetExpansionClient) to get switch/class name
-        // loc - C:\Program Files\Microsoft Visual Studio\2022\Main\VC#\Snippets\1033\Visual C#
+        var matchingSnippetInfo = snippetInfo.Single(s => wordText.Equals(s.Shortcut, StringComparison.OrdinalIgnoreCase));
 
         var matchingSnippet = RetrieveSnippetFromXml(matchingSnippetInfo, context);
         if (matchingSnippet == null)
@@ -93,7 +95,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
             return new VSInternalInlineCompletionList();
         }
 
-        // We currently only support snippet expansions, the others require selection support which is N/A here.
+        // We currently only support snippet expansions, the others require selection support which is not applicable here.
         if (!matchingSnippet.SnippetTypes.Contains("Expansion", StringComparer.OrdinalIgnoreCase))
         {
             return new VSInternalInlineCompletionList();
@@ -101,7 +103,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
         var expansion = new ExpansionTemplate(matchingSnippet);
 
-        // Get snippet with replaced values
+        // Parse the snippet XML
         var parsedSnippet = expansion.Parse();
         if (parsedSnippet == null)
         {
@@ -133,58 +135,51 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
     private static async Task<string> GetFormattedLspSnippetAsync(ParsedXmlSnippet parsedSnippet, TextSpan snippetShortcut, Document originalDocument, SourceText originalSourceText, CancellationToken cancellationToken)
     {
         // Calculate the snippet text with defaults + snippet function results.
-        var (snippetFullText, fields, caretSpan) = await GetReplacedSnippetTextAsync(originalDocument, originalSourceText, snippetShortcut, parsedSnippet, cancellationToken).ConfigureAwait(false);
+        var (snippetFullText, fields, caretSpan) = await GetReplacedSnippetTextAsync(
+            originalDocument, originalSourceText, snippetShortcut, parsedSnippet, cancellationToken).ConfigureAwait(false);
 
         // Create a document with the default snippet text that we can use to format the snippet.
         var textChange = new TextChange(snippetShortcut, snippetFullText);
-        var documentWithSnippet = originalDocument.WithText(originalSourceText.WithChanges(textChange));
-        var root = await documentWithSnippet.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var snippetEndPosition = textChange.Span.Start + textChange.NewText!.Length;
 
-        // Attach annotations to the start and end of the snippet insertion so that we can extract it out after formatting.
-        root = AnnotateSnippetBounds(root, textChange, out var startAnnotation, out var endAnnotation);
+        var documentWithSnippetText = originalSourceText.WithChanges(textChange);
+        var root = await originalDocument.WithText(documentWithSnippetText).GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        // Attach annotations to the fields so we can replace them with LSP snippet placeholders after formatting.
-        root = AnnotateFields(root, fields, out var fieldAnnotations);
+        var spanToFormat = TextSpan.FromBounds(textChange.Span.Start, snippetEndPosition);
+        var formattingChanges = Formatter.GetFormattedTextChanges(root, spanToFormat, originalDocument.Project.Solution.Workspace, cancellationToken: cancellationToken)
+            ?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
 
-        // Attach an annotation to the trivia indicating the final caret position (if it exists)
-        root = AnnotateFinalCaretSpan(root, caretSpan, out var finalCaretAnnotation);
+        var formattedText = documentWithSnippetText.WithChanges(formattingChanges);
 
-        // Format the document with inserted snippet and annotations.
-        documentWithSnippet = originalDocument.WithSyntaxRoot(root);
-        documentWithSnippet = await Formatter.FormatAsync(documentWithSnippet, new TextSpan(textChange.Span.Start, snippetFullText.Length), options: null, cancellationToken).ConfigureAwait(false);
-        var formattedText = await documentWithSnippet.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        // We now have a formatted snippet with default values.  We need to compute
+        // replace the fields and caret with the proper LSP tab stop notation.
+        // Since formatting changes are entirely whitespace, we can calculate the new locations by
+        // adjusting the old spans based on the formatting changes that occured before them.
 
-        // Now that we have the snippet with default values formatted correctly, we need to replace the default values
-        // with the appropriate syntax for LSP tab stops.
-        root = await documentWithSnippet.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        // Get the adjusted snippet bounds.
+        snippetEndPosition = GetAdjustedSpan(formattingChanges, new TextSpan(snippetEndPosition, 0)).Start;
+        var spanContainingFormattedSnippet = TextSpan.FromBounds(snippetShortcut.Start, snippetEndPosition);
 
-        // Extract the snippet span out of the formatted text.
-        var spanContainingFormattedSnippet = TextSpan.FromBounds(
-            root.GetAnnotatedTokens(startAnnotation).Single().Span.Start,
-            root.GetAnnotatedTokens(endAnnotation).Single().Span.End);
-
-        // Create text changes to replace the declarations with LSP formatted tab stops,
-        // but in the context of the snippet, not the whole document.
+        // Get the adjusted fields and determine the text edits to make LSP formatted tab stops.
         using var _1 = ArrayBuilder<TextChange>.GetInstance(out var lspTextChanges);
-        foreach (var annotation in fieldAnnotations)
+        foreach (var (field, spans) in fields)
         {
-            Contract.ThrowIfNull(annotation.Data);
-            var nodesAndTokens = root.GetAnnotatedNodesAndTokens(annotation);
-            foreach (var nodeOrToken in nodesAndTokens)
+            var lspTextForField = string.IsNullOrEmpty(field.DefaultText) ? $"${{{field.EditIndex}}}" : $"${{{field.EditIndex}:{field.DefaultText}}}";
+            foreach (var span in spans)
             {
-                var textSpanInSnippet = GetTextSpanInContextOfSnippet(nodeOrToken.Span.Start, spanContainingFormattedSnippet.Start, nodeOrToken.Span.Length);
-                var lspTextChange = new TextChange(textSpanInSnippet, annotation.Data);
-                lspTextChanges.Add(lspTextChange);
+                // Adjust the span based on the formatting changes.
+                var fieldInFormattedText = GetAdjustedSpan(formattingChanges, span);
+                var fieldInSnippetContext = GetTextSpanInContextOfSnippet(fieldInFormattedText.Start, spanContainingFormattedSnippet.Start, fieldInFormattedText.Length);
+                lspTextChanges.Add(new TextChange(fieldInSnippetContext, lspTextForField));
             }
         }
 
-        // Replace the final caret trivia annotation with the appropriate LSP placeholder text.
-        if (finalCaretAnnotation != null)
+        // Get the adjusted caret location and replace the placeholder comment with the LSP formatted tab stop..
+        if (caretSpan != null)
         {
-            Contract.ThrowIfNull(finalCaretAnnotation.Data);
-            var trivia = root.GetAnnotatedTrivia(finalCaretAnnotation).Single();
-            var textSpanInSnippet = GetTextSpanInContextOfSnippet(trivia.Span.Start, spanContainingFormattedSnippet.Start, trivia.Span.Length);
-            lspTextChanges.Add(new TextChange(textSpanInSnippet, finalCaretAnnotation.Data));
+            var caretInFormattedText = GetAdjustedSpan(formattingChanges, caretSpan.Value);
+            var caretInSnippetContext = GetTextSpanInContextOfSnippet(caretInFormattedText.Start, spanContainingFormattedSnippet.Start, caretInFormattedText.Length);
+            lspTextChanges.Add(new TextChange(caretInSnippetContext, "$0"));
         }
 
         // Apply all the text changes to get the text formatted as the LSP snippet syntax.
@@ -192,61 +187,11 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
         return formattedLspSnippetText.ToString();
 
-        static SyntaxNode AnnotateSnippetBounds(SyntaxNode root, TextChange snippetTextChange, out SyntaxAnnotation startAnnotation, out SyntaxAnnotation endAnnotation)
+        static TextSpan GetAdjustedSpan(ImmutableArray<TextChange> textChanges, TextSpan originalSpan)
         {
-            startAnnotation = new SyntaxAnnotation("start");
-            var startToken = root.FindTokenOnRightOfPosition(snippetTextChange.Span.Start);
-            root = AnnotateToken(startToken, startAnnotation, root);
-
-            endAnnotation = new SyntaxAnnotation("end");
-            var endToken = root.FindTokenOnLeftOfPosition(snippetTextChange.Span.Start + snippetTextChange.NewText!.Length);
-            root = AnnotateToken(endToken, endAnnotation, root);
-
-            return root;
-        }
-
-        static SyntaxNode AnnotateFields(SyntaxNode root, ImmutableDictionary<SnippetFieldPart, ImmutableArray<TextSpan>> fieldLocations, out ImmutableArray<SyntaxAnnotation> fieldAnnotations)
-        {
-            using var _ = ArrayBuilder<SyntaxAnnotation>.GetInstance(out var annotations);
-            foreach (var (field, spans) in fieldLocations)
-            {
-                Contract.ThrowIfNull(field.EditIndex);
-
-                // Generate the LSP formatted text required to insert this tabstop.
-                var lspTextForField = string.IsNullOrEmpty(field.DefaultText) ? $"${{{field.EditIndex}}}" : $"${{{field.EditIndex}:{field.DefaultText}}}";
-
-                // Store the LSP snippet text on the annotation as its easy to retrive later.
-                var fieldAnnotation = new SyntaxAnnotation(field.FieldName, data: lspTextForField);
-
-                // Find all the locations associated with this field and annotate the node.
-                foreach (var span in spans)
-                {
-                    var originalToken = root.FindTokenOnRightOfPosition(span.Start);
-                    root = AnnotateToken(originalToken, fieldAnnotation, root);
-                }
-
-                annotations.Add(fieldAnnotation);
-            }
-
-            fieldAnnotations = annotations.ToImmutable();
-            return root;
-        }
-
-        static SyntaxNode AnnotateFinalCaretSpan(SyntaxNode root, int? finalCaretPosition, out SyntaxAnnotation? finalCaretAnnotation)
-        {
-            finalCaretAnnotation = null;
-            if (finalCaretPosition != null)
-            {
-                var lspTextForFinalCaret = "$0";
-                finalCaretAnnotation = new SyntaxAnnotation("caret", lspTextForFinalCaret);
-
-                // We always indicate the final caret position via trivia (/*$0*/)
-                var originalTrivia = root.FindTrivia(finalCaretPosition.Value);
-                var annotatedTrivia = originalTrivia.WithAdditionalAnnotations(finalCaretAnnotation);
-                root = root.ReplaceTrivia(originalTrivia, annotatedTrivia);
-            }
-
-            return root;
+            var textChangesBefore = textChanges.Where(t => t.Span.End <= originalSpan.Start);
+            var amountToAdjust = textChangesBefore.Sum(t => t.NewText!.Length - t.Span.Length);
+            return new TextSpan(originalSpan.Start + amountToAdjust, originalSpan.Length);
         }
 
         static TextSpan GetTextSpanInContextOfSnippet(int positionInFullText, int snippetPositionInFullText, int length)
@@ -254,20 +199,13 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
             var offsetInSnippet = new TextSpan(positionInFullText - snippetPositionInFullText, length);
             return offsetInSnippet;
         }
-
-        static SyntaxNode AnnotateToken(SyntaxToken originalToken, SyntaxAnnotation annotation, SyntaxNode root)
-        {
-            var annotatedToken = originalToken.WithAdditionalAnnotations(annotation);
-            var newRoot = root.ReplaceToken(originalToken, annotatedToken);
-            return newRoot;
-        }
     }
 
     /// <summary>
     /// Create the snippet with the full default text and functions applied.  Output the spans associated with
-    /// each field and the final caret location in that text so that we can annotate those locations.
+    /// each field and the final caret location in that text so that we can find those locations later.
     /// </summary>
-    private static async Task<(string ReplacedSnippetText, ImmutableDictionary<SnippetFieldPart, ImmutableArray<TextSpan>> Fields, int? FinalCaretPosition)> GetReplacedSnippetTextAsync(
+    private static async Task<(string ReplacedSnippetText, ImmutableDictionary<SnippetFieldPart, ImmutableArray<TextSpan>> Fields, TextSpan? CaretSpan)> GetReplacedSnippetTextAsync(
         Document originalDocument,
         SourceText originalSourceText,
         TextSpan snippetSpan,
@@ -281,14 +219,14 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         //   1.  Calculate the snippet function result.  This must be done against the document containing the default snippet text
         //       as the function result is context dependent.
         //   2.  After inserting the function result, determine the spans associated with each editable snippet field.
-        //       The spans will be annotated so that we can retrieve them after formatting.
         var fieldOffsets = new Dictionary<SnippetFieldPart, ImmutableArray<TextSpan>>();
         using var _ = PooledStringBuilder.GetInstance(out var functionSnippetBuilder);
-        int? finalCaretPosition = null;
+        TextSpan? caretSpan = null;
 
-        // Keep track of the field location in both the document with the default snippet (to calculate snippet functions, see below)
-        // and in the document with default + functions evaluated (for later annotation).
+        // This represents the field start location in the context of the snippet without functions replaced (see below).
         var locationInDefaultSnippet = snippetSpan.Start;
+
+        // This represents the field start location in the context of the snippet with functions replaced.
         var locationInFinalSnippet = snippetSpan.Start;
         foreach (var originalPart in parsedSnippet.Parts)
         {
@@ -306,12 +244,12 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
             // Only store spans for editable fields or the cursor location, we don't need to get back to anything else.
             if (part is SnippetFieldPart fieldPart && fieldPart.EditIndex != null)
             {
-                var offsetsForField = fieldOffsets.GetValueOrDefault(fieldPart, ImmutableArray<TextSpan>.Empty);
-                fieldOffsets[fieldPart] = offsetsForField.Add(new TextSpan(locationInFinalSnippet, part.DefaultText.Length));
+                var fieldSpan = new TextSpan(locationInFinalSnippet, part.DefaultText.Length);
+                fieldOffsets[fieldPart] = fieldOffsets.GetValueOrDefault(fieldPart, ImmutableArray<TextSpan>.Empty).Add(fieldSpan);
             }
             else if (part is SnippetCursorPart cursorPart)
             {
-                finalCaretPosition = locationInFinalSnippet;
+                caretSpan = new TextSpan(locationInFinalSnippet, cursorPart.DefaultText.Length);
             }
 
             locationInFinalSnippet += part.DefaultText.Length;
@@ -320,7 +258,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
             locationInDefaultSnippet += originalPart.DefaultText.Length;
         }
 
-        return (functionSnippetBuilder.ToString(), fieldOffsets.ToImmutableDictionary(), finalCaretPosition);
+        return (functionSnippetBuilder.ToString(), fieldOffsets.ToImmutableDictionary(), caretSpan);
     }
 
     private static bool TryGetWordOnLeft(int position, SourceText currentText, ISyntaxFactsService syntaxFactsService, [NotNullWhen(true)] out TextSpan? wordSpan)
