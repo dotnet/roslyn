@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private static bool IsDigit(VirtualChar ch)
             => ch.Value is >= '0' and <= '9';
 
-        private static JsonValueNode ParseNumber(JsonToken textToken)
+        private static JsonLiteralNode ParseNumber(JsonToken textToken)
             => new(textToken.With(kind: JsonKind.NumberToken));
 
         private JsonCommaValueNode ParseCommaValue()
