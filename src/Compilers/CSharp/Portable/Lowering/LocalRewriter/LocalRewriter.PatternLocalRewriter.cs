@@ -297,8 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                     case BoundDagAssignmentEvaluation:
-                        throw ExceptionUtilities.Unreachable;
-
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);
                 }

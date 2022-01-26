@@ -94,15 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The set of variables attached to the outer block
                 outerVariables.AddRange(node.InnerLocals);
 
-                BoundDecisionDag decisionDag = node.DecisionDag;
-                if (decisionDag.ContainsAnySynthesizedNodes())
-                {
-                    decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(_factory.Compilation, node);
-                    Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
-                }
-
                 // Evaluate the input and set up sharing for dag temps with user variables
-                decisionDag = ShareTempsIfPossibleAndEvaluateInput(decisionDag, loweredSwitchGoverningExpression, result, out _);
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
+                    node.GetDecisionDagForLowering(_factory.Compilation), 
+                    loweredSwitchGoverningExpression, result, out _);
 
                 // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
                 // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into

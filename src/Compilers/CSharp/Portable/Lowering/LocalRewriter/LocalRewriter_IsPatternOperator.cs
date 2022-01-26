@@ -14,20 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            BoundDecisionDag decisionDag = node.DecisionDag;
-            if (decisionDag.ContainsAnySynthesizedNodes())
-            {
-                decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(_factory.Compilation, node);
-                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
-            }
-
+            BoundDecisionDag decisionDag = node.GetDecisionDagForLowering(_factory.Compilation);
             bool negated = node.IsNegated;
             BoundExpression result;
             if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
             {
                 // If we can build a linear test sequence `(e1 && e2 && e3)` for the dag, do so.
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
+                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
                 isPatternRewriter.Free();
             }
             else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel))
@@ -36,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // result.  This would typically arise when the source contains `e is not pattern`.
                 negated = !negated;
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
+                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
                 isPatternRewriter.Free();
             }
             else
@@ -220,9 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public BoundExpression LowerIsPatternAsLinearTestSequence(
-                BoundIsPatternExpression isPatternExpression, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel)
+                BoundIsPatternExpression isPatternExpression,
+                BoundDecisionDag decisionDag,
+                LabelSymbol whenTrueLabel,
+                LabelSymbol whenFalseLabel)
             {
-                BoundDecisionDag decisionDag = isPatternExpression.DecisionDag;
                 BoundExpression loweredInput = _localRewriter.VisitExpression(isPatternExpression.Expression);
 
                 // The optimization of sharing pattern-matching temps with user variables can always apply to

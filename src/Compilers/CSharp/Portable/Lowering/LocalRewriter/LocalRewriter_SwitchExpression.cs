@@ -50,18 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
                 var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
 
-                LabelSymbol? defaultLabel = node.DefaultLabel;
-                BoundDecisionDag decisionDag = node.DecisionDag;
-                if (decisionDag.ContainsAnySynthesizedNodes())
-                {
-                    // there's no default label if the original switch is exhaustive.
-                    // we generate a new label here because the new dag might not be.
-                    defaultLabel ??= new GeneratedLabelSymbol("default");
-                    decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(_factory.Compilation, node, defaultLabel);
-                    Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
-                }
-
-                decisionDag = ShareTempsIfPossibleAndEvaluateInput(decisionDag,
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
+                    node.GetDecisionDagForLowering(_factory.Compilation, out LabelSymbol? defaultLabel),
                     loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
 
                 Debug.Assert(savedInputExpression != null);

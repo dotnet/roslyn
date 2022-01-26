@@ -92,20 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.CreateDecisionDagForSwitchStatement(syntax, switchGoverningExpression, switchSections);
         }
 
-        public static BoundDecisionDag CreateDecisionDagForSwitchStatement(
-            CSharpCompilation compilation,
-            BoundSwitchStatement node)
-        {
-            return CreateDecisionDagForSwitchStatement(
-                compilation,
-                node.Syntax,
-                node.Expression,
-                node.SwitchSections,
-                node.DefaultLabel?.Label ?? node.BreakLabel,
-                BindingDiagnosticBag.Discarded,
-                forLowering: true);
-        }
-
         /// <summary>
         /// Create a decision dag for a switch expression.
         /// </summary>
@@ -120,21 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForSwitchExpression(syntax, switchExpressionInput, switchArms);
-        }
-
-        public static BoundDecisionDag CreateDecisionDagForSwitchExpression(
-            CSharpCompilation compilation,
-            BoundSwitchExpression node,
-            LabelSymbol defaultLabel)
-        {
-            return CreateDecisionDagForSwitchExpression(
-                compilation,
-                node.Syntax,
-                node.Expression,
-                node.SwitchArms,
-                defaultLabel,
-                BindingDiagnosticBag.Discarded,
-                forLowering: true);
         }
 
         /// <summary>
@@ -152,21 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
-        }
-
-        public static BoundDecisionDag CreateDecisionDagForIsPattern(
-            CSharpCompilation compilation,
-            BoundIsPatternExpression node)
-        {
-            return CreateDecisionDagForIsPattern(
-                compilation,
-                node.Syntax,
-                node.Expression,
-                node.Pattern,
-                node.WhenTrueLabel,
-                node.WhenFalseLabel,
-                BindingDiagnosticBag.Discarded,
-                forLowering: true);
         }
 
         private BoundDecisionDag CreateDecisionDagForIsPattern(
