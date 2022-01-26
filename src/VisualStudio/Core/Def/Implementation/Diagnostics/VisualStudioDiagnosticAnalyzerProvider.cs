@@ -9,6 +9,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.ExtensionManager;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
@@ -26,17 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// </summary>
         public static readonly IAnalyzerAssemblyLoader AnalyzerAssemblyLoader = new Loader();
 
-        private readonly object _extensionManager;
-        private readonly Type _typeIExtensionContent;
+        private readonly IVsExtensionManager _extensionManager;
 
-        // internal for testing
-        internal VisualStudioDiagnosticAnalyzerProvider(object extensionManager, Type typeIExtensionContent)
+        internal VisualStudioDiagnosticAnalyzerProvider(IVsExtensionManager extensionManager)
         {
             Contract.ThrowIfNull(extensionManager);
-            Contract.ThrowIfNull(typeIExtensionContent);
 
             _extensionManager = extensionManager;
-            _typeIExtensionContent = typeIExtensionContent;
         }
 
         // internal for testing
@@ -48,35 +45,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 // implementation of the public interface in internal type. so we can't use dynamic here
                 var _ = PooledHashSet<string>.GetInstance(out var analyzePaths);
 
-                // var enabledExtensions = extensionManager.GetEnabledExtensions(AnalyzerContentTypeName);
-                var extensionManagerType = _extensionManager.GetType();
-                var extensionManager_GetEnabledExtensionsMethod = extensionManagerType.GetRuntimeMethod("GetEnabledExtensions", new Type[] { typeof(string) });
-                var enabledExtensions = (IEnumerable<object>)extensionManager_GetEnabledExtensionsMethod.Invoke(_extensionManager, new object[] { AnalyzerContentTypeName });
+                var enabledExtensions = _extensionManager.GetEnabledExtensions(AnalyzerContentTypeName);
 
                 foreach (var extension in enabledExtensions)
                 {
-                    // var name = extension.Header.LocalizedName;
-                    var extensionType = extension.GetType();
-                    var extensionType_HeaderProperty = extensionType.GetRuntimeProperty("Header");
-                    var extension_Header = extensionType_HeaderProperty.GetValue(extension);
-                    var extension_HeaderType = extension_Header.GetType();
-                    var extension_HeaderType_LocalizedNameProperty = extension_HeaderType.GetRuntimeProperty("LocalizedName");
-                    var name = extension_HeaderType_LocalizedNameProperty.GetValue(extension_Header) as string;
-
-                    // var extension_Content = extension.Content;
-                    var extensionType_ContentProperty = extensionType.GetRuntimeProperty("Content");
-                    var extension_Content = (IEnumerable<object>)extensionType_ContentProperty.GetValue(extension);
-
-                    foreach (var content in extension_Content)
+                    var name = extension.Header.LocalizedName;
+                    foreach (var content in extension.Content)
                     {
                         if (!ShouldInclude(content))
                         {
                             continue;
                         }
 
-                        var extensionType_GetContentMethod = extensionType.GetRuntimeMethod("GetContentLocation", new Type[] { _typeIExtensionContent });
-                        if (extensionType_GetContentMethod?.Invoke(extension, new object[] { content }) is not string assemblyPath ||
-                            string.IsNullOrEmpty(assemblyPath))
+                        var assemblyPath = extension.GetContentLocation(content);
+                        if (string.IsNullOrEmpty(assemblyPath))
                         {
                             continue;
                         }
@@ -103,14 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
         }
 
-        private static bool ShouldInclude(object content)
+        private static bool ShouldInclude(IExtensionContent content)
         {
-            // var content_ContentTypeName = content.ContentTypeName;
-            var contentType = content.GetType();
-            var contentType_ContentTypeNameProperty = contentType.GetRuntimeProperty("ContentTypeName");
-            var content_ContentTypeName = contentType_ContentTypeNameProperty.GetValue(content) as string;
-
-            return string.Equals(content_ContentTypeName, AnalyzerContentTypeName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(content.ContentTypeName, AnalyzerContentTypeName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

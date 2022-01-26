@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.ExtensionManager;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
@@ -74,26 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 // the following code requires UI thread:
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
+                var extensionManager = (IVsExtensionManager)_serviceProvider.GetService(typeof(SVsExtensionManager));
 
-                // Microsoft.VisualStudio.ExtensionManager is non-versioned, so we need to dynamically load it, depending on the version of VS we are running on
-                // this will allow us to build once and deploy on different versions of VS SxS.
-                var vsDteVersion = Version.Parse(dte.Version.Split(' ')[0]); // DTE.Version is in the format of D[D[.D[D]]][ (?+)], so we need to split out the version part and check for uninitialized Major/Minor below
-
-                // TODO: Remove all the reflection based code in this method and VisualStudioDiagnosticAnalyzerProvider.
-                var assemblyVersion = $"{(vsDteVersion.Major == -1 ? 0 : vsDteVersion.Major)}.{(vsDteVersion.Minor == -1 ? 0 : vsDteVersion.Minor)}.0.0";
-                var extensionManagerAssembly = Assembly.Load($"Microsoft.VisualStudio.ExtensionManager, Version={assemblyVersion}, PublicKeyToken=b03f5f7f11d50a3a");
-                var extensionEngineAssembly = Assembly.Load($"Microsoft.VisualStudio.ExtensionEngine, Version={assemblyVersion}, PublicKeyToken=b03f5f7f11d50a3a");
-
-                // Type "IExtensionContent" recently moved from ExtensionManager assembly to ExtensionEngine assembly.
-                // We will look in both these assemblies so things work fine even on older VS builds running with newer Roslyn VSIX install.
-                var typeIExtensionContent = extensionEngineAssembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent")
-                    ?? extensionManagerAssembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent");
-
-                var type = extensionManagerAssembly.GetType("Microsoft.VisualStudio.ExtensionManager.SVsExtensionManager");
-                var extensionManager = _serviceProvider.GetService(type);
-
-                return new VisualStudioDiagnosticAnalyzerProvider(extensionManager, typeIExtensionContent);
+                return new VisualStudioDiagnosticAnalyzerProvider(extensionManager);
             }
 
             private static void LogWorkspaceAnalyzerCount(int analyzerCount)
