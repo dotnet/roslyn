@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
-            _sourceAssembly = member?.ContainingAssembly as SourceAssemblySymbol;
+            _sourceAssembly = GetSourceAssembly(compilation, member);
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _requireOutParamsAssigned = requireOutParamsAssigned;
             _trackClassFields = trackClassFields;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(compilation, member, node, emptyStructs, trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
-            _sourceAssembly = member?.ContainingAssembly as SourceAssemblySymbol;
+            _sourceAssembly = GetSourceAssembly(compilation, member);
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = null;
             _requireOutParamsAssigned = true;
@@ -202,6 +202,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+        }
+
+        private static SourceAssemblySymbol? GetSourceAssembly(CSharpCompilation compilation, Symbol member)
+        {
+            Debug.Assert(member is null ||
+                member.ContainingAssembly is SourceAssemblySymbol ||
+                (member is TypeSymbol type && compilation.IsAttributeType(type)));
+
+            return member?.ContainingAssembly as SourceAssemblySymbol;
         }
 
         protected override void Free()
