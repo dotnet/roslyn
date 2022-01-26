@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 break;
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private JsonTrivia? ScanEndOfLine()
