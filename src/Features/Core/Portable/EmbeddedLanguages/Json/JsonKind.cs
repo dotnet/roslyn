@@ -7,11 +7,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     internal enum JsonKind
     {
         None = 0,
+
+        // Nodes
         CompilationUnit,
         Text,
         Object,
         Array,
         Literal,
+        // Used to represent `-Infinity` which is supported by Json.Net
         NegativeLiteral,
         Property,
         Constructor,
