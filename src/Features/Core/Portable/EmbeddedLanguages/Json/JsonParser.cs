@@ -188,48 +188,47 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
                 return CheckSyntax(child);
             }
-        }
 
-        private static EmbeddedDiagnostic? CheckChildren(JsonNode node)
-        {
-            foreach (var child in node)
+            static EmbeddedDiagnostic? CheckSyntax(JsonNode node)
             {
-                if (child.IsNode)
+                var diagnostic = node.Kind switch
                 {
-                    var diagnostic = CheckSyntax(child.Node);
-                    if (diagnostic != null)
-                        return diagnostic;
-                }
+                    JsonKind.Array => CheckArray((JsonArrayNode)node),
+                    _ => null,
+                };
+
+                return diagnostic ?? CheckChildren(node);
             }
 
-            return null;
-        }
-
-        public static EmbeddedDiagnostic? CheckSyntax(JsonNode node)
-            => node.Kind switch
+            static EmbeddedDiagnostic? CheckChildren(JsonNode node)
             {
-                JsonKind.Array => CheckArray((JsonArrayNode)node),
-                //JsonKind.Object => CheckObject((JsonObjectNode)node),
-                //JsonKind.Constructor => CheckConstructor((JsonConstructorNode)node),
-                //JsonKind.Property => CheckProperty((JsonPropertyNode)node),
-                //JsonKind.Literal => CheckLiteral((JsonLiteralNode)node),
-                //JsonKind.NegativeLiteral => CheckNegativeLiteral((JsonNegativeLiteralNode)node),
-                _ => CheckChildren(node),
-            };
-
-        private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
-        {
-            foreach (var child in node.Sequence)
-            {
-                if (child.Kind == JsonKind.Property)
+                foreach (var child in node)
                 {
-                    return new EmbeddedDiagnostic(
-                        FeaturesResources.Properties_not_allowed_in_an_array,
-                        ((JsonPropertyNode)child).ColonToken.GetSpan());
+                    if (child.IsNode)
+                    {
+                        var diagnostic = CheckSyntax(child.Node);
+                        if (diagnostic != null)
+                            return diagnostic;
+                    }
                 }
+
+                return null;
             }
 
-            return CheckChildren(node);
+            static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
+            {
+                foreach (var child in node.Sequence)
+                {
+                    if (child.Kind == JsonKind.Property)
+                    {
+                        return new EmbeddedDiagnostic(
+                            FeaturesResources.Properties_not_allowed_in_an_array,
+                            ((JsonPropertyNode)child).ColonToken.GetSpan());
+                    }
+                }
+
+                return CheckChildren(node);
+            }
         }
 
         private static JsonToken GetFirstToken(JsonNodeOrToken nodeOrToken)

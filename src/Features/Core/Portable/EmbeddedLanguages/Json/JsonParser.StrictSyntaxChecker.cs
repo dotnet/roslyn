@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
@@ -23,18 +22,32 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         /// </summary>
         private static class StrictSyntaxChecker
         {
-            private static EmbeddedDiagnostic? CheckChildren(JsonNode node)
+            public static EmbeddedDiagnostic? CheckSyntax(JsonNode node)
             {
-                foreach (var child in node)
+                var diagnostic = node.Kind switch
                 {
-                    var diagnostic = child.IsNode ? CheckSyntax(child.Node) : CheckToken(child.Token);
-                    if (diagnostic != null)
-                    {
-                        return diagnostic;
-                    }
-                }
+                    JsonKind.Constructor => CheckConstructor((JsonConstructorNode)node),
+                    JsonKind.Literal => CheckLiteral((JsonLiteralNode)node),
+                    JsonKind.NegativeLiteral => CheckNegativeLiteral((JsonNegativeLiteralNode)node),
+                    JsonKind.Property => CheckProperty((JsonPropertyNode)node),
+                    JsonKind.Array => CheckArray((JsonArrayNode)node),
+                    JsonKind.Object => CheckObject((JsonObjectNode)node),
+                    _ => null,
+                };
 
-                return null;
+                return diagnostic ?? CheckChildren(node);
+
+                static EmbeddedDiagnostic? CheckChildren(JsonNode node)
+                {
+                    foreach (var child in node)
+                    {
+                        var diagnostic = child.IsNode ? CheckSyntax(child.Node) : CheckToken(child.Token);
+                        if (diagnostic != null)
+                            return diagnostic;
+                    }
+
+                    return null;
+                }
             }
 
             private static EmbeddedDiagnostic? CheckToken(JsonToken token)
@@ -46,30 +59,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 {
                     var diagnostic = CheckTrivia(trivia);
                     if (diagnostic != null)
-                    {
                         return diagnostic;
-                    }
                 }
 
                 return null;
             }
 
             private static EmbeddedDiagnostic? CheckTrivia(JsonTrivia trivia)
-            {
-                switch (trivia.Kind)
+                => trivia.Kind switch
                 {
-                    case JsonKind.MultiLineCommentTrivia:
-                    case JsonKind.SingleLineCommentTrivia:
-                        // Strict mode doesn't allow comments at all.
-                        return new EmbeddedDiagnostic(
-                            FeaturesResources.Comments_not_allowed,
-                            GetSpan(trivia.VirtualChars));
-                    case JsonKind.WhitespaceTrivia:
-                        return CheckWhitespace(trivia);
-                }
-
-                return null;
-            }
+                    // Strict mode doesn't allow comments at all.
+                    JsonKind.MultiLineCommentTrivia or JsonKind.SingleLineCommentTrivia
+                        => new EmbeddedDiagnostic(FeaturesResources.Comments_not_allowed, GetSpan(trivia.VirtualChars)),
+                    JsonKind.WhitespaceTrivia => CheckWhitespace(trivia),
+                    _ => null,
+                };
 
             private static EmbeddedDiagnostic? CheckWhitespace(JsonTrivia trivia)
             {
@@ -84,28 +88,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         default:
                             // Strict mode only allows spaces and horizontal tabs.  Everything else
                             // is illegal.
-                            return new EmbeddedDiagnostic(
-                                FeaturesResources.Illegal_whitespace_character,
-                                ch.Span);
+                            return new EmbeddedDiagnostic(FeaturesResources.Illegal_whitespace_character, ch.Span);
                     }
                 }
 
                 return null;
-            }
-
-            public static EmbeddedDiagnostic? CheckSyntax(JsonNode node)
-            {
-                switch (node.Kind)
-                {
-                    case JsonKind.Constructor: return CheckConstructor((JsonConstructorNode)node);
-                    case JsonKind.Literal: return CheckLiteral((JsonLiteralNode)node);
-                    case JsonKind.NegativeLiteral: return CheckNegativeLiteral((JsonNegativeLiteralNode)node);
-                    case JsonKind.Property: return CheckProperty((JsonPropertyNode)node);
-                    case JsonKind.Array: return CheckArray((JsonArrayNode)node);
-                    case JsonKind.Object: return CheckObject((JsonObjectNode)node);
-                }
-
-                return CheckChildren(node);
             }
 
             private static EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
@@ -114,18 +101,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 foreach (var child in sequence)
                 {
                     if (child.Kind != JsonKind.Property && child.Kind != JsonKind.CommaValue)
-                    {
-                        return new EmbeddedDiagnostic(
-                            FeaturesResources.Only_properties_allowed_in_an_object,
-                            GetFirstToken(child).GetSpan());
-                    }
+                        return new EmbeddedDiagnostic(FeaturesResources.Only_properties_allowed_in_an_object, GetFirstToken(child).GetSpan());
                 }
 
-                return CheckProperSeparation(sequence) ?? CheckChildren(node);
+                return CheckProperSeparation(sequence);
             }
 
             private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
-                => CheckProperSeparation(node.Sequence) ?? CheckChildren(node);
+                => CheckProperSeparation(node.Sequence);
 
             private static EmbeddedDiagnostic? CheckProperSeparation(ImmutableArray<JsonValueNode> sequence)
             {
@@ -136,31 +119,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     if (i % 2 == 0)
                     {
                         if (child.Kind == JsonKind.CommaValue)
-                        {
-                            return new EmbeddedDiagnostic(
-                                string.Format(FeaturesResources._0_unexpected, ","),
-                                child.GetSpan());
-                        }
+                            return new EmbeddedDiagnostic(string.Format(FeaturesResources._0_unexpected, ","), child.GetSpan());
                     }
                     else
                     {
                         if (child.Kind != JsonKind.CommaValue)
-                        {
-                            return new EmbeddedDiagnostic(
-                                string.Format(FeaturesResources._0_expected, ","),
-                                GetFirstToken(child).GetSpan());
-                        }
+                            return new EmbeddedDiagnostic(string.Format(FeaturesResources._0_expected, ","), GetFirstToken(child).GetSpan());
                     }
                 }
 
-                if (sequence.Length != 0 &&
-                    sequence.Length % 2 == 0)
-                {
-                    var lastChild = sequence[^1];
-                    return new EmbeddedDiagnostic(
-                        FeaturesResources.Trailing_comma_not_allowed,
-                        lastChild.GetSpan());
-                }
+                if (sequence.Length != 0 && sequence.Length % 2 == 0)
+                    return new EmbeddedDiagnostic(FeaturesResources.Trailing_comma_not_allowed, sequence[^1].GetSpan());
 
                 return null;
             }
@@ -168,39 +137,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             private static EmbeddedDiagnostic? CheckProperty(JsonPropertyNode node)
             {
                 if (node.NameToken.Kind != JsonKind.StringToken)
-                {
-                    return new EmbeddedDiagnostic(
-                        FeaturesResources.Property_name_must_be_a_string,
-                        node.NameToken.GetSpan());
-                }
+                    return new EmbeddedDiagnostic(FeaturesResources.Property_name_must_be_a_string, node.NameToken.GetSpan());
 
                 if (node.Value.Kind == JsonKind.CommaValue)
-                {
-                    return new EmbeddedDiagnostic(
-                        FeaturesResources.Value_required,
-                        new TextSpan(node.ColonToken.VirtualChars[0].Span.End, 0));
-                }
+                    return new EmbeddedDiagnostic(FeaturesResources.Value_required, new TextSpan(node.ColonToken.VirtualChars[0].Span.End, 0));
 
-                return CheckString(node.NameToken) ?? CheckChildren(node);
+                return CheckString(node.NameToken);
             }
 
             private static EmbeddedDiagnostic? CheckLiteral(JsonLiteralNode node)
-            {
-                switch (node.LiteralToken.Kind)
+                => node.LiteralToken.Kind switch
                 {
-                    case JsonKind.NaNLiteralToken:
-                    case JsonKind.InfinityLiteralToken:
-                    case JsonKind.UndefinedLiteralToken:
-                        // These are all json.net extensions.  Disallow them all.
-                        return InvalidLiteral(node.LiteralToken);
-                    case JsonKind.NumberToken:
-                        return CheckNumber(node.LiteralToken);
-                    case JsonKind.StringToken:
-                        return CheckString(node.LiteralToken);
-                }
-
-                return CheckChildren(node);
-            }
+                    // These are all json.net extensions.  Disallow them all.
+                    JsonKind.NaNLiteralToken or JsonKind.InfinityLiteralToken or JsonKind.UndefinedLiteralToken
+                        => InvalidLiteral(node.LiteralToken),
+                    JsonKind.NumberToken => CheckNumber(node.LiteralToken),
+                    JsonKind.StringToken => CheckString(node.LiteralToken),
+                    _ => null,
+                };
 
             /*
                From: https://tools.ietf.org/html/rfc8259
@@ -247,34 +201,21 @@ $",
             private static EmbeddedDiagnostic? CheckNumber(JsonToken literalToken)
             {
                 var literalText = literalToken.VirtualChars.CreateString();
-                if (!s_validNumberRegex.IsMatch(literalText))
-                {
-                    return new EmbeddedDiagnostic(
-                        FeaturesResources.Invalid_number,
-                        literalToken.GetSpan());
-                }
-
-                return CheckToken(literalToken);
+                return !s_validNumberRegex.IsMatch(literalText)
+                    ? new EmbeddedDiagnostic(FeaturesResources.Invalid_number, literalToken.GetSpan())
+                    : CheckToken(literalToken);
             }
 
             private static EmbeddedDiagnostic? CheckString(JsonToken literalToken)
             {
                 var chars = literalToken.VirtualChars;
                 if (chars[0] == '\'')
-                {
-                    return new EmbeddedDiagnostic(
-                        FeaturesResources.Strings_must_start_with_double_quote_not_single_quote,
-                        chars[0].Span);
-                }
+                    return new EmbeddedDiagnostic(FeaturesResources.Strings_must_start_with_double_quote_not_single_quote, chars[0].Span);
 
                 for (int i = 1, n = chars.Length - 1; i < n; i++)
                 {
                     if (chars[i] < ' ')
-                    {
-                        return new EmbeddedDiagnostic(
-                            FeaturesResources.Illegal_string_character,
-                            chars[i].Span);
-                    }
+                        return new EmbeddedDiagnostic(FeaturesResources.Illegal_string_character, chars[i].Span);
                 }
 
                 // Lexer allows \' as that's ok in json.net.  Check and block that here.
@@ -283,11 +224,7 @@ $",
                     if (chars[i] == '\\')
                     {
                         if (chars[i + 1] == '\'')
-                        {
-                            return new EmbeddedDiagnostic(
-                                FeaturesResources.Invalid_escape_sequence,
-                                TextSpan.FromBounds(chars[i].Span.Start, chars[i + 1].Span.End));
-                        }
+                            return new EmbeddedDiagnostic(FeaturesResources.Invalid_escape_sequence, TextSpan.FromBounds(chars[i].Span.Start, chars[i + 1].Span.End));
 
                         // Legal escape.  just jump forward past it.  Note, this works for simple
                         // escape and unicode \uXXXX escapes.
@@ -302,25 +239,13 @@ $",
             }
 
             private static EmbeddedDiagnostic? InvalidLiteral(JsonToken literalToken)
-            {
-                return new EmbeddedDiagnostic(
-                    string.Format(FeaturesResources._0_literal_not_allowed, literalToken.VirtualChars.CreateString()),
-                    literalToken.GetSpan());
-            }
+                => new EmbeddedDiagnostic(string.Format(FeaturesResources._0_literal_not_allowed, literalToken.VirtualChars.CreateString()), literalToken.GetSpan());
 
             private static EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
-            {
-                return new EmbeddedDiagnostic(
-                    string.Format(FeaturesResources._0_literal_not_allowed, "-Infinity"),
-                    node.GetSpan());
-            }
+                => new EmbeddedDiagnostic(string.Format(FeaturesResources._0_literal_not_allowed, "-Infinity"), node.GetSpan());
 
             private static EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
-            {
-                return new EmbeddedDiagnostic(
-                    FeaturesResources.Constructors_not_allowed,
-                    node.NewKeyword.GetSpan());
-            }
+                => new EmbeddedDiagnostic(FeaturesResources.Constructors_not_allowed, node.NewKeyword.GetSpan());
         }
     }
 }
