@@ -5363,5 +5363,26 @@ b""</StringToken>
   <Diagnostic Message=""Constructors not allowed"" Start=""9"" Length=""3"" />
 </Diagnostics>");
         }
+
+        [Fact]
+        public void TestTopLevelText()
+        {
+            Test(@"""Date""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>Date</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'D' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'D' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>");
+        }
     }
 }
