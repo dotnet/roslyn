@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
             => CommandState.Unspecified;
 
+        /// <summary>
+        /// Checks to see if the user it typing <c>return</c> in <c>"""$$"""</c> and then properly indents the end
+        /// delimiter of the raw string literal.
+        /// </summary>
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
             var textView = args.TextView;
