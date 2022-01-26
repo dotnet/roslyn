@@ -5262,5 +5262,36 @@ b""</StringToken>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
 </Diagnostics>");
         }
+
+        [Fact]
+        public void TestIncompleteProperty()
+        {
+            Test(@"""{ 'a': }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>'a'</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Text>
+              <TextToken>}</TextToken>
+            </Text>
+          </Property>
+        </Sequence>
+        <CloseBraceToken />
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""16"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""16"" Length=""1"" />
+</Diagnostics>");
+        }
     }
 }
