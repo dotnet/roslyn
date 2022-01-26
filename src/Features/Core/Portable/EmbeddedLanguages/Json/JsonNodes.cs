@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     }
 
     /// <summary>
-    /// Represents a chunk of text that we did not understand as anything special.  i.e. it wasn't a
-    /// keyword, number, or literal.
+    /// Represents a chunk of text that we did not understand as anything special.  i.e. it wasn't a keyword, number, or
+    /// literal.  One common case of this is an unquoted property name (which json.net accepts).
     /// </summary>
     internal sealed class JsonTextNode : JsonValueNode
     {
