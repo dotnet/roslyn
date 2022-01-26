@@ -189,11 +189,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         private static bool IsHexDigit(VirtualChar c)
-        {
-            return (c >= '0' && c <= '9') ||
-                   (c >= 'A' && c <= 'F') ||
-                   (c >= 'a' && c <= 'f');
-        }
+            => c.Value is (>= '0' and <= '9') or
+                          (>= 'A' and <= 'F') or
+                          (>= 'a' and <= 'f');
 
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanText()
         {
