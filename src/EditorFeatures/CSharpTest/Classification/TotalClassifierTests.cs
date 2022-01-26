@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                TypeParameter("var"),
+                Keyword("var"),
                 Local("x"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
@@ -1113,7 +1113,7 @@ class X<T> where T : unmanaged { }",
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -1207,7 +1207,7 @@ class X
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -1299,7 +1299,7 @@ delegate void D<T>() where T : unmanaged;",
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.Semicolon);
         }
 
@@ -1411,7 +1411,7 @@ class X
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
@@ -1604,7 +1604,7 @@ class X<T> where T : notnull { }",
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -1698,7 +1698,7 @@ class X
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -1790,7 +1790,7 @@ delegate void D<T>() where T : notnull;",
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.Semicolon);
         }
 
@@ -1902,7 +1902,7 @@ class X
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,

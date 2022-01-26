@@ -2164,7 +2164,7 @@ class B : A
     }
 }",
                 testHost,
-                Class("var"));
+                Keyword("var"));
         }
 
         [WorkItem(9513, "DevDiv_Projects/Roslyn")]
@@ -2854,7 +2854,7 @@ interface unmanaged {}
 class X<T> where T : unmanaged { }",
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory]
@@ -2899,7 +2899,7 @@ class X
 }",
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory]
@@ -2941,7 +2941,7 @@ interface unmanaged {}
 delegate void D<T>() where T : unmanaged;",
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory]
@@ -3509,7 +3509,7 @@ class X
 }",
                 testHost,
                 TypeParameter("T"),
-                Interface("unmanaged"));
+                Keyword("unmanaged"));
         }
 
         [Theory]
@@ -3882,7 +3882,7 @@ interface notnull {}
 class X<T> where T : notnull { }",
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory]
@@ -3927,7 +3927,7 @@ class X
 }",
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory]
@@ -3969,7 +3969,7 @@ interface notnull {}
 delegate void D<T>() where T : notnull;",
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory]
@@ -4020,7 +4020,7 @@ class X
 }",
                 testHost,
                 TypeParameter("T"),
-                Interface("notnull"));
+                Keyword("notnull"));
         }
 
         [Theory]
