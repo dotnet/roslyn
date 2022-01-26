@@ -467,6 +467,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool BodyShouldBeSynthesized => _bodyShouldBeSynthesized;
 
         /// <summary>
+        /// Indicates whether this get/set accessor is equivalent to a backing field read/write.
+        /// </summary>
+        internal bool IsEquivalentToBackingFieldAccess => _bodyShouldBeSynthesized;
+
+        /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
         internal sealed override bool IsDeclaredReadOnly

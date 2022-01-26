@@ -1668,26 +1668,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CSDiagnosticInfo(ErrorCode.ERR_BadEventUsageNoField, leastOverridden);
         }
 
-        internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
+        // PROTOTYPE(semi-auto-props): Re-evaluate if this helper is needed. There is one callsite only.
+        internal static bool IsEquivalentToBackingFieldRead(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
-            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
+            var propertySymbol = propertyAccess.PropertySymbol;
+            var receiver = propertyAccess.ReceiverOpt;
+            if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            {
+                propertySymbol = propertySymbol.OriginalDefinition;
+            }
+
+            return propertySymbol is SourcePropertySymbolBase sourceProperty &&
+                sourceProperty.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
+                    IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
+                    (sourceProperty.IsStatic || receiver.Kind == BoundKind.ThisReference);
         }
 
-        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
+        internal static bool IsPropertyAssignedThroughBackingField(BoundPropertyAccess propertyAccess, Symbol fromMember)
+        {
+            return IsPropertyAssignedThroughBackingField(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
+        }
+
+        /// <summary>
+        /// Determines whether a property is assigned through the backing field within a symbol <paramref name="fromMember"/>
+        /// </summary>
+        /// <remarks>
+        /// A property is assigned through backing field within a constructor or a field initializer.
+        /// </remarks>
+        private static bool IsPropertyAssignedThroughBackingField(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            var sourceProperty = propertySymbol as SourcePropertySymbolBase;
-            var propertyIsStatic = propertySymbol.IsStatic;
+            // PROTOTYPE(semi-auto-props): TODO: Support assigning semi auto prop from constructors.
 
-            return (object)sourceProperty != null &&
-                    sourceProperty.IsAutoPropertyWithGetAccessor &&
+            return propertySymbol is SourcePropertySymbolBase sourceProperty &&
+                    // PROTOTYPE(semi-auto-props): Consider `public int P { get => field; set; }`
+                    sourceProperty.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
+                    // To be assigned through backing field, either SetMethod is null, or it's equivalent to backing field write
+                    // PROTOTYPE(semi-auto-props): TODO: Do we need to use `GetOwnOrInheritedSetMethod` instead of `SetMethod`?
+                    // Legacy auto-properties are required to override all accessors. If this is not the case with semi auto props, we may need to use GetOwnOrInheritedSetMethod
+                    sourceProperty.SetMethod is null or SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
-                    IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
-                    (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
+                    IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
+                    (sourceProperty.IsStatic || receiver.Kind == BoundKind.ThisReference);
         }
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
