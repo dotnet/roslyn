@@ -208,6 +208,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             => visitor.Visit(this);
     }
 
+    /// <summary>
+    /// See the note in <see cref="JsonParser"/> for why commas are stored as values for convenience.
+    /// </summary>
     internal sealed class JsonCommaValueNode : JsonValueNode
     {
         public JsonCommaValueNode(JsonToken commaToken)
