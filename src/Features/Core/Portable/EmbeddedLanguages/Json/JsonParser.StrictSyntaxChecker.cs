@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             */
 
             private static readonly Regex s_validNumberRegex =
-                new Regex(
+                new(
 @"^
 -?                 # [ minus ]
 (0|([1-9][0-9]*))  # int

@@ -37,19 +37,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             public static EmbeddedDiagnostic? CheckSyntax(JsonNode node)
-            {
-                switch (node.Kind)
+                => node.Kind switch
                 {
-                    case JsonKind.Array: return CheckArray((JsonArrayNode)node);
-                    case JsonKind.Object: return CheckObject((JsonObjectNode)node);
-                    case JsonKind.Constructor: return CheckConstructor((JsonConstructorNode)node);
-                    case JsonKind.Property: return CheckProperty((JsonPropertyNode)node);
-                    case JsonKind.Literal: return CheckLiteral((JsonLiteralNode)node);
-                    case JsonKind.NegativeLiteral: return CheckNegativeLiteral((JsonNegativeLiteralNode)node);
-                }
-
-                return CheckChildren(node);
-            }
+                    JsonKind.Array => CheckArray((JsonArrayNode)node),
+                    JsonKind.Object => CheckObject((JsonObjectNode)node),
+                    JsonKind.Constructor => CheckConstructor((JsonConstructorNode)node),
+                    JsonKind.Property => CheckProperty((JsonPropertyNode)node),
+                    JsonKind.Literal => CheckLiteral((JsonLiteralNode)node),
+                    JsonKind.NegativeLiteral => CheckNegativeLiteral((JsonNegativeLiteralNode)node),
+                    _ => CheckChildren(node),
+                };
 
             private static EmbeddedDiagnostic? CheckLiteral(JsonLiteralNode node)
             {

@@ -5340,5 +5340,28 @@ b""</StringToken>
   <Diagnostic Message=""':' unexpected"" Start=""12"" Length=""1"" />
 </Diagnostics>");
         }
+
+        [Fact]
+        public void TestTopLevelConstructor()
+        {
+            Test(@"""new Date()""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>Date</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""9"" Length=""3"" />
+</Diagnostics>");
+        }
     }
 }
