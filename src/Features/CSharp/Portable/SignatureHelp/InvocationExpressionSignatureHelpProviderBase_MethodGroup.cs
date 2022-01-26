@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             Document document,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
+            SymbolInfo symbolInfo,
             IMethodSymbol? currentSymbol,
             CancellationToken cancellationToken)
         {

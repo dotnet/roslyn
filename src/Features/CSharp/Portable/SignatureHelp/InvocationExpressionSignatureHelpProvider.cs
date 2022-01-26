@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // guess the best candidate if needed and determine parameter index
             var arguments = invocationExpression.ArgumentList.Arguments;
-            var candidates = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is IMethodSymbol exactMatch
+            var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
+            var candidates = symbolInfo.Symbol is IMethodSymbol exactMatch
                 ? ImmutableArray.Create(exactMatch)
                 : methods;
             LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, candidates, arguments, out var currentSymbol, out var parameterIndex);
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // present items and select
             var (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(
-                methods, document, invocationExpression, semanticModel, currentSymbol, cancellationToken).ConfigureAwait(false);
+                methods, document, invocationExpression, semanticModel, symbolInfo, currentSymbol, cancellationToken).ConfigureAwait(false);
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
