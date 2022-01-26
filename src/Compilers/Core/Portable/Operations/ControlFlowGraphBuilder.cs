@@ -127,7 +127,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 case OperationKind.AnonymousFunction:
                     Debug.Assert(captureIdDispenser != null);
                     var anonymousFunction = (IAnonymousFunctionOperation)body;
-                    builder.VisitNullChecks(anonymousFunction, anonymousFunction.Symbol.Parameters);
                     builder.VisitStatement(anonymousFunction.Body);
                     break;
                 default:
@@ -1481,12 +1480,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
-            // https://github.com/dotnet/roslyn/issues/58335: this implementation doesn't handle record primary constructors
-            if (operation.SemanticModel!.GetDeclaredSymbol(operation.Syntax) is IMethodSymbol method)
-            {
-                VisitNullChecks(operation, method.Parameters);
-            }
-
             if (operation.Initializer != null)
             {
                 VisitStatement(operation.Initializer);
@@ -1501,155 +1494,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public override IOperation? VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-
-            // https://github.com/dotnet/roslyn/issues/58335: do we need to use SemanticModel here?
-            var member = operation.SemanticModel!.GetDeclaredSymbol(operation.Syntax);
             Debug.Assert(captureIdForResult is null);
-            VisitNullChecks(operation, ((IMethodSymbol)member!).Parameters);
-
             VisitMethodBodyBaseOperation(operation);
             return FinishVisitingStatement(operation);
-        }
-
-        private void VisitNullChecks(IOperation operation, ImmutableArray<IParameterSymbol> parameters)
-        {
-            var temp = _currentStatement;
-            foreach (var param in parameters)
-            {
-                if (param.IsNullChecked)
-                {
-                    // https://github.com/dotnet/roslyn/issues/58335: do we need to use SemanticModel here?
-                    var check = GenerateNullCheckForParameter(param, operation.Syntax, ((Operation)operation).OwningSemanticModel!);
-                    _currentStatement = check;
-                    VisitConditional(check, captureIdForResult: null);
-                }
-            }
-            _currentStatement = temp;
-        }
-
-        private ConditionalOperation GenerateNullCheckForParameter(IParameterSymbol parameter, SyntaxNode syntax, SemanticModel semanticModel)
-        {
-            Debug.Assert(parameter.Language == LanguageNames.CSharp);
-            var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, isImplicit: true);
-            var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-
-            IOperation conditionOp;
-            if (ITypeSymbolHelpers.IsNullableType(parameter.Type))
-            {
-                // https://github.com/dotnet/roslyn/issues/58335: is there a better way to get the HasValue symbol here?
-                // This way doesn't work with compilation.MakeMemberMissing for testing
-                var nullableHasValueProperty = parameter.Type.GetMembers(nameof(Nullable<int>.HasValue)).FirstOrDefault() as IPropertySymbol;
-                var nullableHasValueGet = nullableHasValueProperty?.GetMethod;
-                if (nullableHasValueGet is null)
-                {
-                    conditionOp = new UnaryOperation(
-                    UnaryOperatorKind.Not,
-                    new InvalidOperation(
-                        ImmutableArray.Create<IOperation>(paramReference),
-                        semanticModel,
-                        syntax,
-                        boolType,
-                        constantValue: null,
-                        isImplicit: true),
-                    isLifted: false,
-                    isChecked: false,
-                    operatorMethod: null,
-                    semanticModel,
-                    syntax,
-                    boolType,
-                    constantValue: null,
-                    isImplicit: true);
-                }
-                else
-                {
-                    conditionOp = new UnaryOperation(
-                    UnaryOperatorKind.Not,
-                    new InvocationOperation(
-                        targetMethod: nullableHasValueGet,
-                        instance: paramReference,
-                        isVirtual: false,
-                        arguments: ImmutableArray<IArgumentOperation>.Empty,
-                        semanticModel,
-                        syntax,
-                        boolType,
-                        isImplicit: true),
-                    isLifted: false,
-                    isChecked: false,
-                    operatorMethod: null,
-                    semanticModel,
-                    syntax,
-                    boolType,
-                    constantValue: null,
-                    isImplicit: true);
-                }
-            }
-            else
-            {
-                conditionOp = new BinaryOperation(
-                    BinaryOperatorKind.Equals,
-                    paramReference,
-                    new LiteralOperation(semanticModel, syntax, parameter.Type, ConstantValue.Null, isImplicit: true),
-                    isLifted: false,
-                    isChecked: false,
-                    isCompareText: false,
-                    operatorMethod: null,
-                    unaryOperatorMethod: null,
-                    semanticModel,
-                    syntax,
-                    boolType,
-                    constantValue: null,
-                    isImplicit: true);
-            }
-
-            var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), ConstantValue.Create(parameter.Name), isImplicit: true);
-            var argumentNullExceptionMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString)?.GetISymbol();
-            var argumentNullExceptionType = argumentNullExceptionMethod?.ContainingType;
-
-            // Occurs when a member is missing.
-            IOperation argumentNullExceptionObject;
-            if (argumentNullExceptionMethod is null)
-            {
-                argumentNullExceptionObject = new InvalidOperation(
-                    children: ImmutableArray.Create((IOperation)paramNameLiteral),
-                    semanticModel,
-                    syntax,
-                    argumentNullExceptionType,
-                    constantValue: null,
-                    isImplicit: true);
-            }
-            else
-            {
-                argumentNullExceptionObject = new ObjectCreationOperation(
-                        argumentNullExceptionMethod,
-                        initializer: null,
-                        ImmutableArray.Create<IArgumentOperation>(
-                            new ArgumentOperation(
-                                ArgumentKind.Explicit,
-                                parameter: argumentNullExceptionMethod.Parameters[0],
-                                value: paramNameLiteral,
-                                OperationFactory.IdentityConversion,
-                                OperationFactory.IdentityConversion,
-                                semanticModel,
-                                syntax,
-                                isImplicit: true)),
-                        semanticModel,
-                        syntax,
-                        argumentNullExceptionType,
-                        constantValue: null,
-                        isImplicit: true);
-            }
-
-            IOperation whenTrue = new ExpressionStatementOperation(
-                new ThrowOperation(
-                    argumentNullExceptionObject,
-                    semanticModel,
-                    syntax,
-                    argumentNullExceptionType,
-                    isImplicit: true),
-                semanticModel,
-                syntax,
-                isImplicit: true);
-            return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, semanticModel, syntax, boolType, constantValue: null, isImplicit: true);
         }
 
         private void VisitMethodBodyBaseOperation(IMethodBodyBaseOperation operation)
@@ -6305,7 +6152,6 @@ oneMoreTime:
         private IOperation? VisitLocalFunctionAsRoot(ILocalFunctionOperation operation)
         {
             Debug.Assert(_currentStatement == null);
-            VisitNullChecks(operation, operation.Symbol.Parameters);
             VisitMethodBodies(operation.Body, operation.IgnoredBody);
             return null;
         }

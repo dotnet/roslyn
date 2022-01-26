@@ -875,6 +875,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">無効なグループ名: グループ名は単語文字で始める必要があります</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_regex_pattern">
+        <source>Invalid regex pattern</source>
+        <target state="new">Invalid regex pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">選択が無効です。</target>
