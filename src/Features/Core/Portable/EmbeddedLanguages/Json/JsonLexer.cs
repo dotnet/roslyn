@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
     using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
 
+    [NonCopyable]
     internal struct JsonLexer
     {
         public readonly VirtualCharSequence Text;
