@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
-    public partial class CSharpJsonParserTests
+    public partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
     {
         [Fact]
         public void TestOneSpace()
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""Illegal whitespace character"" Start=""11"" Length=""2"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
@@ -649,8 +649,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         [Fact]
         public void TestNaNLiteral1()
         {
-            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
-            // the spec.  So we don't run those checks.
             Test(@"""NaN""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -664,14 +662,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""'NaN' literal not allowed"" Start=""9"" Length=""3"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
         public void TestNaNLiteral2()
         {
-            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
-            // the spec.  So we don't run those checks.
             Test(@""" NaN """, @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -688,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""'NaN' literal not allowed"" Start=""10"" Length=""3"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
@@ -715,8 +711,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         [Fact]
         public void TestInfinity1()
         {
-            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
-            // the spec.  So we don't run those checks.
             Test(@"""Infinity""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -730,14 +724,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""'Infinity' literal not allowed"" Start=""9"" Length=""8"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
         public void TestNegativeInfinity1()
         {
-            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
-            // the spec.  So we don't run those checks.
             Test(@"""-Infinity""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -752,14 +744,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""'-Infinity' literal not allowed"" Start=""9"" Length=""9"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
         public void TestNegativeInfinity2()
         {
-            // DataContractJsonSerializer accepts NaN and Infinity when those are not part of
-            // the spec.  So we don't run those checks.
             Test(@"""- Infinity""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -778,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""'I' unexpected"" Start=""11"" Length=""8"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
@@ -3601,7 +3591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""Comments not allowed"" Start=""10"" Length=""11"" />
-</Diagnostics>", runLooseTreeCheck: false);
+</Diagnostics>", runLooseSubTreeCheck: false);
         }
 
         [Fact]
@@ -4660,7 +4650,6 @@ b""</StringToken>
         [Fact]
         public void TestSimpleNumber4()
         {
-            // DataContractJsonSerializer does not follow the spec for numbers properly.
             Test(@"@""-.0""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -4674,7 +4663,7 @@ b""</StringToken>
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
@@ -4756,7 +4745,6 @@ b""</StringToken>
         [Fact]
         public void TestNumber3()
         {
-            // DataContractJsonSerializer does not follow the spec for numbers properly.
             Test(@"@""00""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -4770,13 +4758,12 @@ b""</StringToken>
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
         public void TestNumber4()
         {
-            // DataContractJsonSerializer does not follow the spec for numbers properly.
             Test(@"@""-00""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -4790,13 +4777,12 @@ b""</StringToken>
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
         public void TestNumber5()
         {
-            // DataContractJsonSerializer does not follow the spec for numbers properly.
             Test(@"@""0.""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -4810,13 +4796,12 @@ b""</StringToken>
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
         public void TestNumber6()
         {
-            // DataContractJsonSerializer does not follow the spec for numbers properly.
             Test(@"@""-0.""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -4830,7 +4815,7 @@ b""</StringToken>
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
@@ -5260,6 +5245,143 @@ b""</StringToken>
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""3"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestIncompleteProperty()
+        {
+            Test(@"""{ 'a': }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>'a'</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Text>
+              <TextToken>}</TextToken>
+            </Text>
+          </Property>
+        </Sequence>
+        <CloseBraceToken />
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""16"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""16"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestPropertyWithCommaFollowedByComma()
+        {
+            Test(@"""{ 'a': , , }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>'a'</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <CommaValue>
+              <CommaToken />
+            </CommaValue>
+          </Property>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""18"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""18"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestTopLevelProperty()
+        {
+            Test(@"""'a': 0""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Property>
+        <StringToken>'a'</StringToken>
+        <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+        <Literal>
+          <NumberToken>0</NumberToken>
+        </Literal>
+      </Property>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""':' unexpected"" Start=""12"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""':' unexpected"" Start=""12"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestTopLevelConstructor()
+        {
+            Test(@"""new Date()""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Constructor>
+        <NewKeyword>new<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NewKeyword>
+        <TextToken>Date</TextToken>
+        <OpenParenToken>(</OpenParenToken>
+        <Sequence />
+        <CloseParenToken>)</CloseParenToken>
+      </Constructor>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Constructors not allowed"" Start=""9"" Length=""3"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestTopLevelText()
+        {
+            Test(@"""Date""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>Date</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'D' unexpected"" Start=""9"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'D' unexpected"" Start=""9"" Length=""1"" />
 </Diagnostics>");
         }
     }

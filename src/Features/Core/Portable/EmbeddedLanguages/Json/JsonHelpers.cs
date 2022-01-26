@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public static JsonTrivia CreateTrivia(JsonKind kind, VirtualCharSequence virtualChars)
             => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
 
+        public static JsonTrivia CreateTrivia(JsonKind kind, VirtualCharSequence virtualChars, EmbeddedDiagnostic diagnostic)
+            => CreateTrivia(kind, virtualChars, ImmutableArray.Create(diagnostic));
+
         public static JsonTrivia CreateTrivia(JsonKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
             => new(kind, virtualChars, diagnostics);
     }

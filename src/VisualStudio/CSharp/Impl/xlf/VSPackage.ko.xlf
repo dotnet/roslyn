@@ -129,11 +129,10 @@ string.Format 호출에서 잘못된 자리 표시자 보고;
 throw되는 속성 선호;
 자동 속성 선호;
 regex;
-regular expression;
-Use enhanced colors;
-Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</target>
+정규식;
+향상된 색 사용;
+편집기 색 구성표;
+상속 여백;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

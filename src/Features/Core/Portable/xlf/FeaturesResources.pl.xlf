@@ -925,6 +925,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="new">Invalid property name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_regex_pattern">
+        <source>Invalid regex pattern</source>
+        <target state="new">Invalid regex pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Nieprawidłowe zaznaczenie.</target>

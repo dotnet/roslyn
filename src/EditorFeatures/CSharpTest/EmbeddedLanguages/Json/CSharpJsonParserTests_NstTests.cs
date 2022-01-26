@@ -3,12 +3,50 @@
 // See the LICENSE file in the project root for more information.
 
 // tests from: https://github.com/nst/JSONTestSuite
+using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
-    public partial class CSharpJsonParserTests
+    public partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     {
+        private void TestNST(
+            string stringText, string expected, string _, string strictDiagnostics, [CallerMemberName] string caller = "")
+        {
+            var (_, tree, allChars) = JustParseTree(stringText, strict: true, conversionFailureOk: false);
+            Assert.NotNull(tree);
+            Roslyn.Utilities.Contract.ThrowIfNull(tree);
+            var actualTree = TreeToText(tree!).Replace("\"", "\"\"");
+            Assert.Equal(expected.Replace("\"", "\"\""), actualTree);
+
+            var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
+            Assert.Equal(strictDiagnostics.Replace("\"", "\"\""), actualDiagnostics);
+
+            CheckInvariants(tree, allChars);
+
+            if (caller.StartsWith("y_"))
+            {
+                // y_ tests must produce no diagnostics.
+                Assert.Empty(strictDiagnostics);
+            }
+            else if (caller.StartsWith("i_"))
+            {
+                // We don't want to have diagnostics for i_ tests even though we're allowed to.
+                // That's because we want our parser to be permissive when possible so we don't
+                // error on json that is legal under some other parser.
+                Assert.Empty(strictDiagnostics);
+            }
+            else if (caller.StartsWith("n_"))
+            {
+                // n_ tests must always produce diagnostics.
+                Assert.NotEmpty(strictDiagnostics);
+            }
+            else
+            {
+                Assert.False(true, "Unexpected test name.");
+            }
+        }
+
         [Fact]
         public void i_number_double_huge_neg_exp_json()
         {

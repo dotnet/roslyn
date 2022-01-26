@@ -148,6 +148,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
             => SemanticFacts.IsPartial(typeSymbol, cancellationToken);
 
+        public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
+            => SemanticFacts.IsNullChecked(parameterSymbol, cancellationToken);
+
         public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
 

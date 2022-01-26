@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
@@ -18,6 +17,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonCompilationUnit(ImmutableArray<JsonValueNode> sequence, JsonToken endOfFileToken)
             : base(JsonKind.CompilationUnit)
         {
+            Debug.Assert(sequence != null);
             Debug.Assert(endOfFileToken.Kind == JsonKind.EndOfFile);
             Sequence = sequence;
             EndOfFileToken = endOfFileToken;
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     }
 
     /// <summary>
-    /// Represents a chunk of text that we did not understand as anything special.  i.e. it wasn't a
-    /// keyword, number, or literal.
+    /// Represents a chunk of text that we did not understand as anything special.  i.e. it wasn't a keyword, number, or
+    /// literal.  One common case of this is an unquoted property name (which json.net accepts).
     /// </summary>
     internal sealed class JsonTextNode : JsonValueNode
     {
@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             : base(JsonKind.Array)
         {
             Debug.Assert(openBracketToken.Kind == JsonKind.OpenBracketToken);
+            Debug.Assert(sequence != null);
             Debug.Assert(closeBracketToken.Kind == JsonKind.CloseBracketToken);
 
             OpenBracketToken = openBracketToken;
@@ -163,6 +164,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonNegativeLiteralNode(JsonToken minusToken, JsonToken literalToken)
             : base(JsonKind.NegativeLiteral)
         {
+            Debug.Assert(minusToken.Kind == JsonKind.MinusToken);
             MinusToken = minusToken;
             LiteralToken = literalToken;
         }
@@ -207,6 +209,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             => visitor.Visit(this);
     }
 
+    /// <summary>
+    /// See the note in <see cref="JsonParser"/> for why commas are stored as values for convenience.
+    /// </summary>
     internal sealed class JsonCommaValueNode : JsonValueNode
     {
         public JsonCommaValueNode(JsonToken commaToken)
@@ -236,6 +241,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonPropertyNode(JsonToken nameToken, JsonToken colonToken, JsonValueNode value)
             : base(JsonKind.Property)
         {
+            // Note: the name is allowed by json.net to just be a text token, not a string.  e.g. `goo: 0` as opposed to
+            // `"goo": 0`.  Strict json does not allow this.
             Debug.Assert(nameToken.Kind == JsonKind.StringToken || nameToken.Kind == JsonKind.TextToken);
             Debug.Assert(colonToken.Kind == JsonKind.ColonToken);
             Debug.Assert(value != null);
@@ -263,6 +270,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             => visitor.Visit(this);
     }
 
+    /// <summary>
+    /// Json.net construction.  It allows things like <c>new Date(1, 2, 3)</c>.  This is not allowed in strict mode.  
+    /// </summary>
     internal sealed class JsonConstructorNode : JsonValueNode
     {
         public JsonConstructorNode(
@@ -273,6 +283,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             JsonToken closeParenToken)
             : base(JsonKind.Constructor)
         {
+            Debug.Assert(newKeyword.Kind == JsonKind.NewKeyword);
+            Debug.Assert(nameToken.Kind == JsonKind.TextToken);
+            Debug.Assert(openParenToken.Kind == JsonKind.OpenParenToken);
+            Debug.Assert(sequence != null);
+            Debug.Assert(closeParenToken.Kind == JsonKind.CloseParenToken);
             NewKeyword = newKeyword;
             NameToken = nameToken;
             OpenParenToken = openParenToken;

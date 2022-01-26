@@ -26,26 +26,30 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     /// cref="JsonTree"/> out of it. Parsing will always succeed (except in the case of a
     /// stack-overflow) and will consume the entire sequence of chars.  General roslyn syntax
     /// principles are held to (i.e. immutable, fully representative, etc.).
-    ///
+    /// <para>
     /// The parser always parses out the same tree regardless of input.  *However*, depending on the
     /// flags passed to it, it may return a different set of *diagnostics*.  Specifically, the
     /// parser supports json.net parsing and strict RFC8259 (https://tools.ietf.org/html/rfc8259).
     /// As such, the parser supports a superset of both, but then does a pass at the end to produce
     /// appropriate diagnostics.
-    ///
+    /// </para>
+    /// </summary>
+    /// <remarks>
     /// Note: the json structure we parse out is actually very simple.  It's effectively all lists
     /// of <see cref="JsonValueNode"/> values.  We just treat almost everything as a 'value'.  For
-    /// example, a <see cref="JsonPropertyNode"/> (i.e. ```"x" = 0```) is a 'value'.  As such, it
-    /// can show up in arrays (i.e.  ```["x" = 0, "y" = 1]```).  This is not legal, but it greatly
+    /// example, a <see cref="JsonPropertyNode"/> (i.e. <c>"x" = 0</c>) is a 'value'.  As such, it
+    /// can show up in arrays (i.e.  <c>["x" = 0, "y" = 1]</c>).  This is not legal, but it greatly
     /// simplifies parsing.  Effectively, we just have recursive list parsing, where we accept any
     /// sort of value in any sort of context.  A later pass will then report errors for the wrong
     /// sorts of values showing up in incorrect contexts.
-    ///
-    /// Note: We also treat commas (```,```) as being a 'value' on its own.  This simplifies parsing
+    /// <para>
+    /// Note: We also treat commas (<c>,</c>) as being a 'value' on its own.  This simplifies parsing
     /// by allowing us to not have to represent Lists and SeparatedLists.  It also helps model
-    /// things that are supported in json.net (like ```[1,,2]```).  Our post-parsing pass will
+    /// things that are supported in json.net (like <c>[1,,2]</c>).  Our post-parsing pass will
     /// then ensure that these comma-values only show up in the right contexts.
-    /// </summary>
+    /// </para>
+    /// </remarks>
+    [NonCopyable]
     internal partial struct JsonParser
     {
         private static readonly string s_closeBracketExpected = string.Format(FeaturesResources._0_expected, ']');
@@ -117,28 +121,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var root = new JsonCompilationUnit(arraySequence, _currentToken);
 
-            // We only report a single diagnostic when parsing out json.  This helps prevent lots of
-            // cascading errors from being reported.  First, we see if there are any diagnostics
-            // directly in tokens in the tree.  If not, we then check for any incorrect tree
-            // structure (that would be incorrect for both json.net or strict-mode).  If we don't
-            // run into any problems, we'll then perform specific json.net or strict-mode checks.
+            // We only report a single diagnostic when parsing out json.  This helps prevent lots of cascading errors
+            // from being reported.  First, we see if there are any diagnostics directly in tokens in the tree.  If not,
+            // we then check for any incorrect tree structure (that would be incorrect for both json.net or
+            // strict-mode).  If we don't run into any problems, we'll then perform specific json.net or strict-mode
+            // checks.
             var diagnostic = GetFirstDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
 
-            if (diagnostic == null)
-            {
-                // We didn't have any diagnostics in the tree so far.  Do the json.net/strict checks
-                // depending on how we were invoked.
-                diagnostic = options == JsonOptions.Strict
-                    ? StrictSyntaxChecker.CheckSyntax(root)
-                    : JsonNetSyntaxChecker.CheckSyntax(root);
-            }
+            // If we didn't have any diagnostics in the tree so far, then do the json.net/strict checks depending on how we
+            // were invoked.
+            diagnostic ??= options == JsonOptions.Strict
+                ? StrictSyntaxChecker.CheckSyntax(root)
+                : JsonNetSyntaxChecker.CheckSyntax(root);
 
-            var diagnostics = diagnostic == null
+            return new JsonTree(_lexer.Text, root, diagnostic == null
                 ? ImmutableArray<EmbeddedDiagnostic>.Empty
-                : ImmutableArray.Create(diagnostic.Value);
-
-            return new JsonTree(
-                _lexer.Text, root, diagnostics);
+                : ImmutableArray.Create(diagnostic.Value));
         }
 
         /// <summary>
@@ -147,28 +145,31 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private static EmbeddedDiagnostic? CheckTopLevel(
             VirtualCharSequence text, JsonCompilationUnit compilationUnit)
         {
-            var arraySequence = compilationUnit.Sequence;
-            if (arraySequence.IsEmpty)
+            var sequence = compilationUnit.Sequence;
+            if (sequence.IsEmpty)
             {
                 // json is not allowed to be just whitespace.
                 if (text.Length > 0 &&
                     compilationUnit.EndOfFileToken.LeadingTrivia.All(
-                        t => t.Kind == JsonKind.WhitespaceTrivia || t.Kind == JsonKind.EndOfLineTrivia))
+                        t => t.Kind is JsonKind.WhitespaceTrivia or JsonKind.EndOfLineTrivia))
                 {
                     return new EmbeddedDiagnostic(FeaturesResources.Syntax_error, GetSpan(text));
                 }
+
+                return null;
             }
-            else if (arraySequence.Length >= 2)
+            else if (sequence.Length >= 2)
             {
                 // the top level can't have more than one actual value.
-                var firstToken = GetFirstToken(arraySequence[1]);
+                var firstToken = GetFirstToken(sequence[1]);
                 return new EmbeddedDiagnostic(
                     string.Format(FeaturesResources._0_unexpected, firstToken.VirtualChars[0]),
                     firstToken.GetSpan());
             }
-
-            foreach (var child in compilationUnit.Sequence)
+            else
             {
+                var child = sequence.Single();
+
                 // Commas should never show up in the top level sequence.
                 if (child.Kind == JsonKind.CommaValue)
                 {
@@ -177,15 +178,61 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         string.Format(FeaturesResources._0_unexpected, ','),
                         emptyValue.CommaToken.GetSpan());
                 }
+                else if (child.Kind == JsonKind.Property)
+                {
+                    var propertyValue = (JsonPropertyNode)child;
+                    return new EmbeddedDiagnostic(
+                        string.Format(FeaturesResources._0_unexpected, ':'),
+                        propertyValue.ColonToken.GetSpan());
+                }
+
+                return CheckSyntax(child);
             }
 
-            return null;
+            static EmbeddedDiagnostic? CheckSyntax(JsonNode node)
+            {
+                var diagnostic = node.Kind switch
+                {
+                    JsonKind.Array => CheckArray((JsonArrayNode)node),
+                    _ => null,
+                };
+
+                return diagnostic ?? CheckChildren(node);
+            }
+
+            static EmbeddedDiagnostic? CheckChildren(JsonNode node)
+            {
+                foreach (var child in node)
+                {
+                    if (child.IsNode)
+                    {
+                        var diagnostic = CheckSyntax(child.Node);
+                        if (diagnostic != null)
+                            return diagnostic;
+                    }
+                }
+
+                return null;
+            }
+
+            static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
+            {
+                foreach (var child in node.Sequence)
+                {
+                    if (child.Kind == JsonKind.Property)
+                    {
+                        return new EmbeddedDiagnostic(
+                            FeaturesResources.Properties_not_allowed_in_an_array,
+                            ((JsonPropertyNode)child).ColonToken.GetSpan());
+                    }
+                }
+
+                return CheckChildren(node);
+            }
         }
 
         private static JsonToken GetFirstToken(JsonNodeOrToken nodeOrToken)
-        {
-            return nodeOrToken.IsNode ? GetFirstToken(nodeOrToken.Node.ChildAt(0)) : nodeOrToken.Token;
-        }
+            => nodeOrToken.IsNode ? GetFirstToken(nodeOrToken.Node.ChildAt(0)) : nodeOrToken.Token;
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNode node)
         {
@@ -193,20 +240,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 var diagnostic = GetFirstDiagnostic(child);
                 if (diagnostic != null)
-                {
                     return diagnostic;
-                }
             }
 
             return null;
         }
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNodeOrToken child)
-        {
-            return child.IsNode
+            => child.IsNode
                 ? GetFirstDiagnostic(child.Node)
                 : GetFirstDiagnostic(child.Token);
-        }
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonToken token)
             => GetFirstDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNull() ?? GetFirstDiagnostic(token.TrailingTrivia);
@@ -250,24 +293,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private bool ShouldConsumeSequenceElement()
         {
             if (_currentToken.Kind == JsonKind.EndOfFile)
-            {
                 return false;
-            }
 
             if (_currentToken.Kind == JsonKind.CloseBraceToken)
-            {
                 return !_inObject;
-            }
 
             if (_currentToken.Kind == JsonKind.CloseBracketToken)
-            {
                 return !_inArray;
-            }
 
             if (_currentToken.Kind == JsonKind.CloseParenToken)
-            {
                 return !_inConstructor;
-            }
 
             return true;
         }
@@ -299,12 +334,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             Debug.Assert(_currentToken.Kind == JsonKind.ColonToken);
             if (stringLiteralOrText.Kind != JsonKind.StringToken)
-            {
                 stringLiteralOrText = stringLiteralOrText.With(kind: JsonKind.TextToken);
-            }
 
             var colonToken = ConsumeCurrentToken();
-            // Newtonsoft allows "{ a: , }" as a legal property.
+
+            // Newtonsoft allows "{ a: , }" as a legal property. In that case, synthesize a missing value and allow the
+            // comma to be parsed as the next value in the sequence.  The strict pass will error if it sees this missing
+            // comma-value as the value of a property.
             if (_currentToken.Kind == JsonKind.CommaToken)
             {
                 return new JsonPropertyNode(
@@ -333,49 +369,41 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     nestedProperty.Value);
             }
 
-            return new JsonPropertyNode(
-                stringLiteralOrText, colonToken, value);
+            return new JsonPropertyNode(stringLiteralOrText, colonToken, value);
         }
 
         private JsonValueNode ParseLiteralOrPropertyOrConstructor()
         {
             var textToken = ConsumeCurrentToken();
-            if (_currentToken.Kind != JsonKind.ColonToken)
-            {
-                return ParseLiteralOrTextOrConstructor(textToken);
-            }
-
-            return ParseProperty(textToken);
+            return _currentToken.Kind == JsonKind.ColonToken
+                ? ParseProperty(textToken)
+                : ParseLiteralOrTextOrConstructor(textToken);
         }
 
         private JsonValueNode ParseLiteralOrTextOrConstructor(JsonToken token)
         {
             if (token.Kind == JsonKind.StringToken)
-            {
                 return new JsonLiteralNode(token);
-            }
 
             // Look for constructors (a json.net extension).  We'll report them as an error
             // in strict model.
-            if (JsonParser.Matches(token, "new"))
-            {
+            if (Matches(token, "new"))
                 return ParseConstructor(token);
-            }
 
             // Check for certain literal values.  Some of these (like NaN) are json.net only.
             // We'll check for these later in the strict-mode pass.
             Debug.Assert(token.VirtualChars.Length > 0);
-            if (JsonParser.TryMatch(token, "NaN", JsonKind.NaNLiteralToken, out var newKind) ||
-                JsonParser.TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
-                JsonParser.TryMatch(token, "null", JsonKind.NullLiteralToken, out newKind) ||
-                JsonParser.TryMatch(token, "false", JsonKind.FalseLiteralToken, out newKind) ||
-                JsonParser.TryMatch(token, "Infinity", JsonKind.InfinityLiteralToken, out newKind) ||
-                JsonParser.TryMatch(token, "undefined", JsonKind.UndefinedLiteralToken, out newKind))
+            if (TryMatch(token, "NaN", JsonKind.NaNLiteralToken, out var newKind) ||
+                TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
+                TryMatch(token, "null", JsonKind.NullLiteralToken, out newKind) ||
+                TryMatch(token, "false", JsonKind.FalseLiteralToken, out newKind) ||
+                TryMatch(token, "Infinity", JsonKind.InfinityLiteralToken, out newKind) ||
+                TryMatch(token, "undefined", JsonKind.UndefinedLiteralToken, out newKind))
             {
                 return new JsonLiteralNode(token.With(kind: newKind));
             }
 
-            if (JsonParser.Matches(token, "-Infinity"))
+            if (Matches(token, "-Infinity"))
             {
                 SplitLiteral(token, out var minusToken, out var newLiteralToken);
 
@@ -385,9 +413,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var firstChar = token.VirtualChars[0];
             if (firstChar == '-' || firstChar == '.' || IsDigit(firstChar))
-            {
                 return ParseNumber(token);
-            }
 
             return new JsonTextNode(
                 token.With(kind: JsonKind.TextToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
@@ -397,17 +423,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private JsonConstructorNode ParseConstructor(JsonToken token)
         {
-            var newKeyword = token.With(kind: JsonKind.NewKeyword);
-            var nameToken = ConsumeToken(JsonKind.TextToken, FeaturesResources.Name_expected);
-            var openParen = ConsumeToken(JsonKind.OpenParenToken, s_openParenExpected);
-
             var savedInConstructor = _inConstructor;
             _inConstructor = true;
 
             var result = new JsonConstructorNode(
-                newKeyword,
-                nameToken,
-                openParen,
+                token.With(kind: JsonKind.NewKeyword),
+                ConsumeToken(JsonKind.TextToken, FeaturesResources.Name_expected),
+                ConsumeToken(JsonKind.OpenParenToken, s_openParenExpected),
                 ParseSequence(),
                 ConsumeToken(JsonKind.CloseParenToken, s_closeParenExpected));
 
@@ -417,7 +439,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private static bool TryMatch(JsonToken token, string val, JsonKind kind, out JsonKind newKind)
         {
-            if (JsonParser.Matches(token, val))
+            if (Matches(token, val))
             {
                 newKind = kind;
                 return true;
@@ -443,13 +465,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         private static bool IsDigit(VirtualChar ch)
-            => ch >= '0' && ch <= '9';
+            => ch.Value is >= '0' and <= '9';
 
-        private static JsonValueNode ParseNumber(JsonToken textToken)
-        {
-            var numberToken = textToken.With(kind: JsonKind.NumberToken);
-            return new JsonLiteralNode(numberToken);
-        }
+        private static JsonLiteralNode ParseNumber(JsonToken textToken)
+            => new(textToken.With(kind: JsonKind.NumberToken));
 
         private JsonCommaValueNode ParseCommaValue()
             => new(ConsumeCurrentToken());
@@ -483,23 +502,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         private JsonToken ConsumeToken(JsonKind kind, string error)
-        {
-            if (_currentToken.Kind == kind)
-            {
-                return ConsumeCurrentToken();
-            }
-            else
-            {
-                return CreateMissingToken(kind).AddDiagnosticIfNone(
+            => _currentToken.Kind == kind
+                ? ConsumeCurrentToken()
+                : CreateMissingToken(kind).AddDiagnosticIfNone(
                     new EmbeddedDiagnostic(error, GetTokenStartPositionSpan(_currentToken)));
-            }
-        }
 
         private TextSpan GetTokenStartPositionSpan(JsonToken token)
-        {
-            return token.Kind == JsonKind.EndOfFile
+            => token.Kind == JsonKind.EndOfFile
                 ? new TextSpan(_lexer.Text.Last().Span.End, 0)
                 : new TextSpan(token.VirtualChars[0].Span.Start, 0);
-        }
     }
 }
