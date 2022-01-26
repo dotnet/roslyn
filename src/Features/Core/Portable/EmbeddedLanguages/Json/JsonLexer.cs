@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         continue;
 
                     case '\\':
-                        var escapeDiag = ScanEscape(start, Position - 1);
+                        var escapeDiag = AdvanceToEndOfEscape(start, Position - 1);
                         diagnostic ??= escapeDiag;
                         continue;
                 }
@@ -127,10 +127,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         /// <summary>
-        /// <see cref="ScanEscape"/> does not actually lex out an escape token.  Instead, it just
-        /// moves the position forward and returns a diagnostic if this was not a valid escape.
+        /// <see cref="AdvanceToEndOfEscape"/> does not actually lex out an escape token.  Instead, it just moves the
+        /// position forward and returns a diagnostic if this was not a valid escape.
         /// </summary>
-        private EmbeddedDiagnostic? ScanEscape(int stringStart, int escapeStart)
+        private EmbeddedDiagnostic? AdvanceToEndOfEscape(int stringStart, int escapeStart)
         {
             if (this.Position == Text.Length)
             {
