@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
-            _sourceAssembly = GetSourceAssembly(compilation, member);
+            _sourceAssembly = GetSourceAssembly(compilation, member, node);
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _requireOutParamsAssigned = requireOutParamsAssigned;
             _trackClassFields = trackClassFields;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(compilation, member, node, emptyStructs, trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
-            _sourceAssembly = GetSourceAssembly(compilation, member);
+            _sourceAssembly = GetSourceAssembly(compilation, member, node);
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = null;
             _requireOutParamsAssigned = true;
@@ -204,13 +204,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
         }
 
-        private static SourceAssemblySymbol? GetSourceAssembly(CSharpCompilation compilation, Symbol member)
+        private static SourceAssemblySymbol? GetSourceAssembly(
+            CSharpCompilation compilation,
+            Symbol member,
+            BoundNode node)
         {
-            Debug.Assert(member is null ||
-                member.ContainingAssembly is SourceAssemblySymbol ||
-                (member is TypeSymbol type && compilation.IsAttributeType(type)));
-
-            return member?.ContainingAssembly as SourceAssemblySymbol;
+            if (member is null)
+            {
+                return null;
+            }
+            if (node.Kind == BoundKind.Attribute)
+            {
+                // member is the attribute type, not the symbol where the attribute is applied.
+                Debug.Assert(member is TypeSymbol type &&
+                    (type.IsErrorType() || compilation.IsAttributeType(type)));
+                return null;
+            }
+            Debug.Assert(member.ContainingAssembly is SourceAssemblySymbol);
+            return member.ContainingAssembly as SourceAssemblySymbol;
         }
 
         protected override void Free()
