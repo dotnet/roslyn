@@ -4,11 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
@@ -167,9 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 {
                     try
                     {
-                        var serializer1 = new DataContractJsonSerializer(typeof(object));
-                        serializer1.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(token.ValueText)));
-
                         JsonDocument.Parse(token.ValueText, new JsonDocumentOptions { AllowTrailingCommas = false, CommentHandling = JsonCommentHandling.Disallow });
                     }
                     catch (Exception)
