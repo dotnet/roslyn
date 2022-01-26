@@ -71,39 +71,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return token;
         }
 
-        private static bool IsSpecial(VirtualChar ch)
-        {
-            // Standard tokens.
-            switch (ch.Value)
-            {
-                case '{':
-                case '}':
-                case '[':
-                case ']':
-                case '(':
-                case ')':
-                case ',':
-                case ':':
-                case '\'':
-                case '"':
-                    return true;
-
-                case ' ':
-                case '\t':
-                case '/':
-                case '\r':
-                case '\n':
-                    // trivia cases
-                    return true;
-            }
-
-            // more trivia
-            if (ch.IsWhiteSpace)
-                return true;
-
-            return false;
-        }
-
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic? diagnostic) ScanNextTokenWorker()
         {
             Debug.Assert(Position < Text.Length);
@@ -235,10 +202,43 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             var start = Position;
 
-            while (Position < Text.Length && !IsSpecial(this.CurrentChar))
+            while (Position < Text.Length && !IsNotPartOfText(this.CurrentChar))
                 Position++;
 
             return (GetCharsToCurrentPosition(start), JsonKind.TextToken, null);
+
+            static bool IsNotPartOfText(VirtualChar ch)
+            {
+                // Standard tokens.
+                switch (ch.Value)
+                {
+                    case '{':
+                    case '}':
+                    case '[':
+                    case ']':
+                    case '(':
+                    case ')':
+                    case ',':
+                    case ':':
+                    case '\'':
+                    case '"':
+                        return true;
+
+                    case ' ':
+                    case '\t':
+                    case '/':
+                    case '\r':
+                    case '\n':
+                        // trivia cases
+                        return true;
+                }
+
+                // more trivia
+                if (ch.IsWhiteSpace)
+                    return true;
+
+                return false;
+            }
         }
 
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
