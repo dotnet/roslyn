@@ -29,17 +29,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             Text = text;
         }
 
-        public VirtualChar CurrentChar
-        {
-            get
-            {
-                if (Position < Text.Length)
-                    return Text[Position];
-
-                Debug.Fail("Indexed past the end of the content");
-                return default;
-            }
-        }
+        public VirtualChar CurrentChar => Text[Position];
 
         public VirtualCharSequence GetCharsToCurrentPosition(int start)
             => GetSubSequence(start, Position);
