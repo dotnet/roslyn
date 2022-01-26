@@ -38,6 +38,7 @@
     "omnisharp.enableImportCompletion": true,
     "omnisharp.enableRoslynAnalyzers": true,
     "omnisharp.useModernNet": true,
+    "omnisharp.enableAsyncCompletion": true,
     // ms-vscode.powershell settings
     "powershell.promptToUpdatePowerShell": false,
     "powershell.integratedConsole.showOnStartup": false,
