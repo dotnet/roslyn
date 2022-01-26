@@ -204,16 +204,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
         }
 
-        private static SourceAssemblySymbol GetSourceAssembly(
+        private static SourceAssemblySymbol? GetSourceAssembly(
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node)
         {
-            Debug.Assert(member is null ||
-                node.Kind == BoundKind.Attribute ||
-                (object)member.ContainingAssembly == compilation.SourceAssembly);
-
-            return compilation.SourceAssembly;
+            if (member is null)
+            {
+                return null;
+            }
+            if (node.Kind == BoundKind.Attribute)
+            {
+                // member is the attribute type, not the symbol where the attribute is applied.
+                Debug.Assert(member is TypeSymbol type &&
+                    (type.IsErrorType() || compilation.IsAttributeType(type)));
+                return null;
+            }
+            Debug.Assert((object)member.ContainingAssembly == compilation?.SourceAssembly);
+            return member.ContainingAssembly as SourceAssemblySymbol;
         }
 
         protected override void Free()

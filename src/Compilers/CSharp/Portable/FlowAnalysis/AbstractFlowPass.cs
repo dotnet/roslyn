@@ -187,7 +187,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool trackRegions = false,
             bool nonMonotonicTransferFunction = false)
         {
-            Debug.Assert(compilation != null);
             Debug.Assert(node != null);
 
             if (firstInRegion != null && lastInRegion != null)
