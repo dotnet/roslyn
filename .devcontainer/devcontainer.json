@@ -13,8 +13,10 @@
     },
     "extensions": [
         "ms-dotnettools.csharp",
-        "formulahendry.dotnet-test-explorer",
-        "EditorConfig.EditorConfig"
+        "EditorConfig.EditorConfig",
+        "ms-vscode.powershell",
+        "tintoy.msbuild-project-tools",
+        "ms-azure-devops.azure-pipelines"
     ],
     "postCreateCommand": "dotnet restore"
 }
