@@ -4751,7 +4751,6 @@ b""</StringToken>
         [Fact]
         public void TestNumber3()
         {
-            // DataContractJsonSerializer does not follow the spec for numbers properly.
             Test(@"@""00""", @"<Tree>
   <CompilationUnit>
     <Sequence>
@@ -4765,7 +4764,7 @@ b""</StringToken>
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""2"" />
-</Diagnostics>", runStrictTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
