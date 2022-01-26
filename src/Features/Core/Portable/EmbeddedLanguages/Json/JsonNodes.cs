@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (index == Sequence.Length + 3)
                 return CloseParenToken;
 
-            return Sequence[index];
+            return Sequence[index - 3];
         }
 
         public override void Accept(IJsonNodeVisitor visitor)
