@@ -8121,7 +8121,7 @@ $@"
             await TestInMethodAsync(
 @"var x = 1;
 var s = $""""""Hello world {$$x}""""""",
-                MainDescription("(local variable) int x"));
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -8130,7 +8130,7 @@ var s = $""""""Hello world {$$x}""""""",
             await TestInMethodAsync(
 @"var x = 1;
 var s = ${|#0:|}$""""""Hello world {{$$x}}""""""",
-                MainDescription("(local variable) int x"));
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -8138,7 +8138,7 @@ var s = ${|#0:|}$""""""Hello world {{$$x}}""""""",
         {
             await TestInClassAsync(
 @"const string $$s = """"""Hello world""""""",
-                MainDescription(@"(constant) string C.s = """"""Hello world"""""""));
+                MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""Hello world"""""""));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -8149,7 +8149,7 @@ var s = ${|#0:|}$""""""Hello world {{$$x}}""""""",
 var s = $""""""
 Hello world {$$x}
 """"""",
-                MainDescription("(local variable) int x"));
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -8160,7 +8160,7 @@ Hello world {$$x}
 var s = ${|#0:|}$""""""
 Hello world {{$$x}}
 """"""",
-                MainDescription("(local variable) int x"));
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -8170,7 +8170,7 @@ Hello world {{$$x}}
 @"const string $$s = """"""
         Hello world
     """"""",
-                MainDescription(@"(constant) string C.s = """"""
+                MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""
         Hello world
     """""""));
         }
