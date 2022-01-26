@@ -31,4 +31,8 @@
     "omnisharp.projectLoadTimeout": 900,
     "omnisharp.useGlobalMono": "never",
     "omnisharp.useModernNet": true,
+    // ms-vscode.powershell settings
+    "powershell.promptToUpdatePowerShell": false,
+    "powershell.integratedConsole.showOnStartup": false,
+    "powershell.startAutomatically": false,
 }
