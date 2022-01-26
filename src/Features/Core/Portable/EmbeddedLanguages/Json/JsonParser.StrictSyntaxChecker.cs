@@ -97,14 +97,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             private static EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
             {
-                var sequence = node.Sequence;
-                foreach (var child in sequence)
+                foreach (var child in node.Sequence)
                 {
                     if (child.Kind != JsonKind.Property && child.Kind != JsonKind.CommaValue)
                         return new EmbeddedDiagnostic(FeaturesResources.Only_properties_allowed_in_an_object, GetFirstToken(child).GetSpan());
                 }
 
-                return CheckProperSeparation(sequence);
+                return CheckProperSeparation(node.Sequence);
             }
 
             private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
@@ -239,13 +238,13 @@ $",
             }
 
             private static EmbeddedDiagnostic? InvalidLiteral(JsonToken literalToken)
-                => new EmbeddedDiagnostic(string.Format(FeaturesResources._0_literal_not_allowed, literalToken.VirtualChars.CreateString()), literalToken.GetSpan());
+                => new(string.Format(FeaturesResources._0_literal_not_allowed, literalToken.VirtualChars.CreateString()), literalToken.GetSpan());
 
             private static EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
-                => new EmbeddedDiagnostic(string.Format(FeaturesResources._0_literal_not_allowed, "-Infinity"), node.GetSpan());
+                => new(string.Format(FeaturesResources._0_literal_not_allowed, "-Infinity"), node.GetSpan());
 
             private static EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
-                => new EmbeddedDiagnostic(FeaturesResources.Constructors_not_allowed, node.NewKeyword.GetSpan());
+                => new(FeaturesResources.Constructors_not_allowed, node.NewKeyword.GetSpan());
         }
     }
 }

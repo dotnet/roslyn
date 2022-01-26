@@ -128,13 +128,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 {
                     var child = sequence[i];
                     var nextChild = sequence[i + 1];
-                    if (child.Kind != JsonKind.CommaValue &&
-                        nextChild.Kind != JsonKind.CommaValue)
-                    {
-                        return new EmbeddedDiagnostic(
-                           string.Format(FeaturesResources._0_expected, ','),
-                           GetFirstToken(nextChild).GetSpan());
-                    }
+                    if (child.Kind != JsonKind.CommaValue && nextChild.Kind != JsonKind.CommaValue)
+                        return new EmbeddedDiagnostic(string.Format(FeaturesResources._0_expected, ','), GetFirstToken(nextChild).GetSpan());
                 }
 
                 return null;
@@ -148,20 +143,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     if (i % 2 == 0)
                     {
                         if (child.Kind != JsonKind.Property)
-                        {
-                            return new EmbeddedDiagnostic(
-                               FeaturesResources.Only_properties_allowed_in_an_object,
-                               GetFirstToken(child).GetSpan());
-                        }
+                            return new EmbeddedDiagnostic(FeaturesResources.Only_properties_allowed_in_an_object, GetFirstToken(child).GetSpan());
                     }
                     else
                     {
                         if (child.Kind != JsonKind.CommaValue)
-                        {
-                            return new EmbeddedDiagnostic(
-                               string.Format(FeaturesResources._0_expected, ','),
-                               GetFirstToken(child).GetSpan());
-                        }
+                            return new EmbeddedDiagnostic(string.Format(FeaturesResources._0_expected, ','), GetFirstToken(child).GetSpan());
                     }
                 }
 
