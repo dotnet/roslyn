@@ -4,13 +4,9 @@
 
 #nullable disable
 
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using System;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -73,6 +69,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   2 => ""two"",
   3 => ""three"",
   { } => "">= 4""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact]
+        public void TestNormalizeSwitchExpressionRawStrings()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""one"""""", 2 => """"""two"""""", 3 => """"""three"""""", {} => """""">= 4"""""" };",
+                @"var x = (int)1 switch
+{
+  1 => """"""one"""""",
+  2 => """"""two"""""",
+  3 => """"""three"""""",
+  { } => """""">= 4""""""
 };".NormalizeLineEndings()
             );
         }
@@ -185,6 +196,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
+        [Fact]
+        public void TestLineBreakRawInterpolations()
+        {
+            TestNormalizeExpression(
+                @"$""""""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""""""",
+                @"$""""""Printed: {new Printer()
+{TextToPrint = ""Hello world!""}.PrintedText}""""""".Replace("\r\n", "\n").Replace("\n", "\r\n")
+            );
+        }
+
         [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestVerbatimStringInterpolationWithLineBreaks()
         {
@@ -200,6 +221,26 @@ breaks
 breaks
 {new[]{1, 2, 3}[2]}
             "");"
+            );
+        }
+
+        [Fact]
+        public void TestRawStringInterpolationWithLineBreaks()
+        {
+            TestNormalizeStatement(@"Console.WriteLine($""""""
+            Test with line
+            breaks
+            {
+                            new[]{
+                 1, 2, 3
+              }[2]
+            }
+            """""");",
+            @"Console.WriteLine($""""""
+            Test with line
+            breaks
+            {new[]{1, 2, 3}[2]}
+            """""");"
             );
         }
 
@@ -596,6 +637,29 @@ breaks
         }
 
         [Fact]
+        public void TestSpacingOnRawInterpolatedString()
+        {
+            TestNormalizeExpression("$\"\"\"{3:C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3: C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3:C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3: C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+
+            TestNormalizeExpression("$\"\"\"{ 3:C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3: C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3:C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3: C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 :C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 : C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 :C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 : C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+
+            TestNormalizeExpression("$\"\"\"{ 3 :C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 : C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 :C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 : C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+        }
+
+        [Fact]
         [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnMethodConstraint()
         {
@@ -633,6 +697,12 @@ breaks
         public void TestNormalizeInterpolatedString()
         {
             TestNormalizeExpression(@"$""Message is {a}""", @"$""Message is {a}""");
+        }
+
+        [Fact]
+        public void TestNormalizeRawInterpolatedString()
+        {
+            TestNormalizeExpression(@"$""""""Message is {a}""""""", @"$""""""Message is {a}""""""");
         }
 
         [WorkItem(528584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528584")]

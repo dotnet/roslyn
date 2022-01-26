@@ -4774,7 +4774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>The first part of an interpolated string, $" or $@"</summary>
+        /// <summary>The first part of an interpolated string, <c>$"</c> or <c>$@"</c> or <c>$"""</c></summary>
         public SyntaxToken StringStartToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringStartToken, Position, 0);
 
         /// <summary>List of parts of the interpolated string, each one is either a literal part or an interpolation.</summary>
@@ -5783,6 +5783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
+        /// <summary>This could be a single <c>{</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).</summary>
         public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolationSyntax)this.Green).openBraceToken, Position, 0);
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
@@ -5791,6 +5792,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public InterpolationFormatClauseSyntax? FormatClause => GetRed(ref this.formatClause, 3);
 
+        /// <summary>
+        /// This could be a single <c>}</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).
+        /// </summary>
         public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolationSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
 
         internal override SyntaxNode? GetNodeSlot(int index)

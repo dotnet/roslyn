@@ -132,9 +132,9 @@ class Program {
                 // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
-                // (6,5): error CS1010: Newline in constant
+                // (6,5): error CS1039: Unterminated string literal
                 //     }
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -159,9 +159,9 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,5): error CS1010: Newline in constant
+                // (6,5): error CS1039: Unterminated string literal
                 //     }
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -362,9 +362,9 @@ class Program
                 // (6,31): error CS1010: Newline in constant
                 //         Console.WriteLine( $"{" );
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
-                // (7,5): error CS1010: Newline in constant
+                // (7,5): error CS1039: Unterminated string literal
                 //     }
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(7, 5),
+                Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "}").WithLocation(7, 5),
                 // (7,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
@@ -387,9 +387,9 @@ class Program
         var x = $"";";
             // The precise error messages are not important, but this must be an error.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (5,19): error CS1010: Newline in constant
+                // (5,19): error CS1039: Unterminated string literal
                 //         var x = $";
-                Diagnostic(ErrorCode.ERR_NewlineInConst, ";").WithLocation(5, 19),
+                Diagnostic(ErrorCode.ERR_UnterminatedStringLit, ";").WithLocation(5, 19),
                 // (5,20): error CS1002: ; expected
                 //         var x = $";
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 20),
@@ -398,8 +398,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 20),
                 // (5,20): error CS1513: } expected
                 //         var x = $";
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 20)
-                );
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 20));
         }
 
         [Fact]
@@ -9205,8 +9204,8 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
 
-            comp.VerifyDiagnostics(extraConstructorArg != ""
-                ? new[] {
+            comp.VerifyDiagnostics(extraConstructorArg != "" ?
+                new[] {
                     // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
                     // GetC(ref c).M($"literal" + $"");
                     Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),

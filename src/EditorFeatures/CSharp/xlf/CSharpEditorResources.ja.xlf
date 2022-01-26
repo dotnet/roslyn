@@ -97,6 +97,11 @@
         <target state="translated">スマート インデント</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="new">Split raw string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_string">
         <source>Split string</source>
         <target state="translated">文字列を分割します</target>

@@ -4,18 +4,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LineSeparators;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
+namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
 {
     [ExportLanguageService(typeof(ILineSeparatorService), LanguageNames.CSharp), Shared]
     internal class CSharpLineSeparatorService : ILineSeparatorService
@@ -30,21 +32,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
         /// Given a tree returns line separator spans.
         /// The operation may take fairly long time on a big tree so it is cancellable.
         /// </summary>
-        public async Task<IEnumerable<TextSpan>> GetLineSeparatorsAsync(
+        public async Task<ImmutableArray<TextSpan>> GetLineSeparatorsAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var node = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var spans = new List<TextSpan>();
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var spans);
 
             var blocks = node.Traverse<SyntaxNode>(textSpan, IsSeparableContainer);
 
             foreach (var block in blocks)
             {
                 if (cancellationToken.IsCancellationRequested)
-                    return SpecializedCollections.EmptyEnumerable<TextSpan>();
+                    return ImmutableArray<TextSpan>.Empty;
 
                 switch (block)
                 {
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
                 }
             }
 
-            return spans;
+            return spans.ToImmutable();
         }
 
         /// <summary>Node types that are interesting for line separation.</summary>
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
             return false;
         }
 
-        private static void ProcessUsings(SyntaxList<UsingDirectiveSyntax> usings, List<TextSpan> spans, CancellationToken cancellationToken)
+        private static void ProcessUsings(SyntaxList<UsingDirectiveSyntax> usings, ArrayBuilder<TextSpan> spans, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(spans);
 
@@ -255,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
         /// If node is separable and not the first in its container => ensure separator before the node
         /// last separable node in Program needs separator after it.
         /// </summary>
-        private static void ProcessNodeList<T>(SyntaxList<T> children, List<TextSpan> spans, CancellationToken cancellationToken) where T : SyntaxNode
+        private static void ProcessNodeList<T>(SyntaxList<T> children, ArrayBuilder<TextSpan> spans, CancellationToken cancellationToken) where T : SyntaxNode
         {
             Contract.ThrowIfNull(spans);
 
@@ -308,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
             }
         }
 
-        private static void AddLineSeparatorSpanForNode(SyntaxNode node, List<TextSpan> spans, CancellationToken cancellationToken)
+        private static void AddLineSeparatorSpanForNode(SyntaxNode node, ArrayBuilder<TextSpan> spans, CancellationToken cancellationToken)
         {
             if (IsBadNode(node))
             {
