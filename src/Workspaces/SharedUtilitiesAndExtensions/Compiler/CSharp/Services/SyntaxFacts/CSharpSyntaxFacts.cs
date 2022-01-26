@@ -1554,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
 
-        public bool IsSpecialUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax syntax)
+        public static bool IsSpecialUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax syntax)
         {
             if (syntax.Parent is not FunctionPointerUnmanagedCallingConventionListSyntax list)
             {

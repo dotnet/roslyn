@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             CancellationToken cancellationToken)
         {
             var callingConventionSyntax = (FunctionPointerUnmanagedCallingConventionSyntax)syntax;
-            if (CSharpSyntaxFacts.Instance.IsSpecialUnmanagedCallingConvention(callingConventionSyntax))
+            if (CSharpSyntaxFacts.IsSpecialUnmanagedCallingConvention(callingConventionSyntax))
             {
                 result.Add(new ClassifiedSpan(callingConventionSyntax.Span, ClassificationTypeNames.ClassName));
                 return;

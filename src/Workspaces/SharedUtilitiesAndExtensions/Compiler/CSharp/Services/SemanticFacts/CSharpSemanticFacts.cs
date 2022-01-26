@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<ISymbol> GetCallingConventionSymbol(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
         {
-            if (CSharpSyntaxFacts.Instance.IsSpecialUnmanagedCallingConvention(syntax))
+            if (CSharpSyntaxFacts.IsSpecialUnmanagedCallingConvention(syntax))
             {
                 return ImmutableArray<ISymbol>.Empty;
             }
