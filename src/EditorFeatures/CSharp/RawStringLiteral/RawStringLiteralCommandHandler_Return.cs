@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
             => ExecuteCommandWorker(args);
 
-        public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
+        private bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
         {
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
