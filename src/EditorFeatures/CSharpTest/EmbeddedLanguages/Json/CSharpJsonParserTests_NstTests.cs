@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
-    public partial class CSharpJsonParserTests
+    public partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     {
         [Fact]
         public void i_number_double_huge_neg_exp_json()

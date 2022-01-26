@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             position += virtualChars.Length;
         }
 
-        private void TestNST(
+        protected void TestNST(
             string stringText, string expected, string _, string strictDiagnostics, [CallerMemberName] string caller = "")
         {
             var (_, tree, allChars) = JustParseTree(stringText, strict: true, conversionFailureOk: false);
