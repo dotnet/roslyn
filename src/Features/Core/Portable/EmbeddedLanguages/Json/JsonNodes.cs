@@ -240,6 +240,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonPropertyNode(JsonToken nameToken, JsonToken colonToken, JsonValueNode value)
             : base(JsonKind.Property)
         {
+            // Note: the name is allowed by json.net to just be a text token, not a string.  e.g. `goo: 0` as opposed to
+            // `"goo": 0`.  Strict json does not allow this.
             Debug.Assert(nameToken.Kind == JsonKind.StringToken || nameToken.Kind == JsonKind.TextToken);
             Debug.Assert(colonToken.Kind == JsonKind.ColonToken);
             Debug.Assert(value != null);
