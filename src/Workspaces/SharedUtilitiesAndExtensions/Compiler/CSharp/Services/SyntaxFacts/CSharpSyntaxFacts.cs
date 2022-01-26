@@ -1556,12 +1556,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public static bool IsSpecialUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax syntax)
         {
-            if (syntax.Parent is not FunctionPointerUnmanagedCallingConventionListSyntax list)
-            {
-                return false;
-            }
-
-            return list.CallingConventions.Count == 1 &&
+            return syntax.Parent is FunctionPointerUnmanagedCallingConventionListSyntax list &&
+                list.CallingConventions.Count == 1 &&
                 syntax.Name.ValueText is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall";
         }
 
