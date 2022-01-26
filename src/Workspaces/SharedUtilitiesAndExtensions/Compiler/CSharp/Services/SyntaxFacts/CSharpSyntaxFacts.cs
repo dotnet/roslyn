@@ -1554,17 +1554,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
 
-        public static bool IsSpecialUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax syntax)
-        {
-            if (syntax.Parent is not FunctionPointerUnmanagedCallingConventionListSyntax list)
-            {
-                return false;
-            }
-
-            return list.CallingConventions.Count == 1 &&
-                syntax.Name.ValueText is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall";
-        }
-
         #region IsXXX members
 
         public bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node)

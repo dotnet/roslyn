@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             CancellationToken cancellationToken)
         {
             var callingConventionSyntax = (FunctionPointerUnmanagedCallingConventionSyntax)syntax;
-            if (CSharpSyntaxFacts.IsSpecialUnmanagedCallingConvention(callingConventionSyntax))
+            if (callingConventionSyntax.IsSpecialUnmanagedCallingConvention())
             {
                 result.Add(new ClassifiedSpan(callingConventionSyntax.Span, ClassificationTypeNames.ClassName));
                 return;
