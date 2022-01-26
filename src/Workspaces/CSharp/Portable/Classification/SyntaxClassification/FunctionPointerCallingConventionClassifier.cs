@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var callingConventionSyntax = (FunctionPointerUnmanagedCallingConventionSyntax)syntax;
             if (callingConventionSyntax.IsSpecialUnmanagedCallingConvention())
             {
-                result.Add(new ClassifiedSpan(callingConventionSyntax.Span, ClassificationTypeNames.ClassName));
+                result.Add(new ClassifiedSpan(callingConventionSyntax.Span, ClassificationTypeNames.Keyword));
                 return;
             }
 
