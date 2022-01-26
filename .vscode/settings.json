@@ -21,5 +21,14 @@
         "*.xlf": "xml",
         "*.yml": "azure-pipelines"
     },
+    // ms-dotnettools.csharp settings
     "omnisharp.defaultLaunchSolution": "Compilers.sln",
+    "csharp.suppressDotnetRestoreNotification": true,
+    "omnisharp.disableMSBuildDiagnosticWarning": true,
+    "omnisharp.enableDecompilationSupport": true,
+    "omnisharp.enableImportCompletion": true,
+    "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.projectLoadTimeout": 900,
+    "omnisharp.useGlobalMono": "never",
+    "omnisharp.useModernNet": true,
 }
