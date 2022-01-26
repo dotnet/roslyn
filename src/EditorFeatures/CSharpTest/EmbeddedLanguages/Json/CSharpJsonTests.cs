@@ -35,41 +35,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return token;
         }
 
-        private void Test(string stringText,
+        protected void Test(string stringText,
             string expected, string looseDiagnostics, string strictDiagnostics,
-            bool runLooseTreeCheck = true, bool runLooseSubTreeCheck = true,
-            bool runStrictTreeCheck = true, bool runStrictSubTreeCheck = true,
+            bool runLooseSubTreeCheck = true,
+            bool runStrictSubTreeCheck = true,
             [CallerMemberName] string _ = "")
         {
-            if (runLooseSubTreeCheck || runLooseSubTreeCheck)
-            {
-                Test(stringText, strict: false, expected, looseDiagnostics, runLooseTreeCheck, runLooseSubTreeCheck);
-            }
+            if (runLooseSubTreeCheck)
+                Test(stringText, strict: false, expected, looseDiagnostics, runLooseSubTreeCheck);
 
-            if (runStrictTreeCheck || runStrictSubTreeCheck)
-            {
-                Test(stringText, strict: true, expected, strictDiagnostics, runStrictTreeCheck, runStrictSubTreeCheck);
-            }
+            if (runStrictSubTreeCheck)
+                Test(stringText, strict: true, expected, strictDiagnostics, runStrictSubTreeCheck);
         }
 
         private void Test(
             string stringText, bool strict,
             string expectedTree, string expectedDiagnostics,
-            bool runTreeCheck, bool runSubTreeChecks)
+            bool runSubTreeChecks)
         {
-            var tree = TryParseTree(stringText, strict, runTreeCheck, conversionFailureOk: false);
+            var tree = TryParseTree(stringText, strict, conversionFailureOk: false);
             if (tree == null)
-            {
                 return;
-            }
 
             // Tests are allowed to not run the subtree tests.  This is because some
             // subtrees can cause the native regex parser to exhibit very bad behavior
             // (like not ever actually finishing compiling).
             if (runSubTreeChecks)
-            {
-                TryParseSubTrees(stringText, strict, runTreeCheck);
-            }
+                TryParseSubTrees(stringText, strict);
 
             var actualTree = TreeToText(tree).Replace("\"", "\"\"");
             Assert.Equal(expectedTree.Replace("\"", "\"\""), actualTree);
@@ -78,14 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             Assert.Equal(expectedDiagnostics.Replace("\"", "\"\""), actualDiagnostics);
         }
 
-        private void TryParseSubTrees(string stringText, bool strict, bool runTreeCheck)
+        private void TryParseSubTrees(string stringText, bool strict)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
             while (current != "@\"\"" && current != "\"\"")
             {
                 current = current.Substring(0, current.Length - 2) + "\"";
-                TryParseTree(current, strict, runTreeCheck, conversionFailureOk: true);
+                TryParseTree(current, strict, conversionFailureOk: true);
             }
 
             // Trim the input from the left and make sure tree invariants hold
@@ -101,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                     current = "\"" + current.Substring(2);
                 }
 
-                TryParseTree(current, strict, runTreeCheck, conversionFailureOk: true);
+                TryParseTree(current, strict, conversionFailureOk: true);
             }
 
             for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
@@ -109,8 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 TryParseTree(
                     stringText.Substring(0, start) +
                     stringText.Substring(start + 1, stringText.Length - (start + 1)),
-                    strict, runTreeCheck,
-                    conversionFailureOk: true);
+                    strict, conversionFailureOk: true);
             }
         }
 
@@ -135,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         }
 
         private JsonTree? TryParseTree(
-            string stringText, bool strict, bool runTreeCheck, bool conversionFailureOk)
+            string stringText, bool strict, bool conversionFailureOk)
         {
             var (token, tree, allChars) = JustParseTree(stringText, strict, conversionFailureOk);
             if (tree == null)
@@ -146,36 +137,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
             CheckInvariants(tree, allChars);
 
-            if (runTreeCheck)
+            if (!strict)
             {
-                if (!strict)
+                try
                 {
-                    try
-                    {
-                        JToken.Parse(token.ValueText);
-                    }
-                    catch (Exception)
-                    {
-                        Assert.NotEmpty(tree.Diagnostics);
-                        return tree;
-                    }
+                    JToken.Parse(token.ValueText);
                 }
-                else
+                catch (Exception)
                 {
-                    try
-                    {
-                        JsonDocument.Parse(token.ValueText, new JsonDocumentOptions { AllowTrailingCommas = false, CommentHandling = JsonCommentHandling.Disallow });
-                    }
-                    catch (Exception)
-                    {
-                        Assert.NotEmpty(tree.Diagnostics);
-                        return tree;
-                    }
+                    Assert.NotEmpty(tree.Diagnostics);
+                    return tree;
                 }
-
-                Assert.Empty(tree.Diagnostics);
+            }
+            else
+            {
+                try
+                {
+                    JsonDocument.Parse(token.ValueText, new JsonDocumentOptions { AllowTrailingCommas = false, CommentHandling = JsonCommentHandling.Disallow });
+                }
+                catch (Exception)
+                {
+                    Assert.NotEmpty(tree.Diagnostics);
+                    return tree;
+                }
             }
 
+            Assert.Empty(tree.Diagnostics);
             return tree;
         }
 
@@ -398,13 +385,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             {
                 Assert.False(true, "Unexpected test name.");
             }
-        }
-
-        private string RemoveSequenceNode(string expected)
-        {
-            var element = XElement.Parse(expected);
-            var result = RemoveSequenceNode(element);
-            return result.ToString()!;
         }
 
         private object RemoveSequenceNode(XNode node)

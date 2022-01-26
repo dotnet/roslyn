@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
-    public partial class CSharpJsonParserTests
+    public partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
     {
         [Fact]
         public void TestOneSpace()
@@ -3591,7 +3591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         @"",
         @"<Diagnostics>
   <Diagnostic Message=""Comments not allowed"" Start=""10"" Length=""11"" />
-</Diagnostics>", runLooseTreeCheck: false);
+</Diagnostics>", runLooseSubTreeCheck: false);
         }
 
         [Fact]
