@@ -60,12 +60,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var trailingTrivia = ScanTrivia(leading: false);
             var token = CreateToken(kind, leadingTrivia, chars, trailingTrivia);
 
-            if (diagnostic != null)
-            {
-                token = token.AddDiagnosticIfNone(diagnostic.Value);
-            }
-
-            return token;
+            return diagnostic == null
+                ? token
+                : token.AddDiagnosticIfNone(diagnostic.Value);
         }
 
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic? diagnostic) ScanNextTokenWorker()
@@ -354,11 +351,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var start = Position;
             Position += 2;
 
-            while (Position < Text.Length &&
-                   !IsAt("*/"))
-            {
+            while (Position < Text.Length && !IsAt("*/"))
                 Position++;
-            }
 
             if (IsAt("*/"))
             {
@@ -383,11 +377,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             for (var i = 0; i < val.Length; i++)
             {
-                if (position + i >= Text.Length ||
-                    Text[position + i] != val[i])
-                {
+                if (position + i >= Text.Length || Text[position + i] != val[i])
                     return false;
-                }
             }
 
             return true;
