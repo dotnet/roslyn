@@ -5293,5 +5293,42 @@ b""</StringToken>
   <Diagnostic Message=""'}' unexpected"" Start=""16"" Length=""1"" />
 </Diagnostics>");
         }
+
+        [Fact]
+        public void TestPropertyWithCommaFollowedByComma()
+        {
+            Test(@"""{ 'a': , , }""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <StringToken>'a'</StringToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <CommaValue>
+              <CommaToken />
+            </CommaValue>
+          </Property>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""18"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""',' unexpected"" Start=""18"" Length=""1"" />
+</Diagnostics>");
+        }
     }
 }
