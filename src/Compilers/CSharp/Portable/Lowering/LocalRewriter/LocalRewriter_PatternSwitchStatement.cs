@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Evaluate the input and set up sharing for dag temps with user variables
                 BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
-                    node.GetDecisionDagForLowering(_factory.Compilation), 
+                    node.GetDecisionDagForLowering(_factory.Compilation),
                     loweredSwitchGoverningExpression, result, out _);
 
                 // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
