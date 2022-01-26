@@ -188,4 +188,7 @@
   <data name="Split_raw_string" xml:space="preserve">
     <value>Split raw string</value>
   </data>
+  <data name="Grow_raw_string" xml:space="preserve">
+    <value>Grow raw string</value>
+  </data>
 </root>
