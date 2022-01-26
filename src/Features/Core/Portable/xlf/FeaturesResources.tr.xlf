@@ -215,14 +215,104 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Örtük Main yönteminin dönüş türü değişikliğine neden olan bir güncelleştirme, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note>{Locked="Main"} is C# keywords and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Apply_auto_property_preferences">
+        <source>Apply auto property preferences</source>
+        <target state="new">Apply auto property preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_blank_line_preferences_experimental">
+        <source>Apply blank line preferences (experimental)</source>
+        <target state="new">Apply blank line preferences (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_coalesce_expression_preferences">
+        <source>Apply coalesce expression preferences</source>
+        <target state="new">Apply coalesce expression preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_compound_assignment_preferences">
+        <source>Apply compound assignment preferences</source>
+        <target state="new">Apply compound assignment preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_conditional_expression_preferences">
+        <source>Apply conditional expression preferences</source>
+        <target state="new">Apply conditional expression preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
         <target state="translated">Dosya üst bilgisi tercihlerini uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_inferred_anonymous_type_member_names_preferences">
+        <source>Apply inferred anonymous type member names preferences</source>
+        <target state="new">Apply inferred anonymous type member names preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_language_framework_type_preferences">
+        <source>Apply language/framework type preferences</source>
+        <target state="new">Apply language/framework type preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_namespace_matches_folder_preferences">
+        <source>Apply namespace matches folde preferences</source>
+        <target state="new">Apply namespace matches folde preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_null_checking_preferences">
+        <source>Apply null checking preferences</source>
+        <target state="new">Apply null checking preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_null_propagation_preferences">
+        <source>Apply null propagation preferences</source>
+        <target state="new">Apply null propagation preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_object_collection_initialization_preferences">
         <source>Apply object/collection initialization preferences</source>
         <target state="translated">Nesne/koleksiyon başlatma tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_initializer_preferences">
+        <source>Apply object initializer preferences</source>
+        <target state="new">Apply object initializer preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_parentheses_preferences">
+        <source>Apply parentheses preferences</source>
+        <target state="new">Apply parentheses preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_simplify_boolean_expression_preferences">
+        <source>Apply simplify boolean expression preferences</source>
+        <target state="new">Apply simplify boolean expression preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_statement_after_block_preferences_experimental">
+        <source>Apply statement after block preferences (experimental)</source>
+        <target state="new">Apply statement after block preferences (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_string_interpolation_preferences">
+        <source>Apply string interpolation preferences</source>
+        <target state="new">Apply string interpolation preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_tuple_name_preferences">
+        <source>Apply tuple name preferences</source>
+        <target state="new">Apply tuple name preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_unused_value_preferences">
+        <source>Apply unused value preferences</source>
+        <target state="new">Apply unused value preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply using directive placement preferences</source>
+        <target state="new">Apply using directive placement preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
@@ -2400,9 +2490,24 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">'async' değiştiricisini kaldırın</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_Imports_or_usings">
+        <source>Remove unnecessary Imports or usings</source>
+        <target state="new">Remove unnecessary Imports or usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Gereksiz atamaları kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameters">
+        <source>Remove unused parameters</source>
+        <target state="new">Remove unused parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_suppressions">
+        <source>Remove unused suppressions</source>
+        <target state="new">Remove unused suppressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variables">
@@ -2463,6 +2568,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Silent">
         <source>Silent</source>
         <target state="translated">Sessiz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports_or_usings">
+        <source>Sort Imports or usings</source>
+        <target state="new">Sort Imports or usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
