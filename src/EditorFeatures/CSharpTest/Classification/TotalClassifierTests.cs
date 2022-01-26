@@ -2193,7 +2193,7 @@ class C { }",
         [Theory]
         [CombinatorialData]
         [WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")]
-        public async Task FunctionPointerCallingConventions(TestHost testHost)
+        public async Task FunctionPointerCallingConventions_Keyword(TestHost testHost)
         {
             await TestAsync(@"
 public unsafe class C
@@ -2211,7 +2211,40 @@ public unsafe class C
                 Operators.Asterisk,
                 Keyword("unmanaged"),
                 Punctuation.OpenBracket,
+                Keyword("Stdcall"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("void"),
+                Punctuation.CloseAngle,
+                Field("f0"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")]
+        public async Task FunctionPointerCallingConventions_Class(TestHost testHost)
+        {
+            await TestAsync(@"
+public unsafe class C
+{
+    delegate* unmanaged[Stdcall, Fastcall]<void> f0;
+}
+",
+                testHost,
+                Keyword("public"),
+                Keyword("unsafe"),
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
                 Class("Stdcall"),
+                Punctuation.Comma,
+                Class("Fastcall"),
                 Punctuation.CloseBracket,
                 Punctuation.OpenAngle,
                 Keyword("void"),
