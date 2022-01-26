@@ -1083,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)net6).HasValue &&
                 ((bool?)net6).Value)
             {
-                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60);
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
             }
 
             return references;
