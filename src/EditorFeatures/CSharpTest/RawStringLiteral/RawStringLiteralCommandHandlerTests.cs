@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral
                 Assert.Equal(massaged, TextView.TextSnapshot.GetText());
                 Assert.Equal(caretPosition!.Value, TextView.Caret.Position.BufferPosition.Position);
 
-                var VirtualSpaces = spans.SingleOrDefault(kvp => kvp.Key.StartsWith("VirtualSpaces#"));
-                if (VirtualSpaces.Key != null)
+                var virtualSpaces = spans.SingleOrDefault(kvp => kvp.Key.StartsWith("VirtualSpaces#"));
+                if (virtualSpaces.Key != null)
                 {
-                    var virtualOffset = int.Parse(VirtualSpaces.Key.Substring("VirtualSpaces-".Length));
+                    var virtualOffset = int.Parse(virtualSpaces.Key.Substring("VirtualSpaces-".Length));
                     Assert.True(TextView.Caret.InVirtualSpace);
                     Assert.Equal(virtualOffset, TextView.Caret.Position.VirtualBufferPosition.VirtualSpaces);
                 }
