@@ -3423,5 +3423,30 @@ public unsafe class C
 
             Test(workspace)
         End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")>
+        Public Sub FunctionPointerCallingConvention_NotFromCorLib()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet45="true">
+        <Document><![CDATA[
+public unsafe class C
+{
+    delegate* unmanaged[Stdcall, M$$emberFunction]<void> f0;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class CallConvMemberFunction 
+    {
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
     End Class
 End Namespace
