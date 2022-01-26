@@ -4633,8 +4633,13 @@ class Program
 @"using System.Runtime.InteropServices;
 class Program
 {
-    static void F([DefaultParameterValue(() => { return [|null|]; })] object obj)
+    static void F([DefaultParameterValue(() => { return {|Rename:NewMethod|}(); })] object obj)
     {
+    }
+
+    private static object NewMethod()
+    {
+        return null;
     }
 }");
         }
