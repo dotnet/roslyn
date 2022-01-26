@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }

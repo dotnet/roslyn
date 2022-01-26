@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return _underlyingProgress.OnDefinitionFoundAsync(group, cancellationToken);
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -385,7 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
             }
         }

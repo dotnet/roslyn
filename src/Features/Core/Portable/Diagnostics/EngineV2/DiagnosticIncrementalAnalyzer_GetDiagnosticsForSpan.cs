@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     Debug.Assert(!_blockForData || containsFullResult);
                     return containsFullResult;
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

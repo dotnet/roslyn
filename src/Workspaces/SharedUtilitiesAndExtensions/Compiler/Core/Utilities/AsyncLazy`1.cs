@@ -434,7 +434,7 @@ namespace Roslyn.Utilities
                 // because that token from the requester was cancelled.
                 throw ExceptionUtilities.Unreachable;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                         ContentTypeNames.FSharpContentType
                 }), _languageClient).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
             {
             }
         }

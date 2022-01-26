@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // actionable, so avoid the overhead of telemetry reporting for it.
                     // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1385578
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
                 {
                 }
             }

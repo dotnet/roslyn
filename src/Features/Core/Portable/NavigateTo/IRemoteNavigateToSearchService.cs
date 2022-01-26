@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 await _onResultFound(result).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical))
             {
             }
         }

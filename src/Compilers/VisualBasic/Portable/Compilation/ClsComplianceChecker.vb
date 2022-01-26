@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Sub()
                                 Try
                                     VisitModule(m)
-                                Catch e As Exception When FatalError.ReportAndPropagateUnlessCanceled(e)
+                                Catch e As Exception When FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General)
                                     Throw ExceptionUtilities.Unreachable
                                 End Try
                             End Sub),
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Sub()
                                 Try
                                     Visit(m)
-                                Catch e As Exception When FatalError.ReportAndPropagateUnlessCanceled(e)
+                                Catch e As Exception When FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General)
                                     Throw ExceptionUtilities.Unreachable
                                 End Try
                             End Sub),

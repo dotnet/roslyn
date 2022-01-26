@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var capabilities = await DebuggingSession.DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
                 return EditAndContinueCapabilitiesParser.Parse(capabilities);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 return EditAndContinueCapabilities.Baseline;
             }
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var debugInfos = await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
                 return ActiveStatementsMap.Create(debugInfos, NonRemappableRegions);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 return ActiveStatementsMap.Empty;
             }
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return false;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     addedSymbols,
                     activeStatementsInChangedDocuments.ToImmutable());
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return update;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }

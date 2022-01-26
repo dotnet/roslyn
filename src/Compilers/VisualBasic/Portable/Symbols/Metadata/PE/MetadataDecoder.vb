@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
-            Catch e As Exception When FatalError.ReportAndPropagate(e) ' Trying to get more useful Watson dumps.
+            Catch e As Exception When FatalError.ReportAndPropagate(e, ErrorSeverity.General) ' Trying to get more useful Watson dumps.
                 Throw ExceptionUtilities.Unreachable
             End Try
         End Function

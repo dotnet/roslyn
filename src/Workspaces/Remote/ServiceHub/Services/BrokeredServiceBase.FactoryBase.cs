@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         serviceActivationOptions,
                         serviceBroker));
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

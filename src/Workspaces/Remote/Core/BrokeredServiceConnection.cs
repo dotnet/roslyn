@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return true;
             }
 
-            return FatalError.ReportAndCatch(exception);
+            return FatalError.ReportAndCatch(exception, ErrorSeverity.General);
         }
 
         private bool IsHostShuttingDown

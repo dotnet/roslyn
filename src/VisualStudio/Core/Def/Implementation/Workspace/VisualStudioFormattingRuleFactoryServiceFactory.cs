@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 FatalError.ReportAndCatch(
-                    new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
+                    new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"), ErrorSeverity.Diagnostic);
 
                 return NoOpFormattingRule.Instance;
             }

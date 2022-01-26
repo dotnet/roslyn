@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.General))
                 {
                     // nop
                 }
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.General))
                 {
                     // nop
                 }
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.General))
                 {
                     // nop
                 }

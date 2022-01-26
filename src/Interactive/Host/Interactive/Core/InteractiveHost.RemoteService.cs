@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         await host.OnProcessExitedAsync(Process).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagate(e))
+                catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

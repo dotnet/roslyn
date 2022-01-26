@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
                     if (textSnapshot == null)
                     {
-                        FatalError.ReportAndCatch(new NullTextBufferException(document, text));
+                        FatalError.ReportAndCatch(new NullTextBufferException(document, text), ErrorSeverity.Critical);
                         continue;
                     }
 
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         throw new InvalidOperationException("Caret position changed during application of rename");
                     }
-                    catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex))
+                    catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                     {
                         // Unreachable code due to ReportAndCatch
                         Contract.ThrowIfTrue(true);

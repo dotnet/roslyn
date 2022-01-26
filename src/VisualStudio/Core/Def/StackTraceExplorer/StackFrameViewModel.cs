@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     await definition.TryNavigateToAsync(_workspace, showInPreviewTab: true, activateTab: false, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
             {
             }
         }
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     await definition.TryNavigateToAsync(_workspace, showInPreviewTab: true, activateTab: false, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
             {
             }
         }
@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     navigationService.TryNavigateToLineAndOffset(_workspace, document.Id, lineNumber - 1, 0, cancellationToken);
                 }
             }
-            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
             {
             }
         }

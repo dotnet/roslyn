@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.Diagnostic))
             {
                 // ignore all, this is fire and forget method
             }

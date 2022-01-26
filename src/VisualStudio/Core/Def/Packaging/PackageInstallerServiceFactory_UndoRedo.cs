@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 catch (OperationCanceledException)
                 {
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
                 {
                 }
             }

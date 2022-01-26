@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 {
                     // this was not a normal exception that we expected during DB open.
                     // Report this so we can try to address whatever is causing this.
-                    FatalError.ReportAndCatch(ex);
+                    FatalError.ReportAndCatch(ex, ErrorSeverity.Diagnostic);
                     IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath)!, recursive: true));
                 }
 

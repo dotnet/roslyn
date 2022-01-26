@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     FatalError.ReportAndCatch(
                         new ArgumentException($"Expected content type {this.ContentTypeName} " +
-                        $"but got buffer of content type {contextBuffer.ContentType}"));
+                        $"but got buffer of content type {contextBuffer.ContentType}"), ErrorSeverity.Diagnostic);
 
                     return VSConstants.E_FAIL;
                 }

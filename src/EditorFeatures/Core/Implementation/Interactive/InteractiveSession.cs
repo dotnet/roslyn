@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 return result.Success;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }

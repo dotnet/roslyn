@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             return severity switch
             {
-                ErrorSeverity.Uncategorized => FaultSeverity.Uncategorized,
                 ErrorSeverity.Diagnostic => FaultSeverity.Diagnostic,
                 ErrorSeverity.General => FaultSeverity.General,
                 ErrorSeverity.Critical => FaultSeverity.Critical,

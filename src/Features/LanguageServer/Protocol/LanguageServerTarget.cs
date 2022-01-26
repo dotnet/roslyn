@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 JsonRpc.Disconnected -= JsonRpc_Disconnected;
                 JsonRpc.Dispose();
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
             {
                 // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
                 // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.

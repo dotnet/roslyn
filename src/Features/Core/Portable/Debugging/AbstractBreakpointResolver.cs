@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 return members.Where(m => IsApplicable(m, parameterCount, cancellationToken)).
                     Select(CreateBreakpoint).ToImmutableArrayOrEmpty();
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 return ImmutableArray<BreakpointResolutionResult>.Empty;
             }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                         return FindMembers(containers, nameParts.ToArray());
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 return ImmutableArray<ISymbol>.Empty;
             }

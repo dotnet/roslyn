@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 return;
             }
 
-            FatalError.ReportAndPropagate(exception);
+            FatalError.ReportAndPropagate(exception, ErrorSeverity.Critical);
         }
     }
 }

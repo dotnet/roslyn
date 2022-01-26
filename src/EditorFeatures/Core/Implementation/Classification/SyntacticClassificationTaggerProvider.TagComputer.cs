@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     // can happen if we were disposed of.
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
                 {
                     // We were in a fire and forget task.  So just report the NFW and do not let
                     // this bleed out to an unhandled exception.

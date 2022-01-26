@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     a();
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

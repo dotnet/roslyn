@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e)) // Trying to get more useful Watson dumps.
+            catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General)) // Trying to get more useful Watson dumps.
             {
                 throw ExceptionUtilities.Unreachable;
             }

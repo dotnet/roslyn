@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         contextPosition:=position,
                         rules:=s_itemRules))
                 Next
-            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.Critical)
                 ' nop
             End Try
         End Function

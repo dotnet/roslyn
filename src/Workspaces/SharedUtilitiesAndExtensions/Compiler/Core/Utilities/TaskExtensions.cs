@@ -159,7 +159,7 @@ namespace Roslyn.Utilities
                 {
                     return continuationFunction(t);
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -344,12 +344,12 @@ namespace Roslyn.Utilities
             //   ...
             // > ~67s     // switch to thread 67
             // > !dso     // dump stack objects
-            FatalError.ReportAndCatch(exception);
+            FatalError.ReportAndCatch(exception, ErrorSeverity.Critical);
         }
 
         public static Task ReportNonFatalErrorAsync(this Task task)
         {
-            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!),
+            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!, ErrorSeverity.Critical),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);
@@ -357,9 +357,9 @@ namespace Roslyn.Utilities
             return task;
         }
 
-        public static Task ReportNonFatalErrorUnlessCancelledAsync(this Task task, CancellationToken cancellationToken)
+        public static Task ReportNonFatalErrorUnlessCancelledAsync(this Task task, ErrorSeverity severity, CancellationToken cancellationToken)
         {
-            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!, cancellationToken),
+            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!, cancellationToken, severity),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);

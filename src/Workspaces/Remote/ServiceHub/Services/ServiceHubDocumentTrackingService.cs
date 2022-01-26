@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Debug.Fail(message);
 
             // record NFW to see who violates contract.
-            FatalError.ReportAndCatch(new InvalidOperationException(message));
+            FatalError.ReportAndCatch(new InvalidOperationException(message), ErrorSeverity.Critical);
         }
     }
 }

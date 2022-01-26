@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
                 return workspace.CurrentSolution;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new((solutionChecksum, result));
                     return result;
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

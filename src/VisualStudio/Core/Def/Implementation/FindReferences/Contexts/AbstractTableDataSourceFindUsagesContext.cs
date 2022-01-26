@@ -331,7 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     return OnDefinitionFoundWorkerAsync(definition, cancellationToken);
                 }
-                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

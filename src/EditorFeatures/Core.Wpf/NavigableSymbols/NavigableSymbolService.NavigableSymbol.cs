@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 catch (OperationCanceledException)
                 {
                 }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                 {
                 }
             }

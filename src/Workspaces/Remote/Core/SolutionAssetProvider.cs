@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
                     RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
                 {
                     // no-op
                 }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e)
                 {
-                    FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken);
+                    FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General);
                     exception = e;
                 }
                 finally
