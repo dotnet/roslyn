@@ -26,26 +26,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     /// cref="JsonTree"/> out of it. Parsing will always succeed (except in the case of a
     /// stack-overflow) and will consume the entire sequence of chars.  General roslyn syntax
     /// principles are held to (i.e. immutable, fully representative, etc.).
-    ///
+    /// <para>
     /// The parser always parses out the same tree regardless of input.  *However*, depending on the
     /// flags passed to it, it may return a different set of *diagnostics*.  Specifically, the
     /// parser supports json.net parsing and strict RFC8259 (https://tools.ietf.org/html/rfc8259).
     /// As such, the parser supports a superset of both, but then does a pass at the end to produce
     /// appropriate diagnostics.
-    ///
+    /// </para>
+    /// </summary>
+    /// <remarks>
     /// Note: the json structure we parse out is actually very simple.  It's effectively all lists
     /// of <see cref="JsonValueNode"/> values.  We just treat almost everything as a 'value'.  For
-    /// example, a <see cref="JsonPropertyNode"/> (i.e. ```"x" = 0```) is a 'value'.  As such, it
-    /// can show up in arrays (i.e.  ```["x" = 0, "y" = 1]```).  This is not legal, but it greatly
+    /// example, a <see cref="JsonPropertyNode"/> (i.e. <c>"x" = 0</c>) is a 'value'.  As such, it
+    /// can show up in arrays (i.e.  <c>["x" = 0, "y" = 1]</c>).  This is not legal, but it greatly
     /// simplifies parsing.  Effectively, we just have recursive list parsing, where we accept any
     /// sort of value in any sort of context.  A later pass will then report errors for the wrong
     /// sorts of values showing up in incorrect contexts.
-    ///
-    /// Note: We also treat commas (```,```) as being a 'value' on its own.  This simplifies parsing
+    /// <para>
+    /// Note: We also treat commas (<c>,</c>) as being a 'value' on its own.  This simplifies parsing
     /// by allowing us to not have to represent Lists and SeparatedLists.  It also helps model
-    /// things that are supported in json.net (like ```[1,,2]```).  Our post-parsing pass will
+    /// things that are supported in json.net (like <c>[1,,2]</c>).  Our post-parsing pass will
     /// then ensure that these comma-values only show up in the right contexts.
-    /// </summary>
+    /// </para>
+    /// </remarks>
     internal partial struct JsonParser
     {
         private static readonly string s_closeBracketExpected = string.Format(FeaturesResources._0_expected, ']');
