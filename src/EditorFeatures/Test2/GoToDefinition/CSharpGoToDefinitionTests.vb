@@ -3336,7 +3336,7 @@ $$
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         <WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")>
-        Public Sub FunctionPointerCallingConvention()
+        Public Sub FunctionPointerCallingConvention_Single_SpecialConv()
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3344,6 +3344,78 @@ $$
 public unsafe class C
 {
     delegate* unmanaged[St$$dcall]<void> f0;
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")>
+        Public Sub FunctionPointerCallingConvention_Single_NonSpecialConv()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+public unsafe class C
+{
+    delegate* unmanaged[M$$emberFunction]<void> f0;
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")>
+        Public Sub FunctionPointerCallingConvention_Multiple_SpecialConv()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+public unsafe class C
+{
+    delegate* unmanaged[St$$dcall, MemberFunction]<void> f0;
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")>
+        Public Sub FunctionPointerCallingConvention_Multiple_NonSpecialConv()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+public unsafe class C
+{
+    delegate* unmanaged[Stdcall, M$$emberFunction]<void> f0;
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")>
+        Public Sub FunctionPointerCallingConvention_Multiple_AllAreSpecialConv()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+public unsafe class C
+{
+    delegate* unmanaged[St$$dcall, Fastcall]<void> f0;
 }
         ]]></Document>
     </Project>
