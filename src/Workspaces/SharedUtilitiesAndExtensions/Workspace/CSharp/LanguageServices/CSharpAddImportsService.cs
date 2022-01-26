@@ -20,18 +20,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.AddImports
 {
     [ExportLanguageService(typeof(IAddImportsService), LanguageNames.CSharp), Shared]
-    internal class CSharpAddImportsService : AbstractAddImportsService<
+    internal sealed class CSharpAddImportsService : AbstractAddImportsService<
         CompilationUnitSyntax, BaseNamespaceDeclarationSyntax, UsingDirectiveSyntax, ExternAliasDirectiveSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAddImportsService()
         {
-        }
-
-        protected override bool PlaceImportsInsideNamespaces(CodeGenerationPreferences preferences)
-        {
-            return preferences.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value == AddImportPlacement.InsideNamespace;
         }
 
         // C# doesn't have global imports.
