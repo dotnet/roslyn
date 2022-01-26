@@ -35,4 +35,6 @@
     "powershell.promptToUpdatePowerShell": false,
     "powershell.integratedConsole.showOnStartup": false,
     "powershell.startAutomatically": false,
+    // ms-azure-devops.azure-pipelines settings
+    "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json"
 }
