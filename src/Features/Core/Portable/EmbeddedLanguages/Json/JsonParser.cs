@@ -183,9 +183,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         private static JsonToken GetFirstToken(JsonNodeOrToken nodeOrToken)
-        {
-            return nodeOrToken.IsNode ? GetFirstToken(nodeOrToken.Node.ChildAt(0)) : nodeOrToken.Token;
-        }
+            => nodeOrToken.IsNode ? GetFirstToken(nodeOrToken.Node.ChildAt(0)) : nodeOrToken.Token;
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNode node)
         {
@@ -193,20 +191,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 var diagnostic = GetFirstDiagnostic(child);
                 if (diagnostic != null)
-                {
                     return diagnostic;
-                }
             }
 
             return null;
         }
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNodeOrToken child)
-        {
-            return child.IsNode
+            => child.IsNode
                 ? GetFirstDiagnostic(child.Node)
                 : GetFirstDiagnostic(child.Token);
-        }
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonToken token)
             => GetFirstDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNull() ?? GetFirstDiagnostic(token.TrailingTrivia);
