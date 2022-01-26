@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private ImmutableArray<JsonTrivia> ScanTrivia(bool leading)
         {
-            var result = ArrayBuilder<JsonTrivia>.GetInstance();
+            using var _ = ArrayBuilder<JsonTrivia>.GetInstance(out var result);
 
             while (Position < Text.Length)
             {

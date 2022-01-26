@@ -120,28 +120,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var root = new JsonCompilationUnit(arraySequence, _currentToken);
 
-            // We only report a single diagnostic when parsing out json.  This helps prevent lots of
-            // cascading errors from being reported.  First, we see if there are any diagnostics
-            // directly in tokens in the tree.  If not, we then check for any incorrect tree
-            // structure (that would be incorrect for both json.net or strict-mode).  If we don't
-            // run into any problems, we'll then perform specific json.net or strict-mode checks.
+            // We only report a single diagnostic when parsing out json.  This helps prevent lots of cascading errors
+            // from being reported.  First, we see if there are any diagnostics directly in tokens in the tree.  If not,
+            // we then check for any incorrect tree structure (that would be incorrect for both json.net or
+            // strict-mode).  If we don't run into any problems, we'll then perform specific json.net or strict-mode
+            // checks.
             var diagnostic = GetFirstDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
 
-            if (diagnostic == null)
-            {
-                // We didn't have any diagnostics in the tree so far.  Do the json.net/strict checks
-                // depending on how we were invoked.
-                diagnostic = strict
-                    ? StrictSyntaxChecker.CheckSyntax(root)
-                    : JsonNetSyntaxChecker.CheckSyntax(root);
-            }
+            // If we didn't have any diagnostics in the tree so far.  Do the json.net/strict checks depending on how we
+            // were invoked.
 
-            var diagnostics = diagnostic == null
-                ? ImmutableArray<EmbeddedDiagnostic>.Empty
-                : ImmutableArray.Create(diagnostic.Value);
+            diagnostic ??= strict
+                ? StrictSyntaxChecker.CheckSyntax(root)
+                : JsonNetSyntaxChecker.CheckSyntax(root);
 
-            return new JsonTree(
-                _lexer.Text, root, diagnostics);
+            return new JsonTree(_lexer.Text, root,
+                diagnostic == null
+                    ? ImmutableArray<EmbeddedDiagnostic>.Empty
+                    : ImmutableArray.Create(diagnostic.Value));
         }
 
         /// <summary>
