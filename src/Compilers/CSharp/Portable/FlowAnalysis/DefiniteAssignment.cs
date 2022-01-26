@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(member is null ||
                 node.Kind == BoundKind.Attribute ||
-                member.ContainingAssembly == compilation.SourceAssembly);
+                (object)member.ContainingAssembly == compilation.SourceAssembly);
 
             return compilation.SourceAssembly;
         }
