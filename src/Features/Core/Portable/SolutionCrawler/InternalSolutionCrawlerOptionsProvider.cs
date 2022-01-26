@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InternalSolutionCrawlerOptions.SolutionCrawler,
             InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly);
     }
 }

@@ -70,13 +70,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
-                // if option is on
-                if (_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
-                {
-                    _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-                    _registration.Workspace.DocumentOpened += OnDocumentOpened;
-                    _registration.Workspace.DocumentClosed += OnDocumentClosed;
-                }
+                _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+                _registration.Workspace.DocumentOpened += OnDocumentOpened;
+                _registration.Workspace.DocumentClosed += OnDocumentClosed;
 
                 // subscribe to option changed event after all required fields are set
                 // otherwise, we can get null exception when running OnOptionChanged handler
@@ -140,35 +136,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
             {
-                // if solution crawler got turned off or on.
-                if (e.Option == InternalSolutionCrawlerOptions.SolutionCrawler)
-                {
-                    Contract.ThrowIfNull(e.Value);
-
-                    var value = (bool)e.Value;
-                    if (value)
-                    {
-                        _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-                        _registration.Workspace.DocumentOpened += OnDocumentOpened;
-                        _registration.Workspace.DocumentClosed += OnDocumentClosed;
-                    }
-                    else
-                    {
-                        _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
-                        _registration.Workspace.DocumentOpened -= OnDocumentOpened;
-                        _registration.Workspace.DocumentClosed -= OnDocumentClosed;
-                    }
-
-                    SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
-                    return;
-                }
-
-                if (!_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
-                {
-                    // Bail out if solution crawler is disabled.
-                    return;
-                }
-
                 ReanalyzeOnOptionChange(sender, e);
             }
 
