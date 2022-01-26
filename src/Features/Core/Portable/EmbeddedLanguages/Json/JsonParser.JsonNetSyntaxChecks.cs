@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     {
                         var diagnostic = CheckSyntax(child.Node);
                         if (diagnostic != null)
-                        {
                             return diagnostic;
-                        }
                     }
                 }
 
@@ -49,24 +47,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 };
 
             private static EmbeddedDiagnostic? CheckLiteral(JsonLiteralNode node)
-            {
-                if (node.LiteralToken.Kind == JsonKind.NumberToken)
-                {
-                    return CheckNumber(node.LiteralToken);
-                }
-
-                return CheckChildren(node);
-            }
+                => node.LiteralToken.Kind == JsonKind.NumberToken
+                    ? CheckNumber(node.LiteralToken)
+                    : CheckChildren(node);
 
             private static EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
-            {
-                if (node.LiteralToken.Kind == JsonKind.NumberToken)
-                {
-                    return CheckNumber(node.LiteralToken);
-                }
-
-                return CheckChildren(node);
-            }
+                => node.LiteralToken.Kind == JsonKind.NumberToken
+                    ? CheckNumber(node.LiteralToken)
+                    : CheckChildren(node);
 
             private static EmbeddedDiagnostic? CheckNumber(JsonToken numberToken)
             {
@@ -114,20 +102,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
-            {
-                foreach (var child in node.Sequence)
-                {
-                    if (child.Kind == JsonKind.Property)
-                    {
-                        return new EmbeddedDiagnostic(
-                            FeaturesResources.Properties_not_allowed_in_an_array,
-                            ((JsonPropertyNode)child).ColonToken.GetSpan());
-                    }
-                }
-
-                var diagnostic = CheckCommasBetweenSequenceElements(node.Sequence);
-                return diagnostic ?? CheckChildren(node);
-            }
+                => CheckCommasBetweenSequenceElements(node.Sequence) ?? CheckChildren(node);
 
             private static EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
             {

@@ -125,19 +125,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
-            {
-                foreach (var child in node.Sequence)
-                {
-                    if (child.Kind == JsonKind.Property)
-                    {
-                        return new EmbeddedDiagnostic(
-                            FeaturesResources.Properties_not_allowed_in_an_array,
-                            ((JsonPropertyNode)child).ColonToken.GetSpan());
-                    }
-                }
-
-                return CheckProperSeparation(node.Sequence) ?? CheckChildren(node);
-            }
+                => CheckProperSeparation(node.Sequence) ?? CheckChildren(node);
 
             private static EmbeddedDiagnostic? CheckProperSeparation(ImmutableArray<JsonValueNode> sequence)
             {

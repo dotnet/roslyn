@@ -186,8 +186,50 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         propertyValue.ColonToken.GetSpan());
                 }
 
-                return null;
+                return CheckSyntax(child);
             }
+        }
+
+        private static EmbeddedDiagnostic? CheckChildren(JsonNode node)
+        {
+            foreach (var child in node)
+            {
+                if (child.IsNode)
+                {
+                    var diagnostic = CheckSyntax(child.Node);
+                    if (diagnostic != null)
+                        return diagnostic;
+                }
+            }
+
+            return null;
+        }
+
+        public static EmbeddedDiagnostic? CheckSyntax(JsonNode node)
+            => node.Kind switch
+            {
+                JsonKind.Array => CheckArray((JsonArrayNode)node),
+                //JsonKind.Object => CheckObject((JsonObjectNode)node),
+                //JsonKind.Constructor => CheckConstructor((JsonConstructorNode)node),
+                //JsonKind.Property => CheckProperty((JsonPropertyNode)node),
+                //JsonKind.Literal => CheckLiteral((JsonLiteralNode)node),
+                //JsonKind.NegativeLiteral => CheckNegativeLiteral((JsonNegativeLiteralNode)node),
+                _ => CheckChildren(node),
+            };
+
+        private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
+        {
+            foreach (var child in node.Sequence)
+            {
+                if (child.Kind == JsonKind.Property)
+                {
+                    return new EmbeddedDiagnostic(
+                        FeaturesResources.Properties_not_allowed_in_an_array,
+                        ((JsonPropertyNode)child).ColonToken.GetSpan());
+                }
+            }
+
+            return CheckChildren(node);
         }
 
         private static JsonToken GetFirstToken(JsonNodeOrToken nodeOrToken)
