@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? UnmanagedCallingConventionType(this Compilation compilation, string callConv)
         {
             var corLibrary = compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly;
-            return corLibrary.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv" + callConv);
+            return corLibrary?.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConv" + callConv);
         }
     }
 }
