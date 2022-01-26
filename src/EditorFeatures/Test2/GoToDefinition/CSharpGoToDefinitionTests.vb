@@ -3339,7 +3339,7 @@ $$
         Public Sub FunctionPointerCallingConvention_Single_SpecialConv()
             Dim workspace =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferencesNet6="true">
         <Document><![CDATA[
 public unsafe class C
 {
@@ -3357,7 +3357,7 @@ public unsafe class C
         Public Sub FunctionPointerCallingConvention_Single_NonSpecialConv()
             Dim workspace =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferencesNet6="true">
         <Document><![CDATA[
 public unsafe class C
 {
@@ -3375,7 +3375,7 @@ public unsafe class C
         Public Sub FunctionPointerCallingConvention_Multiple_SpecialConv()
             Dim workspace =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferencesNet6="true">
         <Document><![CDATA[
 public unsafe class C
 {
@@ -3393,7 +3393,7 @@ public unsafe class C
         Public Sub FunctionPointerCallingConvention_Multiple_NonSpecialConv()
             Dim workspace =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferencesNet6="true">
         <Document><![CDATA[
 public unsafe class C
 {
@@ -3411,7 +3411,7 @@ public unsafe class C
         Public Sub FunctionPointerCallingConvention_Multiple_AllAreSpecialConv()
             Dim workspace =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferencesNet6="true">
         <Document><![CDATA[
 public unsafe class C
 {
