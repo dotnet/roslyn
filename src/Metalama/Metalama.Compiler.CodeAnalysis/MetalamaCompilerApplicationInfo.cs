@@ -9,7 +9,7 @@ using System.Reflection;
 using Metalama.Backstage.Diagnostics;
 using Metalama.Backstage.Extensibility;
 
-namespace Metalama.Compiler.Licensing
+namespace Metalama.Compiler
 {
     /// <summary>
     /// Provide application information stored using <see cref="AssemblyMetadataAttribute"/>.

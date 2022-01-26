@@ -9,13 +9,10 @@
     <Import_RootNamespace>Metalama.Compiler</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerApplicationInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerMessageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonPath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Licensing\BuildOptionsLicenseSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Licensing\MetalamaCompilerApplicationInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Licensing\LicenseSourceFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Licensing\TimeBombLicenseActivator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ServiceCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ServiceProviderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerDiagnosticSuppressor.cs" />

@@ -8,8 +8,7 @@ The Metalama compiler can be configured by several custom MSBuild properties fro
 * `MetalamaDebugTransformedCode`: Set to `true` to produce diagnostics and PDB sequence points in transformed code. Otherwise, locations are attempted to be mapped to original user code. The default is `false`.
 * `MetalamaDebugCompiler`: Set to `true` to cause `Debugger.Launch()`.
 * `MetalamaSourceOnlyAnalyzers` contains the list of analyzers that must execute on the source code instead of the transformed code. This is a comma-separated list which can contain the assembly name, an exact namespace (namespace inheritance rules do not apply) or the exact full name of an analyzer type.
-* `MetalamaLicense` constains a comma-separated list of license keys. This allows the user to set the license key using an MSBuild property or using an environment variable.
-* `MetalamaAutoStartEvaluation`: Set to `false` to disable automatic activation of the evaluation mode when no valid license is present. This is used for testing. The default value is `true`.
+* `MetalamaLicense` contains a comma-separated list of license keys. This allows the user to set the license key using an MSBuild property or using an environment variable.
 
 Note: If `MetalamaDebugTransformedCode` is set to `true`, but `EmitCompilerTransformedFiles` is explicitly set to `false` (and no custom `CompilerTransformedFilesOutputPath` is provided), then transformed sources should be used for debugging and diagnostics, but cannot be written to disk.
 
