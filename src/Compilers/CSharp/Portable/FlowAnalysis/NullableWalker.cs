@@ -8936,7 +8936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitTupleDeconstructionArguments(variables, conversion.DeconstructConversionInfo, right);
+                VisitTupleDeconstructionArguments(variables, conversion.DeconstructConversionInfo, right, rightResultOpt);
             }
         }
 
@@ -9038,10 +9038,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitTupleDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> deconstructConversionInfo, BoundExpression right)
+        private void VisitTupleDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> deconstructConversionInfo, BoundExpression right, TypeWithState? rightResultOpt)
         {
             int n = variables.Count;
-            var rightParts = GetDeconstructionRightParts(right);
+            var rightParts = GetDeconstructionRightParts(right, rightResultOpt);
             Debug.Assert(rightParts.Length == n);
 
             for (int i = 0; i < n; i++)
@@ -9170,7 +9170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return the sub-expressions for the righthand side of a deconstruction
         /// assignment. cf. LocalRewriter.GetRightParts.
         /// </summary>
-        private ImmutableArray<BoundExpression> GetDeconstructionRightParts(BoundExpression expr)
+        private ImmutableArray<BoundExpression> GetDeconstructionRightParts(BoundExpression expr, TypeWithState? rightResultOpt)
         {
             switch (expr.Kind)
             {
@@ -9184,10 +9184,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case ConversionKind.Identity:
                             case ConversionKind.ImplicitTupleLiteral:
-                                return GetDeconstructionRightParts(conv.Operand);
+                                return GetDeconstructionRightParts(conv.Operand, null);
                         }
                     }
                     break;
+            }
+            if (rightResultOpt is { } rightResult)
+            {
+                expr = CreatePlaceholderIfNecessary(expr, rightResult.ToTypeWithAnnotations(compilation));
             }
 
             if (expr.Type is NamedTypeSymbol { IsTupleType: true } tupleType)

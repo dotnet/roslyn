@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Classification
                         ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType) || ClassificationTypeNames.AdditiveTypeNames.Contains(previousSpan.ClassificationType);
 
                     // Additive classifications are intended to overlap so do not ignore it.
-                    if (!isAdditiveClassification && spans[i - 1].TextSpan.End > intersection.Value.Start)
+                    if (!isAdditiveClassification && previousSpan.TextSpan.End > intersection.Value.Start)
                     {
                         // This span isn't strictly after the previous span.  Ignore it.
                         intersection = null;

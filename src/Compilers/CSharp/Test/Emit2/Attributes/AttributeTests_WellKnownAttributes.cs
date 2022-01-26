@@ -13718,5 +13718,77 @@ public class C
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.this[System.Range].get", "error").WithLocation(27, 13)
                 );
         }
+
+        [Fact]
+        [WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")]
+        public void ErrorInPropertyValue_01()
+        {
+            var source = @"
+class C
+{
+    public int Count
+    {
+        [System.Runtime.CompilerServices.MethodImpl(MethodCodeType = System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        get;
+        private set;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,53): error CS0599: Invalid value for named attribute argument 'MethodCodeType'
+                //         [System.Runtime.CompilerServices.MethodImpl(MethodCodeType = System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "MethodCodeType = System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining").WithArguments("MethodCodeType").WithLocation(6, 53),
+                // (6,70): error CS0266: Cannot implicitly convert type 'System.Runtime.CompilerServices.MethodImplOptions' to 'System.Runtime.CompilerServices.MethodCodeType'. An explicit conversion exists (are you missing a cast?)
+                //         [System.Runtime.CompilerServices.MethodImpl(MethodCodeType = System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining").WithArguments("System.Runtime.CompilerServices.MethodImplOptions", "System.Runtime.CompilerServices.MethodCodeType").WithLocation(6, 70)
+                );
+        }
+
+        [Fact]
+        [WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")]
+        public void ErrorInPropertyValue_02()
+        {
+            var source = @"
+class C
+{
+    public int Count
+    {
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType = (System.Runtime.CompilerServices.MethodCodeType)System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        get;
+        private set;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,117): error CS0599: Invalid value for named attribute argument 'MethodCodeType'
+                //         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType = (System.Runtime.CompilerServices.MethodCodeType)System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "MethodCodeType = (System.Runtime.CompilerServices.MethodCodeType)System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining").WithArguments("MethodCodeType").WithLocation(6, 117)
+                );
+        }
+
+        [Fact]
+        public void ErrorInPropertyValue_03()
+        {
+            var source = @"
+using System.Runtime.InteropServices; 
+
+[StructLayout(CharSet=0)]
+public struct S1 { }
+
+[StructLayout(LayoutKind.Sequential, CharSet=0)]
+public struct S2 { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS1729: 'StructLayoutAttribute' does not contain a constructor that takes 0 arguments
+                // [StructLayout(CharSet=0)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "StructLayout(CharSet=0)").WithArguments("System.Runtime.InteropServices.StructLayoutAttribute", "0").WithLocation(4, 2),
+                // (7,38): error CS0599: Invalid value for named attribute argument 'CharSet'
+                // [StructLayout(LayoutKind.Sequential, CharSet=0)]
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet=0").WithArguments("CharSet").WithLocation(7, 38)
+                );
+        }
     }
 }

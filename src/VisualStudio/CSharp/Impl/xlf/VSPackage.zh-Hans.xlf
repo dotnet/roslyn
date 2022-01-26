@@ -129,11 +129,10 @@ Using 指令;
 首选引发属性;
 首选自动属性;
 regex;
-regular expression;
-Use enhanced colors;
-Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</target>
+正则表达式;
+使用增强色;
+编辑器配色方案;
+继承边距;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
