@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         continue;
 
                     case '\\':
-                        var escapeDiag = AdvanceToEndOfEscape(start, Position - 1);
+                        var escapeDiag = AdvanceToEndOfEscape(start, escapeStart: Position - 1);
                         diagnostic ??= escapeDiag;
                         continue;
                 }
@@ -129,29 +129,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             var currentCh = this.CurrentChar;
-            switch (currentCh.Value)
+            Position++;
+
+            return currentCh.Value switch
             {
-                case 'b':
-                case 't':
-                case 'n':
-                case 'f':
-                case 'r':
-                case '\\':
-                case '"':
-                case '\'':
-                case '/':
-                    Position++;
-                    return null;
-
-                case 'u':
-                    Position++;
-                    return ScanUnicodeChars(escapeStart, Position);
-
-                default:
-                    Position++;
-                    var chars = GetCharsToCurrentPosition(escapeStart);
-                    return new EmbeddedDiagnostic(FeaturesResources.Invalid_escape_sequence, GetSpan(chars));
-            }
+                'b' or 't' or 'n' or 'f' or 'r' or '\\' or '"' or '\'' or '/' => null,
+                'u' => ScanUnicodeChars(escapeStart, Position),
+                _ => new EmbeddedDiagnostic(FeaturesResources.Invalid_escape_sequence, GetSpan(GetCharsToCurrentPosition(escapeStart))),
+            };
         }
 
         private EmbeddedDiagnostic? ScanUnicodeChars(int escapeStart, int unicodeCharStart)
@@ -189,37 +174,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return (GetCharsToCurrentPosition(start), JsonKind.TextToken, null);
 
             static bool IsNotPartOfText(VirtualChar ch)
-            {
-                // Standard tokens.
-                switch (ch.Value)
+                => ch.Value switch
                 {
-                    case '{':
-                    case '}':
-                    case '[':
-                    case ']':
-                    case '(':
-                    case ')':
-                    case ',':
-                    case ':':
-                    case '\'':
-                    case '"':
-                        return true;
-
-                    case ' ':
-                    case '\t':
-                    case '/':
-                    case '\r':
-                    case '\n':
-                        // trivia cases
-                        return true;
-                }
-
-                // more trivia
-                if (ch.IsWhiteSpace)
-                    return true;
-
-                return false;
-            }
+                    // Standard tokens.
+                    '{' or '}' or '[' or ']' or '(' or ')' or ',' or ':' or '\'' or '"' => true,
+                    // trivia cases
+                    ' ' or '\t' or '/' or '\r' or '\n' => true,
+                    // more trivia
+                    _ => ch.IsWhiteSpace,
+                };
         }
 
         private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
@@ -304,9 +267,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
                 var chars = GetCharsToCurrentPosition(start);
                 return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars,
-                    ImmutableArray.Create(new EmbeddedDiagnostic(
-                        FeaturesResources.Error_parsing_comment,
-                        GetSpan(chars))));
+                    new EmbeddedDiagnostic(FeaturesResources.Error_parsing_comment, GetSpan(chars)));
             }
 
             return null;
@@ -318,21 +279,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var start = Position;
             Position += 2;
 
-            while (Position < Text.Length &&
-                   this.CurrentChar.Value is not '\r' and not '\n')
-            {
+            while (Position < Text.Length && this.CurrentChar.Value is not '\r' and not '\n')
                 Position++;
-            }
 
             var chars = GetCharsToCurrentPosition(start);
             if (Position == start + 2)
             {
                 // Note: json.net reports an error if the file ends with "//", so we just
                 // preserve that behavior.
-                var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
-                    FeaturesResources.Unterminated_comment,
-                    GetSpan(chars)));
-                return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars, diagnostics);
+                return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars,
+                    new EmbeddedDiagnostic(FeaturesResources.Unterminated_comment, GetSpan(chars)));
             }
 
             return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars);
@@ -355,9 +311,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             Debug.Assert(Position == Text.Length);
             return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetCharsToCurrentPosition(start),
-                ImmutableArray.Create(new EmbeddedDiagnostic(
-                    FeaturesResources.Unterminated_comment,
-                    GetTextSpan(start, Position))));
+                new EmbeddedDiagnostic(FeaturesResources.Unterminated_comment, GetTextSpan(start, Position)));
         }
 
         private TextSpan GetTextSpan(int startInclusive, int endExclusive)
