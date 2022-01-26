@@ -3022,7 +3022,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Symbol_found_in_assembly_path_0" xml:space="preserve">
     <value>Symbol found in assembly path '{0}'</value>
   </data>
-
   <data name="Invalid_number" xml:space="preserve">
     <value>Invalid number</value>
   </data>
