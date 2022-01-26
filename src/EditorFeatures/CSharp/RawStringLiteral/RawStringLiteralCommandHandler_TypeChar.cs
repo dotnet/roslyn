@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
             var cancellationToken = CancellationToken.None;
             var textChangeOpt = TryGenerateInitialEmptyRawString(caret.Value, cancellationToken) ??
                 TryGrowInitialEmptyRawString(caret.Value, cancellationToken) ??
-                TryGrowRawStringDelimeters(caret.Value, cancellationToken);
+                RawStringLiteralCommandHandler.TryGrowRawStringDelimeters(caret.Value, cancellationToken);
 
             if (textChangeOpt is not TextChange textChange)
                 return false;
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
         /// update the text to be: <c>"""" goo bar """"</c>.  i.e. grow both the start and end delimiters to keep the
         /// string properly balanced.
         /// </summary>
-        private TextChange? TryGrowRawStringDelimeters(
+        private static TextChange? TryGrowRawStringDelimeters(
             SnapshotPoint caret,
             CancellationToken cancellationToken)
         {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
 
             // if we have """$$"   then typing `"` here should not grow the start/end quotes.  we only want to grow them
             // if the user is at the end of the start delimeter.
-            if (position + 1 < snapshot.Length && snapshot[position + 1] == '"')
+            if (position < snapshot.Length && snapshot[position] == '"')
                 return null;
 
             var start = position;
@@ -215,15 +215,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
             if (token.SpanStart != start)
                 return null;
 
-            if (token.Kind() is not SyntaxKind.InterpolatedSingleLineRawStringStartToken and not SyntaxKind.InterpolatedMultiLineRawStringStartToken)
+            if (token.Span.Length < (2 * quoteCount))
                 return null;
 
-            var interpolatedString = (InterpolatedStringExpressionSyntax)token.GetRequiredParent();
-            var endToken = interpolatedString.StringEndToken;
-            if (!endToken.Text.EndsWith(new string('"', quoteCount)))
-                return null;
+            if (token.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken)
+            {
+                var interpolatedString = (InterpolatedStringExpressionSyntax)token.GetRequiredParent();
+                var endToken = interpolatedString.StringEndToken;
+                if (!endToken.Text.EndsWith(new string('"', quoteCount)))
+                    return null;
+            }
+            else if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            {
+                if (!token.Text.EndsWith(new string('"', quoteCount)))
+                    return null;
+            }
 
-            return new TextChange(new TextSpan(endToken.Span.End, 0), "\"");
+            return new TextChange(new TextSpan(token.GetRequiredParent().Span.End, 0), "\"");
         }
     }
 }

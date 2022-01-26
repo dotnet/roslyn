@@ -54,8 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral
                 => SendTypeChar(ch, _commandHandler.ExecuteCommand, () => EditorOperations.InsertText(ch.ToString()));
         }
 
+        #region generate initial empty raw string
+
         [WpfFact]
-        public void TestAtEndOfFile()
+        public void TestGenerateAtEndOfFile()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
 @"var v = """"$$");
@@ -64,5 +66,192 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral
             testState.AssertCodeIs(
 @"var v = """"""$$""""""");
         }
+
+        [WpfFact]
+        public void TestGenerateWithSemicolonAfter()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"$$;");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = """"""$$"""""";");
+        }
+
+        [WpfFact]
+        public void TestGenerateWithInterpolatedString()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = $""""$$");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = $""""""$$""""""");
+        }
+
+        [WpfFact]
+        public void TestNoGenerateWithVerbatimString()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = @""""$$");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = @""""""$$");
+        }
+
+        [WpfFact]
+        public void TestNoGenerateWithVerbatimInterpolatedString1()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = @$""""$$");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = @$""""""$$");
+        }
+
+        [WpfFact]
+        public void TestNoGenerateWithVerbatimInterpolatedString2()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = $@""""$$");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = $@""""""$$");
+        }
+
+        #endregion
+
+        #region grow empty raw string
+
+        [WpfFact]
+        public void TestDoNotGrowEmptyInsideSimpleString()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = ""$$""");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = """"$$""");
+        }
+
+        [WpfFact]
+        public void TestDoNotGrowEmptyInsideFourQuotes()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"$$""""");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = """"""$$""""");
+        }
+
+        [WpfFact]
+        public void TestDoGrowEmptyInsideSixQuotesInMiddle()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$""""""");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = """"""""$$""""""""");
+        }
+
+        [WpfFact]
+        public void TestDoGrowEmptyInsideSixQuotesInInterpolatedRaw()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = $""""""$$""""""");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = $""""""""$$""""""""");
+        }
+
+        [WpfFact]
+        public void TestDoNotGrowEmptyInsideSixQuotesWhenNotInMiddle1()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = $""""$$""""""""");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = $""""""$$""""""""");
+        }
+
+        #endregion
+
+        #region grow delimiters
+
+        [WpfFact]
+        public void TestGrowDelimetersWhenEndExists_SingleLine()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$ """"""");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = """"""""$$ """"""""");
+        }
+
+        [WpfFact]
+        public void TestGrowDelimetersWhenEndExists_MultiLine()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$
+
+    """"""");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = """"""""$$
+
+    """"""""");
+        }
+
+        [WpfFact]
+        public void TestGrowDelimetersWhenEndExists_Interpolated()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = $""""""$$
+
+    """"""");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = $""""""""$$
+
+    """"""""");
+        }
+
+        [WpfFact]
+        public void TestDoNotGrowDelimetersWhenEndNotThere()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = """"""""$$");
+        }
+
+        [WpfFact]
+        public void TestDoNotGrowDelimetersWhenEndTooShort()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$
+
+    """"");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"var v = """"""""$$
+
+    """"");
+        }
+
+        #endregion
     }
 }
