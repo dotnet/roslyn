@@ -324,6 +324,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private JsonTrivia ScanSingleLineComment()
         {
+            Debug.Assert(IsAt("//"));
             var start = Position;
             Position += 2;
 
@@ -350,6 +351,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private JsonTrivia ScanMultiLineComment()
         {
+            Debug.Assert(IsAt("/*"));
             var start = Position;
             Position += 2;
 
