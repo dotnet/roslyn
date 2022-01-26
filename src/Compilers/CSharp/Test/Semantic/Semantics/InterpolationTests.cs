@@ -4064,13 +4064,14 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         public void UserDefinedConversion_AsFromTypeOfConversion_03()
         {
             var code = @"
+/*<bind>*/S s = (CustomHandler)$"""";/*<bind>*/
+
 struct S
 {
-    public static implicit operator S(CustomHandler c) => default;
-
-    static void M()
+    public static implicit operator S(CustomHandler c) 
     {
-        /*<bind>*/S s = (CustomHandler)$"""";/*<bind>*/
+        System.Console.WriteLine(""In handler"");
+        return default;
     }
 }
 ";
@@ -4078,7 +4079,7 @@ struct S
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { code, handler });
-            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "In handler").VerifyDiagnostics();
 
             VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'S s = (Cust ... andler)$"""";')
