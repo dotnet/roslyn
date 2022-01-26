@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
@@ -56,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(code))
                 Dim syntaxTree = Await document.GetSyntaxTreeAsync()
-                Dim options = SyntaxFormattingOptions.Default
+                Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 ' Test various entry points into the formatter
 
@@ -76,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 ' format with node and transform
-                AssertFormatWithTransformation(workspace.Services, expected, syntaxTree.GetRoot(), spans, SyntaxFormattingOptions.Default, False)
+                AssertFormatWithTransformation(workspace.Services, expected, syntaxTree.GetRoot(), spans, options, False)
             End Using
         End Function
 
