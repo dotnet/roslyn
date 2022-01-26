@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
             IMethodSymbol currentSymbol,
             CancellationToken cancellationToken)
         {
-            var (items, selectedItemIndex) = await _lazyImplementation.Value.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, currentSymbol, cancellationToken).ConfigureAwait(false);
+            var (items, selectedItemIndex) = await _lazyImplementation.Value.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, currentSymbolInfo: default, currentSymbol, cancellationToken).ConfigureAwait(false);
             return (items.SelectAsArray(item => item.UnderlyingObject), selectedItemIndex);
         }
     }
