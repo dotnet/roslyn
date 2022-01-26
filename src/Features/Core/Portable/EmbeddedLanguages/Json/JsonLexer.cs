@@ -332,8 +332,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             Position += 2;
 
             while (Position < Text.Length &&
-                   this.CurrentChar is var ch &&
-                   ch != '\r' && ch != '\n')
+                   this.CurrentChar.Value is not '\r' and not '\n')
             {
                 Position++;
             }
