@@ -559,16 +559,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (symbol.CallingConvention)
                         {
                             case SignatureCallingConvention.CDecl:
-                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Cdecl"));
+                                builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, "Cdecl"));
                                 break;
                             case SignatureCallingConvention.StdCall:
-                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Stdcall"));
+                                builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, "Stdcall"));
                                 break;
                             case SignatureCallingConvention.ThisCall:
-                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Thiscall"));
+                                builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, "Thiscall"));
                                 break;
                             case SignatureCallingConvention.FastCall:
-                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Fastcall"));
+                                builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, "Fastcall"));
                                 break;
 
                             case SignatureCallingConvention.Unmanaged:
