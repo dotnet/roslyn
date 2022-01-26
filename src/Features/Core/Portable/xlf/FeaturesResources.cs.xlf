@@ -2352,7 +2352,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="translated">Silent</target>
+        <target state="translated">Tichý</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">

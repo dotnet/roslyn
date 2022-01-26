@@ -166,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private void AddFilteredInfos(ImmutableArray<DesignerAttributeData> data, ArrayBuilder<DesignerAttributeData> filteredData)
+        private static void AddFilteredInfos(ImmutableArray<DesignerAttributeData> data, ArrayBuilder<DesignerAttributeData> filteredData)
         {
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
 
@@ -282,7 +282,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private async Task NotifyCpsProjectSystemAsync(
+        private static async Task NotifyCpsProjectSystemAsync(
             IProjectItemDesignerTypeUpdateService updateService,
             DesignerAttributeData data,
             CancellationToken cancellationToken)

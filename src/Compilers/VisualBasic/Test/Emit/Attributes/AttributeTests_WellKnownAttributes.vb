@@ -6593,5 +6593,88 @@ second",
                         Assert.Equal("transformNames", attribute.AttributeConstructor.Parameters.Single().Name)
                     End Sub)
         End Sub
+
+        <Fact>
+        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        Public Sub ErrorInPropertyValue_01()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+class C
+    <System.Runtime.CompilerServices.MethodImpl(MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+    public Function Count() as Integer
+        return 0
+    end function
+end class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
+    <System.Runtime.CompilerServices.MethodImpl(MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact>
+        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        Public Sub ErrorInPropertyValue_02()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+class C
+    <System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+    public Function Count() as Integer
+        return 0
+    end function
+end class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
+    <System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+                                                                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        Public Sub ErrorInPropertyValue_03()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<StructLayout(CharSet:=0)>
+public structure S1
+end structure
+
+<StructLayout(LayoutKind.Sequential, CharSet:=0)>
+public structure S2
+end structure
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
+<StructLayout(CharSet:=0)>
+ ~~~~~~~~~~~~
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
+<StructLayout(LayoutKind.Sequential, CharSet:=0)>
+                                     ~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
     End Class
 End Namespace

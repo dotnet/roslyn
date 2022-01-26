@@ -771,7 +771,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 var project = solution.GetProject(documentId.ProjectId);
                                 if (project != null)
-                                    yield return (project, documentId);
+                                {
+                                    // ReanalyzeScopes are created and held in a queue before they are processed later; it's possible the document
+                                    // that we queued for is no longer present.
+                                    if (project.ContainsDocument(documentId))
+                                        yield return (project, documentId);
+                                }
+
                                 break;
                             }
                     }

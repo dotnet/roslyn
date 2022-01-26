@@ -4,6 +4,7 @@ abstract Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.GetOptions(Sys
 abstract Microsoft.CodeAnalysis.CodeActions.PreviewOperation.GetPreviewAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object>
 abstract Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string>
 abstract Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task
+abstract Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.FixAllAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext, Microsoft.CodeAnalysis.Document document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
 abstract Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider.GetAllDiagnosticsAsync(Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>
 abstract Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider.GetDocumentDiagnosticsAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>
 abstract Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider.GetProjectDiagnosticsAsync(Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>
@@ -201,6 +202,8 @@ const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Preprocessor
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.PreprocessorText = "preprocessor text" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.PropertyName = "property name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Punctuation = "punctuation" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RecordClassName = "record class name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RecordStructName = "record struct name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexAlternation = "regex - alternation" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexAnchor = "regex - anchor" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexCharacterClass = "regex - character class" -> string
@@ -366,6 +369,8 @@ Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.RegisterCodeFix(Microsoft.CodeAn
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider
 Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.CodeFixProvider() -> void
+Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider
+Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider() -> void
 Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute
 Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.ExportCodeFixProviderAttribute(string firstLanguage, params string[] additionalLanguages) -> void
 Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.Languages.get -> string[]
@@ -427,6 +432,7 @@ Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.Co
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.set -> void
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.set -> void
+Microsoft.CodeAnalysis.CommandLineProject
 Microsoft.CodeAnalysis.CompilationOutputInfo
 Microsoft.CodeAnalysis.CompilationOutputInfo.AssemblyPath.get -> string
 Microsoft.CodeAnalysis.CompilationOutputInfo.CompilationOutputInfo() -> void
@@ -539,6 +545,7 @@ Microsoft.CodeAnalysis.Editing.DeclarationKind.Operator = 8 -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.Editing.DeclarationKind.Parameter = 20 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Editing.DeclarationKind.Property = 13 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Editing.DeclarationKind.RaiseAccessor = 28 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Editing.DeclarationKind.RecordClass = 29 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Editing.DeclarationKind.RemoveAccessor = 27 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Editing.DeclarationKind.SetAccessor = 25 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Editing.DeclarationKind.Struct = 3 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
@@ -937,6 +944,8 @@ Microsoft.CodeAnalysis.Project.GetDocument(Microsoft.CodeAnalysis.SyntaxTree syn
 Microsoft.CodeAnalysis.Project.GetDocumentId(Microsoft.CodeAnalysis.SyntaxTree syntaxTree) -> Microsoft.CodeAnalysis.DocumentId
 Microsoft.CodeAnalysis.Project.GetLatestDocumentVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.VersionStamp>
 Microsoft.CodeAnalysis.Project.GetSemanticVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.VersionStamp>
+Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
+Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SourceGeneratedDocument>>
 Microsoft.CodeAnalysis.Project.HasDocuments.get -> bool
 Microsoft.CodeAnalysis.Project.Id.get -> Microsoft.CodeAnalysis.ProjectId
 Microsoft.CodeAnalysis.Project.IsSubmission.get -> bool
@@ -1102,6 +1111,7 @@ Microsoft.CodeAnalysis.Solution.GetLatestProjectVersion() -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.Solution.GetProject(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Solution.GetProject(Microsoft.CodeAnalysis.ProjectId projectId) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Solution.GetProjectDependencyGraph() -> Microsoft.CodeAnalysis.ProjectDependencyGraph
+Microsoft.CodeAnalysis.Solution.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
 Microsoft.CodeAnalysis.Solution.Id.get -> Microsoft.CodeAnalysis.SolutionId
 Microsoft.CodeAnalysis.Solution.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.Solution.ProjectIds.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.ProjectId>
@@ -1165,6 +1175,8 @@ Microsoft.CodeAnalysis.SolutionInfo.FilePath.get -> string
 Microsoft.CodeAnalysis.SolutionInfo.Id.get -> Microsoft.CodeAnalysis.SolutionId
 Microsoft.CodeAnalysis.SolutionInfo.Projects.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.ProjectInfo>
 Microsoft.CodeAnalysis.SolutionInfo.Version.get -> Microsoft.CodeAnalysis.VersionStamp
+Microsoft.CodeAnalysis.SourceGeneratedDocument
+Microsoft.CodeAnalysis.SourceGeneratedDocument.HintName.get -> string
 Microsoft.CodeAnalysis.Tags.WellKnownTags
 Microsoft.CodeAnalysis.TextAndVersion
 Microsoft.CodeAnalysis.TextAndVersion.FilePath.get -> string
@@ -1377,6 +1389,8 @@ override Microsoft.CodeAnalysis.VersionStamp.GetHashCode() -> int
 override Microsoft.CodeAnalysis.VersionStamp.ToString() -> string
 override Microsoft.CodeAnalysis.WorkspaceDiagnostic.ToString() -> string
 override Microsoft.CodeAnalysis.XmlDocumentationProvider.GetDocumentationForSymbol(string documentationMemberID, System.Globalization.CultureInfo preferredCulture, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> string
+override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
+override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.FixAllScope>
 static Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.AdditiveTypeNames.get -> System.Collections.Immutable.ImmutableArray<string>
 static Microsoft.CodeAnalysis.Classification.Classifier.GetClassifiedSpans(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Classification.ClassifiedSpan>
 static Microsoft.CodeAnalysis.Classification.Classifier.GetClassifiedSpansAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Classification.ClassifiedSpan>>
@@ -1388,9 +1402,12 @@ static Microsoft.CodeAnalysis.CodeActions.ConflictAnnotation.GetDescription(Micr
 static Microsoft.CodeAnalysis.CodeActions.RenameAnnotation.Create() -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.CodeActions.WarningAnnotation.Create(string description) -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.CodeActions.WarningAnnotation.GetDescription(Microsoft.CodeAnalysis.SyntaxAnnotation annotation) -> string
+static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
 static Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders.BatchFixer.get -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Default.get -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.FromXElement(System.Xml.Linq.XElement element) -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
+static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
+static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, System.Collections.Generic.IEnumerable<string> commandLineArgs, string projectDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
 static Microsoft.CodeAnalysis.CompilationOutputInfo.operator !=(in Microsoft.CodeAnalysis.CompilationOutputInfo left, in Microsoft.CodeAnalysis.CompilationOutputInfo right) -> bool
 static Microsoft.CodeAnalysis.CompilationOutputInfo.operator ==(in Microsoft.CodeAnalysis.CompilationOutputInfo left, in Microsoft.CodeAnalysis.CompilationOutputInfo right) -> bool
 static Microsoft.CodeAnalysis.DocumentId.CreateFromSerialized(Microsoft.CodeAnalysis.ProjectId projectId, System.Guid id, string debugName = null) -> Microsoft.CodeAnalysis.DocumentId
@@ -1602,6 +1619,7 @@ virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.Tags.get -> System.Collect
 virtual Microsoft.CodeAnalysis.CodeActions.CodeActionOperation.Apply(Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken) -> void
 virtual Microsoft.CodeAnalysis.CodeActions.CodeActionOperation.Title.get -> string
 virtual Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.GetFixAllProvider() -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
+virtual Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAllTitle(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> string
 virtual Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.GetSupportedFixAllDiagnosticIds(Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider originalCodeFixProvider) -> System.Collections.Generic.IEnumerable<string>
 virtual Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.FixAllScope>
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertNodesAfter(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> newDeclarations) -> Microsoft.CodeAnalysis.SyntaxNode

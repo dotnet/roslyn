@@ -52,7 +52,7 @@
     <DiffPlexVersion>1.5.0</DiffPlexVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
-    <ICSharpCodeDecompilerVersion>6.1.0.5902</ICSharpCodeDecompilerVersion>
+    <ICSharpCodeDecompilerVersion>7.1.0.6543</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildLocatorVersion>1.4.1</MicrosoftBuildLocatorVersion>
     <!--
       SourceBuild will requires that all dependencies also be source buildable. We are referencing a
@@ -231,7 +231,7 @@
     <SystemTextEncodingCodePagesVersion>4.5.1</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
-    <SystemTextJsonVersion>4.7.0</SystemTextJsonVersion>
+    <SystemTextJsonVersion>6.0.0</SystemTextJsonVersion>
     <SystemThreadingTasksDataflowVersion>5.0.0</SystemThreadingTasksDataflowVersion>
     <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
@@ -273,7 +273,7 @@
     -->
     <SystemCollectionsImmutableVersion>5.0.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
-    <MicrosoftBclAsyncInterfacesVersion>5.0.0</MicrosoftBclAsyncInterfacesVersion>
+    <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>

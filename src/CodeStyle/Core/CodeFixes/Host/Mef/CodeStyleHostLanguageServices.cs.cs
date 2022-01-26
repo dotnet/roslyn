@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition.Convention;
+using System.Composition;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Host
             public static MefHostExportProvider Create(string languageName)
             {
                 var assemblies = CreateAssemblies(languageName);
-                var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies, CodeStyleAttributedModelProvider.Instance);
+                var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies);
                 return new MefHostExportProvider(compositionConfiguration.CreateContainer());
             }
 
@@ -55,79 +56,16 @@ namespace Microsoft.CodeAnalysis.Host
                 => _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
 
             IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
-                => _compositionContext.GetExports<Lazy<TExtension, TMetadata>>();
-
-            /// <summary>
-            /// Custom implementation of <see cref="AttributedModelProvider"/> which excludes MEF parts intended for
-            /// languages not supported by the code style layer (only C# and Visual Basic are supported here). This is a
-            /// workaround for the fact that MEF 2 does not silently reject MEF parts with missing required imports,
-            /// which differs from MEF 1 and VS-MEF which are used elsewhere in the product.
-            /// </summary>
-            /// <seealso href="https://github.com/dotnet/roslyn/issues/58841"/>
-            private sealed class CodeStyleAttributedModelProvider : AttributedModelProvider
             {
-                public static readonly CodeStyleAttributedModelProvider Instance = new();
+                var importer = new WithMetadataImporter<TExtension, TMetadata>();
+                _compositionContext.SatisfyImports(importer);
+                return importer.Exports;
+            }
 
-                public override IEnumerable<Attribute> GetCustomAttributes(Type reflectedType, MemberInfo member)
-                {
-                    _ = reflectedType ?? throw new ArgumentNullException(nameof(reflectedType));
-                    _ = member ?? throw new ArgumentNullException(nameof(member));
-
-                    if (member is not System.Reflection.TypeInfo && (object)member.DeclaringType != reflectedType)
-                        return Array.Empty<Attribute>();
-
-                    return FilterCustomAttributes(CustomAttributeExtensions.GetCustomAttributes(member, inherit: false));
-                }
-
-                public override IEnumerable<Attribute> GetCustomAttributes(Type reflectedType, ParameterInfo parameter)
-                {
-                    _ = reflectedType ?? throw new ArgumentNullException(nameof(reflectedType));
-                    _ = parameter ?? throw new ArgumentNullException(nameof(parameter));
-
-                    return FilterCustomAttributes(CustomAttributeExtensions.GetCustomAttributes(parameter, inherit: false));
-                }
-
-                private static IEnumerable<Attribute> FilterCustomAttributes(IEnumerable<Attribute> attributes)
-                {
-                    var inputArray = attributes.AsArray();
-                    List<Attribute>? outputArray = null;
-                    for (var i = 0; i < inputArray.Length; i++)
-                    {
-                        if (IsExcluded(inputArray[i]))
-                        {
-                            if (outputArray is null)
-                            {
-                                if (i == 0 && inputArray.Length == 1)
-                                {
-                                    return Array.Empty<Attribute>();
-                                }
-
-                                outputArray = new List<Attribute>(inputArray.Length - 1);
-                                for (var j = 0; j < i; j++)
-                                {
-                                    outputArray.Add(inputArray[i]);
-                                }
-                            }
-
-                            // Don't add the current item to the output array
-                            continue;
-                        }
-
-                        outputArray?.Add(inputArray[i]);
-                    }
-
-                    return outputArray?.ToArray() ?? inputArray;
-
-                    static bool IsExcluded(Attribute attribute)
-                    {
-                        // Exclude language service exports that don't apply to C# or Visual Basic
-                        if (attribute is ExportLanguageServiceAttribute { Language: not (LanguageNames.CSharp or LanguageNames.VisualBasic) })
-                            return true;
-
-                        // Include this attribute
-                        return false;
-                    }
-                }
+            private class WithMetadataImporter<TExtension, TMetadata>
+            {
+                [ImportMany]
+                public IEnumerable<Lazy<TExtension, TMetadata>> Exports { get; set; }
             }
         }
     }
