@@ -45,14 +45,106 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral
 
             internal void AssertCodeIs(string expectedCode)
             {
-                MarkupTestFile.GetPosition(expectedCode, out var massaged, out int caretPosition);
+                MarkupTestFile.GetPositionAndSpans(expectedCode, out var massaged, out int? caretPosition, out var spans);
                 Assert.Equal(massaged, TextView.TextSnapshot.GetText());
-                Assert.Equal(caretPosition, TextView.Caret.Position.BufferPosition.Position);
+                Assert.Equal(caretPosition!.Value, TextView.Caret.Position.BufferPosition.Position);
+
+                var VirtualSpaces = spans.SingleOrDefault(kvp => kvp.Key.StartsWith("VirtualSpaces#"));
+                if (VirtualSpaces.Key != null)
+                {
+                    var virtualOffset = int.Parse(VirtualSpaces.Key.Substring("VirtualSpaces-".Length));
+                    Assert.True(TextView.Caret.InVirtualSpace);
+                    Assert.Equal(virtualOffset, TextView.Caret.Position.VirtualBufferPosition.VirtualSpaces);
+                }
             }
 
             public void SendTypeChar(char ch)
                 => SendTypeChar(ch, _commandHandler.ExecuteCommand, () => EditorOperations.InsertText(ch.ToString()));
+
+            public void SendReturn(bool handled)
+                => SendReturn(_commandHandler.ExecuteCommand, () =>
+                {
+                    Assert.False(handled, "Return key should have been handled");
+                });
         }
+
+        #region enter tests
+
+        [WpfFact]
+        public void TestReturnInSixQuotes()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$""""""");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = """"""
+$${|VirtualSpaces-4:|}
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesWithSemicolonAfter()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$"""""";");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = """"""
+$${|VirtualSpaces-4:|}
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesNotAtMiddle()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""""$$""""");
+
+            testState.SendReturn(handled: false);
+            testState.AssertCodeIs(
+@"var v = """"""""$$""""");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotes_Interpolated()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = $""""""$$""""""");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = $""""""
+$${|VirtualSpaces-4:|}
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesWithSemicolonAfter_Interpolated()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = $""""""$$"""""";");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = $""""""
+$${|VirtualSpaces-4:|}
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesNotAtMiddle_Interpolated()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = $""""""""$$""""");
+
+            testState.SendReturn(handled: false);
+            testState.AssertCodeIs(
+@"var v = $""""""""$$""""");
+        }
+
+        #endregion
 
         #region generate initial empty raw string
 
