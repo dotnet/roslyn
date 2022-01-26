@@ -1,6 +1,25 @@
 {
     "files.associations": {
-        "**/eng/pipelines/*.yml": "azure-pipelines"
+        "*.csproj": "msbuild",
+        "*.fsproj": "msbuild",
+        "*.globalconfig": "ini",
+        "*.manifest": "xml",
+        "*.nuspec": "xml",
+        "*.pkgdef": "ini",
+        "*.projitems": "msbuild",
+        "*.props": "msbuild",
+        "*.resx": "xml",
+        "*.rsp": "Powershell",
+        "*.ruleset": "xml",
+        "*.settings": "xml",
+        "*.shproj": "msbuild",
+        "*.slnf": "json",
+        "*.targets": "msbuild",
+        "*.vbproj": "msbuild",
+        "*.vsixmanifest": "xml",
+        "*.vstemplate": "xml",
+        "*.xlf": "xml",
+        "*.yml": "azure-pipelines"
     },
     "omnisharp.defaultLaunchSolution": "Compilers.sln",
 }
