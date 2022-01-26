@@ -130,11 +130,10 @@ Al generar una propiedad;
 preferir propiedades de lanzamiento;
 preferir propiedades automáticas;
 regex;
-regular expression;
-Use enhanced colors;
-Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</target>
+expresión regular;
+Usar colores mejorados;
+Combinación de colores del editor;
+Margen de herencia;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
