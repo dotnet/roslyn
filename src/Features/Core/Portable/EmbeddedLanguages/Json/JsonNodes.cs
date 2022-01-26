@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonNegativeLiteralNode(JsonToken minusToken, JsonToken literalToken)
             : base(JsonKind.NegativeLiteral)
         {
+            Debug.Assert(minusToken.Kind == JsonKind.MinusToken);
             MinusToken = minusToken;
             LiteralToken = literalToken;
         }
