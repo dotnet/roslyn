@@ -178,6 +178,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         string.Format(FeaturesResources._0_unexpected, ','),
                         emptyValue.CommaToken.GetSpan());
                 }
+                else if (child.Kind == JsonKind.Property)
+                {
+                    var propertyValue = (JsonPropertyNode)child;
+                    return new EmbeddedDiagnostic(
+                        string.Format(FeaturesResources._0_unexpected, ':'),
+                        propertyValue.ColonToken.GetSpan());
+                }
 
                 return null;
             }
