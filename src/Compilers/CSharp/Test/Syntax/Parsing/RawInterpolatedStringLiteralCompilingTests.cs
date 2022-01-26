@@ -126,6 +126,17 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
     }
 
     [Fact]
+    public void TestInConstantFieldInitializer4()
+    {
+        CreateCompilation(
+@"class C
+{
+    const string x = ""bar"";
+    const string s = $""""""{x}"""""";
+}").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void TestInAttribute()
     {
         CreateCompilation(
@@ -1800,5 +1811,51 @@ int M(out int val)
                 // (4,20): error CS0841: Cannot use local variable 'x' before it is declared
                 // Console.Write($"""{x} {M(out var x)}""");
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(4, 20));
+    }
+
+
+    [Fact]
+    public void TestWhitespaceMismatch1()
+    {
+        RenderAndVerify(
+"class C\r\n{\r\nconst string s = $\"\"\"\r\n\t\r\n \"\"\";\r\n}",
+                // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
+                Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, "	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void TestWhitespaceMismatch2()
+    {
+        RenderAndVerify(
+"class C\r\n{\r\nconst string s = $\"\"\"\r\n \r\n\t\"\"\";\r\n}",
+                    // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\u0020' versus '\t'
+                    Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " ").WithArguments(@"\u0020", @"\t").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void TestWhitespaceMismatch3()
+    {
+        RenderAndVerify(
+"class C\r\n{\r\nconst string s = $\"\"\"\r\n \t\r\n  \"\"\";\r\n}",
+                // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
+                Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " 	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void TestWhitespaceMismatch4()
+    {
+        RenderAndVerify(
+"class C\r\n{\r\nconst string s = $\"\"\"\r\n \t\r\n   \"\"\";\r\n}",
+                    // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
+                    Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " 	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void TestWhitespaceMismatch5()
+    {
+        RenderAndVerify(
+"class C\r\n{\r\nconst string s = $\"\"\"\r\n\f\r\n\v\"\"\";\r\n}",
+                    // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\f' versus '\v'
+                    Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, "").WithArguments(@"\f", @"\v").WithLocation(4, 1));
     }
 }

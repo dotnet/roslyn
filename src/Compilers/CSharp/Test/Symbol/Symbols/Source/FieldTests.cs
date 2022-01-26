@@ -567,5 +567,26 @@ struct S
 
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void UnreferencedRawInterpolatedStringConstants()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    private static string s1 = $"""""" """""";
+    private static readonly string s2 = $"""""" """""";
+    private string s3 = $"""""" """""";
+    private readonly string s4 = $"""""" """""";
+}
+struct S
+{
+    private static string s1 = $"""""" """""";
+    private static readonly string s2 = $"""""" """""";
+}
+");
+
+            comp.VerifyDiagnostics();
+        }
     }
 }

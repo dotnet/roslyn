@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -321,10 +322,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var isLegalBlankLine = isBlankLine && StartsWith(indentationWhitespace, currentLineWhitespace);
                 if (!isLegalBlankLine)
                 {
-                    this.AddError(
-                        lineStartPosition,
-                        width: TextWindow.Position - lineStartPosition,
-                        ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
+                    // Specialized error message if this is a spacing difference.
+                    if (CheckForSpaceDifference(
+                            currentLineWhitespace, indentationWhitespace,
+                            out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
+                    {
+                        this.AddError(
+                            lineStartPosition,
+                            width: TextWindow.Position - lineStartPosition,
+                            ErrorCode.ERR_LineContainsDifferentWhitespace,
+                            currentLineWhitespaceChar, indentationWhitespaceChar);
+                    }
+                    else
+                    {
+                        this.AddError(
+                            lineStartPosition,
+                            width: TextWindow.Position - lineStartPosition,
+                            ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
+                    }
                     return;
                 }
             }
@@ -350,6 +365,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _builder.Append(currentChar);
                 TextWindow.AdvanceChar();
             }
+        }
+
+        private static bool CheckForSpaceDifference(
+            StringBuilder currentLineWhitespace,
+            StringBuilder indentationLineWhitespace,
+            [NotNullWhen(true)] out string? currentLineMessage,
+            [NotNullWhen(true)] out string? indentationLineMessage)
+        {
+            for (int i = 0, n = Math.Min(currentLineWhitespace.Length, indentationLineWhitespace.Length); i < n; i++)
+            {
+                var currentLineChar = currentLineWhitespace[i];
+                var indentationLineChar = indentationLineWhitespace[i];
+
+                if (currentLineChar != indentationLineChar &&
+                    SyntaxFacts.IsWhitespace(currentLineChar) &&
+                    SyntaxFacts.IsWhitespace(indentationLineChar))
+                {
+                    currentLineMessage = CharToString(currentLineChar);
+                    indentationLineMessage = CharToString(indentationLineChar);
+                    return true;
+                }
+            }
+
+            currentLineMessage = null;
+            indentationLineMessage = null;
+            return false;
+        }
+
+        public static string CharToString(char ch)
+        {
+            return ch switch
+            {
+                '\t' => @"\t",
+                '\v' => @"\v",
+                '\f' => @"\f",
+                _ => @$"\u{(int)ch:x4}",
+            };
         }
 
         /// <summary>
