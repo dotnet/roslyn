@@ -283,8 +283,6 @@ namespace Microsoft.CodeAnalysis
         {
             // Verify suppressed diagnostics are filtered when reportSuppressedDiagnostics is false.
             c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException, reportSuppressedDiagnostics: false, includeCompilerDiagnostics: true, cancellationToken, out var diagnostics);
-            diagnostics = diagnostics.WhereAsArray(d => d.IsSuppressed);
-            Assert.Empty(diagnostics);
             return c; // note this is a new compilation
         }
 
