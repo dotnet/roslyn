@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             defaultLabel = this.DefaultLabel;
 
-            BoundDecisionDag decisionDag = this.DecisionDag;
+            BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
             if (decisionDag.ContainsAnySynthesizedNodes())
             {
                 decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(

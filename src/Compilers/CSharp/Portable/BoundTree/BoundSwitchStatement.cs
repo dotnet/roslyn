@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
         {
-            BoundDecisionDag decisionDag = this.DecisionDag;
+            BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
             if (decisionDag.ContainsAnySynthesizedNodes())
             {
                 decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
