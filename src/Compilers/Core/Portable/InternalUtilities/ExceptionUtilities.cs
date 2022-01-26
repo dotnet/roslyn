@@ -36,6 +36,6 @@ namespace Roslyn.Utilities
         /// <param name="cancellationToken">Checked to see if the provided token was cancelled.</param>
         /// <returns><see langword="true"/> if the exception was an <see cref="OperationCanceledException" /> and the token was canceled.</returns>
         internal static bool IsCurrentOperationBeingCancelled(Exception exception, CancellationToken cancellationToken)
-            => exception is OperationCanceledException oce && oce.CancellationToken == cancellationToken;
+            => exception is OperationCanceledException oce && cancellationToken.IsCancellationRequested;
     }
 }
