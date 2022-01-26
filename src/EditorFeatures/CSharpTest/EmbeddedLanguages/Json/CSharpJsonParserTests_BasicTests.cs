@@ -5330,5 +5330,13 @@ b""</StringToken>
   <Diagnostic Message=""',' unexpected"" Start=""18"" Length=""1"" />
 </Diagnostics>");
         }
+
+        [Fact]
+        public void TestTopLevelProperty()
+        {
+            Test(@"""'a': 0""", @"",
+        @"",
+        @"");
+        }
     }
 }

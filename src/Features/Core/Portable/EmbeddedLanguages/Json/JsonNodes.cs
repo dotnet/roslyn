@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
@@ -18,6 +17,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonCompilationUnit(ImmutableArray<JsonValueNode> sequence, JsonToken endOfFileToken)
             : base(JsonKind.CompilationUnit)
         {
+            Debug.Assert(sequence != null);
             Debug.Assert(endOfFileToken.Kind == JsonKind.EndOfFile);
             Sequence = sequence;
             EndOfFileToken = endOfFileToken;
@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             : base(JsonKind.Array)
         {
             Debug.Assert(openBracketToken.Kind == JsonKind.OpenBracketToken);
+            Debug.Assert(sequence != null);
             Debug.Assert(closeBracketToken.Kind == JsonKind.CloseBracketToken);
 
             OpenBracketToken = openBracketToken;
@@ -282,6 +283,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             JsonToken closeParenToken)
             : base(JsonKind.Constructor)
         {
+            Debug.Assert(newKeyword.Kind == JsonKind.NewKeyword);
+            Debug.Assert(nameToken.Kind == JsonKind.TextToken);
+            Debug.Assert(openParenToken.Kind == JsonKind.OpenParenToken);
+            Debug.Assert(sequence != null);
+            Debug.Assert(closeParenToken.Kind == JsonKind.CloseParenToken);
             NewKeyword = newKeyword;
             NameToken = nameToken;
             OpenParenToken = openParenToken;
