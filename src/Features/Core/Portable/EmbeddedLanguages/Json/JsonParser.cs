@@ -156,10 +156,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 // json is not allowed to be just whitespace.
                 if (text.Length > 0 &&
                     compilationUnit.EndOfFileToken.LeadingTrivia.All(
-                        t => t.Kind == JsonKind.WhitespaceTrivia || t.Kind == JsonKind.EndOfLineTrivia))
+                        t => t.Kind is JsonKind.WhitespaceTrivia or JsonKind.EndOfLineTrivia))
                 {
                     return new EmbeddedDiagnostic(FeaturesResources.Syntax_error, GetSpan(text));
                 }
+
+                return null;
             }
             else if (sequence.Length >= 2)
             {
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     firstToken.GetSpan());
             }
 
-            var child = compilationUnit.Sequence.Single();
+            var child = sequence.Single();
 
             // Commas should never show up in the top level sequence.
             if (child.Kind == JsonKind.CommaValue)
