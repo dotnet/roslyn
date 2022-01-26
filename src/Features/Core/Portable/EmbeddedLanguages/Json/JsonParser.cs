@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private static EmbeddedDiagnostic? CheckTopLevel(
             VirtualCharSequence text, JsonCompilationUnit compilationUnit)
         {
-            var arraySequence = compilationUnit.Sequence;
-            if (arraySequence.IsEmpty)
+            var sequence = compilationUnit.Sequence;
+            if (sequence.IsEmpty)
             {
                 // json is not allowed to be just whitespace.
                 if (text.Length > 0 &&
@@ -161,25 +161,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     return new EmbeddedDiagnostic(FeaturesResources.Syntax_error, GetSpan(text));
                 }
             }
-            else if (arraySequence.Length >= 2)
+            else if (sequence.Length >= 2)
             {
                 // the top level can't have more than one actual value.
-                var firstToken = GetFirstToken(arraySequence[1]);
+                var firstToken = GetFirstToken(sequence[1]);
                 return new EmbeddedDiagnostic(
                     string.Format(FeaturesResources._0_unexpected, firstToken.VirtualChars[0]),
                     firstToken.GetSpan());
             }
 
-            foreach (var child in compilationUnit.Sequence)
+            var child = compilationUnit.Sequence.Single();
+
+            // Commas should never show up in the top level sequence.
+            if (child.Kind == JsonKind.CommaValue)
             {
-                // Commas should never show up in the top level sequence.
-                if (child.Kind == JsonKind.CommaValue)
-                {
-                    var emptyValue = (JsonCommaValueNode)child;
-                    return new EmbeddedDiagnostic(
-                        string.Format(FeaturesResources._0_unexpected, ','),
-                        emptyValue.CommaToken.GetSpan());
-                }
+                var emptyValue = (JsonCommaValueNode)child;
+                return new EmbeddedDiagnostic(
+                    string.Format(FeaturesResources._0_unexpected, ','),
+                    emptyValue.CommaToken.GetSpan());
             }
 
             return null;
