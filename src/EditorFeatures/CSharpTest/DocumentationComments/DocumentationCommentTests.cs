@@ -707,6 +707,26 @@ C()
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_NotInTopLevel()
+        {
+            var code = @"
+using System;
+
+//$$
+Console.WriteLine();
+";
+
+            var expected = @"
+using System;
+
+///$$
+Console.WriteLine();
+";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class1()
         {
             var code =

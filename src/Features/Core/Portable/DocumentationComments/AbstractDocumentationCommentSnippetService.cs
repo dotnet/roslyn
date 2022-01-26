@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         protected abstract bool SupportsDocumentationComments(TMemberNode member);
         protected abstract bool HasDocumentationComment(TMemberNode member);
         protected abstract int GetPrecedingDocumentationCommentCount(TMemberNode member);
-        protected abstract bool IsMemberDeclaration(TMemberNode member);
         protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member);
 
         protected abstract SyntaxToken GetTokenToRight(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -151,7 +150,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             var targetMember = documentationComment.ParentTrivia.Token.GetAncestor<TMemberNode>();
 
-            if (targetMember == null || !IsMemberDeclaration(targetMember))
+            if (targetMember == null || !SupportsDocumentationComments(targetMember))
             {
                 return null;
             }
