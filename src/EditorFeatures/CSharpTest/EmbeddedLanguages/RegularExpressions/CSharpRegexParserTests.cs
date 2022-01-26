@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             bool conversionFailureOk,
             bool allowIndexOutOfRange,
             bool allowNullReference,
-            bool allowOutOfMemeory,
+            bool allowOutOfMemory,
             bool allowDiagnosticsMismatch = false)
         {
             var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 // bug with .NET regex parser.  can happen with patterns like: (?(?S))
                 return treeAndText;
             }
-            catch (OutOfMemoryException) when (allowOutOfMemeory)
+            catch (OutOfMemoryException) when (allowOutOfMemory)
             {
                 // bug with .NET regex parser.  can happen with patterns like: a{2147483647,}
                 return treeAndText;
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return treeAndText;
         }
 
-        private string TreeToText(SourceText text, RegexTree tree)
+        private static string TreeToText(SourceText text, RegexTree tree)
         {
             var element = new XElement("Tree",
                 NodeToElement(tree.Root));
