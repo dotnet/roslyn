@@ -1109,21 +1109,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var diagnostics = ApplyProgrammaticSuppressions(reportedDiagnostics, compilation);
-            var reportSuppressedDiagnostics = compilation.Options.ReportSuppressedDiagnostics;
-            var builder = ImmutableArray.CreateBuilder<Diagnostic>();
-            for (var i = 0; i < diagnostics.Length; i++)
+            if (compilation.Options.ReportSuppressedDiagnostics || diagnostics.All(d => !d.IsSuppressed))
             {
-                var diagnostic = diagnostics[i];
-                if (!reportSuppressedDiagnostics && diagnostic.IsSuppressed)
-                {
-                    // Diagnostic suppressed by analyzer.
-                    continue;
-                }
-
-                builder.Add(diagnostic);
+                return diagnostics;
             }
 
-            return builder.ToImmutable();
+            return diagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
 
         private bool IsInGeneratedCode(Location location, Compilation compilation, CancellationToken cancellationToken)
