@@ -62,6 +62,11 @@
         <target state="translated">Создать подписку на события</target>
         <note />
       </trans-unit>
+      <trans-unit id="Grow_raw_string">
+        <source>Grow raw string</source>
+        <target state="new">Grow raw string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Загрузить из: "{0}"</target>
