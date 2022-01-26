@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override sealed bool HasDeclaredRequiredMembers => false;
+
         /// <summary>
         /// Get all the members of this symbol.
         /// </summary>

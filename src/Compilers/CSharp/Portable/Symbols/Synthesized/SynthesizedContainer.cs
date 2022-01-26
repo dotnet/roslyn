@@ -132,6 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsInterpolatedStringHandlerType => false;
 
+        public sealed override bool HasDeclaredRequiredMembers => false;
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             Symbol constructor = this.Constructor;

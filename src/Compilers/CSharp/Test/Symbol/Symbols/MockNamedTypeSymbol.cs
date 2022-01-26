@@ -89,6 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        public override bool HasDeclaredRequiredMembers => throw new NotImplementedException();
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return _children.AsImmutable();

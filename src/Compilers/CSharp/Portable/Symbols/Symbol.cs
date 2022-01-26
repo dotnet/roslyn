@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.RequiredMemberAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.RequiredMembersAttribute))
+                attribute.IsTargetAttribute(this, AttributeDescription.RequiredMemberAttribute))
             {
                 // Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMembers, arguments.AttributeSyntaxOpt.Location);

@@ -13,24 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
 [CompilerTrait(CompilerFeature.RequiredMembers)]
 public class RequiredMembersTests : CSharpTestBase
 {
-    private const string RequiredMembersAttribute = @"
+    private const string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public class RequiredMembersAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    public class RequiredMemberAttribute : Attribute
     {
-        public RequiredMembersAttribute(params string[] members)
+        public RequiredMemberAttribute()
         {
-            this.Members = members;
         }
-
-        public string[] Members { get; }
     }
 }
 ";
 
     private CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null)
-        => CreateCompilation(new[] { source, RequiredMembersAttribute }, options: options, parseOptions: parseOptions);
+        => CreateCompilation(new[] { source, RequiredMemberAttribute }, options: options, parseOptions: parseOptions);
 
     private Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths)
     {
@@ -317,7 +314,7 @@ namespace N8
     }
 
     [Fact]
-    public void MissingRequiredMembersAttribute()
+    public void MissingRequiredMemberAttribute()
     {
         var comp = CreateCompilation(@"
 class C
@@ -325,15 +322,15 @@ class C
     public required int I { get; }
 }");
 
-        // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiredMembersAttribute..ctor'
+        // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiredMemberAttribute..ctor'
         // class C
-        var expected = Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.RequiredMembersAttribute", ".ctor").WithLocation(2, 7);
+        var expected = Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.RequiredMemberAttribute", ".ctor").WithLocation(2, 7);
         comp.VerifyDiagnostics(expected);
         comp.VerifyEmitDiagnostics(expected);
     }
 
     [Fact]
-    public void MissingRequiredMembersAttributeCtor()
+    public void MissingRequiredMemberAttributeCtor()
     {
         var comp = CreateCompilation(@"
 class C
@@ -344,21 +341,22 @@ class C
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public class RequiredMembersAttribute : Attribute
+    public class RequiredMemberAttribute : Attribute
     {
+        public RequiredMemberAttribute(int i) {}
     }
 }
 ");
 
-        // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiredMembersAttribute..ctor'
+        // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiredMemberAttribute..ctor'
         // class C
-        var expected = Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.RequiredMembersAttribute", ".ctor").WithLocation(2, 7);
+        var expected = Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.RequiredMemberAttribute", ".ctor").WithLocation(2, 7);
         comp.VerifyDiagnostics(expected);
         comp.VerifyEmitDiagnostics(expected);
     }
 
     [Fact]
-    public void RequiredMembersAttributeEmitted()
+    public void RequiredMemberAttributeEmitted()
     {
         var comp = CreateCompilationWithRequiredMembers(@"
 class C
@@ -381,9 +379,8 @@ class C
 .class private auto ansi beforefieldinit C
     extends [netstandard]System.Object
 {
-    .custom instance void System.Runtime.CompilerServices.RequiredMembersAttribute::.ctor(string[]) = (
-        01 00 02 00 00 00 04 50 72 6f 70 05 46 69 65 6c
-        64 00 00
+    .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
     )
     // Fields
     .field private int32 '<Prop>k__BackingField'
@@ -391,6 +388,9 @@ class C
         01 00 00 00
     )
     .field public int32 Field
+    .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Methods
     .method public hidebysig specialname 
         instance int32 get_Prop () cil managed 
@@ -434,6 +434,9 @@ class C
     // Properties
     .property instance int32 Prop()
     {
+        .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
         .get instance int32 C::get_Prop()
         .set instance void C::set_Prop(int32)
     }
@@ -442,7 +445,7 @@ class C
     }
 
     [Fact]
-    public void RequiredMembersAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride()
+    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride()
     {
         var comp = CreateCompilationWithRequiredMembers(@"
 class Base
@@ -463,7 +466,7 @@ class Dervied : Base
     }
 
     [Fact]
-    public void RequiredMembersAttributeEmitted_OverrideRequiredProperty()
+    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty()
     {
         var comp = CreateCompilationWithRequiredMembers(@"
 class Base
@@ -485,8 +488,8 @@ class Derived : Base
 .class private auto ansi beforefieldinit Base
     extends [netstandard]System.Object
 {
-    .custom instance void System.Runtime.CompilerServices.RequiredMembersAttribute::.ctor(string[]) = (
-        01 00 01 00 00 00 04 50 72 6f 70 00 00
+    .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
     )
     // Fields
     .field private int32 '<Prop>k__BackingField'
@@ -536,6 +539,9 @@ class Derived : Base
     // Properties
     .property instance int32 Prop()
     {
+        .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
         .get instance int32 Base::get_Prop()
         .set instance void Base::set_Prop(int32)
     }
@@ -546,6 +552,9 @@ class Derived : Base
 .class private auto ansi beforefieldinit Derived
     extends Base
 {
+    .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Fields
     .field private int32 '<Prop>k__BackingField'
     .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -594,6 +603,9 @@ class Derived : Base
     // Properties
     .property instance int32 Prop()
     {
+        .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
         .get instance int32 Derived::get_Prop()
         .set instance void Derived::set_Prop(int32)
     }
@@ -602,7 +614,7 @@ class Derived : Base
     }
 
     [Fact]
-    public void RequiredMembersAttributeEmitted_AddRequiredOnOverride()
+    public void RequiredMemberAttributeEmitted_AddRequiredOnOverride()
     {
         var comp = CreateCompilationWithRequiredMembers(@"
 class Base
@@ -686,8 +698,8 @@ class DerivedDerived : Derived
 .class private auto ansi beforefieldinit Derived
     extends Base
 {
-    .custom instance void System.Runtime.CompilerServices.RequiredMembersAttribute::.ctor(string[]) = (
-        01 00 01 00 00 00 04 50 72 6f 70 00 00
+    .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
     )
     // Fields
     .field private int32 '<Prop>k__BackingField'
@@ -737,6 +749,9 @@ class DerivedDerived : Derived
     // Properties
     .property instance int32 Prop()
     {
+        .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
         .get instance int32 Derived::get_Prop()
         .set instance void Derived::set_Prop(int32)
     }
@@ -747,6 +762,9 @@ class DerivedDerived : Derived
 .class private auto ansi beforefieldinit DerivedDerived
     extends Derived
 {
+    .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Fields
     .field private int32 '<Prop>k__BackingField'
     .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -795,6 +813,9 @@ class DerivedDerived : Derived
     // Properties
     .property instance int32 Prop()
     {
+        .custom instance void System.Runtime.CompilerServices.RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
         .get instance int32 DerivedDerived::get_Prop()
         .set instance void DerivedDerived::set_Prop(int32)
     }
@@ -1057,21 +1078,33 @@ class C : I
     }
 
     [Fact]
-    public void UsingRequiredMembersAttributeExplicitly()
+    public void UsingRequiredMemberAttributeExplicitly()
     {
         var comp = CreateCompilationWithRequiredMembers(@"
 using System.Runtime.CompilerServices;
-[RequiredMembers(new[] { ""Prop"" })]
+[RequiredMember]
 class C
 {
+    [RequiredMember]
     public int Prop { get; set; }
+    [RequiredMember]
+    public int Field;
 }
 ");
 
         comp.VerifyDiagnostics(
             // (3,2): error CS9504: Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.
-            // [RequiredMembers(new[] { "Prop" })]
-            Diagnostic(ErrorCode.ERR_ExplicitRequiredMembers, @"RequiredMembers(new[] { ""Prop"" })").WithLocation(3, 2)
+            // [RequiredMember]
+            Diagnostic(ErrorCode.ERR_ExplicitRequiredMembers, "RequiredMember").WithLocation(3, 2),
+            // (6,6): error CS9504: Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.
+            //     [RequiredMember]
+            Diagnostic(ErrorCode.ERR_ExplicitRequiredMembers, "RequiredMember").WithLocation(6, 6),
+            // (8,6): error CS9504: Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.
+            //     [RequiredMember]
+            Diagnostic(ErrorCode.ERR_ExplicitRequiredMembers, "RequiredMember").WithLocation(8, 6),
+            // (9,16): warning CS0649: Field 'C.Field' is never assigned to, and will always have its default value 0
+            //     public int Field;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("C.Field", "0").WithLocation(9, 16)
         );
 
         var prop = comp.SourceModule.GlobalNamespace.GetMember<PropertySymbol>("C.Prop");

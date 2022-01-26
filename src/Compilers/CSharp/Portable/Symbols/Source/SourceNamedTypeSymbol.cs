@@ -1593,38 +1593,12 @@ next:;
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
             }
 
-            var requiredMembers = ArrayBuilder<Symbol>.GetInstance();
-            foreach (var member in GetMembers())
+            if (HasDeclaredRequiredMembers)
             {
-                switch (member)
-                {
-                    case SourceFieldSymbol { IsRequired: true }:
-                    case SourcePropertySymbol { IsRequired: true, IsOverride: false }:
-                    case SourcePropertySymbol { IsRequired: true, IsOverride: true, OverriddenProperty.IsRequired: false }:
-                        requiredMembers.Add(member);
-                        break;
-                }
-            }
-
-            if (requiredMembers.Any())
-            {
-                var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                // Because GetMembers() is already sorted in lexical order, we don't need to do
-                // any additional sorting here.
-                var nameConstants = requiredMembers.SelectAsArray(
-                    static (member, stringType) => new TypedConstant(stringType, TypedConstantKind.Primitive, member.Name),
-                    stringType);
-                var stringArrayType = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, TypeWithAnnotations.Create(stringType));
-
                 AddSynthesizedAttribute(
                     ref attributes,
-                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMembersAttribute__ctor,
-                    ImmutableArray.Create(new TypedConstant(stringArrayType, nameConstants))));
-
-                // PROTOTYPE(req): Add obsolete marker to constructors if required members and Obsolete hasn't already been emitted
+                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
-
-            requiredMembers.Free();
         }
 
         #endregion

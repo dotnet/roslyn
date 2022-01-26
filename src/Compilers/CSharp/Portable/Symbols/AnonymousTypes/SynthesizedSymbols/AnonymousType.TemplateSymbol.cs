@@ -189,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            public override bool HasDeclaredRequiredMembers => false;
+
             public override ImmutableArray<Symbol> GetMembers()
             {
                 return _members;

@@ -610,7 +610,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
                     case WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler:
-                    case WellKnownType.System_Runtime_CompilerServices_RequiredMembersAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
