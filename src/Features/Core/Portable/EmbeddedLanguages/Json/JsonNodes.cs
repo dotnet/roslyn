@@ -269,6 +269,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             => visitor.Visit(this);
     }
 
+    /// <summary>
+    /// Json.net construction.  It allows things like <c>new Date(1, 2, 3)</c>.  This is not allowed in strict mode.  
+    /// </summary>
     internal sealed class JsonConstructorNode : JsonValueNode
     {
         public JsonConstructorNode(
