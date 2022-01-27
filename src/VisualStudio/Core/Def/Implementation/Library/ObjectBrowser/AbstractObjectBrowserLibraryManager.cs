@@ -10,9 +10,9 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -545,7 +545,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private static async Task FindReferencesAsync(
             SymbolListItem symbolListItem, Project project,
-            CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
+            FindUsagesContext context, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = symbolListItem.ResolveSymbol(compilation);

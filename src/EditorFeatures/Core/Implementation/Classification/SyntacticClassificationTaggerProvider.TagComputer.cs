@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _typeMap = typeMap;
                 _diffTimeout = diffTimeout;
                 _workQueue = new AsyncBatchingWorkQueue<ITextSnapshot>(
-                    TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay),
+                    DelayTimeSpan.NearImmediate,
                     ProcessChangesAsync,
                     equalityComparer: null,
                     asyncListener,
