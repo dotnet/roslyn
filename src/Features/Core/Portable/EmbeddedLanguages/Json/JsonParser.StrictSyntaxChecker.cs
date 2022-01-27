@@ -99,11 +99,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 foreach (var child in node.Sequence)
                 {
-                    if (child.Kind != JsonKind.Property && child.Kind != JsonKind.CommaValue)
+                    if (child.Kind != JsonKind.Property)
                         return new EmbeddedDiagnostic(FeaturesResources.Only_properties_allowed_in_an_object, GetFirstToken(child).GetSpan());
                 }
 
-                return CheckProperSeparation(node.Sequence);
+                if (node.Sequence.NodesAndTokens.Length != 0 && node.Sequence.NodesAndTokens.Length % 2 == 0)
+                    return new EmbeddedDiagnostic(FeaturesResources.Trailing_comma_not_allowed, node.Sequence.NodesAndTokens[^1].Token.GetSpan());
+
+                return null;
             }
 
             private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)

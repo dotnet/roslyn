@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
     using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
+    using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
 
     public partial class CSharpJsonParserTests
     {
@@ -192,9 +193,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
             var element = new XElement(node.Kind.ToString());
             foreach (var child in node)
-                element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
+                element.Add(NodeOrTokenToElement(child));
 
             return element;
+        }
+
+        private static XElement NodeOrTokenToElement(EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode> child)
+        {
+            return child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token);
         }
 
         private static XElement ConstructorNodeToElement(JsonConstructorNode node)
@@ -239,6 +245,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             var element = new XElement("Sequence");
             foreach (var child in sequence)
                 element.Add(NodeToElement(child));
+            return element;
+        }
+
+        private static XElement CreateSequenceNode(JsonSeparatedList sequence)
+        {
+            var element = new XElement("Sequence");
+            foreach (var child in sequence.NodesAndTokens)
+                element.Add(NodeOrTokenToElement(child));
             return element;
         }
 

@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     using JsonNodeOrToken = EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode>;
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
     using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
+    using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
 
     /// <summary>
     /// Parser used for reading in a sequence of <see cref="VirtualChar"/>s, and producing a <see
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private static readonly string s_closeBraceExpected = string.Format(FeaturesResources._0_expected, '}');
         private static readonly string s_openParenExpected = string.Format(FeaturesResources._0_expected, '(');
         private static readonly string s_closeParenExpected = string.Format(FeaturesResources._0_expected, ')');
+        private static readonly string s_commaExpected = string.Format(FeaturesResources._0_expected, ',');
 
         private JsonLexer _lexer;
         private JsonToken _currentToken;
@@ -126,17 +128,31 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             // we then check for any incorrect tree structure (that would be incorrect for both json.net or
             // strict-mode).  If we don't run into any problems, we'll then perform specific json.net or strict-mode
             // checks.
-            var diagnostic = GetFirstDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
+            var diagnostic1 = GetFirstDiagnostic(root);
+            var diagnostic2 = CheckTopLevel(_lexer.Text, root);
 
             // If we didn't have any diagnostics in the tree so far, then do the json.net/strict checks depending on how we
             // were invoked.
-            diagnostic ??= strict
+            var diagnostic3 = strict
                 ? StrictSyntaxChecker.CheckSyntax(root)
                 : JsonNetSyntaxChecker.CheckSyntax(root);
+
+            var diagnostic = Earliest(Earliest(diagnostic1, diagnostic2), diagnostic3);
 
             return new JsonTree(_lexer.Text, root, diagnostic == null
                 ? ImmutableArray<EmbeddedDiagnostic>.Empty
                 : ImmutableArray.Create(diagnostic.Value));
+
+            static EmbeddedDiagnostic? Earliest(EmbeddedDiagnostic? d1, EmbeddedDiagnostic? d2)
+            {
+                if (d1 == null)
+                    return d2;
+
+                if (d2 == null)
+                    return d1;
+
+                return d1.Value.Span.Start <= d2.Value.Span.Start ? d1 : d2;
+            }
         }
 
         /// <summary>
@@ -288,6 +304,41 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 result.Add(ParseValue());
 
             return result.ToImmutable();
+        }
+
+        private JsonSeparatedList ParseCommaSeparatedSequence()
+        {
+            try
+            {
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                return ParseCommaSeparatedSequenceWorker();
+            }
+            finally
+            {
+                _recursionDepth--;
+            }
+        }
+
+        private JsonSeparatedList ParseCommaSeparatedSequenceWorker()
+        {
+            using var _ = ArrayBuilder<JsonNodeOrToken>.GetInstance(out var result);
+            var allProperties = true;
+            while (ShouldConsumeSequenceElement())
+            {
+                var value = ParseValue();
+                allProperties = allProperties && value.Kind == JsonKind.Property;
+                result.Add(value);
+
+                // Try to consume a comma.  If we don't see one, consume an empty one as a placeholder. Create a
+                // diagnostic message depending on if we've seen only properties before this point.  If not, don't give
+                // a message about a missing comma.  Instead, we'll give a specific message that we didn't get a
+                // property when we expected one.
+                if (ShouldConsumeSequenceElement())
+                    result.Add(ConsumeToken(JsonKind.CommaToken, allProperties ? s_commaExpected : null));
+            }
+
+            return new JsonSeparatedList(result.ToImmutable());
         }
 
         private bool ShouldConsumeSequenceElement()
@@ -494,18 +545,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var result = new JsonObjectNode(
                 ConsumeCurrentToken(),
-                ParseSequence(),
+                ParseCommaSeparatedSequence(),
                 ConsumeToken(JsonKind.CloseBraceToken, s_closeBraceExpected));
 
             _inObject = savedInObject;
             return result;
         }
 
-        private JsonToken ConsumeToken(JsonKind kind, string error)
-            => _currentToken.Kind == kind
-                ? ConsumeCurrentToken()
-                : CreateMissingToken(kind).AddDiagnosticIfNone(
-                    new EmbeddedDiagnostic(error, GetTokenStartPositionSpan(_currentToken)));
+        private JsonToken ConsumeToken(JsonKind kind, string? error)
+        {
+            if (_currentToken.Kind == kind)
+                return ConsumeCurrentToken();
+
+            var result = CreateMissingToken(kind);
+            if (error == null)
+                return result;
+
+            return result.AddDiagnosticIfNone(new EmbeddedDiagnostic(error, GetTokenStartPositionSpan(_currentToken)));
+        }
 
         private TextSpan GetTokenStartPositionSpan(JsonToken token)
             => token.Kind == JsonKind.EndOfFile

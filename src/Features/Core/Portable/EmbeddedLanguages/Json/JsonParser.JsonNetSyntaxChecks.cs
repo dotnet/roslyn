@@ -137,19 +137,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             private static EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
             {
-                for (int i = 0, n = node.Sequence.Length; i < n; i++)
+                foreach (var child in node.Sequence)
                 {
-                    var child = node.Sequence[i];
-                    if (i % 2 == 0)
-                    {
-                        if (child.Kind != JsonKind.Property)
-                            return new EmbeddedDiagnostic(FeaturesResources.Only_properties_allowed_in_an_object, GetFirstToken(child).GetSpan());
-                    }
-                    else
-                    {
-                        if (child.Kind != JsonKind.CommaValue)
-                            return new EmbeddedDiagnostic(string.Format(FeaturesResources._0_expected, ','), GetFirstToken(child).GetSpan());
-                    }
+                    if (child.Kind != JsonKind.Property)
+                        return new EmbeddedDiagnostic(FeaturesResources.Only_properties_allowed_in_an_object, GetFirstToken(child).GetSpan());
                 }
 
                 return null;

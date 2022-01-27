@@ -1741,9 +1741,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             <Sequence />
             <CloseBracketToken>]</CloseBracketToken>
           </Array>
+          <CommaToken />
           <Text>
             <TextToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></TextToken>
           </Text>
+          <CommaToken />
           <Literal>
             <NumberToken>0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NumberToken>
           </Literal>
@@ -1754,12 +1756,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
     <EndOfFile />
   </CompilationUnit>
 </Tree>",
-        @"<Diagnostics>
-  <Diagnostic Message=""':' unexpected"" Start=""14"" Length=""1"" />
-</Diagnostics>",
-        @"<Diagnostics>
-  <Diagnostic Message=""':' unexpected"" Start=""14"" Length=""1"" />
-</Diagnostics>");
+        @"",
+        @"");
         }
 
         [Fact]
