@@ -86,21 +86,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     : _data.Snapshot;
 
                 _document = snapshotForDocument?.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-                _completionService = _document?.GetLanguageService<CompletionService>();
-                _completionRules = _completionService?.GetRules(CompletionOptions.From(_document!.Project)) ?? CompletionRules.Default;
+                if (_document != null)
+                {
+                    _completionService = _document.GetLanguageService<CompletionService>();
+                    _completionRules = _completionService?.GetRules(CompletionOptions.From(_document.Project)) ?? CompletionRules.Default;
 
-                // Let us make the completion Helper used for non-Roslyn items case-sensitive.
-                // We can change this if get requests from partner teams.
-                _completionHelper = _document != null ? CompletionHelper.GetHelper(_document) : new CompletionHelper(isCaseSensitive: true);
-                _filterMethod = _completionService == null
-                    ? ((itemsWithPatternMatches, text) => CompletionService.FilterItems(_completionHelper, itemsWithPatternMatches, text))
-                    : ((itemsWithPatternMatches, text) => _completionService.FilterItems(_document!, itemsWithPatternMatches, text));
+                    // Let us make the completion Helper used for non-Roslyn items case-sensitive.
+                    // We can change this if get requests from partner teams.
+                    _completionHelper = CompletionHelper.GetHelper(_document);
+                    _filterMethod = _completionService == null
+                        ? ((itemsWithPatternMatches, text) => CompletionService.FilterItems(_completionHelper, itemsWithPatternMatches, text))
+                        : ((itemsWithPatternMatches, text) => _completionService.FilterItems(_document, itemsWithPatternMatches, text));
 
-                // Nothing to highlight if user hasn't typed anything yet.
-                _highlightMatchingPortions = _filterText.Length > 0
-                    && globalOptions.GetOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, _document?.Project.Language);
+                    // Nothing to highlight if user hasn't typed anything yet.
+                    _highlightMatchingPortions = _filterText.Length > 0
+                        && globalOptions.GetOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, _document.Project.Language);
 
-                _showCompletionItemFilters = globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, _document?.Project.Language);
+                    _showCompletionItemFilters = globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, _document.Project.Language);
+                }
+                else
+                {
+                    _completionService = null;
+                    _completionRules = CompletionRules.Default;
+
+                    // Let us make the completion Helper used for non-Roslyn items case-sensitive.
+                    // We can change this if get requests from partner teams.
+                    _completionHelper = new CompletionHelper(isCaseSensitive: true);
+                    _filterMethod = (itemsWithPatternMatches, text) => CompletionService.FilterItems(_completionHelper, itemsWithPatternMatches, text);
+
+                    _highlightMatchingPortions = false;
+                    _showCompletionItemFilters = true;
+                }
             }
 
             public FilteredCompletionModel? UpdateCompletionList(CancellationToken cancellationToken)

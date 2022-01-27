@@ -2948,4 +2948,93 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Silent" xml:space="preserve">
     <value>Silent</value>
   </data>
+  <data name="embedded" xml:space="preserve">
+    <value>embedded</value>
+    <comment>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</comment>
+  </data>
+  <data name="external" xml:space="preserve">
+    <value>external</value>
+    <comment>External means "external source", meaning source files that are not part of the current solution</comment>
+  </data>
+  <data name="Could_not_find_PDB_on_disk_or_embedded" xml:space="preserve">
+    <value>Could not find portable PDB on disk or embedded.</value>
+  </data>
+  <data name="Error_reading_PDB_0" xml:space="preserve">
+    <value>Error reading PDB: '{0}'</value>
+  </data>
+  <data name="Found_embedded_PDB_file" xml:space="preserve">
+    <value>Found embedded PDB file.</value>
+  </data>
+  <data name="Found_PDB_file_at_0" xml:space="preserve">
+    <value>Found PDB file at '{0}'</value>
+  </data>
+  <data name="Found_PDB_on_symbol_server" xml:space="preserve">
+    <value>Found PDB on symbol server.</value>
+  </data>
+  <data name="Found_PDB_on_symbol_server_but_could_not_read_file" xml:space="preserve">
+    <value>Found PDB on symbol server but could not read file.</value>
+  </data>
+  <data name="Navigating_to_symbol_0_from_1" xml:space="preserve">
+    <value>Navigating to symbol '{0}' from '{1}'.</value>
+  </data>
+  <data name="No_source_document_info_found_in_PDB" xml:space="preserve">
+    <value>No source document info found in PDB.</value>
+  </data>
+  <data name="Source_code_language_information_was_not_found_in_PDB" xml:space="preserve">
+    <value>Source code language information was not found in PDB.</value>
+  </data>
+  <data name="Source_is_a_reference_assembly" xml:space="preserve">
+    <value>Source is a reference assembly, not enough information to find PDB.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB" xml:space="preserve">
+    <value>'{0}' found in embedded PDB.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_but_checksum_failed" xml:space="preserve">
+    <value>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_but_could_not_write_file_1" xml:space="preserve">
+    <value>'{0}' found in embedded PDB but could not write to temp file: '{1}'</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_cached_source_file" xml:space="preserve">
+    <value>'{0}' found in embedded PDB and found cached source file.</value>
+  </data>
+  <data name="_0_found_via_SourceLink" xml:space="preserve">
+    <value>'{0}' found via SourceLink.</value>
+  </data>
+  <data name="_0_found_via_SourceLink_but_couldnt_read_file" xml:space="preserve">
+    <value>'{0}' found via SourceLink but couldn't read temp file.</value>
+  </data>
+  <data name="_0_found_in_original_location" xml:space="preserve">
+    <value>'{0}' found in original location.</value>
+  </data>
+  <data name="_0_found_in_original_location_but_checksum_failed" xml:space="preserve">
+    <value>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</value>
+  </data>
+  <data name="Could_not_find_PDB_on_disk_or_embedded_or_server" xml:space="preserve">
+    <value>Could not find PDB on disk, or embedded, or on a symbol server.</value>
+  </data>
+  <data name="Timeout_SourceLink" xml:space="preserve">
+    <value>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</value>
+  </data>
+  <data name="Timeout_symbol_server" xml:space="preserve">
+    <value>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</value>
+  </data>
+  <data name="Symbol_found_in_assembly_path_0" xml:space="preserve">
+    <value>Symbol found in assembly path '{0}'</value>
+  </data>
+  <data name="Invalid_regex_pattern" xml:space="preserve">
+    <value>Invalid regex pattern</value>
+  </data>
+  <data name="Cannot_navigate_to_the_symbol_under_the_caret" xml:space="preserve">
+    <value>Cannot navigate to the symbol under the caret.</value>
+  </data>
+  <data name="_0_implementations" xml:space="preserve">
+    <value>'{0}' implementations</value>
+  </data>
+  <data name="_0_references" xml:space="preserve">
+    <value>'{0}' references</value>
+  </data>
+  <data name="The_symbol_has_no_implementations" xml:space="preserve">
+    <value>The symbol has no implementations.</value>
+  </data>
 </root>

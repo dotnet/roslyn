@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected readonly SemanticDocument SemanticDocument;
         protected readonly TextSpan OriginalSpan;
-        protected readonly OptionSet Options;
+        protected readonly ExtractMethodOptions Options;
 
         protected SelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
-            OptionSet options)
+            ExtractMethodOptions options)
         {
             Contract.ThrowIfNull(document);
 

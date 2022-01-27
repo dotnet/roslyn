@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private class RegistryItem
         {
             public string SectionName { get; }
-            public string ValueName => "Data";
+            public static string ValueName => "Data";
             public byte[] ValueData { get; }
 
             public RegistryItem(string sectionName, byte[] valueData)

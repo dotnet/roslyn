@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -28,7 +29,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterf
             _omniSharpExtractInterfaceOptionsService = omniSharpExtractInterfaceOptionsService;
         }
 
-        public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(ISyntaxFactsService syntaxFactsService, INotificationService notificationService, List<ISymbol> extractableMembers, string defaultInterfaceName, List<string> conflictingTypeNames, string defaultNamespace, string generatedNameTypeParameterSuffix, string languageName)
+        public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
+            ISyntaxFactsService syntaxFactsService,
+            INotificationService notificationService,
+            List<ISymbol> extractableMembers,
+            string defaultInterfaceName,
+            List<string> conflictingTypeNames,
+            string defaultNamespace,
+            string generatedNameTypeParameterSuffix,
+            string languageName,
+            CancellationToken cancellationToken)
         {
             var result = await _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptionsAsync(extractableMembers, defaultInterfaceName).ConfigureAwait(false);
             return new(

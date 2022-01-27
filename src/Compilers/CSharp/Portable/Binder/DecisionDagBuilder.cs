@@ -421,8 +421,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<Tests> tests)
         {
             // Add a null test if needed
-            if (input.Type.CanContainNull())
+            if (input.Type.CanContainNull() &&
+                // The slice value is assumed to be never null
+                input.Source is not BoundDagSliceEvaluation)
+            {
                 tests.Add(new Tests.One(new BoundDagNonNullTest(syntax, isExplicitTest, input)));
+            }
         }
 
         /// <summary>

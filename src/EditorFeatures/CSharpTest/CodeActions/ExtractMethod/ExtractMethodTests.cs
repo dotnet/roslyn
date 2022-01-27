@@ -4617,5 +4617,31 @@ class Ignored2 { }
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
             }.RunAsync();
         }
+
+        [WorkItem(57428, "https://github.com/dotnet/roslyn/issues/57428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task AttributeArgumentWithLambdaBody()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Runtime.InteropServices;
+class Program
+{
+    static void F([DefaultParameterValue(() => { return [|null|]; })] object obj)
+    {
+    }
+}",
+@"using System.Runtime.InteropServices;
+class Program
+{
+    static void F([DefaultParameterValue(() => { return {|Rename:NewMethod|}(); })] object obj)
+    {
+    }
+
+    private static object NewMethod()
+    {
+        return null;
+    }
+}");
+        }
     }
 }
