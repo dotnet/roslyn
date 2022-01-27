@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
@@ -17,9 +16,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
+    using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
     using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
-    using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
 
     public partial class CSharpJsonParserTests
     {
@@ -39,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         protected void Test(string stringText,
             string expected, string looseDiagnostics, string strictDiagnostics,
             bool runLooseSubTreeCheck = true,
-            bool runStrictSubTreeCheck = true,
-            [CallerMemberName] string _ = "")
+            bool runStrictSubTreeCheck = true)
         {
             if (runLooseSubTreeCheck)
                 Test(stringText, strict: false, expected, looseDiagnostics, runLooseSubTreeCheck);

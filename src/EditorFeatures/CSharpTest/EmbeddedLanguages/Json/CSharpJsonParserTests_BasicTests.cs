@@ -5321,5 +5321,546 @@ b""</StringToken>
   <Diagnostic Message=""'D' unexpected"" Start=""9"" Length=""1"" />
 </Diagnostics>");
         }
+
+        [Fact]
+        public void TestNestedArrays1()
+        {
+            Test(@"""[1, [2, [3, [4]]]]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+          <Array>
+            <OpenBracketToken>[</OpenBracketToken>
+            <Sequence>
+              <Literal>
+                <NumberToken>2</NumberToken>
+              </Literal>
+              <CommaValue>
+                <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+              </CommaValue>
+              <Array>
+                <OpenBracketToken>[</OpenBracketToken>
+                <Sequence>
+                  <Literal>
+                    <NumberToken>3</NumberToken>
+                  </Literal>
+                  <CommaValue>
+                    <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+                  </CommaValue>
+                  <Array>
+                    <OpenBracketToken>[</OpenBracketToken>
+                    <Sequence>
+                      <Literal>
+                        <NumberToken>4</NumberToken>
+                      </Literal>
+                    </Sequence>
+                    <CloseBracketToken>]</CloseBracketToken>
+                  </Array>
+                </Sequence>
+                <CloseBracketToken>]</CloseBracketToken>
+              </Array>
+            </Sequence>
+            <CloseBracketToken>]</CloseBracketToken>
+          </Array>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"");
+        }
+
+        [Fact]
+        public void TestNestedArraysTrailingCommas1()
+        {
+            Test(@"""[1, [2, [3, [4,],],],]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+          <Array>
+            <OpenBracketToken>[</OpenBracketToken>
+            <Sequence>
+              <Literal>
+                <NumberToken>2</NumberToken>
+              </Literal>
+              <CommaValue>
+                <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+              </CommaValue>
+              <Array>
+                <OpenBracketToken>[</OpenBracketToken>
+                <Sequence>
+                  <Literal>
+                    <NumberToken>3</NumberToken>
+                  </Literal>
+                  <CommaValue>
+                    <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+                  </CommaValue>
+                  <Array>
+                    <OpenBracketToken>[</OpenBracketToken>
+                    <Sequence>
+                      <Literal>
+                        <NumberToken>4</NumberToken>
+                      </Literal>
+                      <CommaValue>
+                        <CommaToken>,</CommaToken>
+                      </CommaValue>
+                    </Sequence>
+                    <CloseBracketToken>]</CloseBracketToken>
+                  </Array>
+                  <CommaValue>
+                    <CommaToken>,</CommaToken>
+                  </CommaValue>
+                </Sequence>
+                <CloseBracketToken>]</CloseBracketToken>
+              </Array>
+              <CommaValue>
+                <CommaToken>,</CommaToken>
+              </CommaValue>
+            </Sequence>
+            <CloseBracketToken>]</CloseBracketToken>
+          </Array>
+          <CommaValue>
+            <CommaToken>,</CommaToken>
+          </CommaValue>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Trailing comma not allowed"" Start=""29"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestBogusNesting1()
+        {
+            Test(@"""[1, [2, [3, [4}}}}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+          <Array>
+            <OpenBracketToken>[</OpenBracketToken>
+            <Sequence>
+              <Literal>
+                <NumberToken>2</NumberToken>
+              </Literal>
+              <CommaValue>
+                <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+              </CommaValue>
+              <Array>
+                <OpenBracketToken>[</OpenBracketToken>
+                <Sequence>
+                  <Literal>
+                    <NumberToken>3</NumberToken>
+                  </Literal>
+                  <CommaValue>
+                    <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+                  </CommaValue>
+                  <Array>
+                    <OpenBracketToken>[</OpenBracketToken>
+                    <Sequence>
+                      <Literal>
+                        <NumberToken>4</NumberToken>
+                      </Literal>
+                      <Text>
+                        <TextToken>}</TextToken>
+                      </Text>
+                      <Text>
+                        <TextToken>}</TextToken>
+                      </Text>
+                      <Text>
+                        <TextToken>}</TextToken>
+                      </Text>
+                      <Text>
+                        <TextToken>}</TextToken>
+                      </Text>
+                    </Sequence>
+                    <CloseBracketToken />
+                  </Array>
+                </Sequence>
+                <CloseBracketToken />
+              </Array>
+            </Sequence>
+            <CloseBracketToken />
+          </Array>
+        </Sequence>
+        <CloseBracketToken />
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""23"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""23"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestBogusNesting2()
+        {
+            Test(@"""[1, [2, [3, [4}]}]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+          <Array>
+            <OpenBracketToken>[</OpenBracketToken>
+            <Sequence>
+              <Literal>
+                <NumberToken>2</NumberToken>
+              </Literal>
+              <CommaValue>
+                <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+              </CommaValue>
+              <Array>
+                <OpenBracketToken>[</OpenBracketToken>
+                <Sequence>
+                  <Literal>
+                    <NumberToken>3</NumberToken>
+                  </Literal>
+                  <CommaValue>
+                    <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+                  </CommaValue>
+                  <Array>
+                    <OpenBracketToken>[</OpenBracketToken>
+                    <Sequence>
+                      <Literal>
+                        <NumberToken>4</NumberToken>
+                      </Literal>
+                      <Text>
+                        <TextToken>}</TextToken>
+                      </Text>
+                    </Sequence>
+                    <CloseBracketToken>]</CloseBracketToken>
+                  </Array>
+                  <Text>
+                    <TextToken>}</TextToken>
+                  </Text>
+                </Sequence>
+                <CloseBracketToken>]</CloseBracketToken>
+              </Array>
+            </Sequence>
+            <CloseBracketToken />
+          </Array>
+        </Sequence>
+        <CloseBracketToken />
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""23"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""'}' unexpected"" Start=""23"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestBogusNesting3()
+        {
+            Test(@"""{1, {2, {3, {4]]]]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{</OpenBraceToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          <Object>
+            <OpenBraceToken>{</OpenBraceToken>
+            <Sequence>
+              <Literal>
+                <NumberToken>2</NumberToken>
+              </Literal>
+              <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+              <Object>
+                <OpenBraceToken>{</OpenBraceToken>
+                <Sequence>
+                  <Literal>
+                    <NumberToken>3</NumberToken>
+                  </Literal>
+                  <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+                  <Object>
+                    <OpenBraceToken>{</OpenBraceToken>
+                    <Sequence>
+                      <Literal>
+                        <NumberToken>4</NumberToken>
+                      </Literal>
+                      <CommaToken />
+                      <Text>
+                        <TextToken>]</TextToken>
+                      </Text>
+                      <CommaToken />
+                      <Text>
+                        <TextToken>]</TextToken>
+                      </Text>
+                      <CommaToken />
+                      <Text>
+                        <TextToken>]</TextToken>
+                      </Text>
+                      <CommaToken />
+                      <Text>
+                        <TextToken>]</TextToken>
+                      </Text>
+                    </Sequence>
+                    <CloseBraceToken />
+                  </Object>
+                </Sequence>
+                <CloseBraceToken />
+              </Object>
+            </Sequence>
+            <CloseBraceToken />
+          </Object>
+        </Sequence>
+        <CloseBraceToken />
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""10"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""10"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestBogusNesting4()
+        {
+            Test(@"""[1, {2, [3, {4]]]]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+          <Object>
+            <OpenBraceToken>{</OpenBraceToken>
+            <Sequence>
+              <Literal>
+                <NumberToken>2</NumberToken>
+              </Literal>
+              <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+              <Array>
+                <OpenBracketToken>[</OpenBracketToken>
+                <Sequence>
+                  <Literal>
+                    <NumberToken>3</NumberToken>
+                  </Literal>
+                  <CommaValue>
+                    <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+                  </CommaValue>
+                  <Object>
+                    <OpenBraceToken>{</OpenBraceToken>
+                    <Sequence>
+                      <Literal>
+                        <NumberToken>4</NumberToken>
+                      </Literal>
+                    </Sequence>
+                    <CloseBraceToken />
+                  </Object>
+                </Sequence>
+                <CloseBracketToken>]</CloseBracketToken>
+              </Array>
+            </Sequence>
+            <CloseBraceToken />
+          </Object>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+      <Text>
+        <TextToken>]</TextToken>
+      </Text>
+      <Text>
+        <TextToken>]</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""14"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""14"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestBogusNesting5()
+        {
+            Test(@"""[1, {2, [3, {4]}]}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+          <Object>
+            <OpenBraceToken>{</OpenBraceToken>
+            <Sequence>
+              <Literal>
+                <NumberToken>2</NumberToken>
+              </Literal>
+              <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+              <Array>
+                <OpenBracketToken>[</OpenBracketToken>
+                <Sequence>
+                  <Literal>
+                    <NumberToken>3</NumberToken>
+                  </Literal>
+                  <CommaValue>
+                    <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+                  </CommaValue>
+                  <Object>
+                    <OpenBraceToken>{</OpenBraceToken>
+                    <Sequence>
+                      <Literal>
+                        <NumberToken>4</NumberToken>
+                      </Literal>
+                    </Sequence>
+                    <CloseBraceToken />
+                  </Object>
+                </Sequence>
+                <CloseBracketToken>]</CloseBracketToken>
+              </Array>
+            </Sequence>
+            <CloseBraceToken>}</CloseBraceToken>
+          </Object>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+      <Text>
+        <TextToken>}</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""14"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""14"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestBogusNesting6()
+        {
+            Test(@"""[1, {2, [3, {4}]}]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>1</NumberToken>
+          </Literal>
+          <CommaValue>
+            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+          </CommaValue>
+          <Object>
+            <OpenBraceToken>{</OpenBraceToken>
+            <Sequence>
+              <Literal>
+                <NumberToken>2</NumberToken>
+              </Literal>
+              <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+              <Array>
+                <OpenBracketToken>[</OpenBracketToken>
+                <Sequence>
+                  <Literal>
+                    <NumberToken>3</NumberToken>
+                  </Literal>
+                  <CommaValue>
+                    <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+                  </CommaValue>
+                  <Object>
+                    <OpenBraceToken>{</OpenBraceToken>
+                    <Sequence>
+                      <Literal>
+                        <NumberToken>4</NumberToken>
+                      </Literal>
+                    </Sequence>
+                    <CloseBraceToken>}</CloseBraceToken>
+                  </Object>
+                </Sequence>
+                <CloseBracketToken>]</CloseBracketToken>
+              </Array>
+            </Sequence>
+            <CloseBraceToken>}</CloseBraceToken>
+          </Object>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""14"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""14"" Length=""1"" />
+</Diagnostics>");
+        }
     }
 }
