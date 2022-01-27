@@ -188,4 +188,17 @@ namespace Microsoft.CodeAnalysis.Completion
                     storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
         }
     }
+
+    internal static class CompletionOptionsExtensions
+    {
+        public static bool ShouldShowItemsFromUnimportNamspaces(this CompletionOptions options)
+        {
+            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+            var importCompletionOptionValue = options.ShowItemsFromUnimportedNamespaces;
+            if (importCompletionOptionValue == false || (importCompletionOptionValue == null && !options.TypeImportCompletion))
+                return false;
+
+            return true;
+        }
+    }
 }

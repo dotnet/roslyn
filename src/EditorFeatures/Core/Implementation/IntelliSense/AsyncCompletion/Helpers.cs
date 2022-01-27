@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// We retrieve this character from triggerLocation.
         /// </param>
         /// <returns>Roslyn completion trigger</returns>
-        internal static RoslynTrigger GetRoslynTrigger(EditorAsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
+        public static RoslynTrigger GetRoslynTrigger(EditorAsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
         {
             var completionTriggerKind = GetRoslynTriggerKind(trigger.Reason);
             if (completionTriggerKind == CompletionTriggerKind.Deletion)
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal static CompletionTriggerKind GetRoslynTriggerKind(EditorAsyncCompletionData.CompletionTriggerReason triggerReason)
+        public static CompletionTriggerKind GetRoslynTriggerKind(EditorAsyncCompletionData.CompletionTriggerReason triggerReason)
         {
             return triggerReason switch
             {
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             };
         }
 
-        internal static CompletionFilterReason GetFilterReason(EditorAsyncCompletionData.CompletionTriggerReason triggerReason)
+        public static CompletionFilterReason GetFilterReason(EditorAsyncCompletionData.CompletionTriggerReason triggerReason)
         {
             return triggerReason switch
             {
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             };
         }
 
-        internal static bool IsFilterCharacter(RoslynCompletionItem item, char ch, string textTypedSoFar)
+        public static bool IsFilterCharacter(RoslynCompletionItem item, char ch, string textTypedSoFar)
         {
             // Exclude standard commit character upfront because TextTypedSoFarMatchesItem can miss them on non-Windows platforms.
             if (IsStandardCommitCharacter(ch))
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return false;
         }
 
-        internal static bool TextTypedSoFarMatchesItem(RoslynCompletionItem item, string textTypedSoFar)
+        public static bool TextTypedSoFarMatchesItem(RoslynCompletionItem item, string textTypedSoFar)
         {
             if (textTypedSoFar.Length > 0)
             {
@@ -127,12 +130,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         // Tab, Enter and Null (call invoke commit) are always commit characters. 
-        internal static bool IsStandardCommitCharacter(char c)
+        public static bool IsStandardCommitCharacter(char c)
             => c is '\t' or '\n' or '\0';
 
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
-        internal static bool IsPreferredItem(this VSCompletionItem completionItem)
+        public static bool IsPreferredItem(this VSCompletionItem completionItem)
             => completionItem.DisplayText.StartsWith("★");
+
+        public static ImmutableArray<EditorAsyncCompletionData.CompletionFilterWithState> CombineFilterStates(
+            ImmutableArray<EditorAsyncCompletionData.CompletionFilterWithState> states1, ImmutableArray<EditorAsyncCompletionData.CompletionFilterWithState> states2)
+        {
+            var filterStateMap = PooledDictionary<EditorAsyncCompletionData.CompletionFilter, bool>.GetInstance();
+            AddFilterState(states1);
+            AddFilterState(states2);
+
+            return filterStateMap.SelectAsArray(kvp => new EditorAsyncCompletionData.CompletionFilterWithState(kvp.Key, true, kvp.Value));
+
+            void AddFilterState(ImmutableArray<EditorAsyncCompletionData.CompletionFilterWithState> filterStates)
+            {
+                foreach (var state in filterStates)
+                {
+                    filterStateMap.TryGetValue(state.Filter, out var isSelected);
+                    filterStateMap[state.Filter] = state.IsSelected || isSelected;
+                }
+            }
+        }
     }
 }

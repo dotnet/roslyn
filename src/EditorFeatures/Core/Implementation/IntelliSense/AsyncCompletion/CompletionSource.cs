@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
         internal const string TypeImportCompletionEnabled = nameof(TypeImportCompletionEnabled);
         internal const string TargetTypeFilterExperimentEnabled = nameof(TargetTypeFilterExperimentEnabled);
+        internal const string ExpandedItemsTask = nameof(ExpandedItemsTask);
 
         private static readonly ImmutableArray<ImageElement> s_warningImageAttributeImagesArray =
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
@@ -234,12 +235,92 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-            {
                 return AsyncCompletionData.CompletionContext.Empty;
-            }
 
             var options = CompletionOptions.From(document.Project);
-            return await GetCompletionContextWorkerAsync(document, session, trigger, triggerLocation, options, cancellationToken).ConfigureAwait(false);
+
+            // The computation of completion items is divided into two tasks:
+            //
+            // 1. "Core" items (i.e. non-expanded) which should be included in the list regardless of the selection of expander.
+            //    Right now this includes all items except those from unimported namespaces.
+            //    
+            // 2. Expanded items which only show in the completion list when expander is selected, or by default if the corresponding
+            //    features are enabled. Right now only items from unimported namespaces are associated with expander. 
+            //
+            // #1 is the essence of completion so we'd always wait until its task is completed and return the results. However, because we have
+            // a really tight perf budget in completion, and computing those items in #2 could be expensive especially in a large solution
+            // (e.g. requires syntax/symbol indices and/or runs in OOP,) we decide to kick off the computation in parallel when completion is
+            // triggered, but only include its results if it's completed by the time task #1 is completed, otherwise we don't wait on it and
+            // just return items from #1 immediately. Task #2 will still be running in the background (until session is dismissed/committed,)
+            // and we'd check back to see if it's completed whenever we have a chance to update the completion list, i.e. when user typed another
+            // character, a filter was selected, etc. If so, those items will be added as part of the refresh.
+            //
+            // The reason of adopting this approach is we want to minimize typing delays. There are two ways user might perceive a delay in typing.
+            // First, they could see a delay between typing a character and completion list being displayed if they want to examine the items available.
+            // Second, they might be typing continuously w/o paying attention to completion list, and simply expect the completion to do the "right thing"
+            // when a commit char is typed (e.g. commit "cancellationToken" when typing 'can$TAB$'). However, the commit could be delayed if completion is
+            // still waiting on the computation of all available items, which manifests as UI delays and in worst case timeouts in commit which results in
+            // unexpected behavior (e.g. typing 'can$TAB$' results in a 250ms UI freeze and still ends up with "can" instead of "cancellationToken".)
+            //
+            // This approach would ensure the computation of #2 will not be the cause of such delays, with the obvious trade off of potentially not providing
+            // expanded items until later (or never) in a completion session even if the feature is enabled. Note that in most cases we'd expect task #2 to finish
+            // in time and complete result would be available from the start of the session. However, even in the case only partial result is returned at the start,
+            // we still believe this is acceptable given how critical perf is in typing scenario.
+            // Additionally, expanded items are usually considered complementary. The need for them only rise occasionally (it's rare when users need to add imports,)
+            // and when they are needed, our hypothesis is because of their more intrusive nature (adding an import to the document) users would more likely to
+            // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
+            // to still provide those items later before they are truly required.
+
+            // Trigger completion with only "core" providers
+            var nonExpandedItemsTask = GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken);
+
+            // Trigger only expanded providers in a separate task if the feature is enabled.
+            // The use of an explicit task (instead of calling GetCompletionContextWorkerAsync w/o await)
+            // is to make sure the entire computation runs in the background.
+            // TODO: handle cancellation!
+            var expandedItemsTask = options.ShouldShowItemsFromUnimportNamspaces()
+                ? Task.Run(async () => await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                    options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, CancellationToken.None).ConfigureAwait(false))
+                : null;
+
+            var (nonExpandedContext, nonExpandedCompletionList) = await nonExpandedItemsTask.ConfigureAwait(false);
+            AddPropertiesToSession(session, nonExpandedCompletionList, triggerLocation);
+
+            if (expandedItemsTask == null)
+                return nonExpandedContext;
+
+            if (!expandedItemsTask.IsCompleted)
+            {
+                session.Properties[ExpandedItemsTask] = expandedItemsTask;
+                return nonExpandedContext;
+            }
+
+            // the task of expanded item is completed, so get the result and combine it with result of non-expanded items.
+            var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
+            AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
+
+            return CombineCompletionContext(nonExpandedContext, expandedContext);
+
+            static AsyncCompletionData.CompletionContext CombineCompletionContext(AsyncCompletionData.CompletionContext context1, AsyncCompletionData.CompletionContext context2)
+            {
+                if (context1.Items.IsEmpty && context1.SuggestionItemOptions is null)
+                    return context2;
+
+                if (context2.Items.IsEmpty && context2.SuggestionItemOptions is null)
+                    return context1;
+
+                var _ = ArrayBuilder<VSCompletionItem>.GetInstance(context1.Items.Length + context2.Items.Length, out var itemsBuilder);
+                itemsBuilder.AddRange(context1.Items);
+                itemsBuilder.AddRange(context2.Items);
+
+                var filterStates = Helpers.CombineFilterStates(context1.Filters, context2.Filters);
+
+                var suggestionItem = context1.SuggestionItemOptions ?? context2.SuggestionItemOptions;
+                var hint = suggestionItem == null ? AsyncCompletionData.InitialSelectionHint.RegularSelection : AsyncCompletionData.InitialSelectionHint.SoftSelection;
+
+                return new(itemsBuilder.ToImmutable(), suggestionItem, hint, filterStates);
+            }
         }
 
         public async Task<AsyncCompletionData.CompletionContext> GetExpandedCompletionContextAsync(
@@ -254,29 +335,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 AsyncCompletionLogger.LogExpanderUsage();
 
+                // It's possible we didn't provide expanded items at the beginning of completion session because it was slow even if the feature is enabled.
+                // ExpandedItemsTask would be available in this case, so we just need to return the its result.
+                // We are doing this in a spinning fashion because the lifetime of expandedItemsTask is associated with the completion session, we don't
+                // want to cancel that task when this "GetExpandedCompletionContextAsync" operation is being canceled, so we will still be able to retrieve
+                // the results later.
+                if (session.Properties.TryGetProperty<Task<(AsyncCompletionData.CompletionContext, CompletionList)>>(ExpandedItemsTask, out var expandedItemsTask))
+                {
+                    while (true)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if (expandedItemsTask.IsCompleted)
+                        {
+                            var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
+                            session.Properties.RemoveProperty(ExpandedItemsTask);
+                            AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
+                            return expandedContext;
+                        }
+
+                        await Task.Delay(20, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                // We only reach here when expanded items are disabled, but user requested them explicitly via expander.
+                // In this case, enable expanded items and trigger the completion only for them.
                 var document = initialTriggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    var options = CompletionOptions.From(document.Project);
-
-                    // User selected expander explicitly, which means we need to collect and return
-                    // items from unimported namespace (and only those items) regardless of whether it's enabled.
-                    options = options with
+                    var options = CompletionOptions.From(document.Project) with
                     {
                         ShowItemsFromUnimportedNamespaces = true,
                         ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
                     };
 
-                    return await GetCompletionContextWorkerAsync(document, session, intialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false);
+                    var (context, completionList) = await GetCompletionContextWorkerAsync(document, intialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false));
+                    AddPropertiesToSession(session, completionList, triggerLocation: null);
+
+                    return context;
                 }
             }
 
             return AsyncCompletionData.CompletionContext.Empty;
         }
 
-        private async Task<AsyncCompletionData.CompletionContext> GetCompletionContextWorkerAsync(
+        private async Task<(AsyncCompletionData.CompletionContext, CompletionList)> GetCompletionContextWorkerAsync(
             Document document,
-            IAsyncCompletionSession session,
             AsyncCompletionData.CompletionTrigger trigger,
             SnapshotPoint triggerLocation,
             CompletionOptions options,
@@ -300,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 document, triggerLocation, options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
-            var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);
+            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(completionList.Items.Length, out var itemsBuilder);
 
             foreach (var roslynItem in completionList.Items)
             {
@@ -309,55 +412,53 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 itemsBuilder.Add(item);
             }
 
-            AddPropertiesToSession(session, completionList, triggerLocation);
-
             var filters = filterSet.GetFilterStatesInSet();
-            var items = itemsBuilder.ToImmutableAndFree();
+            var items = itemsBuilder.ToImmutable();
 
             if (completionList.SuggestionModeItem is null)
-                return new(items, suggestionItemOptions: null, selectionHint: AsyncCompletionData.InitialSelectionHint.RegularSelection, filters);
+                return (new(items, suggestionItemOptions: null, selectionHint: AsyncCompletionData.InitialSelectionHint.RegularSelection, filters), completionList);
 
             var suggestionItemOptions = new AsyncCompletionData.SuggestionItemOptions(
                 completionList.SuggestionModeItem.DisplayText,
                 completionList.SuggestionModeItem.Properties.TryGetValue(Description, out var description) ? description : string.Empty);
 
-            return new(items, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters);
+            return (new(items, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters), completionList);
+        }
 
-            static void AddPropertiesToSession(IAsyncCompletionSession session, CompletionList completionList, SnapshotPoint triggerLocation)
+        private static void AddPropertiesToSession(IAsyncCompletionSession session, CompletionList completionList, SnapshotPoint? triggerLocation)
+        {
+            // Store around the span this completion list applies to.  We'll use this later
+            // to pass this value in when we're committing a completion list item.
+            // It's OK to overwrite this value when expanded items are requested.
+            session.Properties[CompletionListSpan] = completionList.Span;
+
+            // This is a code supporting original completion scenarios: 
+            // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
+            // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
+            if (!session.Properties.TryGetProperty(HasSuggestionItemOptions, out bool hasSuggestionItemOptionsBefore) || !hasSuggestionItemOptionsBefore)
             {
-                // Store around the span this completion list applies to.  We'll use this later
-                // to pass this value in when we're committing a completion list item.
-                // It's OK to overwrite this value when expanded items are requested.
-                session.Properties[CompletionListSpan] = completionList.Span;
+                session.Properties[HasSuggestionItemOptions] = completionList.SuggestionModeItem != null;
+            }
 
-                // This is a code supporting original completion scenarios: 
-                // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
-                // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
-                if (!session.Properties.TryGetProperty(HasSuggestionItemOptions, out bool hasSuggestionItemOptionsBefore) || !hasSuggestionItemOptionsBefore)
+            var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
+            if (excludedCommitCharacters.Length > 0)
+            {
+                if (session.Properties.TryGetProperty(ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharactersBefore))
                 {
-                    session.Properties[HasSuggestionItemOptions] = completionList.SuggestionModeItem != null;
+                    excludedCommitCharacters = excludedCommitCharacters.Union(excludedCommitCharactersBefore).ToImmutableArray();
                 }
 
-                var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
-                if (excludedCommitCharacters.Length > 0)
-                {
-                    if (session.Properties.TryGetProperty(ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharactersBefore))
-                    {
-                        excludedCommitCharacters = excludedCommitCharacters.Union(excludedCommitCharactersBefore).ToImmutableArray();
-                    }
+                session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
+            }
 
-                    session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
-                }
-
-                // We need to remember the trigger location for when a completion service claims expanded items are available
-                // since the initial trigger we are able to get from IAsyncCompletionSession might not be the same (e.g. in projection scenarios)
-                // so when they are requested via expander later, we can retrieve it.
-                // Technically we should save the trigger location for each individual service that made such claim, but in reality only Roslyn's
-                // completion service uses expander, so we can get away with not making such distinction.
-                if (!session.Properties.ContainsProperty(ExpandedItemTriggerLocation))
-                {
-                    session.Properties[ExpandedItemTriggerLocation] = triggerLocation;
-                }
+            // We need to remember the trigger location for when a completion service claims expanded items are available
+            // since the initial trigger we are able to get from IAsyncCompletionSession might not be the same (e.g. in projection scenarios)
+            // so when they are requested via expander later, we can retrieve it.
+            // Technically we should save the trigger location for each individual service that made such claim, but in reality only Roslyn's
+            // completion service uses expander, so we can get away with not making such distinction.
+            if (triggerLocation.HasValue && !session.Properties.ContainsProperty(ExpandedItemTriggerLocation))
+            {
+                session.Properties[ExpandedItemTriggerLocation] = triggerLocation.Value;
             }
         }
 
