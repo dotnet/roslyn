@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
         private readonly Flags _propertyFlags;
         private readonly RefKind _refKind;
-        private readonly BindingDiagnosticBag _diagnostics;
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
@@ -119,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _syntaxRef = syntax.GetReference();
             Location = location;
-            _diagnostics = diagnostics;
             _containingType = containingType;
             _refKind = refKind;
             _modifiers = modifiers;
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!IsIndexer);
                 // PROTOTYPE(semi-auto-props): Make sure that TestSemiAutoPropertyWithInitializer (when enabled back) is affected by this.
                 // That is, if we removed "hasInitializer", the test should fail, or any other test should get affected.
-                CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true);
+                CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true, diagnostics);
             }
 
             if (hasGetAccessor)
@@ -203,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SynthesizedBackingFieldSymbol CreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed)
+        private SynthesizedBackingFieldSymbol CreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!IsIndexer);
             if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel)
@@ -221,12 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = this.Type;
             if (type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
-                _diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
             return (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol;
         }
 
-        internal SynthesizedBackingFieldSymbol CreateBackingFieldForFieldKeyword() => CreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
+        internal SynthesizedBackingFieldSymbol CreateBackingFieldForFieldKeyword(BindingDiagnosticBag diagnostics) => CreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false, diagnostics);
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
