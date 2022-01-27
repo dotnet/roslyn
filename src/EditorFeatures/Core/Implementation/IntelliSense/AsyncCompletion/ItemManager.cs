@@ -68,8 +68,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // and combining the items in Roslyn until the `IsIncomplete` flag is fully supported in classic mode.
 
             if (session.Properties.TryGetProperty<Task<(CompletionContext, RoslynCompletionList)>>(CompletionSource.ExpandedItemsTask, out var task)
-                && task.IsCompletedSuccessfully)
+                && task.Status == TaskStatus.RanToCompletion)
             {
+                // Make sure the task is removed when Adding expanded items,
+                // so duplicated items won't be added in subsequent list updates.
                 session.Properties.RemoveProperty(CompletionSource.ExpandedItemsTask);
 
                 var (expandedContext, expandedList) = task.Result;
@@ -80,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     itemsBuilder.AddRange(expandedContext.Items);
                     var combinedSortedList = itemsBuilder.OrderBy(GetOrAddRoslynCompletionItem).ToImmutableArray();
 
+                    // Add expanded items into a combined list, and save it to be used for future updates during the same session.
                     session.Properties[CombinedSortedList] = combinedSortedList;
                     var combinedFilterStates = Helpers.CombineFilterStates(expandedContext.Filters, data.SelectedFilters);
 
@@ -89,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
             else if (session.Properties.TryGetProperty<ImmutableArray<VSCompletionItem>>(CombinedSortedList, out var combinedSortedList))
             {
+                // Always use the previously saved combined list if available.
                 data = new(combinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
                     data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
             }

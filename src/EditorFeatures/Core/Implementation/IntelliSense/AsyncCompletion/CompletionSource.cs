@@ -275,23 +275,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var nonExpandedItemsTask = GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
                 options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken);
 
-            // Trigger only expanded providers in a separate task if the feature is enabled.
-            // The use of an explicit task (instead of calling GetCompletionContextWorkerAsync w/o await)
-            // is to make sure the entire computation runs in the background.
-            // TODO: handle cancellation!
-            var expandedItemsTask = options.ShouldShowItemsFromUnimportNamspaces()
-                ? Task.Run(async () => await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
-                    options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, CancellationToken.None).ConfigureAwait(false))
-                : null;
+            // No need to trigger expanded providers at all if the feature is disabled. 
+            if (!options.ShouldShowItemsFromUnimportNamspaces())
+            {
+                var (context, list) = await nonExpandedItemsTask.ConfigureAwait(false);
+                AddPropertiesToSession(session, list, triggerLocation);
+                return context;
+            }
+
+            // Use a cancellation token associated with the session for the background expanded item task.
+            var cancellationTokenSource = new CancellationTokenSource();
+            void HandleCancellation(object? sender, EventArgs e) => cancellationTokenSource.Cancel();
+            session.Dismissed += HandleCancellation;
+            session.ItemCommitted += HandleCancellation;
+
+            // The use of an explicit task (instead of calling GetCompletionContextWorkerAsync w/o await) is to
+            // make sure the entire expanded item computation runs in the background.
+            var expandedItemsTask = Task.Run(async () => await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, cancellationTokenSource.Token).ConfigureAwait(false),
+                cancellationTokenSource.Token);
 
             var (nonExpandedContext, nonExpandedCompletionList) = await nonExpandedItemsTask.ConfigureAwait(false);
             AddPropertiesToSession(session, nonExpandedCompletionList, triggerLocation);
 
-            if (expandedItemsTask == null)
-                return nonExpandedContext;
-
             if (!expandedItemsTask.IsCompleted)
             {
+                // expanded item task still running. Save it to the session and return non-expanded items immediately.
                 session.Properties[ExpandedItemsTask] = expandedItemsTask;
                 return nonExpandedContext;
             }
@@ -299,7 +308,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // the task of expanded item is completed, so get the result and combine it with result of non-expanded items.
             var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
             AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
-
             return CombineCompletionContext(nonExpandedContext, expandedContext);
 
             static AsyncCompletionData.CompletionContext CombineCompletionContext(AsyncCompletionData.CompletionContext context1, AsyncCompletionData.CompletionContext context2)
@@ -336,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 AsyncCompletionLogger.LogExpanderUsage();
 
                 // It's possible we didn't provide expanded items at the beginning of completion session because it was slow even if the feature is enabled.
-                // ExpandedItemsTask would be available in this case, so we just need to return the its result.
+                // ExpandedItemsTask would be available in this case, so we just need to return its result.
                 // We are doing this in a spinning fashion because the lifetime of expandedItemsTask is associated with the completion session, we don't
                 // want to cancel that task when this "GetExpandedCompletionContextAsync" operation is being canceled, so we will still be able to retrieve
                 // the results later.
@@ -347,8 +355,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         cancellationToken.ThrowIfCancellationRequested();
                         if (expandedItemsTask.IsCompleted)
                         {
-                            var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
+                            // Make sure the task is removed when returning expanded items,
+                            // so duplicated items won't be added in subsequent list updates.
                             session.Properties.RemoveProperty(ExpandedItemsTask);
+                            var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
                             AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
                             return expandedContext;
                         }
@@ -368,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
                     };
 
-                    var (context, completionList) = await GetCompletionContextWorkerAsync(document, intialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false));
+                    var (context, completionList) = await GetCompletionContextWorkerAsync(document, intialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false);
                     AddPropertiesToSession(session, completionList, triggerLocation: null);
 
                     return context;
