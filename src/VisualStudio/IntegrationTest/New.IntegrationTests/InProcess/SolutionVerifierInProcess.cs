@@ -4,17 +4,14 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class SolutionVerifierInProcess : InProcComponent
+    [TestService]
+    internal partial class SolutionVerifierInProcess
     {
-        public SolutionVerifierInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task AssemblyReferencePresentAsync(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken, CancellationToken cancellationToken)
         {
             var assemblyReferences = await TestServices.SolutionExplorer.GetAssemblyReferencesAsync(projectName, cancellationToken);
@@ -26,6 +23,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             var projectReferences = await TestServices.SolutionExplorer.GetProjectReferencesAsync(projectName, cancellationToken);
             Assert.Contains(referencedProjectName, projectReferences);
+        }
+
+        public async Task FileContentsAsync(string projectName, string fileName, string expectedContents, CancellationToken cancellationToken)
+        {
+            var actualContents = await TestServices.SolutionExplorer.GetFileContentsAsync(projectName, fileName, cancellationToken);
+            Assert.Equal(expectedContents, actualContents);
         }
     }
 }

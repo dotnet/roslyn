@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ProjectExtensions
     {
+        public static bool IsFromPrimaryBranch(this Project project)
+            => project.Solution.BranchId == project.Solution.Workspace.PrimaryBranchId;
+
         internal static Project WithSolutionOptions(this Project project, OptionSet options)
             => project.Solution.WithOptions(options).GetProject(project.Id)!;
 

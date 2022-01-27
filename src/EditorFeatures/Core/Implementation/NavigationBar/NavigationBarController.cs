@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _asyncListener = asyncListener;
 
             _computeModelQueue = new AsyncBatchingWorkQueue<bool, NavigationBarModel?>(
-                TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
+                DelayTimeSpan.Short,
                 ComputeModelAndSelectItemAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 _cancellationTokenSource.Token);
 
             _selectItemQueue = new AsyncBatchingWorkQueue(
-                TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay),
+                DelayTimeSpan.NearImmediate,
                 SelectItemAsync,
                 asyncListener,
                 _cancellationTokenSource.Token);
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             catch (OperationCanceledException)
             {
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
             {
             }
         }

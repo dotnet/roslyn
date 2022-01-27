@@ -611,6 +611,9 @@
   </Node>
 
   <Node Name="BoundUnconvertedConditionalOperator" Base="BoundExpression">
+    <!-- Type is null. -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundExpression"/>
     <Field Name="Alternative" Type="BoundExpression"/>
@@ -1769,29 +1772,31 @@
       <Field Name="InitializerOpt" Type="InitializerExpressionSyntax?" Null="allow"/>
   </Node>
 
+  <AbstractNode Name="BoundObjectCreationExpressionBase" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </AbstractNode>
+
   <!-- 
   Constructor is optional because value types can be created without calling any constructor -
  
      int x = new int();        
   -->
-  <Node Name="BoundObjectCreationExpression" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
-    <Field Name="Constructor" Type="MethodSymbol"/>
+  <Node Name="BoundObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
+    <Field Name="Constructor" Type="MethodSymbol" PropertyOverrides="true"/>
     
     <!-- These symbols will be returned from the GetSemanticInfo API if it examines this bound node. -->
     <Field Name="ConstructorsGroup" Type="ImmutableArray&lt;MethodSymbol&gt;"/>
     
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
-    <Field Name="Expanded" Type="bool"/>
-    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
-    <Field Name="DefaultArguments" Type="BitVector" />
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="Expanded" Type="bool" PropertyOverrides="true"/>
+    <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="DefaultArguments" Type="BitVector" PropertyOverrides="true"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
-    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?"/>
-    <Field Name="WasTargetTyped" Type="bool"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
+    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
   
 
@@ -1835,22 +1840,20 @@
     <Field Name="WasTargetTyped" Type="bool" />
   </Node>
 
-  <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  <Node Name="BoundDynamicObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
     <Field Name="Name" Type="string" Null="disallow"/>
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
-    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
+    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
 
-  <Node Name="BoundNoPiaObjectCreationExpression" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  <Node Name="BoundNoPiaObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
     <Field Name="GuidString" Type="string?"/>
-    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
+    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <AbstractNode Name="BoundObjectInitializerExpressionBase" Base="BoundExpression">
@@ -1945,11 +1948,9 @@
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
   </Node>
   
-  <Node Name="BoundNewT" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-  
-    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?"/>
+  <Node Name="BoundNewT" Base="BoundObjectCreationExpressionBase">
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
+    <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <Node Name="BoundDelegateCreationExpression" Base="BoundExpression">
@@ -1970,6 +1971,7 @@
     <Field Name="Argument" Type="BoundExpression"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
     <Field Name="IsExtensionMethod" Type="bool"/>
+    <Field Name="WasTargetTyped" Type="bool"/>
   </Node>
 
   <Node Name="BoundArrayCreation" Base="BoundExpression">

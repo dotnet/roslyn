@@ -34,9 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.DetailsExpander,
             StandardTableColumnDefinitions.SuppressionState);
 
-        public static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
+        protected static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
         {
-            // REVIEW: why is it using old interface for new API?
             return severity switch
             {
                 DiagnosticSeverity.Error => __VSERRORCATEGORY.EC_ERROR,
