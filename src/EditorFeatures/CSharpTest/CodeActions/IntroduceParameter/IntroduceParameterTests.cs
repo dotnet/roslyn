@@ -1932,5 +1932,62 @@ namespace Refactorings
 ";
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestIntroduceParameterOnParameter()
+        {
+            var code =
+@"
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine([|args|]);
+    }
+}
+";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestIntroduceParameterOnExpressionContainingParameter()
+        {
+            var code =
+@"
+public class C
+{
+    public void M(string s)
+    {
+        localFunction();
+
+        void localFunction()
+        {
+            _ = [|s|].ToString();
+        }
+    }
+}
+";
+
+            var expected =
+@"
+public class C
+{
+    public void M(string s)
+    {
+        localFunction(s);
+
+        void localFunction(string s)
+        {
+            _ = {|Rename:s|}.ToString();
+        }
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, 0);
+        }
     }
 }

@@ -6,9 +6,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -508,7 +508,7 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_PropertySet()
         {
             return TestSymbolFoundAsync(
@@ -528,11 +528,11 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_PropertyGet()
         {
             return TestSymbolFoundAsync(
-                @"at ConsoleApp4.MyClass.get_I(Int32 value)",
+                @"at ConsoleApp4.MyClass.get_I()",
                 @"using System;
 
 namespace ConsoleApp4
@@ -548,7 +548,7 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_IndexerSet()
         {
             return TestSymbolFoundAsync(
@@ -568,7 +568,7 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_IndexerGet()
         {
             return TestSymbolFoundAsync(
@@ -588,11 +588,73 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_LocalFunction()
         {
             return TestSymbolFoundAsync(
                 @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public void M()
+        {
+            LocalFunction();
+
+            void [|LocalFunction|]()
+            {
+                throw new Exception();
+            }
+        }
+
+        public void LocalFunction()
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_MultipleLocalFunctions()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public void M()
+        {
+            LocalFunction();
+
+            void [|LocalFunction|]()
+            {
+                throw new Exception();
+            }
+        }
+
+        public void M2()
+        {
+            LocalFunction();
+
+            void LocalFunction()
+            {
+                throw new Exception();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_MultipleLocalFunctions2()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.<M2>g__LocalFunction|0_0()",
                 @"using System;
 
 namespace ConsoleApp4
@@ -608,18 +670,93 @@ namespace ConsoleApp4
                 throw new Exception();
             }
         }
+
+        public void M2()
+        {
+            LocalFunction();
+
+            void [|LocalFunction()|]
+            {
+                throw new Exception();
+            }
+        }
     }
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_MemberFunctionSameNameAsFunction()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.LocalFunction()",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public void M()
+        {
+            LocalFunction();
+
+            void LocalFunction()
+            {
+                throw new Exception();
+            }
+        }
+
+        public void [|LocalFunction|]()
+        {
+        }
+    }
+}");
+        }
+
+        /// <summary>
+        /// Behavior for this test needs some explanation. Note that if there are multiple
+        /// local functions within a container, they will be uniquely identified by the 
+        /// suffix. In this case we have g__Local|0_0 and g__Local|0_1 as the two local functions.
+        /// Resolution doesn't try to reverse engineer how these suffixes get produced, which means
+        /// that the first applicable symbol with the name "Local" inside the method "M" will be found.
+        /// Since local function resolution is done by searching the descendents of the method "M", the top
+        /// most local function matching the name will be the first the resolver sees and considers applicable.
+        /// This should get the user close to what they want, and hopefully is rare enough that it won't
+        /// be frequently encountered. 
+        /// </summary>
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_NestedLocalFunctions()
+        {
+            return TestSymbolFoundAsync(
+                @"at C.<M>g__Local|0_1()",
+                @"using System;
+
+class C 
+{
+    public void M()
+    {
+        Local();
+        
+        void [|Local|]()
+        {
+            Local();
+            
+            void Local()
+            {
+                throw new Exception();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "Top level local functions are not supported")]
         public Task TestSymbolFound_ExceptionLine_LocalInTopLevelStatement()
         {
             return TestSymbolFoundAsync(
-                @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
+                @"at ConsoleApp4.Program.<Main$>g__LocalInTopLevelStatement|0_0()",
                 @"using System;
 
-LoaclInTopLevelStatement();
+LocalInTopLevelStatement();
 
 void [|LocalInTopLevelStatement|]()
 {

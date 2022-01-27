@@ -74,13 +74,13 @@ namespace Microsoft.CodeAnalysis
                 if (state == EntryState.Removed)
                 {
                     // mark both syntax *and* transform nodes removed
-                    _filterTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> removedNodes);
-
-                    for (int i = 0; i < removedNodes.Length; i++)
+                    if (_filterTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> removedNodes))
                     {
-                        _transformTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo);
+                        for (int i = 0; i < removedNodes.Length; i++)
+                        {
+                            _transformTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo);
+                        }
                     }
-
                 }
                 else
                 {
@@ -101,7 +101,11 @@ namespace Microsoft.CodeAnalysis
                         var value = new GeneratorSyntaxContext(node, model);
                         var transformed = _owner._transformFunc(value, cancellationToken);
 
-                        if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, state))
+                        // The SemanticModel we provide to GeneratorSyntaxContext is never guaranteed to be the same between runs,
+                        // so we never consider the input to the transform as cached.
+                        var transformInputState = state == EntryState.Cached ? EntryState.Modified : state;
+
+                        if (transformInputState == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, transformInputState))
                         {
                             _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
                         }

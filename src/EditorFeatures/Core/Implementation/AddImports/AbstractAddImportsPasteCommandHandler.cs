@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.AddMissingImports;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -114,6 +115,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
+            var options = new AddMissingImportsOptions(
+                HideAdvancedMembers: document.Project.Solution.Options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, document.Project.Language));
+
             using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, DialogText);
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
@@ -123,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
             var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
-            var updatedDocument = _threadingContext.JoinableTaskFactory.Run(() => addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken));
+            var updatedDocument = _threadingContext.JoinableTaskFactory.Run(() => addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken));
 #pragma warning restore VSTHRD102 // Implement internal logic asynchronously
             if (updatedDocument is null)
             {

@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             }
         }
 
-        private bool ShowWarningDialog(PullMembersUpOptions result)
+        private static bool ShowWarningDialog(PullMembersUpOptions result)
         {
             var warningViewModel = new PullMemberUpWarningViewModel(result);
             var warningDialog = new PullMemberUpWarningDialog(warningViewModel);

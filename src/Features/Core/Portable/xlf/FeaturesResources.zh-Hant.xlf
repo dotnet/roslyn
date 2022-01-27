@@ -242,12 +242,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
-        <target state="new">Await the preceding expression</target>
+        <target state="translated">等待上述運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
-        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <target state="translated">等待上述運算式並新增 ConfigureAwait({0})。</target>
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -274,6 +274,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Cannot include class \{0} in character range</source>
         <target state="translated">無法在字元範圍內包含類別 \{0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
+      </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
@@ -470,6 +475,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">將類型轉換為 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">磁碟或內嵌上找不到可攜式 PDB。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">在磁碟、內嵌或符號伺服器上找不到 PDB。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">建立並指派欄位 '{0}'</target>
@@ -550,6 +565,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">建立 CodeFixProvider '{0}' 的執行個體時發生錯誤</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">讀取 PDB 時發生錯誤: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">範例:</target>
@@ -567,7 +587,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">明確繼承文件</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -615,14 +635,34 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">正在將文件格式化</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">在 '{0}' 找到 PDB 檔案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">在符號伺服器上找到 PDB。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">在符號伺服器上找到 PDB，但無法讀取檔案。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">找到內嵌的 PDB 檔案。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">產生抽象方法 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">產生抽象屬性 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -632,7 +672,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">產生常數 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -647,12 +687,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">產生列舉成員 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">產生欄位 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -662,7 +702,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">產生方法 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -677,17 +717,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">產生屬性 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">產生唯讀欄位 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">產生唯讀屬性 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -840,6 +880,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">群組名稱無效: 群組名稱必須以文字字元開頭</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_regex_pattern">
+        <source>Invalid regex pattern</source>
+        <target state="new">Invalid regex pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">無效的選取範圍。</target>
@@ -912,7 +957,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">其他檔案</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
@@ -1022,7 +1067,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">將靜態成員移至其他類型...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1035,6 +1080,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">移動 {0} 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">正在從 '{1}' 瀏覽至符號 '{0}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">巢狀數量詞 {0}</target>
@@ -1043,6 +1093,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">沒有根節點可供擷取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">PDB 中找不到來源文件資訊。</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -1230,8 +1285,8 @@ This option is recommended if you know that backtracking will not succeed. Preve
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="needs-review-translation">平衡群組定義會刪除先前已定義群組的定義，並將先前定義的群組和目前群組間的間隔儲存在目前的群組內。
-    
+        <target state="translated">平衡群組定義會刪除先前已定義群組的定義，並將先前定義的群組和目前群組間的間隔儲存在目前的群組內。
+
 'name1' 是目前的群組 (選擇性)，'name2' 是先前定義的群組，'subexpression' 是任何有效的規則運算式模式。平衡群組定義會刪除 name2 的定義，並將 name2 與 name1 之間的間隔儲存在 name1 內。如果未指定 name2 群組，則比對會回溯。因為刪除 name2 的上一個定義會顯示 name2 先前的定義，所以此建構可讓您使用群組 name2 的擷取堆疊來作為計數器，用來追蹤括號或左右括弧等巢狀建構。
 
 平衡群組定義會使用 'name2' 作為堆疊。各巢狀建構的開頭字元會置於群組和其 Group.Captures 集合內。符合右側字元時，會將其對應的左側字元從群組移除，使 Captures 集合減少一。當所有巢狀建構的左側和右側字元均相符後，'name1' 會空白。</target>
@@ -2307,12 +2362,22 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="new">Silent</target>
+        <target state="translated">靜音</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">排序協助工具修飾元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">PDB 中找不到原始程式碼語言資訊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">來源是參考組件，資訊不足，無法尋找 PDB。</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2340,6 +2405,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">在 Lambda 運算式和本機函式之間切換需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">在組件路徑 '{0}' 中找到符號</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: 釋出非受控資源 (非受控物件) 並覆寫完成項</target>
@@ -2365,6 +2435,21 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">選取範圍包含區域函式呼叫，但不含其宣告。</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_symbol_has_no_implementations">
+        <source>The symbol has no implementations.</source>
+        <target state="new">The symbol has no implementations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">嘗試從 SourceLink 下載原始程式碼時發生逾時。後續的要求可能會成功。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">嘗試從符號伺服器下載 PDB 時發生逾時。後續的要求可能會成功。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">(?()|) 中太多 |</target>
@@ -2377,7 +2462,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">類型:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
@@ -2665,6 +2750,51 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">{0} - {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">在內嵌 PDB 中找到 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">在內嵌 PDB 中找到 '{0}'，但總和檢查碼錯誤或無法讀取暫存檔案。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">在內嵌 PDB 中找到 '{0}'，但無法寫入暫存檔案: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">在內嵌 PDB 中找到 '{0}'，並找到快取的來源檔案。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">在原始位置找到 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">在原始位置找到 '{0}'，但總和檢查碼錯誤或無法讀取暫存檔案。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">透過 SourceLink 找到 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">透過 SourceLink 找到 '{0}'，但無法讀取暫存檔案。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implementations">
+        <source>'{0}' implementations</source>
+        <target state="new">'{0}' implementations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}' 在此不是 null。</target>
@@ -2673,6 +2803,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
         <target state="translated">'{0}' 在此可能為 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>'{0}' references</source>
+        <target state="new">'{0}' references</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -2992,6 +3127,16 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <source>discard</source>
         <target state="translated">捨棄</target>
         <note />
+      </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">內嵌</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">外部</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
