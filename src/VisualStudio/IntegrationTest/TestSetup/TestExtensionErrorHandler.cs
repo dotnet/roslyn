@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
@@ -38,7 +39,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 return;
             }
 
-            FatalError.ReportAndPropagate(exception, ErrorSeverity.Critical);
+            FailFast.OnFatalException(exception);
         }
     }
 }
