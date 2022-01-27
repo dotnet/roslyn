@@ -4,13 +4,12 @@
 
 #nullable disable
 
+using System.IO;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -115,19 +114,24 @@ class Implementation : IDisposable
             VisualStudio.Editor.SetText(
 @"using System;
 
-IDisposable c;
-try
+class C
 {
-    c = new Implementation();
-}
-finally
-{
-    c.Dispose();
+    void M()
+    {
+        IDisposable c;
+        try
+        {
+            c = new Implementation();
+        }
+        finally
+        {
+            c.Dispose();
+        }
+    }
 }");
 
-            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
-
             VisualStudio.Editor.PlaceCaret("Dispose", charsOffset: -1);
+
             // It should navigate to the implementation, because there is only one
             VisualStudio.Editor.GoToImplementation("FileImplementation.cs");
             // Search results should also show
@@ -136,7 +140,7 @@ finally
             // We don't need to validate all of the results, just that the source is there
             // (though we wouldn't have navigated if it wasn't) and that there is at least something
             // from .NET
-            Assert.Contains(results, r => r.Code == "void Implementation.Dispose()" && r.FilePath == "FileImplementation.cs");
+            Assert.Contains(results, r => r.Code == "public void Dispose()" && Path.GetFileName(r.FilePath) == "FileImplementation.cs");
             Assert.Contains(results, r => r.Code == "void Stream.Dispose()" && r.FilePath == "Stream");
         }
     }
