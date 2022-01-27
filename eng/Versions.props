@@ -135,6 +135,7 @@
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.36</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>
+    <MicrosoftVisualStudioExtensibilityTestingSupportFilesVersion>1.1.0</MicrosoftVisualStudioExtensibilityTestingSupportFilesVersion>
     <MicrosoftVisualStudioExtensibilityTestingXunitVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingXunitVersion>
     <MicrosoftVisualStudioGraphModelVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImageCatalogVersion>
