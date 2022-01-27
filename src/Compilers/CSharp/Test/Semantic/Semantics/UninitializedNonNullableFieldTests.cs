@@ -2427,6 +2427,38 @@ public partial class Class1
         }
 
         [Fact]
+        public void StaticInitializers_MultipleFiles_05()
+        {
+            var source1 = @"
+public partial class Class1
+{
+    public static readonly string Value1 = ""a"";
+}
+";
+            var source2 = @"
+public partial class Class1
+{
+    public static readonly string Value2; // 1
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify(
+                    // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    //     public static readonly string Value2; // 1
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
+
+            comp.VerifyDiagnostics(
+                // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public static readonly string Value2; // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
+        }
+
+        [Fact]
         [WorkItem(1090263, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090263")]
         public void PropertyNoGetter()
         {
