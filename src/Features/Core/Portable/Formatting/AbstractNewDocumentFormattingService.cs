@@ -41,8 +41,13 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // other, so this shouldn't cause problems.
                 try
                 {
+                    // First we ask the provider to "format" the document. This could be formatting in terms
+                    // of adjusting block scopes to file scopes etc., but it could also be more akin to fixers
+                    // like adding access modifiers, or adding .ConfigureAwait() calls etc.
                     document = await provider.FormatNewDocumentAsync(document, hintDocument, cancellationToken).ConfigureAwait(false);
 
+                    // Now that the above has changed the document, we need the formatter to make sure its correct
+                    // before we call the next provider, otherwise they might not see things as they are meant to be.
                     document = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.General))
