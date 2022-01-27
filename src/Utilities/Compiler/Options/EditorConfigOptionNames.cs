@@ -204,5 +204,11 @@ namespace Analyzer.Utilities
         /// CA1826 (Do not use Enumerable methods on indexable collections. Instead use the collection directly).
         /// </summary>
         public const string ExcludeOrDefaultMethods = "exclude_ordefault_methods";
+
+        /// <summary>
+        /// String option to configure names of method symbols (separated by '|') that marks all of the parameters with IEnumerable type
+        /// would be enumerated.
+        /// </summary>
+        public const string EnumeratedMethods = "enumerated_methods";
     }
 }
