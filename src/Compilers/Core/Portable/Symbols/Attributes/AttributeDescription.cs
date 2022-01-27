@@ -199,7 +199,6 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly byte[][] s_signatures_HasThis_Void_Only = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signatures_HasThis_Void_String_Only = { s_signature_HasThis_Void_String };
-        private static readonly byte[][] s_signatures_HasThis_Void_SzArray_String_Only = { s_signature_HasThis_Void_SzArray_String };
         private static readonly byte[][] s_signatures_HasThis_Void_Type_Only = { s_signature_HasThis_Void_Type };
         private static readonly byte[][] s_signatures_HasThis_Void_Boolean_Only = { s_signature_HasThis_Void_Boolean };
 
