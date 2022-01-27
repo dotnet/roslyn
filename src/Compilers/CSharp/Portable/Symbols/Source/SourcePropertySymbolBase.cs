@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
         private readonly Flags _propertyFlags;
         private readonly RefKind _refKind;
+        private readonly BindingDiagnosticBag _diagnostics;
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
@@ -118,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _syntaxRef = syntax.GetReference();
             Location = location;
+            _diagnostics = diagnostics;
             _containingType = containingType;
             _refKind = refKind;
             _modifiers = modifiers;
@@ -216,6 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, backingField, _lazyBackingFieldSymbolSentinel);
             }
 
+            var type = this.Type;
+            if (type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            {
+                _diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
+            }
             return (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol;
         }
 
@@ -319,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => (_propertyFlags & Flags.IsExpressionBodied) != 0;
 
         private void CheckInitializer(
-            bool isAutoProperty,
+            bool allowsInitializer,
             bool isInterface,
             bool isStatic,
             Location location,
@@ -329,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location, this);
             }
-            else if (!isAutoProperty)
+            else if (!allowsInitializer)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location, this);
             }
@@ -783,6 +790,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+        private bool AllowsInitializer
+        {
+            get
+            {
+                // PROTOTYPE(semi-auto-props): Implement this.
+                return IsAutoProperty;
+            }
+        }
 #nullable disable
 
         internal override bool MustCallMethodsDirectly
@@ -824,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasInitializer = (_propertyFlags & Flags.HasInitializer) != 0;
             if (hasInitializer)
             {
-                CheckInitializer(IsAutoProperty, ContainingType.IsInterface, IsStatic, Location, diagnostics);
+                CheckInitializer(AllowsInitializer, ContainingType.IsInterface, IsStatic, Location, diagnostics);
             }
 
             if (IsAutoPropertyWithGetAccessor)
@@ -1196,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoPropertyWithGetAccessor // PROTOTYPE(semi-auto-props): Adjust this and add tests.
+            => AllowsInitializer // PROTOTYPE(semi-auto-props): add tests.
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1646,10 +1662,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
-            }
-            else if (this.IsAutoPropertyWithGetAccessor && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
-            {
-                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
         }
 
