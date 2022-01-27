@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!IsIndexer);
                 // PROTOTYPE(semi-auto-props): Make sure that TestSemiAutoPropertyWithInitializer (when enabled back) is affected by this.
                 // That is, if we removed "hasInitializer", the test should fail, or any other test should get affected.
-                CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true, diagnostics);
+                CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true);
             }
 
             if (hasGetAccessor)
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SynthesizedBackingFieldSymbol CreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed, BindingDiagnosticBag diagnostics)
+        private SynthesizedBackingFieldSymbol CreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed)
         {
             Debug.Assert(!IsIndexer);
             if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol;
         }
 
-        internal SynthesizedBackingFieldSymbol CreateBackingFieldForFieldKeyword(BindingDiagnosticBag diagnostics) => CreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false, diagnostics);
+        internal SynthesizedBackingFieldSymbol CreateBackingFieldForFieldKeyword() => CreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
