@@ -462,9 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // No space before " at the end of an interpolated string
-            if (currentKind is SyntaxKind.InterpolatedStringEndToken or
-                               SyntaxKind.InterpolatedSingleLineRawStringEndToken or
-                               SyntaxKind.InterpolatedMultiLineRawStringEndToken)
+            if (currentKind is SyntaxKind.InterpolatedStringEndToken)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }

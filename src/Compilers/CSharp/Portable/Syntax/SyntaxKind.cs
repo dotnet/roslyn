@@ -875,8 +875,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         MultiLineRawStringLiteralToken = 9073,
 
         InterpolatedSingleLineRawStringStartToken = 9080,   // $"""
-        InterpolatedSingleLineRawStringEndToken = 9081,     // """
-        InterpolatedMultiLineRawStringStartToken = 9082,    // $"""<whitespace><newline>
-        InterpolatedMultiLineRawStringEndToken = 9083,      // <newline><whitespace>"""
+        InterpolatedMultiLineRawStringStartToken = 9081,    // $""" (contents will include the whitespace/newline that follows).
     }
 }

@@ -3511,13 +3511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedMultiLineRawStringStartToken: break;
                 default: throw new ArgumentException(nameof(stringStartToken));
             }
-            switch (stringEndToken.Kind())
-            {
-                case SyntaxKind.InterpolatedStringEndToken:
-                case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
-                case SyntaxKind.InterpolatedMultiLineRawStringEndToken: break;
-                default: throw new ArgumentException(nameof(stringEndToken));
-            }
+            if (stringEndToken.Kind() != SyntaxKind.InterpolatedStringEndToken) throw new ArgumentException(nameof(stringEndToken));
             return (InterpolatedStringExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolatedStringExpression((Syntax.InternalSyntax.SyntaxToken)stringStartToken.Node!, contents.Node.ToGreenList<Syntax.InternalSyntax.InterpolatedStringContentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)stringEndToken.Node!).CreateRed();
         }
 

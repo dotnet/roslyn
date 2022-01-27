@@ -429,9 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     SyntaxKind.InterpolatedStringTextToken,
                     SyntaxKind.InterpolatedStringEndToken,
                     SyntaxKind.InterpolatedSingleLineRawStringStartToken,
-                    SyntaxKind.InterpolatedSingleLineRawStringEndToken,
-                    SyntaxKind.InterpolatedMultiLineRawStringStartToken,
-                    SyntaxKind.InterpolatedMultiLineRawStringEndToken))
+                    SyntaxKind.InterpolatedMultiLineRawStringStartToken))
             {
                 return token.SpanStart < position && token.Span.End > position;
             }

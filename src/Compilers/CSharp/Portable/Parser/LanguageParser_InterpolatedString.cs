@@ -232,14 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Make a token for the close quote " (even if it was missing)
                 return TokenOrMissingToken(
                     leading: null,
-                    kind switch
-                    {
-                        Lexer.InterpolatedStringKind.Normal => SyntaxKind.InterpolatedStringEndToken,
-                        Lexer.InterpolatedStringKind.Verbatim => SyntaxKind.InterpolatedStringEndToken,
-                        Lexer.InterpolatedStringKind.SingleLineRaw => SyntaxKind.InterpolatedSingleLineRawStringEndToken,
-                        Lexer.InterpolatedStringKind.MultiLineRaw => SyntaxKind.InterpolatedMultiLineRawStringEndToken,
-                        _ => throw ExceptionUtilities.UnexpectedValue(kind),
-                    },
+                    SyntaxKind.InterpolatedStringEndToken,
                     originalText[closeQuoteRange],
                     originalToken.GetTrailingTrivia());
             }
