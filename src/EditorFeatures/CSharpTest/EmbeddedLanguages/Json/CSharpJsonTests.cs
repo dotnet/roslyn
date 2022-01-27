@@ -35,16 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return token;
         }
 
-        protected void Test(string stringText,
-            string expected, string looseDiagnostics, string strictDiagnostics,
+        protected void Test(
+            string stringText,
+            string expected,
+            string looseDiagnostics,
+            string strictDiagnostics,
             bool runLooseSubTreeCheck = true,
             bool runStrictSubTreeCheck = true)
         {
-            if (runLooseSubTreeCheck)
-                Test(stringText, strict: false, expected, looseDiagnostics, runLooseSubTreeCheck);
-
-            if (runStrictSubTreeCheck)
-                Test(stringText, strict: true, expected, strictDiagnostics, runStrictSubTreeCheck);
+            Test(stringText, strict: false, expected, looseDiagnostics, runLooseSubTreeCheck);
+            Test(stringText, strict: true, expected, strictDiagnostics, runStrictSubTreeCheck);
         }
 
         private void Test(
