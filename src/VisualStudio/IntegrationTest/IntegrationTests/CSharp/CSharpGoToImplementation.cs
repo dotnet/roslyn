@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -70,7 +71,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        // TODO: Enable this once the GoToDefinition tests are merged
         [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationFromMetadataAsSource()
         {
@@ -91,6 +91,53 @@ class Implementation : IDisposable
             VisualStudio.Editor.GoToDefinition("IDisposable [from metadata]");
             VisualStudio.Editor.GoToImplementation("FileImplementation.cs");
             VisualStudio.Editor.Verify.TextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        public void GoToImplementationFromSourceAndMetadata()
+        {
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
+            VisualStudio.Editor.SetText(
+@"using System;
+
+class Implementation : IDisposable
+{
+    public void Dispose()
+    {
+    }
+}");
+            VisualStudio.SolutionExplorer.CloseCodeFile(project, "FileImplementation.cs", saveFile: true);
+
+            VisualStudio.SolutionExplorer.AddFile(project, "FileUsage.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileUsage.cs");
+            VisualStudio.Editor.SetText(
+@"using System;
+
+IDisposable c;
+try
+{
+    c = new Implementation();
+}
+finally
+{
+    c.Dispose();
+}");
+
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
+
+            VisualStudio.Editor.PlaceCaret("Dispose", charsOffset: -1);
+            // It should navigate to the implementation, because there is only one
+            VisualStudio.Editor.GoToImplementation("FileImplementation.cs");
+            // Search results should also show
+            var results = VisualStudio.FindReferencesWindow.GetContents("'Dispose' implementations");
+
+            // We don't need to validate all of the results, just that the source is there
+            // (though we wouldn't have navigated if it wasn't) and that there is at least something
+            // from .NET
+            Assert.Contains(results, r => r.Code == "void Implementation.Dispose()" && r.FilePath == "FileImplementation.cs");
+            Assert.Contains(results, r => r.Code == "void Stream.Dispose()" && r.FilePath == "Stream");
         }
     }
 }
