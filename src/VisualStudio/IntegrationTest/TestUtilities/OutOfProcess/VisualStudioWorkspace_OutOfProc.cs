@@ -59,17 +59,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetImportCompletionOption(bool value)
         {
-            SetPerLanguageOption(
-                optionName: "ShowItemsFromUnimportedNamespaces",
-                feature: "CompletionOptions",
-                language: LanguageNames.CSharp,
-                value: value);
-
-            SetPerLanguageOption(
-                optionName: "ShowItemsFromUnimportedNamespaces",
-                feature: "CompletionOptions",
-                language: LanguageNames.VisualBasic,
-                value: value);
+            SetGlobalOption("CompletionOptions", "ShowItemsFromUnimportedNamespaces", LanguageNames.CSharp, value);
+            SetGlobalOption("CompletionOptions", "ShowItemsFromUnimportedNamespaces", LanguageNames.VisualBasic, value);
         }
 
         public void SetEnableDecompilationOption(bool value)
@@ -79,27 +70,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetArgumentCompletionSnippetsOption(bool value)
         {
-            SetPerLanguageOption(
-                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
-                language: LanguageNames.CSharp,
-                value: value);
-
-            SetPerLanguageOption(
-                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
-                language: LanguageNames.VisualBasic,
-                value: value);
+            SetGlobalOption("CompletionOptions", "EnableArgumentCompletionSnippets", LanguageNames.CSharp, value);
+            SetGlobalOption("CompletionOptions", "EnableArgumentCompletionSnippets", LanguageNames.VisualBasic, value);
         }
 
         public void SetTriggerCompletionInArgumentLists(bool value)
-        {
-            SetPerLanguageOption(
-                optionName: CompletionOptions.Metadata.TriggerInArgumentLists.Name,
-                feature: CompletionOptions.Metadata.TriggerInArgumentLists.Feature,
-                language: LanguageNames.CSharp,
-                value: value);
-        }
+            => SetGlobalOption("CompletionOptions", "TriggerInArgumentLists", LanguageNames.CSharp, value);
 
         public void SetFullSolutionAnalysis(bool value)
         {
@@ -129,6 +105,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
+
+        public object? GetGlobalOption(string feature, string optionName, string? language)
+            => _inProc.GetGlobalOption(feature, optionName, language);
+
+        public void SetGlobalOption(string feature, string optionName, string? language, object? value)
+            => _inProc.SetGlobalOption(feature, optionName, language, value);
 
         public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }

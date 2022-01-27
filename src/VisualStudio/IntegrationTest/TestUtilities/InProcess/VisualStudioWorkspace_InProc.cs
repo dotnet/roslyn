@@ -89,6 +89,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             SetOption(optionKey, result);
         }
 
+        public object? GetGlobalOption(string feature, string optionName, string? language)
+        {
+            object? result = null;
+            InvokeOnUIThread(_ => result = _globalOptions.GetOption(new OptionKey(GetOption(optionName, feature), language)));
+            return result;
+        }
+
+        public void SetGlobalOption(string feature, string optionName, string? language, object? value)
+            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(new OptionKey(GetOption(optionName, feature), language), value));
+
         private static object GetValue(object value, IOption option)
         {
             object result;
