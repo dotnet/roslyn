@@ -160,7 +160,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 {
                     case CompletionTriggerKind.Insertion:
                     case CompletionTriggerKind.Deletion:
-                        if (!ShouldTypingTriggerCompletionWithoutAskingProviders(trigger, options))
+                        var shouldTrigger = ShouldTypingTriggerCompletionWithoutAskingProviders(trigger, options);
+                        if (shouldTrigger.HasValue && !shouldTrigger.Value)
                             return ImmutableArray<CompletionProvider>.Empty;
 
                         var triggeredProviders = allProviders.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
@@ -206,9 +207,10 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
-        /// A preliminary quick check to see if we should trigger completion before asking each individual providers.
+        /// A preliminary quick check to see if we can decide whether to trigger completion without asking each individual providers.
+        /// Returning null means the decision needs to be made by providers.
         /// </summary>
-        private bool ShouldTypingTriggerCompletionWithoutAskingProviders(CompletionTrigger trigger, CompletionOptions options)
+        private bool? ShouldTypingTriggerCompletionWithoutAskingProviders(CompletionTrigger trigger, CompletionOptions options)
         {
             if (!options.TriggerOnTyping)
             {
@@ -220,14 +222,15 @@ namespace Microsoft.CodeAnalysis.Completion
                 return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
 
-            return true;
+            return null;
         }
 
         internal sealed override bool ShouldTriggerCompletion(
             Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, ImmutableHashSet<string>? roles = null)
         {
-            if (!ShouldTypingTriggerCompletionWithoutAskingProviders(trigger, options))
-                return false;
+            var shouldTrigger = ShouldTypingTriggerCompletionWithoutAskingProviders(trigger, options);
+            if (shouldTrigger.HasValue)
+                return shouldTrigger.Value;
 
             var providers = _providerManager.GetFilteredProviders(project, roles, trigger, options);
             return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options));
