@@ -1990,7 +1990,6 @@ class C
             driver = driver.RunGenerators(compilation, CancellationToken.None);
             var results = driver.GetRunResult();
 
-
             Assert.Single(results.Results);
             Assert.IsType<OperationCanceledException>(results.Results[0].Exception);
             Assert.Equal("Simulated cancellation from external source", results.Results[0].Exception.Message);
