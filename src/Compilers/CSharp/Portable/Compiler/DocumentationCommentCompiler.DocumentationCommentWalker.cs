@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DocumentationCommentWalker walker = new DocumentationCommentWalker(compilation, BindingDiagnosticBag.Discarded, symbol, writer, includeElementNodes, documentedParameters: null, documentedTypeParameters: null);
 
                 // Before: <param name="NAME">CONTENT</param>
-                // After: <summary>CONTENT</param>
+                // After: <summary>CONTENT</summary>
                 foreach (var paramElement in paramElements)
                 {
                     // '///<param': '<' owns the '///' trivia
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var endGreaterThanToken = paramElement.EndTag.GreaterThanToken;
                     walker.VisitToken(paramElement.EndTag.GreaterThanToken);
 
-                    // The '</summary>' node doesn't own the following new line. Instead, it is directly followed by an 'XmlTextLiteralNewLineToken'.
+                    // The '>' token doesn't own the following new line. Instead, it is directly followed by an 'XmlTextLiteralNewLineToken'.
                     if (endGreaterThanToken.GetNextToken() is SyntaxToken newLineToken && newLineToken.IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
                     {
                         walker.VisitToken(newLineToken);
