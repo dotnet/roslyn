@@ -273,8 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     return -1;
                 }
 
-                Debug.Assert(position >= arguments.Span.Start && position <= arguments.Span.End);
-
                 for (var i = 0; i < arguments.Count - 1; i++)
                 {
                     // `$$,` points to the argument before the separator
