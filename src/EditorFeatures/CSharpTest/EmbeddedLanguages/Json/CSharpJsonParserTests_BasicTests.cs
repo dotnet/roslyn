@@ -764,10 +764,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""'I' unexpected"" Start=""11"" Length=""8"" />
+  <Diagnostic Message=""Invalid number"" Start=""9"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""'I' unexpected"" Start=""11"" Length=""8"" />
+  <Diagnostic Message=""Invalid number"" Start=""9"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""6"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""6"" />
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""10"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -884,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""3"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Invalid escape sequence"" Start=""12"" Length=""3"" />
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""10"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -1035,9 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,</CommaToken>
-          </CommaValue>
+          <CommaToken>,</CommaToken>
           <Property>
             <StringToken>'second'</StringToken>
             <ColonToken>:</ColonToken>
@@ -1045,9 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>2</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,</CommaToken>
-          </CommaValue>
+          <CommaToken>,</CommaToken>
           <Property>
             <StringToken>'third'</StringToken>
             <ColonToken>:</ColonToken>
@@ -1084,9 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,</CommaToken>
-          </CommaValue>
+          <CommaToken>,</CommaToken>
           <Property>
             <StringToken>""second""</StringToken>
             <ColonToken>:</ColonToken>
@@ -1094,9 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>2</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,</CommaToken>
-          </CommaValue>
+          <CommaToken>,</CommaToken>
           <Property>
             <StringToken>""third""</StringToken>
             <ColonToken>:</ColonToken>
@@ -1152,12 +1144,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>0</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Literal>
             <StringToken>'b'<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
           </Literal>
+          <CommaToken />
           <Literal>
             <NumberToken>0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NumberToken>
           </Literal>
@@ -1212,10 +1203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""A person""</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><EndOfLineTrivia>
+          <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -1226,10 +1215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""object""</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><EndOfLineTrivia>
+          <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -1250,6 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                       <WhitespaceTrivia>    </WhitespaceTrivia>
                     </Trivia>""name""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
                 </Literal>
+                <CommaToken />
                 <Object>
                   <OpenBraceToken>{</OpenBraceToken>
                   <Sequence>
@@ -1263,10 +1251,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </Sequence>
                   <CloseBraceToken>}</CloseBraceToken>
                 </Object>
-                <CommaValue>
-                  <CommaToken>,<Trivia><EndOfLineTrivia>
+                <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                </CommaValue>
                 <Property>
                   <StringToken>
                     <Trivia>
@@ -1287,10 +1273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                           <StringToken>""array""</StringToken>
                         </Literal>
                       </Property>
-                      <CommaValue>
-                        <CommaToken>,<Trivia><EndOfLineTrivia>
+                      <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                      </CommaValue>
                       <Property>
                         <StringToken>
                           <Trivia>
@@ -1359,12 +1343,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>0</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Literal>
             <StringToken>""b""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
           </Literal>
+          <CommaToken />
           <Literal>
             <NumberToken>0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></NumberToken>
           </Literal>
@@ -1503,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""'a' unexpected"" Start=""15"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""'a' unexpected"" Start=""15"" Length=""1"" />
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""10"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -1756,8 +1739,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
     <EndOfFile />
   </CompilationUnit>
 </Tree>",
-        @"",
-        @"");
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""12"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""12"" Length=""1"" />
+</Diagnostics>");
         }
 
         [Fact]
@@ -1888,6 +1875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Text>
             <TextToken>a<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></TextToken>
           </Text>
+          <CommaToken />
           <Property>
             <TextToken>b<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -2096,9 +2084,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <NumberToken>0</NumberToken>
           </Literal>
+          <CommaToken />
           <Text>
             <TextToken>(</TextToken>
           </Text>
+          <CommaToken />
           <Property>
             <TextToken>0<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -2114,10 +2104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   </CompilationUnit>
 </Tree>",
         @"<Diagnostics>
-  <Diagnostic Message=""'(' unexpected"" Start=""13"" Length=""1"" />
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""12"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""'(' unexpected"" Start=""13"" Length=""1"" />
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""12"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -2168,9 +2158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <CommaToken />
             </CommaValue>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
         </Sequence>
         <CloseBraceToken>}</CloseBraceToken>
       </Object>
@@ -2200,9 +2188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <CommaToken />
             </CommaValue>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
         </Sequence>
         <CloseBraceToken>}</CloseBraceToken>
       </Object>
@@ -2243,7 +2229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""'}' unexpected"" Start=""19"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""'}' unexpected"" Start=""19"" Length=""1"" />
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""10"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -2305,7 +2291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""Missing property value"" Start=""19"" Length=""0"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Missing property value"" Start=""19"" Length=""0"" />
+  <Diagnostic Message=""Value required"" Start=""18"" Length=""0"" />
 </Diagnostics>");
         }
 
@@ -2336,7 +2322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""Missing property value"" Start=""21"" Length=""0"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Missing property value"" Start=""21"" Length=""0"" />
+  <Diagnostic Message=""Value required"" Start=""20"" Length=""0"" />
 </Diagnostics>");
         }
 
@@ -2371,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""Nested properties not allowed"" Start=""27"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Nested properties not allowed"" Start=""27"" Length=""1"" />
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""10"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -2594,9 +2580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'bc'</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,</CommaToken>
-          </CommaValue>
+          <CommaToken>,</CommaToken>
           <Property>
             <StringToken>'d'</StringToken>
             <ColonToken>:</ColonToken>
@@ -2642,9 +2626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""bc""</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,</CommaToken>
-          </CommaValue>
+          <CommaToken>,</CommaToken>
           <Property>
             <StringToken>""d""</StringToken>
             <ColonToken>:</ColonToken>
@@ -2700,10 +2682,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'A person'</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><EndOfLineTrivia>
+          <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -2714,10 +2694,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'object'</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><EndOfLineTrivia>
+          <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -2752,10 +2730,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                     <CloseBraceToken>}</CloseBraceToken>
                   </Object>
                 </Property>
-                <CommaValue>
-                  <CommaToken>,<Trivia><EndOfLineTrivia>
+                <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                </CommaValue>
                 <Property>
                   <StringToken>
                     <Trivia>
@@ -2776,10 +2752,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                           <StringToken>'array'</StringToken>
                         </Literal>
                       </Property>
-                      <CommaValue>
-                        <CommaToken>,<Trivia><EndOfLineTrivia>
+                      <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                      </CommaValue>
                       <Property>
                         <StringToken>
                           <Trivia>
@@ -2866,10 +2840,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""A person""</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><EndOfLineTrivia>
+          <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -2880,10 +2852,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""object""</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><EndOfLineTrivia>
+          <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -2918,10 +2888,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                     <CloseBraceToken>}</CloseBraceToken>
                   </Object>
                 </Property>
-                <CommaValue>
-                  <CommaToken>,<Trivia><EndOfLineTrivia>
+                <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                </CommaValue>
                 <Property>
                   <StringToken>
                     <Trivia>
@@ -2942,10 +2910,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                           <StringToken>""array""</StringToken>
                         </Literal>
                       </Property>
-                      <CommaValue>
-                        <CommaToken>,<Trivia><EndOfLineTrivia>
+                      <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                      </CommaValue>
                       <Property>
                         <StringToken>
                           <Trivia>
@@ -3010,9 +2976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>''</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Property>
             <TextToken>B</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3020,9 +2984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Property>
             <TextToken>C</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3030,9 +2992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <CommaToken />
             </CommaValue>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Property>
             <TextToken>D</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3040,9 +3000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1.23</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Property>
             <TextToken>E</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3050,9 +3008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>3.45</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Property>
             <TextToken>F</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3089,9 +3045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""""</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Property>
             <StringToken>""B""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3099,9 +3053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Property>
             <StringToken>""D""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3109,9 +3061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1.23</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Property>
             <StringToken>""E""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3119,9 +3069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>3.45</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <Property>
             <StringToken>""F""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3495,10 +3443,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'Apple'<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia></Trivia></StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -3509,10 +3455,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'1'</StringToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><EndOfLineTrivia>
+          <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -3523,10 +3467,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>3.99</NumberToken>
             </Literal>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><EndOfLineTrivia>
+          <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -3997,7 +3939,7 @@ b""</StringToken>
   <Diagnostic Message=""Name expected"" Start=""13"" Length=""0"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Name expected"" Start=""13"" Length=""0"" />
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
 </Diagnostics>");
         }
 
@@ -4022,7 +3964,7 @@ b""</StringToken>
   <Diagnostic Message=""'(' expected"" Start=""15"" Length=""0"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""'(' expected"" Start=""15"" Length=""0"" />
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
 </Diagnostics>");
         }
 
@@ -4047,7 +3989,7 @@ b""</StringToken>
   <Diagnostic Message=""')' expected"" Start=""16"" Length=""0"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""')' expected"" Start=""16"" Length=""0"" />
+  <Diagnostic Message=""Constructors not allowed"" Start=""10"" Length=""3"" />
 </Diagnostics>");
         }
 
@@ -4400,12 +4342,11 @@ b""</StringToken>
               <NumberToken>0</NumberToken>
             </Literal>
           </Property>
+          <CommaToken>,</CommaToken>
           <CommaValue>
             <CommaToken>,</CommaToken>
           </CommaValue>
-          <CommaValue>
-            <CommaToken>,</CommaToken>
-          </CommaValue>
+          <CommaToken />
           <Property>
             <TextToken>1</TextToken>
             <ColonToken>:</ColonToken>
@@ -4424,7 +4365,7 @@ b""</StringToken>
   <Diagnostic Message=""Only properties allowed in an object"" Start=""15"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""',' unexpected"" Start=""15"" Length=""1"" />
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""15"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -5273,7 +5214,7 @@ b""</StringToken>
   <Diagnostic Message=""'}' unexpected"" Start=""16"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""'}' unexpected"" Start=""16"" Length=""1"" />
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""11"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -5293,9 +5234,7 @@ b""</StringToken>
               <CommaToken />
             </CommaValue>
           </Property>
-          <CommaValue>
-            <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </CommaValue>
+          <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
           </CommaValue>
@@ -5310,7 +5249,7 @@ b""</StringToken>
   <Diagnostic Message=""Only properties allowed in an object"" Start=""18"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""',' unexpected"" Start=""18"" Length=""1"" />
+  <Diagnostic Message=""Only properties allowed in an object"" Start=""18"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -5335,7 +5274,7 @@ b""</StringToken>
   <Diagnostic Message=""':' unexpected"" Start=""12"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""':' unexpected"" Start=""12"" Length=""1"" />
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""9"" Length=""1"" />
 </Diagnostics>");
         }
 
