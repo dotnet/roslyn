@@ -1981,14 +1981,19 @@ class C
 
             Assert.Single(compilation.SyntaxTrees);
 
-            var cts = new CancellationTokenSource();
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax){ cts.Cancel(); cts.Token.ThrowIfCancellationRequested(); } })),
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) { throw new OperationCanceledException("Simulated cancellation from external source"); } })),
                 onExecute: (e) => { e.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)); }
                 );
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
-            Assert.Throws<OperationCanceledException>(() => driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics, cts.Token));
+            driver = driver.RunGenerators(compilation, CancellationToken.None);
+            var results = driver.GetRunResult();
+
+
+            Assert.Single(results.Results);
+            Assert.IsType<OperationCanceledException>(results.Results[0].Exception);
+            Assert.Equal("Simulated cancellation from external source", results.Results[0].Exception.Message);
         }
 
         private class TestReceiverBase<T>
