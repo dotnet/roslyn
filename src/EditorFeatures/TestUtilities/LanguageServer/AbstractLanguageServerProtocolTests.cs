@@ -284,7 +284,7 @@ namespace Roslyn.Test.Utilities
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic);
 
         protected Task<TestLspServer> CreateMultiProjectLspServerAsync(string xmlMarkup)
-            => CreateTestLspServerAsync(TestWorkspace.Create(xmlMarkup, composition: Composition));
+            => CreateTestLspServerAsync(TestWorkspace.Create(xmlMarkup, composition: Composition), WellKnownLspServerKinds.AlwaysActiveVSLspServer);
 
         /// <summary>
         /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
@@ -292,7 +292,10 @@ namespace Roslyn.Test.Utilities
         protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups)
             => CreateTestLspServerAsync(markups, LanguageNames.CSharp);
 
-        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName)
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, WellKnownLspServerKinds serverKind)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, serverKind);
+
+        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
             var workspace = languageName switch
             {
@@ -301,10 +304,10 @@ namespace Roslyn.Test.Utilities
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 
-            return CreateTestLspServerAsync(workspace);
+            return CreateTestLspServerAsync(workspace, serverKind);
         }
 
-        private static async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace)
+        private static async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, WellKnownLspServerKinds serverKind)
         {
             var solution = workspace.CurrentSolution;
 
@@ -320,7 +323,7 @@ namespace Roslyn.Test.Utilities
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
 
-            return new TestLspServer(workspace);
+            return new TestLspServer(workspace, serverKind);
         }
 
         protected async Task<TestLspServer> CreateXmlTestLspServerAsync(string xmlContent, string? workspaceKind = null)
@@ -393,18 +396,18 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static RequestDispatcher CreateRequestDispatcher(TestWorkspace workspace)
+        private static RequestDispatcher CreateRequestDispatcher(TestWorkspace workspace, WellKnownLspServerKinds serverKind)
         {
             var factory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
-            return factory.CreateRequestDispatcher(ProtocolConstants.RoslynLspLanguages, WellKnownLspServerKinds.AlwaysActiveVSLspServer);
+            return factory.CreateRequestDispatcher(ProtocolConstants.RoslynLspLanguages, serverKind);
         }
 
-        private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
+        private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace, WellKnownLspServerKinds serverKind)
         {
             var registrationService = workspace.GetService<LspWorkspaceRegistrationService>();
             var globalOptions = workspace.GetService<IGlobalOptionService>();
             var lspMiscFilesWorkspace = new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance);
-            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, lspMiscFilesWorkspace, globalOptions, ProtocolConstants.RoslynLspLanguages, WellKnownLspServerKinds.AlwaysActiveVSLspServer);
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, lspMiscFilesWorkspace, globalOptions, ProtocolConstants.RoslynLspLanguages, serverKind);
         }
 
         private static string GetDocumentFilePathFromName(string documentName)
@@ -456,12 +459,12 @@ namespace Roslyn.Test.Utilities
             private readonly RequestExecutionQueue _executionQueue;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
 
-            internal TestLspServer(TestWorkspace testWorkspace)
+            internal TestLspServer(TestWorkspace testWorkspace, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
             {
                 TestWorkspace = testWorkspace;
                 _locations = GetAnnotatedLocations(testWorkspace, testWorkspace.CurrentSolution);
-                _requestDispatcher = CreateRequestDispatcher(testWorkspace);
-                _executionQueue = CreateRequestQueue(testWorkspace);
+                _requestDispatcher = CreateRequestDispatcher(testWorkspace, serverKind);
+                _executionQueue = CreateRequestQueue(testWorkspace, serverKind);
 
                 var workspaceWaiter = GetWorkspaceWaiter(testWorkspace);
                 Assert.False(workspaceWaiter.HasPendingWork);
