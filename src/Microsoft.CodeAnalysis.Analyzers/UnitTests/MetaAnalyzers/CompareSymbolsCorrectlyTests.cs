@@ -1249,81 +1249,10 @@ public class C
         }
 
         [Fact]
-        public async Task RS1024_CustomComparer_Instance_Is_Interface()
+        [WorkItem(5715, "https://github.com/dotnet/roslyn-analyzers/issues/5715")]
+        public async Task RS1024_CustomComparer_Instance_Is_InterfaceAsync()
         {
-            var code = @"
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-
-public class C
-{
-    public void M()
-    {
-        _ = new HashSet<ISymbol>(SymbolNameComparer.Instance);
-    }
-}
-
-internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
-{
-    private SymbolNameComparer() { }
-
-    internal static IEqualityComparer<ISymbol> Instance { get; } = new SymbolNameComparer();
-
-    public override bool Equals(ISymbol x, ISymbol y) => true;
-
-    public override int GetHashCode(ISymbol obj) => 0;
-}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
-
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task RS1024_CustomComparer_Instance_Is_Type()
-        {
-            var code = @"
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-
-public class C
-{
-    public void M()
-    {
-        _ = new HashSet<ISymbol>(SymbolNameComparer.Instance);
-    }
-}
-
-internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
-{
-    private SymbolNameComparer() { }
-
-    internal static SymbolNameComparer Instance { get; } = new SymbolNameComparer();
-
-    public override bool Equals(ISymbol x, ISymbol y) => true;
-
-    public override int GetHashCode(ISymbol obj) => 0;
-}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
-
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task RS1024_CustomComparer_ToDictionary()
-        {
-            var code = @"
+            var csCode = @"
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -1332,6 +1261,7 @@ public class C
 {
     public void M(IEnumerable<ITypeSymbol> symbols)
     {
+        _ = new HashSet<ISymbol>(SymbolNameComparer.Instance);
         _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolNameComparer.Instance);
         _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolEqualityComparer.Default);
     }
@@ -1351,17 +1281,58 @@ internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
 
             await new VerifyCS.Test
             {
-                TestCode = code,
-                FixedCode = code,
+                TestCode = csCode,
+                FixedCode = csCode,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+
+            var vbCode = @"
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+
+    Public Sub M(symbols As IEnumerable(Of ITypeSymbol))
+        Dim x As New HashSet(Of ISymbol)(SymbolNameComparer.Instance)
+        Dim y = symbols.ToDictionary(Function(s) s, Function(s) s.ToDisplayString(), SymbolNameComparer.Instance)
+        Dim z = symbols.ToDictionary(Function(s) s, Function(s) s.ToDisplayString(), SymbolEqualityComparer.Default)
+    End Sub
+End Class
+
+Class SymbolNameComparer
+    Inherits EqualityComparer(Of ISymbol)
+
+    Private Sub New()
+    End Sub
+
+    Friend Shared Property Instance As IEqualityComparer(Of ISymbol) = New SymbolNameComparer()
+
+    Public Overrides Function Equals(x As ISymbol, y As ISymbol) As Boolean
+        Return True
+    End Function
+
+    Public Overrides Function GetHashCode(obj As ISymbol) As Integer
+        Return 0
+    End Function
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestCode = vbCode,
+                FixedCode = vbCode,
                 ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
 
             }.RunAsync();
         }
 
         [Fact]
-        public async Task RS1024_CustomComparer_ToDictionary2()
+        [WorkItem(5715, "https://github.com/dotnet/roslyn-analyzers/issues/5715")]
+        public async Task RS1024_CustomComparer_Instance_Is_TypeAsync()
         {
-            var code = @"
+            var csCode = @"
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -1370,7 +1341,9 @@ public class C
 {
     public void M(IEnumerable<ITypeSymbol> symbols)
     {
+        _ = new HashSet<ISymbol>(SymbolNameComparer.Instance);
         _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolNameComparer.Instance);
+        _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolEqualityComparer.Default);
     }
 }
 
@@ -1388,8 +1361,47 @@ internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
 
             await new VerifyCS.Test
             {
-                TestCode = code,
-                FixedCode = code,
+                TestCode = csCode,
+                FixedCode = csCode,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+
+            var vbCode = @"
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+    Public Sub M(symbols As IEnumerable(Of ITypeSymbol))
+        Dim x As New HashSet(Of ISymbol)(SymbolNameComparer.Instance)
+        Dim y = symbols.ToDictionary(Function(s) s, Function(s) s.ToDisplayString(), SymbolNameComparer.Instance)
+        Dim z = symbols.ToDictionary(Function(s) s, Function(s) s.ToDisplayString(), SymbolEqualityComparer.Default)
+    End Sub
+End Class
+
+Class SymbolNameComparer
+    Inherits EqualityComparer(Of ISymbol)
+
+    Private Sub New()
+    End Sub
+
+    Friend Shared Property Instance As SymbolNameComparer = New SymbolNameComparer()
+
+    Public Overrides Function Equals(x As ISymbol, y As ISymbol) As Boolean
+        Return True
+    End Function
+
+    Public Overrides Function GetHashCode(obj As ISymbol) As Integer
+        Return 0
+    End Function
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestCode = vbCode,
+                FixedCode = vbCode,
                 ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
 
             }.RunAsync();
