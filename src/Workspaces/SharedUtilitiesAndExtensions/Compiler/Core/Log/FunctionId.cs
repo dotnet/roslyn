@@ -534,5 +534,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         NavigateTo_CacheItemsMiss = 510,
 
         AssetService_Perf = 520,
+
+        Inline_Hints_DoubleClick = 530,
     }
 }

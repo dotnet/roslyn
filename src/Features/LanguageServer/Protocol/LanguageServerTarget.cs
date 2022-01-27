@@ -68,7 +68,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             ClientName = clientName;
 
-            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, lspMiscellaneousFilesWorkspace, globalOptions, listenerProvider, supportedLanguages, serverKind);
+            Queue = new RequestExecutionQueue(
+                logger,
+                workspaceRegistrationService,
+                lspMiscellaneousFilesWorkspace,
+                globalOptions,
+                supportedLanguages,
+                serverKind);
             Queue.RequestServerShutdown += RequestExecutionQueue_Errored;
         }
 

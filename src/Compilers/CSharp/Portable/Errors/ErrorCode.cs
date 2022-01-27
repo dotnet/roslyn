@@ -1796,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
         ERR_CannotUseFunctionPointerAsFixedLocal = 8789,
 
-        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsPatternImplicitIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
         WRN_GivenExpressionAlwaysMatchesPattern = 8793,
@@ -2009,7 +2009,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        #region diagnostics introduced for C# 11.0
+
         ERR_CannotBeMadeNullable = 8978,
+        ERR_UnsupportedTypeForListPattern = 8979,
+        ERR_MisplacedSlicePattern = 8980,
+
+        WRN_LowerCaseTypeName = 8981,
+        ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
+        ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
+        ERR_EncUpdateFailedDelegateTypeChanged = 8984,
+
+        ERR_IncorrectNullCheckSyntax = 8990,
+        ERR_MustNullCheckInImplementation = 8991,
+        ERR_NonNullableValueTypeIsNullChecked = 8992,
+        WRN_NullCheckedHasDefaultNull = 8993,
+        ERR_NullCheckingOnByRefParameter = 8994,
+        WRN_NullCheckingOnNullableType = 8995,
+
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

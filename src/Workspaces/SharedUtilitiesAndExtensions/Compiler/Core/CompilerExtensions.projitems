@@ -191,6 +191,24 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IPragmaSuppressionsAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\EditorConfigFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\EditorConfigOption.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\EditorConfigOption`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\EditorConfigParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\IEditorConfigOptionAccumulator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\NamingStyles\EditorConfigNamingStyles.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\NamingStyles\EditorConfigNamingStylesParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\NamingStyles\NamingStyleOption.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\NamingStyles\NamingStyleOptionAccumulator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\Section.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatch.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatcher.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatcher.Lexer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatcher_TryParseSection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatchExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedDiagnostic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSeparatedSyntaxNodeList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxHelpers.cs" />
@@ -282,7 +300,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\TriviaDataWithList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions.IndentStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\IFormattingResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
@@ -494,7 +511,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\ValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeaklyCachedRecoverableValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeaklyCachedValueSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeakValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEventHandler.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -544,6 +560,7 @@
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" Link="CompilerExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)EditorConfig\Readme.md" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

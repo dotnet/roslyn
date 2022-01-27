@@ -3,50 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal static class FileTextLoaderOptions
-    {
-        /// <summary>
-        /// Hidden registry key to control maximum size of a text file we will read into memory. 
-        /// we have this option to reduce a chance of OOM when user adds massive size files to the solution.
-        /// Default threshold is 100MB which came from some internal data on big files and some discussion.
-        /// 
-        /// User can override default value by setting DWORD value on FileLengthThreshold in 
-        /// "[VS HIVE]\Roslyn\Internal\Performance\Text"
-        /// </summary>
-        internal static readonly Option<long> FileLengthThreshold = new(nameof(FileTextLoaderOptions), nameof(FileLengthThreshold), defaultValue: 100 * 1024 * 1024,
-            storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\Text\FileLengthThreshold"));
-    }
-
-    [ExportSolutionOptionProvider, Shared]
-    internal class FileTextLoaderOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FileTextLoaderOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            FileTextLoaderOptions.FileLengthThreshold);
-    }
-
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class FileTextLoader : TextLoader
     {
@@ -82,6 +50,12 @@ namespace Microsoft.CodeAnalysis
             DefaultEncoding = defaultEncoding;
         }
 
+        /// <summary>
+        /// We have this limit on file size to reduce a chance of OOM when user adds massive files to the solution (often by accident).
+        /// The threshold is 100MB which came from some internal data on big files and some discussion.
+        /// </summary>
+        internal virtual int MaxFileLength => 100 * 1024 * 1024;
+
         internal sealed override string FilePath => Path;
 
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
@@ -97,7 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidDataException"></exception>
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
-            ValidateFileLength(workspace, Path);
+            ValidateFileLength(Path);
 
             var prevLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
 
@@ -201,7 +175,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidDataException"></exception>
         internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
-            ValidateFileLength(workspace, Path);
+            ValidateFileLength(Path);
 
             var prevLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
 
@@ -232,7 +206,7 @@ namespace Microsoft.CodeAnalysis
         private string GetDebuggerDisplay()
             => nameof(Path) + " = " + Path;
 
-        private static void ValidateFileLength(Workspace workspace, string path)
+        private void ValidateFileLength(string path)
         {
             // Validate file length is under our threshold. 
             // Otherwise, rather than reading the content into the memory, we will throw
@@ -242,8 +216,7 @@ namespace Microsoft.CodeAnalysis
             // check this (http://source.roslyn.io/#Microsoft.CodeAnalysis.Workspaces/Workspace/Solution/TextDocumentState.cs,132)
             // to see how workspace deal with exception from FileTextLoader. other consumer can handle the exception differently
             var fileLength = FileUtilities.GetFileLength(path);
-            var threshold = workspace.Options.GetOption(FileTextLoaderOptions.FileLengthThreshold);
-            if (fileLength > threshold)
+            if (fileLength > MaxFileLength)
             {
                 // log max file length which will log to VS telemetry in VS host
                 Logger.Log(FunctionId.FileTextLoader_FileLengthThresholdExceeded, KeyValueLogMessage.Create(m =>
@@ -252,7 +225,7 @@ namespace Microsoft.CodeAnalysis
                     m["Ext"] = PathUtilities.GetExtension(path);
                 }));
 
-                var message = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, path, fileLength, threshold);
+                var message = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, path, fileLength, MaxFileLength);
                 throw new InvalidDataException(message);
             }
         }

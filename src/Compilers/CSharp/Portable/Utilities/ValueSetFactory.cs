@@ -27,52 +27,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly IValueSetFactory<decimal> ForDecimal = DecimalValueSetFactory.Instance;
         internal static readonly IValueSetFactory<int> ForNint = NintValueSetFactory.Instance;
         internal static readonly IValueSetFactory<uint> ForNuint = NuintValueSetFactory.Instance;
+        internal static readonly IValueSetFactory<int> ForLength = NonNegativeIntValueSetFactory.Instance;
 
         public static IValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)
         {
-            switch (specialType)
+            return specialType switch
             {
-                case SpecialType.System_Byte:
-                    return ForByte;
-                case SpecialType.System_SByte:
-                    return ForSByte;
-                case SpecialType.System_Char:
-                    return ForChar;
-                case SpecialType.System_Int16:
-                    return ForShort;
-                case SpecialType.System_UInt16:
-                    return ForUShort;
-                case SpecialType.System_Int32:
-                    return ForInt;
-                case SpecialType.System_UInt32:
-                    return ForUInt;
-                case SpecialType.System_Int64:
-                    return ForLong;
-                case SpecialType.System_UInt64:
-                    return ForULong;
-                case SpecialType.System_Boolean:
-                    return ForBool;
-                case SpecialType.System_Single:
-                    return ForFloat;
-                case SpecialType.System_Double:
-                    return ForDouble;
-                case SpecialType.System_String:
-                    return ForString;
-                case SpecialType.System_Decimal:
-                    return ForDecimal;
-                case SpecialType.System_IntPtr when isNative:
-                    return ForNint;
-                case SpecialType.System_UIntPtr when isNative:
-                    return ForNuint;
-                default:
-                    return null;
-            }
+                SpecialType.System_Byte => ForByte,
+                SpecialType.System_SByte => ForSByte,
+                SpecialType.System_Char => ForChar,
+                SpecialType.System_Int16 => ForShort,
+                SpecialType.System_UInt16 => ForUShort,
+                SpecialType.System_Int32 => ForInt,
+                SpecialType.System_UInt32 => ForUInt,
+                SpecialType.System_Int64 => ForLong,
+                SpecialType.System_UInt64 => ForULong,
+                SpecialType.System_Boolean => ForBool,
+                SpecialType.System_Single => ForFloat,
+                SpecialType.System_Double => ForDouble,
+                SpecialType.System_String => ForString,
+                SpecialType.System_Decimal => ForDecimal,
+                SpecialType.System_IntPtr when isNative => ForNint,
+                SpecialType.System_UIntPtr when isNative => ForNuint,
+                _ => null,
+            };
         }
 
         public static IValueSetFactory? ForType(TypeSymbol type)
         {
             type = type.EnumUnderlyingTypeOrSelf();
             return ForSpecialType(type.SpecialType, type.IsNativeIntegerType);
+        }
+
+        public static IValueSetFactory? ForInput(BoundDagTemp input)
+        {
+            if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true })
+                return ForLength;
+            return ForType(input.Type);
         }
     }
 }

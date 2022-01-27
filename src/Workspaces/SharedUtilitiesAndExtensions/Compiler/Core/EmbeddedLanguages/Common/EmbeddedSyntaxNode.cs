@@ -4,7 +4,9 @@
 
 using System;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
@@ -101,6 +103,54 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns the string representation of this node, not including its leading and trailing trivia.
+        /// </summary>
+        /// <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
+        /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
+        public override string ToString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            WriteTo(sb, leading: false, trailing: false);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Returns full string representation of this node including its leading and trailing trivia.
+        /// </summary>
+        /// <returns>The full string representation of this node including its leading and trailing trivia.</returns>
+        /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
+        public string ToFullString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            WriteTo(sb, leading: true, trailing: true);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes the node to a stringbuilder.
+        /// </summary>
+        /// <param name="leading">If false, leading trivia will not be added</param>
+        /// <param name="trailing">If false, trailing trivia will not be added</param>
+        public void WriteTo(StringBuilder sb, bool leading, bool trailing)
+        {
+            for (var i = 0; i < this.ChildCount; i++)
+            {
+                var child = this[i];
+                var currentLeading = leading || i > 0;
+                var curentTrailing = trailing || i < (this.ChildCount - 1);
+
+                if (child.IsNode)
+                {
+                    child.Node.WriteTo(sb, currentLeading, curentTrailing);
+                }
+                else
+                {
+                    child.Token.WriteTo(sb, currentLeading, curentTrailing);
+                }
+            }
         }
 
         public Enumerator GetEnumerator()

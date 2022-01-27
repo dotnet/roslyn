@@ -4,18 +4,24 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -23,21 +29,18 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Xunit;
+using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
+using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 
-namespace Roslyn.VisualStudio.IntegrationTests.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    internal class EditorInProcess : InProcComponent
+    internal partial class EditorInProcess
     {
-        public EditorInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
-        public async Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken)
-            => (await GetActiveTextViewHostAsync(cancellationToken)).TextView;
-
         public async Task SetTextAsync(string text, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -75,14 +78,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var textView = await GetActiveTextViewAsync(cancellationToken);
+            return await IsUseSuggestionModeOnAsync(forDebuggerTextView: IsDebuggerTextView(textView), cancellationToken);
+        }
 
-            var subjectBuffer = textView.GetBufferContainingCaret();
-            Assumes.Present(subjectBuffer);
+        public async Task<bool> IsUseSuggestionModeOnAsync(bool forDebuggerTextView, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var options = textView.Options.GlobalOptions;
+            var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
+            var options = editorOptionsFactory.GlobalOptions;
+
             EditorOptionKey<bool> optionKey;
             bool defaultOption;
-            if (IsDebuggerTextView(textView))
+            if (forDebuggerTextView)
             {
                 optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
                 defaultOption = true;
@@ -99,38 +107,212 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             }
 
             return options.GetOptionValue(optionKey);
-
-            static bool IsDebuggerTextView(IWpfTextView textView)
-                => textView.Roles.Contains("DEBUGVIEW");
         }
 
         public async Task SetUseSuggestionModeAsync(bool value, CancellationToken cancellationToken)
         {
-            if (await IsUseSuggestionModeOnAsync(cancellationToken) != value)
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var textView = await GetActiveTextViewAsync(cancellationToken);
+            await SetUseSuggestionModeAsync(forDebuggerTextView: IsDebuggerTextView(textView), value, cancellationToken);
+        }
+
+        public async Task SetUseSuggestionModeAsync(bool forDebuggerTextView, bool value, CancellationToken cancellationToken)
+        {
+            if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
             {
                 var dispatcher = await GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
                 ErrorHandler.ThrowOnFailure(dispatcher.Exec(typeof(VSConstants.VSStd2KCmdID).GUID, (uint)VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
 
-                if (await IsUseSuggestionModeOnAsync(cancellationToken) != value)
+                if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
                 {
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
                 }
             }
+        }
 
-            if (!value)
+        private static bool IsDebuggerTextView(ITextView textView)
+            => textView.Roles.Contains("DEBUGVIEW");
+
+        #region Navigation bars
+
+        public async Task ExpandNavigationBarAsync(NavigationBarDropdownKind index, CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var combobox = (await GetNavigationBarComboBoxesAsync(view, cancellationToken))[(int)index];
+            FocusManager.SetFocusedElement(FocusManager.GetFocusScope(combobox), combobox);
+            combobox.IsDropDownOpen = true;
+        }
+
+        public async Task<ImmutableArray<string>> GetNavigationBarItemsAsync(NavigationBarDropdownKind index, CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var combobox = (await GetNavigationBarComboBoxesAsync(view, cancellationToken))[(int)index];
+            return combobox.Items.OfType<object>().SelectAsArray(i => $"{i}");
+        }
+
+        public async Task<string?> GetNavigationBarSelectionAsync(NavigationBarDropdownKind index, CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var combobox = (await GetNavigationBarComboBoxesAsync(view, cancellationToken))[(int)index];
+            return combobox.SelectedItem?.ToString();
+        }
+
+        public async Task SelectNavigationBarItemAsync(NavigationBarDropdownKind index, string item, CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var itemIndex = await GetNavigationBarItemIndexAsync(index, item, cancellationToken);
+            if (itemIndex < 0)
             {
-                // For blocking completion mode, make sure we don't have responsive completion interfering when
-                // integration tests run slowly.
-                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                Assert.Contains(item, await GetNavigationBarItemsAsync(index, cancellationToken));
+                throw ExceptionUtilities.Unreachable;
+            }
 
-                var view = await GetActiveTextViewAsync(cancellationToken);
-                var options = view.Options.GlobalOptions;
-                options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, false);
+            await ExpandNavigationBarAsync(index, cancellationToken);
+            await TestServices.Input.SendAsync(VirtualKey.Home);
+            for (var i = 0; i < itemIndex; i++)
+            {
+                await TestServices.Input.SendAsync(VirtualKey.Down);
+            }
 
-                var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
-                options.SetOptionValue(latencyGuardOptionKey, false);
+            await TestServices.Input.SendAsync(VirtualKey.Enter);
+
+            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
+        }
+
+        public async Task<int> GetNavigationBarItemIndexAsync(NavigationBarDropdownKind index, string item, CancellationToken cancellationToken)
+        {
+            var items = await GetNavigationBarItemsAsync(index, cancellationToken);
+            return items.IndexOf(item);
+        }
+
+        public async Task<bool> IsNavigationBarEnabledAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            return (await GetNavigationBarMarginAsync(view, cancellationToken)) is not null;
+        }
+
+        private async Task<List<ComboBox>> GetNavigationBarComboBoxesAsync(IWpfTextView textView, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var margin = await GetNavigationBarMarginAsync(textView, cancellationToken);
+            return margin.GetFieldValue<List<ComboBox>>("_combos");
+        }
+
+        private async Task<UIElement?> GetNavigationBarMarginAsync(IWpfTextView textView, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var editorAdaptersFactoryService = await GetComponentModelServiceAsync<IVsEditorAdaptersFactoryService>(cancellationToken);
+            var viewAdapter = editorAdaptersFactoryService.GetViewAdapter(textView);
+            Assumes.Present(viewAdapter);
+
+            // Make sure we have the top pane
+            //
+            // The docs are wrong. When a secondary view exists, it is the secondary view which is on top. The primary
+            // view is only on top when there is no secondary view.
+            var codeWindow = TryGetCodeWindow(viewAdapter);
+            Assumes.Present(codeWindow);
+
+            if (ErrorHandler.Succeeded(codeWindow.GetSecondaryView(out var secondaryViewAdapter)))
+            {
+                viewAdapter = secondaryViewAdapter;
+            }
+
+            var textViewHost = editorAdaptersFactoryService.GetWpfTextViewHost(viewAdapter);
+            Assumes.Present(textViewHost);
+
+            var dropDownMargin = textViewHost.GetTextViewMargin("DropDownMargin");
+            if (dropDownMargin != null)
+            {
+                return ((Decorator)dropDownMargin.VisualElement).Child;
+            }
+
+            return null;
+
+            static IVsCodeWindow? TryGetCodeWindow(IVsTextView textView)
+            {
+                if (textView is not IObjectWithSite objectWithSite)
+                {
+                    return null;
+                }
+
+                var riid = typeof(IOleServiceProvider).GUID;
+                objectWithSite.GetSite(ref riid, out var ppvSite);
+                if (ppvSite == IntPtr.Zero)
+                {
+                    return null;
+                }
+
+                IOleServiceProvider? oleServiceProvider = null;
+                try
+                {
+                    oleServiceProvider = Marshal.GetObjectForIUnknown(ppvSite) as IOleServiceProvider;
+                }
+                finally
+                {
+                    Marshal.Release(ppvSite);
+                }
+
+                if (oleServiceProvider == null)
+                {
+                    return null;
+                }
+
+                var guidService = typeof(SVsWindowFrame).GUID;
+                riid = typeof(IVsWindowFrame).GUID;
+                if (ErrorHandler.Failed(oleServiceProvider.QueryService(ref guidService, ref riid, out var ppvObject)) || ppvObject == IntPtr.Zero)
+                {
+                    return null;
+                }
+
+                IVsWindowFrame? frame = null;
+                try
+                {
+                    frame = (IVsWindowFrame)Marshal.GetObjectForIUnknown(ppvObject);
+                }
+                finally
+                {
+                    Marshal.Release(ppvObject);
+                }
+
+                riid = typeof(IVsCodeWindow).GUID;
+                if (ErrorHandler.Failed(frame.QueryViewInterface(ref riid, out ppvObject)) || ppvObject == IntPtr.Zero)
+                {
+                    return null;
+                }
+
+                try
+                {
+                    return Marshal.GetObjectForIUnknown(ppvObject) as IVsCodeWindow;
+                }
+                finally
+                {
+                    Marshal.Release(ppvObject);
+                }
             }
         }
+
+        #endregion
 
         public async Task DismissLightBulbSessionAsync(CancellationToken cancellationToken)
         {
@@ -175,6 +357,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler, cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService, cancellationToken);
+
+            if (Version.Parse("17.1.31916.450") > await TestServices.Shell.GetVersionAsync(cancellationToken))
+            {
+                // Workaround for extremely unstable async lightbulb prior to:
+                // https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/361759
+                await TestServices.Input.SendAsync(new KeyPress(VirtualKey.Period, ShiftState.Ctrl));
+                await Task.Delay(5000, cancellationToken);
+
+                await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
+                await Task.Delay(5000, cancellationToken);
+            }
 
             await ShowLightBulbAsync(cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
@@ -493,33 +686,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
-        }
-
-        private async Task<IWpfTextViewHost> GetActiveTextViewHostAsync(CancellationToken cancellationToken)
-        {
-            // The active text view might not have finished composing yet, waiting for the application to 'idle'
-            // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text
-            // view.
-            await WaitForApplicationIdleAsync(cancellationToken);
-
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var activeVsTextView = (IVsUserData)await GetActiveVsTextViewAsync(cancellationToken);
-
-            ErrorHandler.ThrowOnFailure(activeVsTextView.GetData(DefGuidList.guidIWpfTextViewHost, out var wpfTextViewHost));
-
-            return (IWpfTextViewHost)wpfTextViewHost;
-        }
-
-        private async Task<IVsTextView> GetActiveVsTextViewAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var vsTextManager = await GetRequiredGlobalServiceAsync<SVsTextManager, IVsTextManager>(cancellationToken);
-
-            ErrorHandler.ThrowOnFailure(vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView));
-
-            return vsTextView;
         }
     }
 }

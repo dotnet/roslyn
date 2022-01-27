@@ -56,6 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzerPathsToAnalyzers = new();
         private readonly List<VisualStudioAnalyzer> _analyzersAddedInBatch = new();
+
+        /// <summary>
+        /// The list of <see cref="VisualStudioAnalyzer"/> that will be removed in this batch. They have not yet
+        /// been disposed, and will be disposed once the batch is applied.
+        /// </summary>
         private readonly List<VisualStudioAnalyzer> _analyzersRemovedInBatch = new();
 
         private readonly List<Func<Solution, Solution>> _projectPropertyModificationsInBatch = new();
@@ -422,6 +427,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             set => _workspace.SetDependencyNodeTargetIdentifier(Id, value);
         }
 
+        private bool HasBeenRemoved => !_workspace.CurrentSolution.ContainsProject(Id);
+
         #region Batching
 
         public BatchScope CreateBatchScope()
@@ -451,7 +458,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     // If we're passing useAsync: false, we should always get a task that was already completed.
 #pragma warning disable CA2012 // Use ValueTasks correctly
-                    Contract.ThrowIfFalse(_project.OnBatchScopeDisposedMaybeAsync(useAsync: false).IsCompleted);
+                    var valueTask = _project.OnBatchScopeDisposedMaybeAsync(useAsync: false);
+                    Contract.ThrowIfFalse(valueTask.IsCompleted);
+                    if (valueTask.IsFaulted)
+                    {
+                        throw valueTask.AsTask().Exception;
+                    }
 #pragma warning restore CA2012 // Use ValueTasks correctly
                 }
             }
@@ -476,6 +488,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _activeBatchScopes--;
 
                 if (_activeBatchScopes > 0)
+                {
+                    return;
+                }
+
+                // If the project was already removed, we'll just ignore any further requests to complete batches.
+                if (HasBeenRemoved)
                 {
                     return;
                 }
@@ -584,8 +602,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     // Project reference adding...
                     solutionChanges.UpdateSolutionForProjectAction(
-                Id,
-                newSolution: solutionChanges.Solution.AddProjectReferences(Id, _projectReferencesAddedInBatch));
+                        Id,
+                        newSolution: solutionChanges.Solution.AddProjectReferences(Id, _projectReferencesAddedInBatch));
                     ClearAndZeroCapacity(_projectReferencesAddedInBatch);
 
                     // Project reference removing...
@@ -610,6 +628,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         solutionChanges.UpdateSolutionForProjectAction(
                             Id,
                             newSolution: solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference.GetReference()));
+
+                        analyzerReference.Dispose();
                     }
 
                     ClearAndZeroCapacity(_analyzersRemovedInBatch);
@@ -851,12 +871,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
-            var visualStudioAnalyzer = new VisualStudioAnalyzer(
-                fullPath,
-                _hostDiagnosticUpdateSource,
-                Id,
-                Language);
-
             using (_gate.DisposableWait())
             {
                 if (_analyzerPathsToAnalyzers.ContainsKey(fullPath))
@@ -864,15 +878,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
                 }
 
-                _analyzerPathsToAnalyzers.Add(fullPath, visualStudioAnalyzer);
-
-                if (_activeBatchScopes > 0)
+                // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
+                // it once we apply the batch
+                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == fullPath);
+                if (analyzerPendingRemoval != null)
                 {
-                    _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                    _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
+                    _analyzerPathsToAnalyzers.Add(fullPath, analyzerPendingRemoval);
                 }
                 else
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                    // Nope, we actually need to make a new one.
+                    var visualStudioAnalyzer = new VisualStudioAnalyzer(
+                        fullPath,
+                        _hostDiagnosticUpdateSource,
+                        Id,
+                        Language);
+
+                    _analyzerPathsToAnalyzers.Add(fullPath, visualStudioAnalyzer);
+
+                    if (_activeBatchScopes > 0)
+                    {
+                        _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                    }
+                    else
+                    {
+                        _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                    }
                 }
             }
         }
@@ -895,11 +927,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (_activeBatchScopes > 0)
                 {
-                    _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                    // This analyzer may be one we've just added in the same batch; in that case, just don't add
+                    // it in the first place.
+                    if (_analyzersAddedInBatch.Remove(visualStudioAnalyzer))
+                    {
+                        // Nothing is holding onto this analyzer now, so get rid of it
+                        visualStudioAnalyzer.Dispose();
+                    }
+                    else
+                    {
+                        _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                    }
                 }
                 else
                 {
                     _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceRemoved(Id, visualStudioAnalyzer.GetReference()));
+                    visualStudioAnalyzer.Dispose();
                 }
             }
         }
@@ -1148,10 +1191,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveFromWorkspace()
         {
-            _documentFileChangeContext.Dispose();
-
             using (_gate.DisposableWait())
             {
+                if (!_workspace.CurrentSolution.ContainsProject(Id))
+                {
+                    throw new InvalidOperationException("The project has already been removed.");
+                }
+
                 // clear tracking to external components
                 foreach (var provider in _eventSubscriptionTracker)
                 {
@@ -1160,6 +1206,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _eventSubscriptionTracker.Clear();
             }
+
+            _documentFileChangeContext.Dispose();
 
             IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
 
@@ -1178,6 +1226,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (PortableExecutableReference reference in remainingMetadataReferences)
             {
                 _workspace.FileWatchedReferenceFactory.StopWatchingReference(reference);
+            }
+
+            // Dispose of any analyzers that might still be around to remove their load diagnostics
+            foreach (var visualStudioAnalyzer in _analyzerPathsToAnalyzers.Values.Concat(_analyzersRemovedInBatch))
+            {
+                visualStudioAnalyzer.Dispose();
             }
         }
 
@@ -1597,13 +1651,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 using (_project._gate.DisposableWait())
                 {
+                    // If our project has already been removed, this is a stale notification, and we can disregard.
+                    if (_project.HasBeenRemoved)
+                    {
+                        return;
+                    }
+
                     if (_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out var documentId))
                     {
                         // We create file watching prior to pushing the file to the workspace in batching, so it's
                         // possible we might see a file change notification early. In this case, toss it out. Since
                         // all adds/removals of documents for this project happen under our lock, it's safe to do this
-                        // check without taking the main workspace lock
-
+                        // check without taking the main workspace lock. We don't have to check for documents removed in
+                        // the batch, since those have already been removed out of _documentPathsToDocumentIds.
                         if (_documentsAddedInBatch.Any(d => d.Id == documentId))
                         {
                             return;

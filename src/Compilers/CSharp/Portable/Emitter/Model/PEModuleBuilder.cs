@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<AnonymousTypeKey>.Empty;
         }
 
-        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousSynthesizedDelegates()
+        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
         {
             return ImmutableArray<SynthesizedDelegateKey>.Empty;
         }
@@ -1263,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             BoundArgListOperator optArgList = null,
             bool needDeclaration = false)
         {
-            Debug.Assert(!methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: true));
+            Debug.Assert(!methodSymbol.IsDefaultValueTypeConstructor());
             Debug.Assert(optArgList == null || (methodSymbol.IsVararg && !needDeclaration));
 
             Cci.IMethodReference unexpandedMethodRef = Translate(methodSymbol, syntaxNodeOpt, diagnostics, needDeclaration);
@@ -1289,18 +1289,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+#nullable enable
         private Cci.IMethodReference Translate(
             MethodSymbol methodSymbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool needDeclaration)
         {
-            object reference;
+            object? reference;
             Cci.IMethodReference methodRef;
             NamedTypeSymbol container = methodSymbol.ContainingType;
 
             // Method of anonymous type being translated
-            if (container.IsAnonymousType)
+            if (container?.IsAnonymousType == true)
             {
                 Debug.Assert(!needDeclaration);
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
@@ -1363,6 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             return methodSymbol.GetCciAdapter();
         }
+#nullable disable
 
         internal Cci.IMethodReference TranslateOverriddenMethodReference(
             MethodSymbol methodSymbol,
@@ -1776,6 +1778,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
         }
+
+#nullable enable
+        /// <summary>
+        /// Creates the ThrowIfNull and Throw helpers if needed.
+        /// </summary>
+        /// <remarks>
+        /// The ThrowIfNull and Throw helpers are modeled off of the helpers on ArgumentNullException.
+        /// https://github.com/dotnet/runtime/blob/22663769611ba89cd92d14cfcb76e287f8af2335/src/libraries/System.Private.CoreLib/src/System/ArgumentNullException.cs#L56-L69
+        /// </remarks>
+        internal MethodSymbol EnsureThrowIfNullFunctionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        {
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var throwIfNullAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName);
+            if (throwIfNullAdapter is null)
+            {
+                TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
+                TypeSymbol argumentType = factory.SpecialType(SpecialType.System_Object);
+                TypeSymbol paramNameType = factory.SpecialType(SpecialType.System_String);
+                var sourceModule = SourceModule;
+
+                // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+                privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowMethod(sourceModule, privateImplClass, returnType, paramNameType).GetCciAdapter());
+                var actuallyAddedThrowMethod = (SynthesizedThrowMethod)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName)!.GetInternalSymbol()!;
+                privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowIfNullMethod(sourceModule, privateImplClass, actuallyAddedThrowMethod, returnType, argumentType, paramNameType).GetCciAdapter());
+                throwIfNullAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName)!;
+            }
+
+            var internalSymbol = (SynthesizedThrowIfNullMethod)throwIfNullAdapter.GetInternalSymbol()!;
+            // the ThrowMethod referenced by the ThrowIfNullMethod must be the same instance as the ThrowMethod contained in the PrivateImplementationDetails
+            Debug.Assert((object?)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName)!.GetInternalSymbol() == internalSymbol.ThrowMethod);
+            return internalSymbol;
+        }
+#nullable disable
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
         {

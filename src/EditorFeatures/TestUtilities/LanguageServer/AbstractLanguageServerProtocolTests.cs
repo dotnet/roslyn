@@ -404,8 +404,7 @@ namespace Roslyn.Test.Utilities
             var registrationService = workspace.GetService<LspWorkspaceRegistrationService>();
             var globalOptions = workspace.GetService<IGlobalOptionService>();
             var lspMiscFilesWorkspace = new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance);
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, lspMiscFilesWorkspace, globalOptions, listenerProvider, ProtocolConstants.RoslynLspLanguages, WellKnownLspServerKinds.AlwaysActiveLspServer);
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, lspMiscFilesWorkspace, globalOptions, ProtocolConstants.RoslynLspLanguages, WellKnownLspServerKinds.AlwaysActiveLspServer);
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

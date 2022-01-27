@@ -2305,6 +2305,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Sélection non contenue dans un type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="new">Silent</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Trier les modificateurs d'accessibilité</target>

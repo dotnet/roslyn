@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 case OperationKind.AnonymousFunction:
                     Debug.Assert(captureIdDispenser != null);
                     var anonymousFunction = (IAnonymousFunctionOperation)body;
+                    builder.VisitNullChecks(anonymousFunction, anonymousFunction.Symbol.Parameters);
                     builder.VisitStatement(anonymousFunction.Body);
                     break;
                 default:
@@ -1380,7 +1381,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public override IOperation? VisitBlock(IBlockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
             VisitStatements(operation.Operations);
             LeaveRegion();
@@ -1481,6 +1481,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
+            // https://github.com/dotnet/roslyn/issues/58335: this implementation doesn't handle record primary constructors
+            if (operation.SemanticModel!.GetDeclaredSymbol(operation.Syntax) is IMethodSymbol method)
+            {
+                VisitNullChecks(operation, method.Parameters);
+            }
+
             if (operation.Initializer != null)
             {
                 VisitStatement(operation.Initializer);
@@ -1496,8 +1502,154 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             StartVisitingStatement(operation);
 
+            // https://github.com/dotnet/roslyn/issues/58335: do we need to use SemanticModel here?
+            var member = operation.SemanticModel!.GetDeclaredSymbol(operation.Syntax);
+            Debug.Assert(captureIdForResult is null);
+            VisitNullChecks(operation, ((IMethodSymbol)member!).Parameters);
+
             VisitMethodBodyBaseOperation(operation);
             return FinishVisitingStatement(operation);
+        }
+
+        private void VisitNullChecks(IOperation operation, ImmutableArray<IParameterSymbol> parameters)
+        {
+            var temp = _currentStatement;
+            foreach (var param in parameters)
+            {
+                if (param.IsNullChecked)
+                {
+                    // https://github.com/dotnet/roslyn/issues/58335: do we need to use SemanticModel here?
+                    var check = GenerateNullCheckForParameter(param, operation.Syntax, ((Operation)operation).OwningSemanticModel!);
+                    _currentStatement = check;
+                    VisitConditional(check, captureIdForResult: null);
+                }
+            }
+            _currentStatement = temp;
+        }
+
+        private ConditionalOperation GenerateNullCheckForParameter(IParameterSymbol parameter, SyntaxNode syntax, SemanticModel semanticModel)
+        {
+            Debug.Assert(parameter.Language == LanguageNames.CSharp);
+            var paramReference = new ParameterReferenceOperation(parameter, semanticModel, syntax, parameter.Type, isImplicit: true);
+            var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
+
+            IOperation conditionOp;
+            if (ITypeSymbolHelpers.IsNullableType(parameter.Type))
+            {
+                // https://github.com/dotnet/roslyn/issues/58335: is there a better way to get the HasValue symbol here?
+                // This way doesn't work with compilation.MakeMemberMissing for testing
+                var nullableHasValueProperty = parameter.Type.GetMembers(nameof(Nullable<int>.HasValue)).FirstOrDefault() as IPropertySymbol;
+                var nullableHasValueGet = nullableHasValueProperty?.GetMethod;
+                if (nullableHasValueGet is null)
+                {
+                    conditionOp = new UnaryOperation(
+                    UnaryOperatorKind.Not,
+                    new InvalidOperation(
+                        ImmutableArray.Create<IOperation>(paramReference),
+                        semanticModel,
+                        syntax,
+                        boolType,
+                        constantValue: null,
+                        isImplicit: true),
+                    isLifted: false,
+                    isChecked: false,
+                    operatorMethod: null,
+                    semanticModel,
+                    syntax,
+                    boolType,
+                    constantValue: null,
+                    isImplicit: true);
+                }
+                else
+                {
+                    conditionOp = new UnaryOperation(
+                    UnaryOperatorKind.Not,
+                    new InvocationOperation(
+                        targetMethod: nullableHasValueGet,
+                        instance: paramReference,
+                        isVirtual: false,
+                        arguments: ImmutableArray<IArgumentOperation>.Empty,
+                        semanticModel,
+                        syntax,
+                        boolType,
+                        isImplicit: true),
+                    isLifted: false,
+                    isChecked: false,
+                    operatorMethod: null,
+                    semanticModel,
+                    syntax,
+                    boolType,
+                    constantValue: null,
+                    isImplicit: true);
+                }
+            }
+            else
+            {
+                conditionOp = new BinaryOperation(
+                    BinaryOperatorKind.Equals,
+                    paramReference,
+                    new LiteralOperation(semanticModel, syntax, parameter.Type, ConstantValue.Null, isImplicit: true),
+                    isLifted: false,
+                    isChecked: false,
+                    isCompareText: false,
+                    operatorMethod: null,
+                    unaryOperatorMethod: null,
+                    semanticModel,
+                    syntax,
+                    boolType,
+                    constantValue: null,
+                    isImplicit: true);
+            }
+
+            var paramNameLiteral = new LiteralOperation(semanticModel, syntax, _compilation.GetSpecialType(SpecialType.System_String), ConstantValue.Create(parameter.Name), isImplicit: true);
+            var argumentNullExceptionMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_ArgumentNullException__ctorString)?.GetISymbol();
+            var argumentNullExceptionType = argumentNullExceptionMethod?.ContainingType;
+
+            // Occurs when a member is missing.
+            IOperation argumentNullExceptionObject;
+            if (argumentNullExceptionMethod is null)
+            {
+                argumentNullExceptionObject = new InvalidOperation(
+                    children: ImmutableArray.Create((IOperation)paramNameLiteral),
+                    semanticModel,
+                    syntax,
+                    argumentNullExceptionType,
+                    constantValue: null,
+                    isImplicit: true);
+            }
+            else
+            {
+                argumentNullExceptionObject = new ObjectCreationOperation(
+                        argumentNullExceptionMethod,
+                        initializer: null,
+                        ImmutableArray.Create<IArgumentOperation>(
+                            new ArgumentOperation(
+                                ArgumentKind.Explicit,
+                                parameter: argumentNullExceptionMethod.Parameters[0],
+                                value: paramNameLiteral,
+                                OperationFactory.IdentityConversion,
+                                OperationFactory.IdentityConversion,
+                                semanticModel,
+                                syntax,
+                                isImplicit: true)),
+                        semanticModel,
+                        syntax,
+                        argumentNullExceptionType,
+                        constantValue: null,
+                        isImplicit: true);
+            }
+
+            IOperation whenTrue = new ExpressionStatementOperation(
+                new ThrowOperation(
+                    argumentNullExceptionObject,
+                    semanticModel,
+                    syntax,
+                    argumentNullExceptionType,
+                    isImplicit: true),
+                semanticModel,
+                syntax,
+                isImplicit: true);
+            return new ConditionalOperation(conditionOp, whenTrue, whenFalse: null, isRef: false, semanticModel, syntax, boolType, constantValue: null, isImplicit: true);
         }
 
         private void VisitMethodBodyBaseOperation(IMethodBodyBaseOperation operation)
@@ -2036,25 +2188,47 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             var previousInterpolatedStringHandlerContext = _currentInterpolatedStringHandlerArgumentContext;
 
-            if (arguments.SelectAsArray(predicate: arg => arg.Value is IInterpolatedStringHandlerCreationOperation,
-                                        selector: arg => (IInterpolatedStringHandlerCreationOperation)arg.Value)
-                    is { IsDefaultOrEmpty: false } interpolatedStrings)
+            ArrayBuilder<IInterpolatedStringHandlerCreationOperation>? interpolatedStringBuilder = null;
+            int lastIndexForSpilling = -1;
+
+            for (int i = 0; i < arguments.Length; i++)
             {
+                if (arguments[i].Value is IInterpolatedStringHandlerCreationOperation creation)
+                {
+                    lastIndexForSpilling = i;
+                    interpolatedStringBuilder ??= ArrayBuilder<IInterpolatedStringHandlerCreationOperation>.GetInstance();
+                    interpolatedStringBuilder.Add(creation);
+                }
+            }
+
+            if (lastIndexForSpilling > -1)
+            {
+                Debug.Assert(interpolatedStringBuilder != null);
                 _currentInterpolatedStringHandlerArgumentContext = new InterpolatedStringHandlerArgumentsContext(
-                    interpolatedStrings,
-                    _evalStack.Count - (instancePushed ? 1 : 0),
+                    interpolatedStringBuilder.ToImmutableAndFree(),
+                    startingStackDepth: _evalStack.Count - (instancePushed ? 1 : 0),
                     hasReceiver: instancePushed);
             }
 
-            VisitAndPushArray(arguments, UnwrapArgument);
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                // If there are declaration expressions in the arguments before an interpolated string handler, and that declaration
+                // expression is referenced by the handler constructor, we need to spill it to ensure the declaration doesn't end
+                // up in the tree twice. However, we don't want to generally introduce spilling for these declarations: that could
+                // have unexpected affects on consumers. So we limit the spilling to those indexes before the last interpolated string
+                // handler. We _could_ limit this further by only spilling declaration expressions if the handler in question actually
+                // referenced a specific declaration expression in the argument list, but we think that the difficulty in implementing
+                // this check is more complexity than this scenario needs.
+                var argument = arguments[i].Value switch
+                {
+                    IDeclarationExpressionOperation declaration when i < lastIndexForSpilling => declaration.Expression,
+                    var value => value
+                };
+
+                PushOperand(VisitRequired(argument));
+            }
+
             _currentInterpolatedStringHandlerArgumentContext = previousInterpolatedStringHandlerContext;
-        }
-
-        private static readonly Func<IArgumentOperation, IOperation> UnwrapArgument = UnwrapArgumentDoNotCaptureDirectly;
-
-        private static IOperation UnwrapArgumentDoNotCaptureDirectly(IArgumentOperation argument)
-        {
-            return argument.Value;
         }
 
         private IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> args)
@@ -2094,6 +2268,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation visitedArrayReference = PopOperand();
             PopStackFrame(frame);
             return new ArrayElementReferenceOperation(visitedArrayReference, visitedIndices, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
+        public override IOperation VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation, int? captureIdForResult)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Instance));
+            IOperation argument = VisitRequired(operation.Argument);
+            IOperation instance = PopOperand();
+            PopStackFrame(frame);
+            return new ImplicitIndexerReferenceOperation(instance, argument, operation.LengthSymbol, operation.IndexerSymbol, semanticModel: null,
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
@@ -6120,6 +6305,7 @@ oneMoreTime:
         private IOperation? VisitLocalFunctionAsRoot(ILocalFunctionOperation operation)
         {
             Debug.Assert(_currentStatement == null);
+            VisitNullChecks(operation, operation.Symbol.Parameters);
             VisitMethodBodies(operation.Body, operation.IgnoredBody);
             return null;
         }
@@ -7226,6 +7412,32 @@ oneMoreTime:
             return new DeclarationPatternOperation(
                 operation.MatchedType,
                 operation.MatchesNull,
+                operation.DeclaredSymbol,
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
+        public override IOperation VisitSlicePattern(ISlicePatternOperation operation, int? argument)
+        {
+            return new SlicePatternOperation(
+                operation.SliceSymbol,
+                (IPatternOperation?)Visit(operation.Pattern),
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
+        public override IOperation VisitListPattern(IListPatternOperation operation, int? argument)
+        {
+            return new ListPatternOperation(
+                operation.LengthSymbol,
+                operation.IndexerSymbol,
+                operation.Patterns.SelectAsArray((p, @this) => (IPatternOperation)@this.VisitRequired(p), this),
                 operation.DeclaredSymbol,
                 operation.InputType,
                 operation.NarrowedType,
