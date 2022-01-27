@@ -3,17 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
-using Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -171,10 +169,8 @@ class A
         var completionItems = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams);
         Assert.Contains(completionItems.Items, item => item.Label == "d");
 
-        // Modify an option via the workspace.
-        var solutionWithChangedOption = testLspServer.TestWorkspace.CurrentSolution.WithOptions(
-            testLspServer.TestWorkspace.Options.WithChangedOption(CodeAnalysis.Completion.CompletionOptions.Metadata.ProvideDateAndTimeCompletions, LanguageNames.CSharp, false));
-        await testLspServer.TestWorkspace.ChangeSolutionAsync(solutionWithChangedOption);
+        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(
+            new OptionKey(Microsoft.CodeAnalysis.Completion.CompletionOptions.Metadata.ProvideDateAndTimeCompletions, LanguageNames.CSharp), false);
 
         // Assert that the LSP incremental solution is cleared.
         Assert.Null(GetManagerWorkspaceState(testLspServer.TestWorkspace, testLspServer));

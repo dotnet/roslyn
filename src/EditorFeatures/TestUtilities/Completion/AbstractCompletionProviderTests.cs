@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
-            var options = CompletionOptions.From(document.Project);
+            var options = GetCompletionOptions();
 
             if (commitChar.HasValue &&
                 !CommitManager.IsCommitCharacter(service.GetRules(options), completionItem, commitChar.Value))
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             var workspace = workspaceFixture.Target.GetWorkspace();
-            var options = CompletionOptions.From(workspace.CurrentSolution.Options, service.Language);
+            var options = GetCompletionOptions();
 
             if (commitChar.HasValue &&
                 !CommitManager.IsCommitCharacter(service.GetRules(options), completionItem, commitChar.Value))
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var commitChar = commitCharOpt ?? '\t';
 
             var text = await document.GetTextAsync();
-            var options = CompletionOptions.From(document.Project);
+            var options = GetCompletionOptions();
 
             if (commitChar == '\t' ||
                 CommitManager.IsCommitCharacter(service.GetRules(options), firstItem, commitChar))
@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task VerifyCommitCharactersAsync(string initialMarkup, string textTypedSoFar, char[] validChars, char[] invalidChars = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
             Assert.NotNull(validChars);
-            invalidChars = invalidChars ?? new[] { 'x' };
+            invalidChars ??= new[] { 'x' };
 
             using (var workspace = CreateWorkspace(initialMarkup))
             {
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = workspace.GetDocumentId(hostDocument);
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
-                var options = CompletionOptions.From(document.Project);
+                var options = GetCompletionOptions();
 
                 var service = GetCompletionService(document.Project);
                 var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);

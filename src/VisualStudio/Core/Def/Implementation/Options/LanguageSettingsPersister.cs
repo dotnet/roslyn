@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
         private readonly IVsTextManager4 _textManager;
-        private readonly IGlobalOptionService _optionService;
+        private readonly IGlobalOptionService _globalOptions;
 
 #pragma warning disable IDE0052 // Remove unread private members - https://github.com/dotnet/roslyn/issues/46167
         private readonly ComEventSink _textManagerEvents2Sink;
@@ -51,11 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public LanguageSettingsPersister(
             IThreadingContext threadingContext,
             IVsTextManager4 textManager,
-            IGlobalOptionService optionService)
+            IGlobalOptionService globalOptions)
             : base(threadingContext, assertIsForeground: true)
         {
             _textManager = textManager;
-            _optionService = optionService;
+            _globalOptions = globalOptions;
 
             var languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty;
 
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var keyWithLanguage = new OptionKey(option, languageName);
                 var newValue = GetValueForOption(option, langPrefs[0]);
 
-                _optionService.RefreshOption(keyWithLanguage, newValue);
+                _globalOptions.RefreshOption(keyWithLanguage, newValue);
             }
         }
 

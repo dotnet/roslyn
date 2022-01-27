@@ -375,7 +375,7 @@ End Class</a>
                 workspaceFixture.GetWorkspace(ExportProvider)
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
 
-                Dim options = CompletionOptions.From(document1.Project.Solution.Options, document1.Project.Language)
+                Dim options = CompletionOptions.Default
 
                 If useDebuggerOptions Then
                     options.FilterOutOfScopeLocals = False

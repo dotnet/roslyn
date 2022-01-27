@@ -73,9 +73,8 @@ namespace N
             }
 
             // We want to make sure import completion providers are also participating.
-            var options = CompletionOptions.From(document.Project.Solution.Options, document.Project.Language);
-            var newOptions = options with { ShowItemsFromUnimportedNamespaces = true };
-            var completionList = await compeltionService.GetCompletionsAsync(document, position.Value, options: newOptions);
+            var options = CompletionOptions.Default with { ShowItemsFromUnimportedNamespaces = true };
+            var completionList = await compeltionService.GetCompletionsAsync(document, position.Value, options: options);
 
             // We expect completion to run on frozen partial semantic, which won't run source generator.
             Assert.Equal(0, generatorRanCount);

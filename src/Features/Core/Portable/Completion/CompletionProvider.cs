@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">The set of options in effect.</param>
         internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
-#pragma warning disable RS0030 // Do not use banned APIs
+#pragma warning disable RS0030, CS0618 // Do not used banned/obsolete APIs
             => ShouldTriggerCompletion(text, caretPosition, trigger, options.ToSet(languageServices.Language));
 #pragma warning restore
 

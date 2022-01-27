@@ -93,8 +93,10 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionOptions options,
             ImmutableHashSet<string>? roles = null)
         {
+#pragma warning disable CS0618 // Obsolete API
             Debug.Fail("Backward compat only, should not be called");
             return ShouldTriggerCompletion(text, caretPosition, trigger, roles, options.ToSet(languageServices.Language));
+#pragma warning restore
         }
 
         /// <summary>

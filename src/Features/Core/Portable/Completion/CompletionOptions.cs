@@ -52,9 +52,29 @@ namespace Microsoft.CodeAnalysis.Completion
               ForceExpandedCompletionIndexCreation: Metadata.ForceExpandedCompletionIndexCreation.DefaultValue,
               BlockOnExpandedCompletion: Metadata.BlockOnExpandedCompletion.DefaultValue);
 
-        public static CompletionOptions From(Project project)
-            => From(project.Solution.Options, project.Language);
+        public static CompletionOptions From(IGlobalOptionService options, string language)
+          => new(
+              TriggerOnTyping: options.GetOption(Metadata.TriggerOnTyping, language),
+              TriggerOnTypingLetters: options.GetOption(Metadata.TriggerOnTypingLetters, language),
+              TriggerOnDeletion: options.GetOption(Metadata.TriggerOnDeletion, language),
+              TriggerInArgumentLists: options.GetOption(Metadata.TriggerInArgumentLists, language),
+              IsExpandedCompletion: options.GetOption(Metadata.IsExpandedCompletion),
+              EnterKeyBehavior: options.GetOption(Metadata.EnterKeyBehavior, language),
+              SnippetsBehavior: options.GetOption(Metadata.SnippetsBehavior, language),
+              HideAdvancedMembers: options.GetOption(Metadata.HideAdvancedMembers, language),
+              ShowNameSuggestions: options.GetOption(Metadata.ShowNameSuggestions, language),
+              ShowItemsFromUnimportedNamespaces: options.GetOption(Metadata.ShowItemsFromUnimportedNamespaces, language),
+              UnnamedSymbolCompletionDisabled: options.GetOption(Metadata.UnnamedSymbolCompletionDisabledFeatureFlag),
+              TargetTypedCompletionFilter: options.GetOption(Metadata.TargetTypedCompletionFilterFeatureFlag),
+              TypeImportCompletion: options.GetOption(Metadata.TypeImportCompletionFeatureFlag),
+              ProvideDateAndTimeCompletions: options.GetOption(Metadata.ProvideDateAndTimeCompletions, language),
+              ProvideRegexCompletions: options.GetOption(Metadata.ProvideRegexCompletions, language),
+              TimeoutInMillisecondsForExtensionMethodImportCompletion: options.GetOption(Metadata.TimeoutInMillisecondsForExtensionMethodImportCompletion));
 
+        /// <summary>
+        /// Supports legacy public APIs.
+        /// </summary>
+        [Obsolete("Read from global options instead")]
         public static CompletionOptions From(OptionSet options, string language)
           => new(
               TriggerOnTyping: options.GetOption(Metadata.TriggerOnTyping, language),
@@ -74,6 +94,10 @@ namespace Microsoft.CodeAnalysis.Completion
               ForceExpandedCompletionIndexCreation: options.GetOption(Metadata.ForceExpandedCompletionIndexCreation),
               BlockOnExpandedCompletion: options.GetOption(Metadata.BlockOnExpandedCompletion));
 
+        /// <summary>
+        /// Supports legacy public APIs.
+        /// </summary>
+        [Obsolete("Read from global options instead")]
         public OptionSet WithChangedOptions(OptionSet set, string language)
             => set.
                 WithChangedOption(Metadata.TriggerOnTyping, language, TriggerOnTyping).
@@ -93,39 +117,20 @@ namespace Microsoft.CodeAnalysis.Completion
                 WithChangedOption(Metadata.ForceExpandedCompletionIndexCreation, ForceExpandedCompletionIndexCreation).
                 WithChangedOption(Metadata.BlockOnExpandedCompletion, BlockOnExpandedCompletion);
 
+        /// <summary>
+        /// Supports legacy public APIs.
+        /// </summary>
+        [Obsolete("Read from global options instead")]
+        public OptionSet ToSet(string language)
+            => WithChangedOptions(OptionValueSet.Empty, language);
+
         public RecommendationServiceOptions ToRecommendationServiceOptions()
             => new(
                 FilterOutOfScopeLocals: FilterOutOfScopeLocals,
                 HideAdvancedMembers: HideAdvancedMembers);
 
-        public OptionSet ToSet(string language)
-            => WithChangedOptions(OptionValueSet.Empty, language);
-
-        [ExportSolutionOptionProvider, Shared]
-        internal sealed class Metadata : IOptionProvider
+        internal sealed class Metadata
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Metadata()
-            {
-            }
-
-            public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                TypeImportCompletionFeatureFlag,
-                TargetTypedCompletionFilterFeatureFlag,
-                UnnamedSymbolCompletionDisabledFeatureFlag,
-                HideAdvancedMembers,
-                TriggerOnTyping,
-                TriggerOnTypingLetters,
-                EnterKeyBehavior,
-                SnippetsBehavior,
-                ShowItemsFromUnimportedNamespaces,
-                TriggerInArgumentLists,
-                ProvideRegexCompletions,
-                ProvideDateAndTimeCompletions,
-                ForceExpandedCompletionIndexCreation,
-                BlockOnExpandedCompletion);
-
             // feature flags
 
             public static readonly Option2<bool> TypeImportCompletionFeatureFlag = new(nameof(CompletionOptions), nameof(TypeImportCompletionFeatureFlag), defaultValue: false,

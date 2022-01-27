@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly List<CompletionItem> _items;
 
         private CompletionItem? _suggestionModeItem;
-        private OptionSet? _lazyOptionSet;
         private bool _isExclusive;
 
         internal CompletionProvider Provider { get; }
@@ -92,6 +91,11 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
+        /// The options that completion was started with.
+        /// </summary>
+        public OptionSet Options { get; }
+
+        /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
         /// </summary>
         public CompletionContext(
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion
             int position,
             TextSpan defaultSpan,
             CompletionTrigger trigger,
-            OptionSet options,
+            OptionSet? options,
             CancellationToken cancellationToken)
             : this(provider ?? throw new ArgumentNullException(nameof(provider)),
                    document ?? throw new ArgumentNullException(nameof(document)),
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Completion
                    CompletionOptions.Default,
                    cancellationToken)
         {
-            _lazyOptionSet = options ?? throw new ArgumentNullException(nameof(options));
+            Options = options ?? OptionValueSet.Empty;
         }
 
         /// <summary>
@@ -133,14 +137,9 @@ namespace Microsoft.CodeAnalysis.Completion
             Trigger = trigger;
             CompletionOptions = options;
             CancellationToken = cancellationToken;
+            Options = OptionValueSet.Empty;
             _items = new List<CompletionItem>();
         }
-
-        /// <summary>
-        /// The options that completion was started with.
-        /// </summary>
-        public OptionSet Options
-            => _lazyOptionSet ??= OptionValueSet.Empty;
 
         internal IReadOnlyList<CompletionItem> Items => _items;
 

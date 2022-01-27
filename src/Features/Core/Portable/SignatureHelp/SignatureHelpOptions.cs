@@ -10,11 +10,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
     internal readonly record struct SignatureHelpOptions(
         bool HideAdvancedMembers)
     {
-        public static SignatureHelpOptions From(Project project)
-            => From(project.Solution.Options, project.Language);
-
-        public static SignatureHelpOptions From(OptionSet options, string language)
+        public static SignatureHelpOptions From(IGlobalOptionService globalOptions, string language)
           => new(
-              HideAdvancedMembers: options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, language));
+              HideAdvancedMembers: globalOptions.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, language));
     }
 }
