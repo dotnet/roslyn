@@ -43,16 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         public override Task InitializedAsync()
         {
-            try
-            {
-                Logger?.TraceStart("Initialized");
-
-                return Task.CompletedTask;
-            }
-            finally
-            {
-                Logger?.TraceStop("Initialized");
-            }
+            return Task.CompletedTask;
         }
 
         [JsonRpcMethod(VSInternalMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]

@@ -30,6 +30,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
     internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
+        /// <summary>
+        /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
+        /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
+        /// </summary>
+        private static readonly Option2<DiagnosticMode> s_razorDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "RazorDiagnosticMode", defaultValue: DiagnosticMode.Pull);
+
+        /// <summary>
+        /// Diagnostic mode setting for Live Share.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Live Share.
+        /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
+        /// </summary>
+        private static readonly Option2<DiagnosticMode> s_liveShareDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "LiveShareDiagnosticMode", defaultValue: DiagnosticMode.Pull);
+
         protected record struct PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
 
         /// <summary>
@@ -215,8 +227,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             var diagnosticMode = _serverKind switch
             {
-                WellKnownLspServerKinds.LiveShareLspServer => InternalDiagnosticsOptions.LiveShareDiagnosticMode,
-                WellKnownLspServerKinds.RazorLspServer => InternalDiagnosticsOptions.RazorDiagnosticMode,
+                WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
+                WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,
                 _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
             };
 

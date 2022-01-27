@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 NoOpLspLogger.Instance,
                 ProtocolConstants.RoslynLspLanguages,
                 clientName: null,
-                WellKnownLspServerKinds.AlwaysActiveLspServer);
+                WellKnownLspServerKinds.AlwaysActiveVSLspServer);
 
             serverJsonRpc.StartListening();
             return languageServer;
