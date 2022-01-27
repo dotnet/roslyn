@@ -1992,7 +1992,7 @@ class C
 
             Assert.Single(results.Results);
             Assert.IsType<OperationCanceledException>(results.Results[0].Exception);
-            Assert.Equal("Simulated cancellation from external source", results.Results[0].Exception.Message);
+            Assert.Equal("Simulated cancellation from external source", results.Results[0].Exception!.Message);
         }
 
         private class TestReceiverBase<T>
