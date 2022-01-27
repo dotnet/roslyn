@@ -216,11 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, backingField, _lazyBackingFieldSymbolSentinel);
             }
 
-            var type = this.Type;
-            if (type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
-            {
-                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
-            }
             return (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol;
         }
 
@@ -789,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool AllowsInitializer
+        private bool HasNonErrorBackingField
         {
             get
             {
@@ -838,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasInitializer = (_propertyFlags & Flags.HasInitializer) != 0;
             if (hasInitializer)
             {
-                CheckInitializer(AllowsInitializer, ContainingType.IsInterface, IsStatic, Location, diagnostics);
+                CheckInitializer(HasNonErrorBackingField, ContainingType.IsInterface, IsStatic, Location, diagnostics);
             }
 
             if (IsAutoPropertyWithGetAccessor)
@@ -1210,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => AllowsInitializer // PROTOTYPE(semi-auto-props): add tests.
+            => HasNonErrorBackingField // PROTOTYPE(semi-auto-props): add tests.
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1660,6 +1655,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
+            }
+            else if (HasNonErrorBackingField && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            {
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
         }
 
