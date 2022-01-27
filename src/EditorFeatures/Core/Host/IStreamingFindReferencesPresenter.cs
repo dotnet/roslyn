@@ -108,18 +108,18 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                     workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
             }
 
-            // If there were multiple items, but only one had a source location, then naviagte to that, then show the
-            // rest in the UI
-            var sourceItems = nonExternalItems.Where(d => d.SourceSpans.Length > 0).Take(2).ToImmutableArray();
-            if (sourceItems.Length == 1)
-            {
-                await sourceItems[0].TryNavigateToAsync(workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
-            }
-
             if (presenter != null)
             {
                 // Can only navigate or present items on UI thread.
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                // If there were multiple items, but only one had a source location, then naviagte to that, then show the
+                // rest in the UI
+                var sourceItems = nonExternalItems.Where(d => d.SourceSpans.Length > 0).Take(2).ToImmutableArray();
+                if (sourceItems.Length == 1)
+                {
+                    await sourceItems[0].TryNavigateToAsync(workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
+                }
 
                 // We have multiple definitions, or we have definitions with multiple locations. Present this to the
                 // user so they can decide where they want to go to.
