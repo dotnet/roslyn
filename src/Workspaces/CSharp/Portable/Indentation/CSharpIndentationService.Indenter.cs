@@ -20,15 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     {
         protected override bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken syntaxToken)
             => ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionService, indenter.OptionSet, out syntaxToken);
+                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options, out syntaxToken);
 
         protected override ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter)
         {
-            var workspace = indenter.Document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            var services = indenter.Document.Project.Solution.Workspace.Services;
+            var formattingRuleFactory = services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             var rules = formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document));
-
-            return new CSharpSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root);
+            return new CSharpSmartTokenFormatter(indenter.Options, rules, indenter.Root);
         }
 
         protected override IndentationResult? GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
                         if (nonTerminalNode is SwitchLabelSyntax)
                         {
-                            return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language));
+                            return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), indenter.Options.FormattingOptions.IndentationSize);
                         }
 
                         goto default;
@@ -371,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         private static IndentationResult GetDefaultIndentationFromTokenLine(
             Indenter indenter, SyntaxToken token, int? additionalSpace = null)
         {
-            var spaceToAdd = additionalSpace ?? indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language);
+            var spaceToAdd = additionalSpace ?? indenter.Options.FormattingOptions.IndentationSize;
 
             var sourceText = indenter.LineToBeIndented.Text;
             RoslynDebug.AssertNotNull(sourceText);

@@ -103,19 +103,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private async Task<PickMembersDialog> GetDialogAsync(CancellationToken cancellationToken)
+        private static async Task<PickMembersDialog> GetDialogAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
             return Application.Current.Windows.OfType<PickMembersDialog>().Single();
         }
 
-        private async Task<PickMembersDialog> TryGetDialogAsync(CancellationToken cancellationToken)
+        private static async Task<PickMembersDialog> TryGetDialogAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
             return Application.Current.Windows.OfType<PickMembersDialog>().SingleOrDefault();
         }
 
-        private async Task ClickAsync(Func<PickMembersDialog.TestAccessor, ButtonBase> buttonSelector, CancellationToken cancellationToken)
+        private static async Task ClickAsync(Func<PickMembersDialog.TestAccessor, ButtonBase> buttonSelector, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
             var dialog = await GetDialogAsync(cancellationToken);

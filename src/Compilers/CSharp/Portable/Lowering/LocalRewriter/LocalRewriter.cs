@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LoweredDynamicOperationFactory _dynamicFactory;
         private bool _sawLambdas;
         private int _availableLocalFunctionOrdinal;
+        private readonly int _topLevelMethodOrdinal;
+        private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
 
         private bool _sawAwait;
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
+            _topLevelMethodOrdinal = containingMethodOrdinal;
             _diagnostics = diagnostics;
 
             Debug.Assert(instrumenter != null);
@@ -260,12 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
 
-                var visited = (BoundLambda)base.VisitLambda(node)!;
-                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
-                {
-                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
-                }
-                return visited;
+                return base.VisitLambda(node)!;
             }
             finally
             {
@@ -330,13 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
                 }
 
-                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
-
-                if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
-                {
-                    visited = visited.Update(localFunction, newBody, null);
-                }
-                return visited;
+                return base.VisitLocalFunctionStatement(node)!;
             }
             finally
             {

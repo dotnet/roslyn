@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var options = await context.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(context.Document, cancellationToken).ConfigureAwait(false);
             var tree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var formattedTree = await FormattingCodeFixHelper.FixOneAsync(tree, context.Document.Project.Solution.Workspace, options, diagnostic, cancellationToken).ConfigureAwait(false);
+            var formattedTree = await FormattingCodeFixHelper.FixOneAsync(tree, context.Document.Project.Solution.Workspace.Services, options, diagnostic, cancellationToken).ConfigureAwait(false);
             return context.Document.WithSyntaxRoot(await formattedTree.GetRootAsync(cancellationToken).ConfigureAwait(false));
         }
 

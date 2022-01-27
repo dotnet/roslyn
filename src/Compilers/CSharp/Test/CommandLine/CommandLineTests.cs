@@ -12497,6 +12497,11 @@ dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
+            // Verify category based configuration to warning + /warnaserror reports errors.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = warning";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, warnAsError: true, expectedDiagnosticSeverity: ReportDiagnostic.Error);
 
             // Verify disabled by default analyzer is not enabled by category based configuration.
             analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
@@ -12577,6 +12582,12 @@ dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
+            // Verify bulk configuration to warning + /warnaserror reports errors.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.severity = warning";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, warnAsError: true, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+
             // Verify disabled by default analyzer is not enabled by bulk configuration.
             analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
             analyzerConfigText = $@"
@@ -12654,7 +12665,8 @@ dotnet_analyzer_diagnostic.severity = suggestion";
             bool errorlog,
             ReportDiagnostic expectedDiagnosticSeverity,
             string rulesetText = null,
-            bool noWarn = false)
+            bool noWarn = false,
+            bool warnAsError = false)
         {
             var diagnosticId = analyzer.Descriptor.Id;
             var dir = Temp.CreateDirectory();
@@ -12670,6 +12682,11 @@ dotnet_analyzer_diagnostic.severity = suggestion";
             if (noWarn)
             {
                 arguments = arguments.Append($"/nowarn:{diagnosticId}");
+            }
+
+            if (warnAsError)
+            {
+                arguments = arguments.Append($"/warnaserror");
             }
 
             if (errorlog)

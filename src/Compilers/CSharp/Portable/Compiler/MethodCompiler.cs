@@ -747,6 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
+                        var factory = new SyntheticBoundNodeFactory(method, methodWithBody.Body.Syntax, compilationState, diagnosticsThisMethod);
+                        var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(method.Parameters, factory);
+                        if (!nullCheckStatements.IsEmpty)
+                        {
+                            loweredBody = factory.StatementList(nullCheckStatements.Concat(loweredBody));
+                        }
+                        SetGlobalErrorIfTrue(nullCheckStatements.HasErrors() || diagnosticsThisMethod.HasAnyErrors());
+
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
                             emittedBody = GenerateMethodBody(
@@ -1288,27 +1296,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (hasBody)
                             {
-                                boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
+                                boundStatements = boundStatements.Concat(loweredBodyOpt);
                             }
 
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
 
-                            // Iterators handled in IteratorRewriter.cs
-                            if (!methodSymbol.IsIterator)
+                            var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, factory);
+                            boundStatements = nullCheckStatements.Concat(boundStatements);
+                            hasErrors = nullCheckStatements.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                            SetGlobalErrorIfTrue(hasErrors);
+                            if (hasErrors)
                             {
-                                var boundStatementsWithNullCheck = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
-
-                                if (!boundStatementsWithNullCheck.IsDefault)
-                                {
-                                    boundStatements = boundStatementsWithNullCheck;
-                                    hasErrors = boundStatementsWithNullCheck.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
-                                    SetGlobalErrorIfTrue(hasErrors);
-                                    if (hasErrors)
-                                    {
-                                        _diagnostics.AddRange(diagsForCurrentMethod);
-                                        return;
-                                    }
-                                }
+                                _diagnostics.AddRange(diagsForCurrentMethod);
+                                return;
                             }
                         }
                         if (_emitMethodBodies && (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers)))

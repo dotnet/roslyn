@@ -19,23 +19,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ILanguageServiceFactory
 
         Private Shared ReadOnly _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
-        Private ReadOnly _optionService As IGlobalOptionService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(optionService As IGlobalOptionService)
-            _optionService = optionService
+        Public Sub New()
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxTreeFactoryService(_optionService, provider)
+            Return New VisualBasicSyntaxTreeFactoryService(provider)
         End Function
 
         Partial Friend Class VisualBasicSyntaxTreeFactoryService
             Inherits AbstractSyntaxTreeFactoryService
 
-            Public Sub New(optionService As IGlobalOptionService, languageServices As HostLanguageServices)
-                MyBase.New(optionService, languageServices)
+            Public Sub New(languageServices As HostLanguageServices)
+                MyBase.New(languageServices)
             End Sub
 
             Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions

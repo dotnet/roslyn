@@ -123,6 +123,101 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
 
+        /// <summary>
+        /// This method generates a string that represents the input content to the compiler which impacts 
+        /// the output of the build. This string is effectively a content key for a <see cref="Compilation"/>
+        /// with these values that can be used to identify the outputs.
+        ///
+        /// The returned string has the following properties:
+        ///
+        /// <list type="bullet">
+        /// <item>
+        /// <description>
+        /// The format is undefined. Consumers should assume the format and content can change between 
+        /// compiler versions.
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// It is designed to be human readable and diffable. This is to help developers
+        /// understand the difference between two compilations which is impacting the deterministic 
+        /// output
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// It is *not* in a minimal form. If used as a key in say a content addressable storage consumers
+        /// should first pass it through a strong hashing function.
+        /// </description>
+        /// </item>
+        /// </list>
+        ///
+        /// Compilations which do not use the /deterministic option can still use this API but
+        /// the results will change on every invocation.
+        /// </summary>
+        /// <remarks>
+        /// The set of inputs that impact deterministic output are described in the following document
+        ///     - https://github.com/dotnet/roslyn/blob/main/docs/compilers/Deterministic%20Inputs.md
+        ///
+        /// There are a few dark corners of determinism that are not captured with this key as they are 
+        /// considered outside the scope of this work:
+        ///
+        /// <list type="number">
+        /// <item>
+        /// <description>
+        /// Environment variables: clever developers can subvert determinism by manipulation of 
+        /// environment variables that impact program execution. For example changing normal library 
+        /// loading by manipulating the %LIBPATH% environment variable. Doing so can cause a change 
+        /// in deterministic output of compilation by changing compiler, runtime or generator 
+        /// dependencies.
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// Manipulation of strong name keys: strong name keys are read "on demand" by the compiler
+        /// and both normal compilation and this key can have non-determinstic output if they are 
+        /// manipulated at the correct point in program execution. That is an existing limitation
+        /// of compilation that is tracked by https://github.com/dotnet/roslyn/issues/57940
+        /// </description>
+        /// </item>
+        /// </list>
+        /// This API can throw exceptions in a few cases like invalid file paths.
+        /// </remarks>
+        internal static string GetDeterministicKey(
+            CompilationOptions compilationOptions,
+            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<MetadataReference> references,
+            ImmutableArray<byte> publicKey,
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+        {
+            return DeterministicKey.GetDeterministicKey(
+                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, options);
+        }
+
+        internal string GetDeterministicKey(
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+            => GetDeterministicKey(
+                Options,
+                CommonSyntaxTrees,
+                ExternalReferences.Concat(DirectiveReferences),
+                Assembly.Identity.PublicKey,
+                additionalTexts,
+                analyzers,
+                generators,
+                pathMap,
+                emitOptions,
+                options);
+
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
             if (globalsType != null && !IsValidHostObjectType(globalsType))
@@ -1063,6 +1158,10 @@ namespace Microsoft.CodeAnalysis
         /// a match is found in one module in an assembly, no further modules within that assembly are searched.
         /// </para>
         /// <para>Type forwarders are ignored, and not considered part of the assembly where the TypeForwardAttribute is written.</para>
+        /// <para>
+        /// Ambiguities are detected on each nested level. For example, if <c>A+B</c> is requested, and there are multiple <c>A</c>s but only one of them has a <c>B</c> nested
+        /// type, the lookup will be considered ambiguous and null will be returned.
+        /// </para>
         /// </remarks>
         public INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
@@ -2330,14 +2429,22 @@ namespace Microsoft.CodeAnalysis
         internal abstract void AddDebugSourceDocumentsForChecksumDirectives(DebugDocumentsBuilder documentsBuilder, SyntaxTree tree, DiagnosticBag diagnostics);
 
         /// <summary>
-        /// Update resources and generate XML documentation comments.
+        /// Update resources.
         /// </summary>
         /// <returns>True if successful.</returns>
-        internal abstract bool GenerateResourcesAndDocumentationComments(
-            CommonPEModuleBuilder moduleBeingBuilt,
-            Stream? xmlDocumentationStream,
-            Stream? win32ResourcesStream,
+        internal abstract bool GenerateResources(
+            CommonPEModuleBuilder moduleBuilder,
+            Stream? win32Resources,
             bool useRawWin32Resources,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Generate XML documentation comments.
+        /// </summary>
+        /// <returns>True if successful.</returns>
+        internal abstract bool GenerateDocumentationComments(
+            Stream? xmlDocStream,
             string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
@@ -2738,14 +2845,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         // NOTE: We generate documentation even in presence of compile errors.
                         // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
-                        if (!GenerateResourcesAndDocumentationComments(
-                            moduleBeingBuilt,
-                            xmlDocumentationStream,
-                            win32Resources,
-                            useRawWin32Resources: rebuildData is object,
-                            options.OutputNameOverride,
-                            diagnostics,
-                            cancellationToken))
+                        if (!GenerateResources(moduleBeingBuilt, win32Resources, useRawWin32Resources: rebuildData is object, diagnostics, cancellationToken) ||
+                            !GenerateDocumentationComments(xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken))
                         {
                             success = false;
                         }
@@ -2754,6 +2855,12 @@ namespace Microsoft.CodeAnalysis
                         {
                             ReportUnusedImports(diagnostics, cancellationToken);
                         }
+                    }
+                    else if (xmlDocumentationStream != null)
+                    {
+                        // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate those.
+                        success = GenerateDocumentationComments(
+                            xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken);
                     }
                 }
                 finally

@@ -12,6 +12,11 @@
         <target state="translated">Änderungen werden übernommen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
         <target state="translated">Konfiguration ändern</target>
@@ -44,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Execute_Suggested_Action">
         <source>Execute Suggested Action</source>
-        <target state="new">Execute Suggested Action</target>
+        <target state="translated">Vorgeschlagene Aktion ausführen</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -119,17 +124,17 @@
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Error">
         <source>Inline Diagnostics - Error</source>
-        <target state="new">Inline Diagnostics - Error</target>
+        <target state="translated">Inline-Diagnose – Fehler</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Rude_Edit">
         <source>Inline Diagnostics - Rude Edit</source>
-        <target state="new">Inline Diagnostics - Rude Edit</target>
+        <target state="translated">Inlinediagnose – NIcht unterstützte Bearbeitung</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Warning">
         <source>Inline Diagnostics - Warning</source>
-        <target state="new">Inline Diagnostics - Warning</target>
+        <target state="translated">Inline-Diagnose – Warnung</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
@@ -159,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Language_client_initialization_failed">
         <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
-        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <target state="translated">{0} konnte nicht initialisiert werden. Status = {1}. Ausnahme = {2}</target>
         <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Locating_bases">
@@ -269,7 +274,7 @@
       </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
         <source>The results may be incomplete due to the solution still loading projects.</source>
-        <target state="new">The results may be incomplete due to the solution still loading projects.</target>
+        <target state="translated">Die Ergebnisse sind möglicherweise unvollständig, da die Projektmappe noch Projekte lädt.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
@@ -967,11 +972,6 @@
         <target state="translated">Aktuell markierter Text wird formatiert...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Navigieren zu dem Symbol unter dem Caret nicht möglich.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
         <target state="translated">Gehe zu Definition</target>
@@ -1379,11 +1379,6 @@ Möchten Sie fortfahren?</target>
         <target state="translated">Zur Implementierung wechseln</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_implementations">
-        <source>The symbol has no implementations.</source>
-        <target state="translated">Das Symbol verfügt über keine Implementierungen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_name_colon_0">
         <source>New name: {0}</source>
         <target state="translated">Neuer Name: "{0}"</target>
@@ -1407,16 +1402,6 @@ Möchten Sie fortfahren?</target>
       <trans-unit id="Suggestion_ellipses">
         <source>Suggestion ellipses (…)</source>
         <target state="translated">Auslassungspunkte für Vorschlag (…)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_references">
-        <source>'{0}' references</source>
-        <target state="translated">"{0}"-Verweise</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_implementations">
-        <source>'{0}' implementations</source>
-        <target state="translated">"{0}"-Implementierungen</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">

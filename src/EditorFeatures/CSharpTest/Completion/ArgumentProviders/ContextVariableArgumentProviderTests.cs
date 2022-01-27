@@ -42,6 +42,37 @@ class C
         }
 
         [Theory]
+        [CombinatorialData]
+        public async Task TestOutVariable(
+            [CombinatorialValues("string", "bool", "int?")] string type,
+            [CombinatorialValues("out", "ref", "in")] string modifier)
+        {
+            var markup = $@"
+class C
+{{
+    void Method()
+    {{
+        {type} arg;
+        this.Target($$);
+    }}
+
+    void Target({modifier} {type} arg)
+    {{
+    }}
+}}
+";
+
+            var generatedModifier = modifier switch
+            {
+                "in" => "",
+                _ => $"{modifier} ",
+            };
+
+            await VerifyDefaultValueAsync(markup, $"{generatedModifier}arg");
+            await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
+        }
+
+        [Theory]
         [InlineData("string")]
         [InlineData("bool")]
         [InlineData("int?")]
@@ -66,22 +97,25 @@ class C
         }
 
         [Theory]
-        [InlineData("string")]
-        [InlineData("bool")]
-        [InlineData("int?")]
-        public async Task TestInstanceVariable(string type)
+        [InlineData("string", "string")]
+        [InlineData("string", "IEnumerable<char>")]
+        [InlineData("bool", "bool")]
+        [InlineData("int?", "int?")]
+        [InlineData("int", "int?")]
+        public async Task TestInstanceVariable(string fieldType, string parameterType)
         {
             var markup = $@"
+using System.Collections.Generic;
 class C
 {{
-    {type} arg;
+    {fieldType} arg;
 
     void Method()
     {{
         this.Target($$);
     }}
 
-    void Target({type} arg)
+    void Target({parameterType} arg)
     {{
     }}
 }}
@@ -91,8 +125,86 @@ class C
             await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
         }
 
-        // Note: The current implementation checks for exact type and name match. If this changes, some of these tests
-        // may need to be updated to account for the new behavior.
+        [Theory]
+        [InlineData("C")]
+        [InlineData("B")]
+        [InlineData("I")]
+        public async Task TestThisInstance(string parameterType)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+interface I {{ }}
+
+class B {{ }}
+
+class C : B, I
+{{
+    void Method()
+    {{
+        this.Target($$);
+    }}
+
+    void Target({parameterType} arg)
+    {{
+    }}
+}}
+";
+
+            await VerifyDefaultValueAsync(markup, "this");
+            await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
+        }
+
+        [Theory]
+        [InlineData("object")]
+        [InlineData("string")]
+        public async Task TestThisInstanceNotProvided1(string parameterType)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+interface I {{ }}
+
+class B {{ }}
+
+class C : B, I
+{{
+    void Method()
+    {{
+        this.Target($$);
+    }}
+
+    void Target({parameterType} arg)
+    {{
+    }}
+}}
+";
+
+            await VerifyDefaultValueAsync(markup, null);
+        }
+
+        [Fact]
+        public async Task TestThisInstanceNotProvided2()
+        {
+            var markup = $@"
+using System.Collections.Generic;
+
+class C
+{{
+    static void Method()
+    {{
+        Target($$);
+    }}
+
+    static void Target(C arg)
+    {{
+    }}
+}}
+";
+
+            await VerifyDefaultValueAsync(markup, null);
+        }
+
+        // Note: The current implementation checks for exact type match for primitive types. If this changes, some of
+        // these tests may need to be updated to account for the new behavior.
         [Theory]
         [InlineData("object", "string")]
         [InlineData("string", "object")]

@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private DateTime? GetLastUpdateTimeUtc(string fullPath)
+        private static DateTime? GetLastUpdateTimeUtc(string fullPath)
         {
             try
             {
