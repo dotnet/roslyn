@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         receiverTypeSymbol,
                         namespaceInScope,
                         inferredTypes,
-                        forceIndexCreation: false,
+                        forceIndexCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
                         hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
                         cancellationToken).ConfigureAwait(false);
 

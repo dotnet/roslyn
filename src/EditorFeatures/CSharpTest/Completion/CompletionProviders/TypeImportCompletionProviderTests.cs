@@ -7,11 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public TypeImportCompletionProviderTests()
         {
             ShowImportCompletionItemsOptionValue = true;
-            IsExpandedCompletion = true;
+            ForceExpandedCompletionIndexCreation = true;
         }
 
         #region "Option tests"
@@ -52,7 +50,7 @@ class Bar
         public async Task OptionSetToNull_ExpDisabled()
         {
             ShowImportCompletionItemsOptionValue = null;
-            IsExpandedCompletion = false;
+            ForceExpandedCompletionIndexCreation = false;
             var markup = @"
 class Bar
 {
@@ -69,7 +67,7 @@ class Bar
         {
             TypeImportCompletionFeatureFlag = isExperimentEnabled;
             ShowImportCompletionItemsOptionValue = false;
-            IsExpandedCompletion = false;
+            ForceExpandedCompletionIndexCreation = false;
 
             var markup = @"
 class Bar
