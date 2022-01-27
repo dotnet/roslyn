@@ -132,14 +132,12 @@ class C
 
             VisualStudio.Editor.PlaceCaret("Dispose", charsOffset: -1);
 
-            // It should navigate to the implementation, because there is only one
-            VisualStudio.Editor.GoToImplementation("FileImplementation.cs");
-            // Search results should also show
+            // It should not navigate to the implementation so we stay on the same file
+            VisualStudio.Editor.GoToImplementation("FileUsage.cs");
+
             var results = VisualStudio.FindReferencesWindow.GetContents("'Dispose' implementations");
 
-            // We don't need to validate all of the results, just that the source is there
-            // (though we wouldn't have navigated if it wasn't) and that there is at least something
-            // from .NET
+            // There are a lot of results, no point transcribing them all into a test
             Assert.Contains(results, r => r.Code == "public void Dispose()" && Path.GetFileName(r.FilePath) == "FileImplementation.cs");
             Assert.Contains(results, r => r.Code == "void Stream.Dispose()" && r.FilePath == "Stream");
         }
