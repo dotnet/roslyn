@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
                         if (nonTerminalNode is SwitchLabelSyntax)
                         {
-                            return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), indenter.Options.FormattingOptions.GetOption(FormattingOptions2.IndentationSize));
+                            return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), indenter.Options.FormattingOptions.IndentationSize);
                         }
 
                         goto default;
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         private static IndentationResult GetDefaultIndentationFromTokenLine(
             Indenter indenter, SyntaxToken token, int? additionalSpace = null)
         {
-            var spaceToAdd = additionalSpace ?? indenter.Options.FormattingOptions.GetOption(FormattingOptions2.IndentationSize);
+            var spaceToAdd = additionalSpace ?? indenter.Options.FormattingOptions.IndentationSize;
 
             var sourceText = indenter.LineToBeIndented.Text;
             RoslynDebug.AssertNotNull(sourceText);

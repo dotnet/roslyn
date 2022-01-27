@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var initialOperation = indentationOperations[0];
                 var baseIndentationFinder = new BottomUpBaseIndentationFinder(
                                                 formattingRules,
-                                                this.Options.GetOption(FormattingOptions2.TabSize),
-                                                this.Options.GetOption(FormattingOptions2.IndentationSize),
+                                                Options.TabSize,
+                                                Options.IndentationSize,
                                                 _tokenStream,
                                                 _engine.HeaderFacts);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var relativeIndentationGetter = new Lazy<int>(() =>
                 {
                     var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.HeaderFacts, TreeData.Root, effectiveBaseToken);
-                    var indentationDelta = baseIndentationDelta * this.Options.GetOption(FormattingOptions2.IndentationSize);
+                    var indentationDelta = baseIndentationDelta * Options.IndentationSize;
 
                     // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
                     var baseIndentation = _tokenStream.GetCurrentColumn(operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ?
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (indentationData == null)
             {
                 // no previous indentation
-                var indentation = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions2.IndentationSize);
+                var indentation = operation.IndentationDeltaOrPosition * Options.IndentationSize;
                 _indentationTree.AddIntervalInPlace(new SimpleIndentationData(intervalTreeSpan, indentation));
                 _indentationMap.Add(intervalTreeSpan);
                 return;
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // get indentation based on its previous indentation
             var indentationGetter = new Lazy<int>(() =>
             {
-                var indentationDelta = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions2.IndentationSize);
+                var indentationDelta = operation.IndentationDeltaOrPosition * Options.IndentationSize;
 
                 return indentationData.Indentation + indentationDelta;
             }, isThreadSafe: true);

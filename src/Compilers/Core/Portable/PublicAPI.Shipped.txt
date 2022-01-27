@@ -3142,7 +3142,6 @@ Microsoft.CodeAnalysis.XmlReferenceResolver
 Microsoft.CodeAnalysis.XmlReferenceResolver.XmlReferenceResolver() -> void
 override abstract Microsoft.CodeAnalysis.CompilationOptions.Equals(object? obj) -> bool
 override abstract Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
-override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 override abstract Microsoft.CodeAnalysis.Diagnostic.GetHashCode() -> int
 override abstract Microsoft.CodeAnalysis.DocumentationProvider.Equals(object? obj) -> bool
 override abstract Microsoft.CodeAnalysis.DocumentationProvider.GetHashCode() -> int

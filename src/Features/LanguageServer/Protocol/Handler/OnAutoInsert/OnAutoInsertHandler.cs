@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var amountToIndent = desiredCaretLinePosition.Character - lineToIndent.Span.Length;
 
                 // Create and apply a text change with whitespace for the indentation amount.
-                var indentText = amountToIndent.CreateIndentationString(options.FormattingOptions.GetOption(FormattingOptions2.UseTabs), options.FormattingOptions.GetOption(FormattingOptions2.TabSize));
+                var indentText = amountToIndent.CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize);
                 var indentedText = textToIndent.WithChanges(new TextChange(new TextSpan(lineToIndent.End, 0), indentText));
                 return indentedText;
             }
