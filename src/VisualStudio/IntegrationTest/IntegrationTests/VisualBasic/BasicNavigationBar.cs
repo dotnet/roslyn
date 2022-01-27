@@ -36,7 +36,7 @@ End Structure";
 
         public override async Task DisposeAsync()
         {
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "True");
+            VisualStudio.Workspace.SetGlobalOption("NavigationBarOptions", "ShowNavigationBar", LanguageName, value: true);
             await base.DisposeAsync();
         }
 
@@ -173,10 +173,10 @@ End Class");
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "False");
+            VisualStudio.Workspace.SetGlobalOption("NavigationBarOptions", "ShowNavigationBar", LanguageName, value: false);
             Assert.False(VisualStudio.Editor.IsNavBarEnabled());
 
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "True");
+            VisualStudio.Workspace.SetGlobalOption("NavigationBarOptions", "ShowNavigationBar", LanguageName, value: true);
             Assert.True(VisualStudio.Editor.IsNavBarEnabled());
         }
 

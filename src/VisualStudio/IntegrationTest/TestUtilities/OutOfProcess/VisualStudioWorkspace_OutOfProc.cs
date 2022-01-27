@@ -21,23 +21,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
+
         public void SetOptionInfer(string projectName, bool value)
         {
             _inProc.SetOptionInfer(projectName, value);
             WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public bool IsPrettyListingOn(string languageName)
-            => _inProc.IsPrettyListingOn(languageName);
-
-        public void SetPrettyListing(string languageName, bool value)
-            => _inProc.SetPrettyListing(languageName, value);
-
         public void SetPerLanguageOption(string optionName, string feature, string language, object value)
             => _inProc.SetPerLanguageOption(optionName, feature, language, value);
-
-        public void SetOption(string optionName, string feature, object value)
-            => _inProc.SetOption(optionName, feature, value);
 
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => _inProc.WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
@@ -72,26 +64,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value);
         }
 
-        public void SetEnableDecompilationOption(bool value)
-        {
-            SetOption("NavigateToDecompiledSources", "FeatureOnOffOptions", value);
-        }
-
-        public void SetArgumentCompletionSnippetsOption(bool value)
-        {
-            SetPerLanguageOption(
-                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
-                language: LanguageNames.CSharp,
-                value: value);
-
-            SetPerLanguageOption(
-                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
-                language: LanguageNames.VisualBasic,
-                value: value);
-        }
-
         public void SetTriggerCompletionInArgumentLists(bool value)
         {
             SetPerLanguageOption(
@@ -119,16 +91,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetFileScopedNamespaces(bool value)
             => _inProc.SetFileScopedNamespaces(value);
 
-        public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
-        {
-            SetOption(
-                optionName: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Name,
-                feature: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Feature,
-                value: value);
-        }
+        public object? GetGlobalOption(string feature, string optionName, string? language)
+            => _inProc.GetGlobalOption(feature, optionName, language);
 
-        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
-            => _inProc.SetFeatureOption(feature, optionName, language, valueString);
+        public void SetGlobalOption(string feature, string optionName, string? language, object? value)
+            => _inProc.SetGlobalOption(feature, optionName, language, value);
 
         public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }

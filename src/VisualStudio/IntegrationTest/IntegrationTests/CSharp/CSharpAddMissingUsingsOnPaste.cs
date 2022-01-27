@@ -42,7 +42,7 @@ class Program
 
     $$
 }");
-            VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, "False");
+            VisualStudio.Workspace.SetGlobalOption("FeatureOnOffOptions", "AddImportsOnPaste", LanguageName, value: false);
 
             VisualStudio.Editor.Paste(@"Task DoThingAsync() => Task.CompletedTask;");
 
@@ -79,7 +79,7 @@ class Program
 
     $$
 }");
-            VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, valueString: null);
+            VisualStudio.Workspace.SetGlobalOption("FeatureOnOffOptions", "AddImportsOnPaste", LanguageName, value: null);
 
             VisualStudio.Editor.Paste(@"Task DoThingAsync() => Task.CompletedTask;");
 
@@ -119,7 +119,7 @@ class Program
 
             using var telemetry = VisualStudio.EnableTestTelemetryChannel();
 
-            VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, "True");
+            VisualStudio.Workspace.SetGlobalOption("FeatureOnOffOptions", "AddImportsOnPaste", LanguageName, value: true);
 
             VisualStudio.Editor.Paste(@"Task DoThingAsync() => Task.CompletedTask;");
 

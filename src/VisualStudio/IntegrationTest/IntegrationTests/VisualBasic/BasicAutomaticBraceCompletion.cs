@@ -27,7 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_InsertionAndTabCompleting(bool argumentCompletion)
         {
-            VisualStudio.Workspace.SetArgumentCompletionSnippetsOption(argumentCompletion);
+            VisualStudio.Workspace.SetGlobalOption("CompletionOptions", "EnableArgumentCompletionSnippets", LanguageName, value: argumentCompletion);
 
             SetUpEditor(@"
 Class C

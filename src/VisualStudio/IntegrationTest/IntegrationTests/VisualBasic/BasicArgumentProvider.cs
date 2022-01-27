@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
             await base.InitializeAsync().ConfigureAwait(true);
 
-            VisualStudio.Workspace.SetArgumentCompletionSnippetsOption(true);
+            VisualStudio.Workspace.SetGlobalOption("CompletionOptions", "EnableArgumentCompletionSnippets", LanguageName, value: true);
         }
 
         [WpfFact]

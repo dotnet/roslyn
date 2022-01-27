@@ -72,9 +72,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.Editor.DismissCompletionSessions();
             VisualStudio.Editor.DismissLightBulbSession();
 
-            var originalValue = VisualStudio.Workspace.IsPrettyListingOn(LanguageName);
-
-            VisualStudio.Workspace.SetPrettyListing(LanguageName, false);
+            var originalValue = VisualStudio.Workspace.GetGlobalOption("FeatureOnOffOptions", "PrettyListing", LanguageName);
+            VisualStudio.Workspace.SetGlobalOption("FeatureOnOffOptions", "PrettyListing", LanguageName, value: false);
             try
             {
                 VisualStudio.Editor.SetText(code);
@@ -83,7 +82,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
             finally
             {
-                VisualStudio.Workspace.SetPrettyListing(LanguageName, originalValue);
+                VisualStudio.Workspace.SetGlobalOption("FeatureOnOffOptions", "PrettyListing", LanguageName, originalValue);
             }
         }
 

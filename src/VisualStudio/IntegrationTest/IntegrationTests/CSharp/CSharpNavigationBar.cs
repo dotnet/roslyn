@@ -41,7 +41,7 @@ struct S
 
         public override async Task DisposeAsync()
         {
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
+            VisualStudio.Workspace.SetGlobalOption("NavigationBarOptions", "ShowNavigationBar", LanguageName, value: true);
             await base.DisposeAsync();
         }
 
@@ -133,10 +133,10 @@ struct S
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "False");
+            VisualStudio.Workspace.SetGlobalOption("NavigationBarOptions", "ShowNavigationBar", LanguageName, value: false);
             Assert.False(VisualStudio.Editor.IsNavBarEnabled());
 
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
+            VisualStudio.Workspace.SetGlobalOption("NavigationBarOptions", "ShowNavigationBar", LanguageName, value: true);
             Assert.True(VisualStudio.Editor.IsNavBarEnabled());
         }
 

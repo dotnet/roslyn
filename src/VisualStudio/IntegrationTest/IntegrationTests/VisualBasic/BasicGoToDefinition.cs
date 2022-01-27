@@ -50,13 +50,13 @@ End Class");
 @"Class C
     Dim i As Integer$$
 End Class");
-            VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "True");
+            VisualStudio.Workspace.SetGlobalOption("VisualStudioNavigationOptions", "NavigateToObjectBrowser", language: LanguageName, value: true);
 
             VisualStudio.Editor.GoToDefinition("Object Browser");
             Assert.Equal("Object Browser", VisualStudio.Shell.GetActiveWindowCaption());
 
-            VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "False");
-            VisualStudio.Workspace.SetEnableDecompilationOption(false);
+            VisualStudio.Workspace.SetGlobalOption("VisualStudioNavigationOptions", "NavigateToObjectBrowser", language: LanguageName, value: false);
+            VisualStudio.Workspace.SetGlobalOption("FeatureOnOffOptions", "NavigateToDecompiledSources", language: null, value: false);
 
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.vb");
             VisualStudio.Editor.GoToDefinition("Int32 [from metadata]");

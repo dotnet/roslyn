@@ -53,20 +53,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
 
-        public bool IsPrettyListingOn(string languageName)
-            => _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
-
-        public void SetPrettyListing(string languageName, bool value)
-            => InvokeOnUIThread(cancellationToken =>
-            {
-                _globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.PrettyListing, languageName), value);
-            });
-
         public void SetFileScopedNamespaces(bool value)
             => InvokeOnUIThread(cancellationToken =>
             {
                 _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(
-                    new OptionKey(GetOption("NamespaceDeclarations", "CSharpCodeStyleOptions")),
+                    GetOptionKey("CSharpCodeStyleOptions", "NamespaceDeclarations", language: null),
                     new CodeStyleOption2<NamespaceDeclarationPreference>(value
                         ? NamespaceDeclarationPreference.FileScoped
                         : NamespaceDeclarationPreference.BlockScoped,
@@ -75,17 +66,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SetPerLanguageOption(string optionName, string feature, string language, object value)
         {
-            var option = GetOption(optionName, feature);
-            var result = GetValue(value, option);
-            var optionKey = new OptionKey(option, language);
-            SetOption(optionKey, result);
-        }
-
-        public void SetOption(string optionName, string feature, object value)
-        {
-            var option = GetOption(optionName, feature);
-            var result = GetValue(value, option);
-            var optionKey = new OptionKey(option);
+            var optionKey = GetOptionKey(feature, optionName, language);
+            var result = GetValue(value, optionKey.Option);
             SetOption(optionKey, result);
         }
 
@@ -104,20 +86,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return result;
         }
 
-        private IOption GetOption(string optionName, string feature)
+        private OptionKey GetOptionKey(string feature, string optionName, string? language)
         {
-            var optionService = _visualStudioWorkspace.Services.GetRequiredService<IOptionService>();
-            var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
+            var option = _globalOptions.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
             if (option == null)
             {
                 throw new Exception($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
             }
 
-            return option;
+            return new OptionKey(option, language);
         }
 
         private void SetOption(OptionKey optionKey, object? result)
             => _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(optionKey, result));
+
+        public object? GetGlobalOption(string feature, string optionName, string? language)
+        {
+            object? result = null;
+            InvokeOnUIThread(_ => result = _globalOptions.GetOption(GetOptionKey(feature, optionName, language)));
+            return result;
+        }
+
+        public void SetGlobalOption(string feature, string optionName, string? language, object? value)
+            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(GetOptionKey(feature, optionName, language), value));
 
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
         {
@@ -218,19 +209,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
 
                 GetWaitingService().EnableActiveTokenTracking(true);
-            });
-
-        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
-            => InvokeOnUIThread(cancellationToken =>
-            {
-                var option = GetOption(optionName, feature);
-
-                var value = TypeDescriptor.GetConverter(option.Type).ConvertFromString(valueString);
-                var optionKey = string.IsNullOrWhiteSpace(language)
-                    ? new OptionKey(option)
-                    : new OptionKey(option, language);
-
-                SetOption(optionKey, value);
             });
 
         public string? GetWorkingFolder()
