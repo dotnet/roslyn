@@ -95,10 +95,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             // adjust the selected item
             var selection = items[selectedItem.Value];
             selectedItem = filteredList.IndexOf(selection);
-            if (selectedItem == -1)
-            {
-                selectedItem = null;
-            }
 
             return (filteredList, selectedItem);
         }

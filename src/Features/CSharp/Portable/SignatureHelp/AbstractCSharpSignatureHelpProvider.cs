@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         // TODO2 move to a separate file before merging
         internal static class LightweightOverloadResolution
         {
-            internal static void RefineOverloadAndPickParameter(Document document, int position, SemanticModel semanticModel,
+            public static void RefineOverloadAndPickParameter(Document document, int position, SemanticModel semanticModel,
                 ImmutableArray<IMethodSymbol> candidates, SeparatedSyntaxList<ArgumentSyntax> arguments,
                 out IMethodSymbol? currentSymbol, out int parameterIndex)
             {
@@ -335,17 +336,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     Debug.Assert(parameterIndex >= 0);
                     Debug.Assert(parameterIndex < parameterCount);
 
-                    if (parameters[parameterIndex].IsParams)
-                    {
-                        inParams = true;
-                    }
-
+                    inParams |= parameters[parameterIndex].IsParams;
                     argToParamMap[argumentIndex] = parameterIndex;
                 }
             }
 
             private static bool IsEmptyArgument(ExpressionSyntax expression)
-                => expression is IdentifierNameSyntax { Identifier.ValueText.Length: 0 };
+                => expression.Span.IsEmpty;
 
             /// <summary>
             /// Given the cursor position, find which argument is active.
@@ -357,6 +354,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 {
                     return -1;
                 }
+
+                Debug.Assert(position >= arguments.Span.Start && position <= arguments.Span.End);
 
                 for (var i = 0; i < arguments.Count - 1; i++)
                 {
@@ -371,17 +370,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return arguments.Count - 1;
             }
 
-            private static bool HasName(ArgumentSyntax argument, out string? name)
+            private static bool HasName(ArgumentSyntax argument, [NotNullWhen(true)] out string? name)
             {
-                var nameColon = argument.NameColon;
-                if (nameColon is null)
-                {
-                    name = null;
-                    return false;
-                }
-
-                name = nameColon.Name.Identifier.ValueText;
-                return true;
+                name = argument.NameColon?.Name.Identifier.ValueText;
+                return name != null;
             }
         }
     }

@@ -713,21 +713,21 @@ class C : D
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_NamesAndEmptyPositions(string arguments, int expectedParameterIndex)
         {
-            var markup = @"
+            var markup = $@"
 class Program
-{
-    Program() [|: this(ARGUMENTS|])
-    {
-    }
-    Program(int i1, int i2, int i3) { }
-}";
+{{
+    Program() [|: this({arguments}|])
+    {{
+    }}
+    Program(int i1, int i2, int i3) {{ }}
+}}";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem("Program(int i1, int i2, int i3)", currentParameterIndex: expectedParameterIndex, isSelected: true),
             };
 
-            await TestAsync(markup.Replace("ARGUMENTS", arguments), expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
         [Theory]
@@ -748,15 +748,15 @@ class Program
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_Incomplete(string arguments, int expectedParameterIndex, int expecteSelectedIndex)
         {
-            var markup = @"
+            var markup = $@"
 class Program
-{
-    Program() [|: this(ARGUMENTS|])
-    {
-    }
-    Program(int i, string s) { }
-    Program(string s, string s2) { }
-}";
+{{
+    Program() [|: this({arguments}|])
+    {{
+    }}
+    Program(int i, string s) {{ }}
+    Program(string s, string s2) {{ }}
+}}";
 
             var index = 0;
             var expectedOrderedItems = new List<SignatureHelpTestItem>
@@ -765,7 +765,7 @@ class Program
                 new SignatureHelpTestItem("Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
             };
 
-            await TestAsync(markup.Replace("ARGUMENTS", arguments), expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             return Task.FromResult(
                 (accessibleMethods.SelectAsArray(m => ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel)),
-                TryGetSelectedIndex(accessibleMethods, currentSymbol)));
+                 TryGetSelectedIndex(accessibleMethods, currentSymbol)));
         }
 
         private static ImmutableArray<IMethodSymbol> GetAccessibleMethods(
