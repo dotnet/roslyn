@@ -120,7 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 document:=Nothing,
                 includeSuppressedDiagnostics:=True,
                 forPullDiagnostics:=False,
-                InternalDiagnosticsOptions.NormalDiagnosticMode,
+                DiagnosticMode.Default,
                 CancellationToken.None)
             Return diagnostics
         End Function
