@@ -867,192 +867,192 @@ class Derived2 : Base
         var comp = CreateCompilationWithRequiredMembers(@"
 #pragma warning disable CS0649 // Never assigned
 #pragma warning disable CS0169 // Never used
-public class C1
+public class PublicClass
 {
-    public required int Prop1 { get; set; }
-    internal protected required int Prop2 { get; set; }
-    internal required int Prop3 { get; set; }
-    protected required int Prop4 { get; set; }
-    private protected required int Prop5 { get; set; }
-    private required int Prop6 { get; set; }
-    public required int Field1;
-    internal protected required int Field2;
-    internal required int Field3;
-    protected required int Field4;
-    private protected required int Field5;
-    private required int Field6;
+    public required int PublicProperty { get; set; }
+    internal protected required int InternalProtectedProperty { get; set; }
+    internal required int InternalProperty { get; set; }
+    protected required int ProtectedProperty { get; set; }
+    private protected required int PrivateProtectedProperty { get; set; }
+    private required int PrivateProperty { get; set; }
+    public required int PublicField;
+    internal protected required int InternalProtectedField;
+    internal required int InternalField;
+    protected required int ProtectedField;
+    private protected required int PrivateProtectedField;
+    private required int PrivateField;
 }
-internal class C2
+internal class InternalClass
 {
-    public required int Prop1 { get; set; }
-    internal protected required int Prop2 { get; set; }
-    internal required int Prop3 { get; set; }
-    protected required int Prop4 { get; set; }
-    private protected required int Prop5 { get; set; }
-    private required int Prop6 { get; set; }
-    public required int Field1;
-    internal protected required int Field2;
-    internal required int Field3;
-    protected required int Field4;
-    private protected required int Field5;
-    private required int Field6;
+    public required int PublicProperty { get; set; }
+    internal protected required int InternalProtectedProperty { get; set; }
+    internal required int InternalProperty { get; set; }
+    protected required int ProtectedProperty { get; set; }
+    private protected required int PrivateProtectedProperty { get; set; }
+    private required int PrivateProperty { get; set; }
+    public required int PublicField;
+    internal protected required int InternalProtectedField;
+    internal required int InternalField;
+    protected required int ProtectedField;
+    private protected required int PrivateProtectedField;
+    private required int PrivateField;
 }
 internal class Outer
 {
-    protected internal class C3
+    protected internal class ProtectedInternalClass
     {
-        public required int Prop1 { get; set; }
-        internal required int Prop2 { get; set; }
-        internal protected required int Prop3 { get; set; }
-        protected required int Prop4 { get; set; }
-        private protected required int Prop5 { get; set; }
-        private required int Prop6 { get; set; }
-        public required int Field1;
-        internal required int Field2;
-        internal protected required int Field3;
-        protected required int Field4;
-        private protected required int Field5;
-        private required int Field6;
+        public required int PublicProperty { get; set; }
+        internal protected required int InternalProtectedProperty { get; set; }
+        internal required int InternalProperty { get; set; }
+        protected required int ProtectedProperty { get; set; }
+        private protected required int PrivateProtectedProperty { get; set; }
+        private required int PrivateProperty { get; set; }
+        public required int PublicField;
+        internal protected required int InternalProtectedField;
+        internal required int InternalField;
+        protected required int ProtectedField;
+        private protected required int PrivateProtectedField;
+        private required int PrivateField;
     }
-    protected class C4
+    protected class ProtectedClass
     {
-        public required int Prop1 { get; set; }
-        internal protected required int Prop2 { get; set; }
-        internal required int Prop3 { get; set; }
-        protected required int Prop4 { get; set; }
-        private protected required int Prop5 { get; set; }
-        private required int Prop6 { get; set; }
-        public required int Field1;
-        internal protected required int Field2;
-        internal required int Field3;
-        protected required int Field4;
-        private protected required int Field5;
-        private required int Field6;
+        public required int PublicProperty { get; set; }
+        internal protected required int InternalProtectedProperty { get; set; }
+        internal required int InternalProperty { get; set; }
+        protected required int ProtectedProperty { get; set; }
+        private protected required int PrivateProtectedProperty { get; set; }
+        private required int PrivateProperty { get; set; }
+        public required int PublicField;
+        internal protected required int InternalProtectedField;
+        internal required int InternalField;
+        protected required int ProtectedField;
+        private protected required int PrivateProtectedField;
+        private required int PrivateField;
     }
-    private protected class C5
+    private protected class PrivateProtectedClass
     {
-        public required int Prop1 { get; set; }
-        internal protected required int Prop2 { get; set; }
-        internal required int Prop3 { get; set; }
-        protected required int Prop4 { get; set; }
-        private protected required int Prop5 { get; set; }
-        private required int Prop6 { get; set; }
-        public required int Field1;
-        internal protected required int Field2;
-        internal required int Field3;
-        protected required int Field4;
-        private protected required int Field5;
-        private required int Field6;
+        public required int PublicProperty { get; set; }
+        internal protected required int InternalProtectedProperty { get; set; }
+        internal required int InternalProperty { get; set; }
+        protected required int ProtectedProperty { get; set; }
+        private protected required int PrivateProtectedProperty { get; set; }
+        private required int PrivateProperty { get; set; }
+        public required int PublicField;
+        internal protected required int InternalProtectedField;
+        internal required int InternalField;
+        protected required int ProtectedField;
+        private protected required int PrivateProtectedField;
+        private required int PrivateField;
     }
-    private class C6
+    private class PrivateClass
     {
-        public required int Prop1 { get; set; }
-        internal protected required int Prop2 { get; set; }
-        internal required int Prop3 { get; set; }
-        protected required int Prop4 { get; set; }
-        private protected required int Prop5 { get; set; }
-        private required int Prop6 { get; set; }
-        public required int Field1;
-        internal protected required int Field2;
-        internal required int Field3;
-        protected required int Field4;
-        private protected required int Field5;
-        private required int Field6;
+        public required int PublicProperty { get; set; }
+        internal protected required int InternalProtectedProperty { get; set; }
+        internal required int InternalProperty { get; set; }
+        protected required int ProtectedProperty { get; set; }
+        private protected required int PrivateProtectedProperty { get; set; }
+        private required int PrivateProperty { get; set; }
+        public required int PublicField;
+        internal protected required int InternalProtectedField;
+        internal required int InternalField;
+        protected required int ProtectedField;
+        private protected required int PrivateProtectedField;
+        private required int PrivateField;
     }
 }
 ");
 
         comp.VerifyDiagnostics(
-            // (7,37): error CS9503: Required member 'C1.Prop2' cannot be less visible than the containing type 'C1'.
-            //     internal protected required int Prop2 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("C1.Prop2", "C1").WithLocation(7, 37),
-            // (8,27): error CS9503: Required member 'C1.Prop3' cannot be less visible than the containing type 'C1'.
-            //     internal required int Prop3 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop3").WithArguments("C1.Prop3", "C1").WithLocation(8, 27),
-            // (9,28): error CS9503: Required member 'C1.Prop4' cannot be less visible than the containing type 'C1'.
-            //     protected required int Prop4 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop4").WithArguments("C1.Prop4", "C1").WithLocation(9, 28),
-            // (10,36): error CS9503: Required member 'C1.Prop5' cannot be less visible than the containing type 'C1'.
-            //     private protected required int Prop5 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop5").WithArguments("C1.Prop5", "C1").WithLocation(10, 36),
-            // (11,26): error CS9503: Required member 'C1.Prop6' cannot be less visible than the containing type 'C1'.
-            //     private required int Prop6 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("C1.Prop6", "C1").WithLocation(11, 26),
-            // (13,37): error CS9503: Required member 'C1.Field2' cannot be less visible than the containing type 'C1'.
-            //     internal protected required int Field2;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field2").WithArguments("C1.Field2", "C1").WithLocation(13, 37),
-            // (14,27): error CS9503: Required member 'C1.Field3' cannot be less visible than the containing type 'C1'.
-            //     internal required int Field3;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field3").WithArguments("C1.Field3", "C1").WithLocation(14, 27),
-            // (15,28): error CS9503: Required member 'C1.Field4' cannot be less visible than the containing type 'C1'.
-            //     protected required int Field4;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field4").WithArguments("C1.Field4", "C1").WithLocation(15, 28),
-            // (16,36): error CS9503: Required member 'C1.Field5' cannot be less visible than the containing type 'C1'.
-            //     private protected required int Field5;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field5").WithArguments("C1.Field5", "C1").WithLocation(16, 36),
-            // (17,26): error CS9503: Required member 'C1.Field6' cannot be less visible than the containing type 'C1'.
-            //     private required int Field6;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("C1.Field6", "C1").WithLocation(17, 26),
-            // (24,28): error CS9503: Required member 'C2.Prop4' cannot be less visible than the containing type 'C2'.
-            //     protected required int Prop4 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop4").WithArguments("C2.Prop4", "C2").WithLocation(24, 28),
-            // (25,36): error CS9503: Required member 'C2.Prop5' cannot be less visible than the containing type 'C2'.
-            //     private protected required int Prop5 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop5").WithArguments("C2.Prop5", "C2").WithLocation(25, 36),
-            // (26,26): error CS9503: Required member 'C2.Prop6' cannot be less visible than the containing type 'C2'.
-            //     private required int Prop6 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("C2.Prop6", "C2").WithLocation(26, 26),
-            // (30,28): error CS9503: Required member 'C2.Field4' cannot be less visible than the containing type 'C2'.
-            //     protected required int Field4;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field4").WithArguments("C2.Field4", "C2").WithLocation(30, 28),
-            // (31,36): error CS9503: Required member 'C2.Field5' cannot be less visible than the containing type 'C2'.
-            //     private protected required int Field5;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field5").WithArguments("C2.Field5", "C2").WithLocation(31, 36),
-            // (32,26): error CS9503: Required member 'C2.Field6' cannot be less visible than the containing type 'C2'.
-            //     private required int Field6;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("C2.Field6", "C2").WithLocation(32, 26),
-            // (39,31): error CS9503: Required member 'Outer.C3.Prop2' cannot be less visible than the containing type 'Outer.C3'.
-            //         internal required int Prop2 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("Outer.C3.Prop2", "Outer.C3").WithLocation(39, 31),
-            // (41,32): error CS9503: Required member 'Outer.C3.Prop4' cannot be less visible than the containing type 'Outer.C3'.
-            //         protected required int Prop4 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop4").WithArguments("Outer.C3.Prop4", "Outer.C3").WithLocation(41, 32),
-            // (42,40): error CS9503: Required member 'Outer.C3.Prop5' cannot be less visible than the containing type 'Outer.C3'.
-            //         private protected required int Prop5 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop5").WithArguments("Outer.C3.Prop5", "Outer.C3").WithLocation(42, 40),
-            // (43,30): error CS9503: Required member 'Outer.C3.Prop6' cannot be less visible than the containing type 'Outer.C3'.
-            //         private required int Prop6 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("Outer.C3.Prop6", "Outer.C3").WithLocation(43, 30),
-            // (45,31): error CS9503: Required member 'Outer.C3.Field2' cannot be less visible than the containing type 'Outer.C3'.
-            //         internal required int Field2;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field2").WithArguments("Outer.C3.Field2", "Outer.C3").WithLocation(45, 31),
-            // (47,32): error CS9503: Required member 'Outer.C3.Field4' cannot be less visible than the containing type 'Outer.C3'.
-            //         protected required int Field4;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field4").WithArguments("Outer.C3.Field4", "Outer.C3").WithLocation(47, 32),
-            // (48,40): error CS9503: Required member 'Outer.C3.Field5' cannot be less visible than the containing type 'Outer.C3'.
-            //         private protected required int Field5;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field5").WithArguments("Outer.C3.Field5", "Outer.C3").WithLocation(48, 40),
-            // (49,30): error CS9503: Required member 'Outer.C3.Field6' cannot be less visible than the containing type 'Outer.C3'.
-            //         private required int Field6;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("Outer.C3.Field6", "Outer.C3").WithLocation(49, 30),
-            // (57,40): error CS9503: Required member 'Outer.C4.Prop5' cannot be less visible than the containing type 'Outer.C4'.
-            //         private protected required int Prop5 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop5").WithArguments("Outer.C4.Prop5", "Outer.C4").WithLocation(57, 40),
-            // (58,30): error CS9503: Required member 'Outer.C4.Prop6' cannot be less visible than the containing type 'Outer.C4'.
-            //         private required int Prop6 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("Outer.C4.Prop6", "Outer.C4").WithLocation(58, 30),
-            // (63,40): error CS9503: Required member 'Outer.C4.Field5' cannot be less visible than the containing type 'Outer.C4'.
-            //         private protected required int Field5;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field5").WithArguments("Outer.C4.Field5", "Outer.C4").WithLocation(63, 40),
-            // (64,30): error CS9503: Required member 'Outer.C4.Field6' cannot be less visible than the containing type 'Outer.C4'.
-            //         private required int Field6;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("Outer.C4.Field6", "Outer.C4").WithLocation(64, 30),
-            // (73,30): error CS9503: Required member 'Outer.C5.Prop6' cannot be less visible than the containing type 'Outer.C5'.
-            //         private required int Prop6 { get; set; }
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("Outer.C5.Prop6", "Outer.C5").WithLocation(73, 30),
-            // (79,30): error CS9503: Required member 'Outer.C5.Field6' cannot be less visible than the containing type 'Outer.C5'.
-            //         private required int Field6;
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("Outer.C5.Field6", "Outer.C5").WithLocation(79, 30)
+            // (7,37): error CS9503: Required member 'PublicClass.InternalProtectedProperty' cannot be less visible than the containing type 'PublicClass'.
+            //     internal protected required int InternalProtectedProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "InternalProtectedProperty").WithArguments("PublicClass.InternalProtectedProperty", "PublicClass").WithLocation(7, 37),
+            // (8,27): error CS9503: Required member 'PublicClass.InternalProperty' cannot be less visible than the containing type 'PublicClass'.
+            //     internal required int InternalProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "InternalProperty").WithArguments("PublicClass.InternalProperty", "PublicClass").WithLocation(8, 27),
+            // (9,28): error CS9503: Required member 'PublicClass.ProtectedProperty' cannot be less visible than the containing type 'PublicClass'.
+            //     protected required int ProtectedProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("PublicClass.ProtectedProperty", "PublicClass").WithLocation(9, 28),
+            // (10,36): error CS9503: Required member 'PublicClass.PrivateProtectedProperty' cannot be less visible than the containing type 'PublicClass'.
+            //     private protected required int PrivateProtectedProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("PublicClass.PrivateProtectedProperty", "PublicClass").WithLocation(10, 36),
+            // (11,26): error CS9503: Required member 'PublicClass.PrivateProperty' cannot be less visible than the containing type 'PublicClass'.
+            //     private required int PrivateProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("PublicClass.PrivateProperty", "PublicClass").WithLocation(11, 26),
+            // (13,37): error CS9503: Required member 'PublicClass.InternalProtectedField' cannot be less visible than the containing type 'PublicClass'.
+            //     internal protected required int InternalProtectedField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "InternalProtectedField").WithArguments("PublicClass.InternalProtectedField", "PublicClass").WithLocation(13, 37),
+            // (14,27): error CS9503: Required member 'PublicClass.InternalField' cannot be less visible than the containing type 'PublicClass'.
+            //     internal required int InternalField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "InternalField").WithArguments("PublicClass.InternalField", "PublicClass").WithLocation(14, 27),
+            // (15,28): error CS9503: Required member 'PublicClass.ProtectedField' cannot be less visible than the containing type 'PublicClass'.
+            //     protected required int ProtectedField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("PublicClass.ProtectedField", "PublicClass").WithLocation(15, 28),
+            // (16,36): error CS9503: Required member 'PublicClass.PrivateProtectedField' cannot be less visible than the containing type 'PublicClass'.
+            //     private protected required int PrivateProtectedField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("PublicClass.PrivateProtectedField", "PublicClass").WithLocation(16, 36),
+            // (17,26): error CS9503: Required member 'PublicClass.PrivateField' cannot be less visible than the containing type 'PublicClass'.
+            //     private required int PrivateField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("PublicClass.PrivateField", "PublicClass").WithLocation(17, 26),
+            // (24,28): error CS9503: Required member 'InternalClass.ProtectedProperty' cannot be less visible than the containing type 'InternalClass'.
+            //     protected required int ProtectedProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("InternalClass.ProtectedProperty", "InternalClass").WithLocation(24, 28),
+            // (25,36): error CS9503: Required member 'InternalClass.PrivateProtectedProperty' cannot be less visible than the containing type 'InternalClass'.
+            //     private protected required int PrivateProtectedProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("InternalClass.PrivateProtectedProperty", "InternalClass").WithLocation(25, 36),
+            // (26,26): error CS9503: Required member 'InternalClass.PrivateProperty' cannot be less visible than the containing type 'InternalClass'.
+            //     private required int PrivateProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("InternalClass.PrivateProperty", "InternalClass").WithLocation(26, 26),
+            // (30,28): error CS9503: Required member 'InternalClass.ProtectedField' cannot be less visible than the containing type 'InternalClass'.
+            //     protected required int ProtectedField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("InternalClass.ProtectedField", "InternalClass").WithLocation(30, 28),
+            // (31,36): error CS9503: Required member 'InternalClass.PrivateProtectedField' cannot be less visible than the containing type 'InternalClass'.
+            //     private protected required int PrivateProtectedField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("InternalClass.PrivateProtectedField", "InternalClass").WithLocation(31, 36),
+            // (32,26): error CS9503: Required member 'InternalClass.PrivateField' cannot be less visible than the containing type 'InternalClass'.
+            //     private required int PrivateField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("InternalClass.PrivateField", "InternalClass").WithLocation(32, 26),
+            // (40,31): error CS9503: Required member 'Outer.ProtectedInternalClass.InternalProperty' cannot be less visible than the containing type 'Outer.ProtectedInternalClass'.
+            //         internal required int InternalProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "InternalProperty").WithArguments("Outer.ProtectedInternalClass.InternalProperty", "Outer.ProtectedInternalClass").WithLocation(40, 31),
+            // (41,32): error CS9503: Required member 'Outer.ProtectedInternalClass.ProtectedProperty' cannot be less visible than the containing type 'Outer.ProtectedInternalClass'.
+            //         protected required int ProtectedProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.ProtectedInternalClass.ProtectedProperty", "Outer.ProtectedInternalClass").WithLocation(41, 32),
+            // (42,40): error CS9503: Required member 'Outer.ProtectedInternalClass.PrivateProtectedProperty' cannot be less visible than the containing type 'Outer.ProtectedInternalClass'.
+            //         private protected required int PrivateProtectedProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.ProtectedInternalClass.PrivateProtectedProperty", "Outer.ProtectedInternalClass").WithLocation(42, 40),
+            // (43,30): error CS9503: Required member 'Outer.ProtectedInternalClass.PrivateProperty' cannot be less visible than the containing type 'Outer.ProtectedInternalClass'.
+            //         private required int PrivateProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.ProtectedInternalClass.PrivateProperty", "Outer.ProtectedInternalClass").WithLocation(43, 30),
+            // (46,31): error CS9503: Required member 'Outer.ProtectedInternalClass.InternalField' cannot be less visible than the containing type 'Outer.ProtectedInternalClass'.
+            //         internal required int InternalField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "InternalField").WithArguments("Outer.ProtectedInternalClass.InternalField", "Outer.ProtectedInternalClass").WithLocation(46, 31),
+            // (47,32): error CS9503: Required member 'Outer.ProtectedInternalClass.ProtectedField' cannot be less visible than the containing type 'Outer.ProtectedInternalClass'.
+            //         protected required int ProtectedField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.ProtectedInternalClass.ProtectedField", "Outer.ProtectedInternalClass").WithLocation(47, 32),
+            // (48,40): error CS9503: Required member 'Outer.ProtectedInternalClass.PrivateProtectedField' cannot be less visible than the containing type 'Outer.ProtectedInternalClass'.
+            //         private protected required int PrivateProtectedField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.ProtectedInternalClass.PrivateProtectedField", "Outer.ProtectedInternalClass").WithLocation(48, 40),
+            // (49,30): error CS9503: Required member 'Outer.ProtectedInternalClass.PrivateField' cannot be less visible than the containing type 'Outer.ProtectedInternalClass'.
+            //         private required int PrivateField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.ProtectedInternalClass.PrivateField", "Outer.ProtectedInternalClass").WithLocation(49, 30),
+            // (57,40): error CS9503: Required member 'Outer.ProtectedClass.PrivateProtectedProperty' cannot be less visible than the containing type 'Outer.ProtectedClass'.
+            //         private protected required int PrivateProtectedProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.ProtectedClass.PrivateProtectedProperty", "Outer.ProtectedClass").WithLocation(57, 40),
+            // (58,30): error CS9503: Required member 'Outer.ProtectedClass.PrivateProperty' cannot be less visible than the containing type 'Outer.ProtectedClass'.
+            //         private required int PrivateProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.ProtectedClass.PrivateProperty", "Outer.ProtectedClass").WithLocation(58, 30),
+            // (63,40): error CS9503: Required member 'Outer.ProtectedClass.PrivateProtectedField' cannot be less visible than the containing type 'Outer.ProtectedClass'.
+            //         private protected required int PrivateProtectedField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.ProtectedClass.PrivateProtectedField", "Outer.ProtectedClass").WithLocation(63, 40),
+            // (64,30): error CS9503: Required member 'Outer.ProtectedClass.PrivateField' cannot be less visible than the containing type 'Outer.ProtectedClass'.
+            //         private required int PrivateField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.ProtectedClass.PrivateField", "Outer.ProtectedClass").WithLocation(64, 30),
+            // (73,30): error CS9503: Required member 'Outer.PrivateProtectedClass.PrivateProperty' cannot be less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         private required int PrivateProperty { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.PrivateProtectedClass.PrivateProperty", "Outer.PrivateProtectedClass").WithLocation(73, 30),
+            // (79,30): error CS9503: Required member 'Outer.PrivateProtectedClass.PrivateField' cannot be less visible than the containing type 'Outer.PrivateProtectedClass'.
+            //         private required int PrivateField;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.PrivateProtectedClass.PrivateField", "Outer.PrivateProtectedClass").WithLocation(79, 30)
         );
     }
 
