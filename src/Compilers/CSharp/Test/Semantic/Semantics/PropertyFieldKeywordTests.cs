@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 
     // PROTOTYPE(semi-auto-props): Speculative semantic model tests. Speculating with a field keyword within an accessor of a regular property then emitting shouldn't emit the backing field.
 
-    // PROTOTYPE(semi-auto-props): Add tests for GetMembers API. It shouldn't return the backing field of field keyword.
-    // This can be added to the existing tests.
-
     // PROTOTYPE(semi-auto-props): Need to add tests confirming that SemanticModel doesn't bind extra accessors that we ignored for the purpose of syntactic check.
 
     // PROTOTYPE(semi-auto-props): Need to add tests for when a property accessor have
@@ -77,6 +74,9 @@ public class C
 ", options: TestOptions.DebugExe);
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
+
             CompileAndVerify(comp, expectedOutput: "5");
             VerifyTypeIL(comp, "C", @"
     .class public auto ansi beforefieldinit C
@@ -153,6 +153,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -204,6 +205,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -272,6 +274,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -341,6 +344,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -392,6 +396,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             comp.VerifyDiagnostics(
                 // (4,35): error CS0103: The name 'field' does not exist in the current context
                 //     public string P { get; set => @field = value; }
@@ -410,6 +415,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             comp.VerifyDiagnostics(
                 // (4,30): error CS0103: The name 'field' does not exist in the current context
                 //     public string P { get => @field; }
@@ -432,6 +438,7 @@ public class C : B
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends B
@@ -481,6 +488,10 @@ public struct S
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P1")));
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P2")));
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P3")));
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P4")));
             comp.VerifyDiagnostics(
                 // (4,35): error CS8658: Auto-implemented 'set' accessor 'S.P1.set' cannot be marked 'readonly'.
                 //     public int P1 { get; readonly set; } // ERR_AutoSetterCantBeReadOnly
@@ -511,6 +522,8 @@ public class C2
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C2").GetMembers(GeneratedNames.MakeBackingFieldName("P1")));
+            Assert.Empty(comp.GetTypeByMetadataName("C2").GetMembers(GeneratedNames.MakeBackingFieldName("P2")));
             comp.VerifyDiagnostics(
                 // (8,30): error CS0117: 'C' does not contain a definition for 'field'
                 //     public int P1 { get => C.field; }
@@ -742,6 +755,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P1")));
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -767,6 +781,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P1")));
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -800,6 +815,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P1")));
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -836,6 +852,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P1")));
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -860,6 +877,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             for (int i = 0; i < 3; i++)
             {
                 var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
@@ -880,6 +898,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             for (int i = 0; i < 3; i++)
             {
                 var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
@@ -900,6 +919,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             for (int i = 0; i < 3; i++)
             {
                 var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
@@ -928,6 +948,7 @@ class Test
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("Test").GetMembers(GeneratedNames.MakeBackingFieldName("X")));
             comp.VerifyDiagnostics(
                 // PROTOTYPE(semi-auto-props): From review,
                 // This error doesn't make sense to me. I understand that the spec requires this field to be read-only, but I don't think this restriction is justified.
@@ -965,6 +986,7 @@ class Test
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("Test").GetMembers(GeneratedNames.MakeBackingFieldName("X")));
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "3");
             VerifyTypeIL(comp, "Test", @"
@@ -1025,6 +1047,8 @@ class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P1")));
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P2")));
             comp.VerifyDiagnostics(
                 // (4,21): error CS8051: Auto-implemented properties must have get accessors.
                 //     public int P1 { set; }
@@ -1053,6 +1077,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             comp.VerifyDiagnostics(
                 // (10,40): error CS8821: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //             Func<int> f = static () => field;
@@ -1079,6 +1104,8 @@ public ref struct S2
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("S1").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
+            Assert.Empty(comp.GetTypeByMetadataName("S2").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             comp.VerifyDiagnostics(
             // PROTOTYPE(semi-auto-props): This should have ERR_FieldAutoPropCantBeByRefLike
             );
@@ -1096,6 +1123,7 @@ public struct S
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("S").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             comp.VerifyDiagnostics(
                 // (4,39): error CS1604: Cannot assign to 'field' because it is read-only
                 //     public readonly string P { set => field = value; }
@@ -1115,6 +1143,7 @@ public readonly struct S
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("S").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             // PROTOTYPE(semi-auto-props): An equivalent scenario with explicitly declared field produces a different error:
             // error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
             // Need to confirm why these behave differently and if that's acceptable.
@@ -1138,6 +1167,8 @@ public class Point
 ");
             var data = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = data;
+            Assert.Empty(comp.GetTypeByMetadataName("Point").GetMembers(GeneratedNames.MakeBackingFieldName("X")));
+            Assert.Empty(comp.GetTypeByMetadataName("Point").GetMembers(GeneratedNames.MakeBackingFieldName("Y")));
             comp.VerifyDiagnostics();
             Assert.Equal(0, data.NumberOfPerformedAccessorBinding);
         }
@@ -1160,6 +1191,8 @@ public class Point
 ");
             var data = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = data;
+            Assert.Empty(comp.GetTypeByMetadataName("Point").GetMembers(GeneratedNames.MakeBackingFieldName("X")));
+            Assert.Empty(comp.GetTypeByMetadataName("Point").GetMembers(GeneratedNames.MakeBackingFieldName("Y")));
             comp.VerifyDiagnostics();
             Assert.Equal(0, data.NumberOfPerformedAccessorBinding);
         }
@@ -1211,7 +1244,8 @@ public class C1
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-
+            Assert.Empty(comp.GetTypeByMetadataName("C1").GetMembers(GeneratedNames.MakeBackingFieldName("P1")));
+            //Assert.Empty(comp.GetTypeByMetadataName("C1").GetMembers(GeneratedNames.MakeBackingFieldName("P2"))); // PROTOTYPE(semi-auto-props): Uncomment this.
             comp.VerifyDiagnostics(); // PROTOTYPE(semi-auto-props): Is this the correct behavior?
             // PROTOTYPE(semi-auto-props): If we're going to have a diagnostic that P1 must be non-null when exiting constructor,
             // then we need another test in constructor like:
@@ -1244,6 +1278,8 @@ public class C1
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C1").GetMembers(GeneratedNames.MakeBackingFieldName("P1")));
+            Assert.Empty(comp.GetTypeByMetadataName("C1").GetMembers(GeneratedNames.MakeBackingFieldName("P2")));
             var tree = comp.SyntaxTrees[0];
 
             // Force compiling P1 but not P2
@@ -1301,7 +1337,9 @@ class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S_WithAutoProperty").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
+            Assert.Empty(comp.GetTypeByMetadataName("S_WithManualProperty").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
+            Assert.Empty(comp.GetTypeByMetadataName("S_WithSemiAutoProperty").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             comp.VerifyDiagnostics(
                 // PROTOTYPE(semi-auto-props): Do we expect a similar error for semi auto props?
                 // (22,33): error CS0165: Use of unassigned local variable 's1'
@@ -1328,7 +1366,7 @@ struct S
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-
+            Assert.Empty(comp.GetTypeByMetadataName("S").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             comp.VerifyDiagnostics();
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -1350,7 +1388,7 @@ struct S
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-
+            Assert.NotEmpty(comp.GetTypeByMetadataName("S").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
             comp.VerifyDiagnostics();
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
