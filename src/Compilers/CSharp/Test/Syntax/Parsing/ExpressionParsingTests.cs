@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.InterpolatedSingleLineRawStringEndToken);
+                N(SyntaxKind.InterpolatedRawStringEndToken);
             }
             EOF();
         }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.InterpolatedStringTextToken);
                 }
-                N(SyntaxKind.InterpolatedSingleLineRawStringEndToken);
+                N(SyntaxKind.InterpolatedRawStringEndToken);
             }
             EOF();
         }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.InterpolatedMultiLineRawStringEndToken);
+                N(SyntaxKind.InterpolatedRawStringEndToken);
             }
             EOF();
         }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.InterpolatedStringTextToken);
                 }
-                N(SyntaxKind.InterpolatedMultiLineRawStringEndToken);
+                N(SyntaxKind.InterpolatedRawStringEndToken);
             }
             EOF();
         }
