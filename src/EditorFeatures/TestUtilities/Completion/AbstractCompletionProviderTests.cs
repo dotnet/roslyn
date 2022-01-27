@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected bool? TargetTypedCompletionFilterFeatureFlag { get; set; }
         protected bool? TypeImportCompletionFeatureFlag { get; set; }
         protected bool? ShowImportCompletionItemsOptionValue { get; set; }
-        protected bool? IsExpandedCompletion { get; set; }
+        protected bool? ForceExpandedCompletionIndexCreation { get; set; }
         protected bool? HideAdvancedMembers { get; set; }
         protected bool? ShowNameSuggestions { get; set; }
 
@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (ShowImportCompletionItemsOptionValue.HasValue)
                 options = options with { ShowItemsFromUnimportedNamespaces = ShowImportCompletionItemsOptionValue.Value };
 
-            if (IsExpandedCompletion.HasValue)
-                options = options with { ShowItemsFromUnimportedNamespaces = true };
+            if (ForceExpandedCompletionIndexCreation.HasValue)
+                options = options with { ForceExpandedCompletionIndexCreation = true };
 
             if (HideAdvancedMembers.HasValue)
                 options = options with { HideAdvancedMembers = HideAdvancedMembers.Value };

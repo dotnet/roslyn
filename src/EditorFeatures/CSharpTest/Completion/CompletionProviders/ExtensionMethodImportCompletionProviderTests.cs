@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public ExtensionMethodImportCompletionProviderTests()
         {
             ShowImportCompletionItemsOptionValue = true;
-            IsExpandedCompletion = true;
+            ForceExpandedCompletionIndexCreation = true;
         }
 
         internal override Type GetCompletionProviderType()

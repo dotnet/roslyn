@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var (nonExpandedContext, nonExpandedCompletionList) = await nonExpandedItemsTask.ConfigureAwait(false);
             AddPropertiesToSession(session, nonExpandedCompletionList, triggerLocation);
 
-            if (!expandedItemsTask.IsCompleted)
+            if (!expandedItemsTask.IsCompleted && !options.BlockOnExpandedCompletion)
             {
                 // expanded item task still running. Save it to the session and return non-expanded items immediately.
                 session.Properties[ExpandedItemsTask] = expandedItemsTask;
