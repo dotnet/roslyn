@@ -2989,9 +2989,19 @@ moreArguments:
             {
                 case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
-                case BoundKind.Parameter:
                 case BoundKind.ThisReference:
                     // always returnable
+                    return true;
+
+                case BoundKind.Parameter:
+                    var parameter = ((BoundParameter)expr).ParameterSymbol;
+                    // params Span<T> value cannot be returned since that would
+                    // prevent sharing repeated allocations at the call-site.
+                    if (parameter.IsParams && !parameter.Type.IsSZArray())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeParamsSpan, node, expr.Syntax);
+                        return false;
+                    }
                     return true;
 
                 case BoundKind.TupleLiteral:

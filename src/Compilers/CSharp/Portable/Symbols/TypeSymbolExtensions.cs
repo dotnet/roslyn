@@ -1677,6 +1677,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
 
+        internal static bool IsParamsType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            if (type.IsSZArray())
+            {
+                return true;
+            }
+            if (type is NamedTypeSymbol { Arity: 1 } namedType)
+            {
+                var constructedFrom = namedType.ConstructedFrom;
+                return (object)constructedFrom == compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T) ||
+                    (object)constructedFrom == compilation.GetWellKnownType(WellKnownType.System_Span_T);
+            }
+            return false;
+        }
+
+        internal static TypeWithAnnotations GetParamsElementType(this TypeSymbol type)
+        {
+            if (type is ArrayTypeSymbol arrayType)
+            {
+                return arrayType.ElementTypeWithAnnotations;
+            }
+            if (type is NamedTypeSymbol { Arity: 1 } namedType)
+            {
+                return namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+            }
+            throw ExceptionUtilities.UnexpectedValue(type);
+        }
+
         internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
         {
             var namedType = type as NamedTypeSymbol;

@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
-                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, methodOrIndexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
             }
 
             if (isComReceiver)
@@ -1027,7 +1027,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BuildParamsArray(
             SyntaxNode syntax,
-            Symbol methodOrIndexer,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<ParameterSymbol> parameters,
@@ -1092,7 +1091,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
+            if (paramArrayType.IsSZArray())
+            {
+                return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
+            }
+
+            return CreateParamsSpan(syntax, paramArrayType, arrayArgs);
         }
 
         private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
@@ -1101,7 +1105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             LocalRewriter? localRewriter)
         {
-
             TypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
             BoundExpression arraySize = MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, localRewriter);
 
@@ -1111,6 +1114,92 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundArrayInitialization(syntax, arrayArgs) { WasCompilerGenerated = true },
                 paramArrayType)
             { WasCompilerGenerated = true };
+        }
+
+        private BoundExpression CreateParamsSpan(
+            SyntaxNode syntax,
+            TypeSymbol paramArrayType,
+            ImmutableArray<BoundExpression> arrayArgs)
+        {
+            var elementType = paramArrayType.GetParamsElementType().Type;
+            int length = arrayArgs.Length;
+
+            // PROTOTYPE: If we actually allocate from the stack, it may be necessary to
+            // clear the execution stack before allocation. (See corresponding requirement
+            // for 'stackalloc' in LocalRewriter.VisitStackAllocArrayCreationBase().)
+
+            // For now, simply allocate the array on the heap: new Span<T>(new T[length])
+            var intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            var array = new BoundArrayCreation(
+                syntax,
+                ImmutableArray.Create(MakeLiteral(syntax, ConstantValue.Create(length), intType, this)),
+                initializerOpt: null,
+                ArrayTypeSymbol.CreateSZArray(_compilation.SourceAssembly, TypeWithAnnotations.Create(elementType)))
+            { WasCompilerGenerated = true };
+
+            MethodSymbol spanConstructor;
+            MethodSymbol spanGetItem;
+            MethodSymbol? spanToReadOnlySpanOperator = null;
+            if (!TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__ctorArray, out spanConstructor) ||
+                !TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__get_Item, out spanGetItem) ||
+                // PROTOTYPE: To convert from Span<T> to ReadOnlySpan<T>, we're currently looking for
+                // 'static implicit operator ReadOnlySpan<T>(Span<T> span)' explicitly. Instead, should
+                // we use ConversionsBase.ClassifyImplicitConversionFromType() to find the conversion?
+                (paramArrayType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions) &&
+                !TryGetWellKnownTypeMember<MethodSymbol>(syntax, WellKnownMember.System_Span_T__op_Implicit_SpanReadOnlySpan, out spanToReadOnlySpanOperator)))
+            {
+                return BadExpression(syntax, paramArrayType, ImmutableArray<BoundExpression>.Empty);
+            }
+
+            var spanType = spanConstructor.ContainingType.Construct(elementType);
+            spanConstructor = spanConstructor.AsMember(spanType);
+            spanGetItem = spanGetItem.AsMember(spanType);
+            spanToReadOnlySpanOperator = spanToReadOnlySpanOperator?.AsMember(spanType);
+
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+            var span = _factory.New(spanConstructor, array);
+            var temp = _factory.StoreToTemp(span, out var assignment);
+            sideEffects.Add(assignment);
+
+            // temp[0] = arrayArgs[0];
+            // ...
+            // temp[n - 1] = arrayArgs[n - 1];
+            // temp
+            for (int i = 0; i < arrayArgs.Length; i++)
+            {
+                assignment = _factory.AssignmentExpression(
+                    _factory.Call(temp, spanGetItem, MakeLiteral(syntax, ConstantValue.Create(i), intType, this)),
+                    _factory.Convert(elementType, arrayArgs[i]));
+                sideEffects.Add(assignment);
+            }
+
+            BoundExpression expr = temp;
+            if (spanToReadOnlySpanOperator is { })
+            {
+                // Convert Span<T> to ReadOnlySpan<T>.
+                expr = new BoundCall(
+                    syntax,
+                    receiverOpt: null,
+                    method: spanToReadOnlySpanOperator,
+                    arguments: ImmutableArray.Create(expr),
+                    argumentNamesOpt: default,
+                    argumentRefKindsOpt: default,
+                    isDelegateCall: false,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    resultKind: LookupResultKind.Viable,
+                    type: spanToReadOnlySpanOperator.ReturnType);
+            }
+
+            Debug.Assert(expr.Type is { });
+            return new BoundSequence(
+                syntax,
+                locals: ImmutableArray.Create(temp.LocalSymbol),
+                sideEffects.ToImmutableAndFree(),
+                expr,
+                expr.Type);
         }
 
         /// <summary>

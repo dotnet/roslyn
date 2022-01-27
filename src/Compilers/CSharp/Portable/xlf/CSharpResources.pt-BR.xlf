@@ -427,6 +427,11 @@
         <target state="translated">A propriedade de contrato de igualdade do registro '{0}' precisa ter um acessador get.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EscapeParamsSpan">
+        <source>Cannot use params '{0}' in this context because it may prevent reuse at the call-site</source>
+        <target state="new">Cannot use params '{0}' in this context because it may prevent reuse at the call-site</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">A implementação explícita de um operador definido pelo usuário '{0}' deve ser declarada estática</target>
@@ -1371,6 +1376,11 @@
         <source>parameterless struct constructors</source>
         <target state="translated">construtores struct sem parâmetros</target>
         <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureParamsSpan">
+        <source>params Span&lt;T&gt;</source>
+        <target state="new">params Span&lt;T&gt;</target>
+        <note>params Span&lt;T&gt; is not localizable</note>
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
