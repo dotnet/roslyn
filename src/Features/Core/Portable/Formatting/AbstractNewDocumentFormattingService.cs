@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -46,9 +48,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                     // like adding access modifiers, or adding .ConfigureAwait() calls etc.
                     document = await provider.FormatNewDocumentAsync(document, hintDocument, cancellationToken).ConfigureAwait(false);
 
-                    // Now that the above has changed the document, we need the formatter to make sure its correct
+                    // Now that the above has changed the document, we use the code action engine to clean up the document
                     // before we call the next provider, otherwise they might not see things as they are meant to be.
-                    document = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    // Because formatting providers often re-use code fix logic, they are often written assuming this will
+                    // happen.
+                    document = await CodeAction.CleanupDocumentAsync(document, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.General))
                 {
