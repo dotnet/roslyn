@@ -9,11 +9,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    internal sealed class VSTypeScriptNavigableItem : INavigableItem
+    internal sealed class VSTypeScriptNavigableItemWrapper : INavigableItem
     {
         private readonly IVSTypeScriptNavigableItem _navigableItem;
 
-        public VSTypeScriptNavigableItem(IVSTypeScriptNavigableItem navigableItem)
+        public VSTypeScriptNavigableItemWrapper(IVSTypeScriptNavigableItem navigableItem)
         {
             _navigableItem = navigableItem;
         }
@@ -35,6 +35,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public ImmutableArray<INavigableItem> ChildItems
             => _navigableItem.ChildItems.IsDefault
                 ? default
-                : _navigableItem.ChildItems.SelectAsArray(i => (INavigableItem)new VSTypeScriptNavigableItem(i));
+                : _navigableItem.ChildItems.SelectAsArray(i => (INavigableItem)new VSTypeScriptNavigableItemWrapper(i));
     }
 }

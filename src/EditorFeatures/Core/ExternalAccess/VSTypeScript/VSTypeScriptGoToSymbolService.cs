@@ -7,8 +7,9 @@ using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(IGoToSymbolService), InternalLanguageNames.TypeScript), Shared]
     internal sealed class VSTypeScriptGoToSymbolService : IGoToSymbolService
