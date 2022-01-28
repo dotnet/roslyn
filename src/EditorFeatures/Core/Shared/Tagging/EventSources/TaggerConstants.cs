@@ -10,6 +10,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal static class TaggerConstants
     {
+        internal const int NearImmediateDelay = 50;
+        internal const int ShortDelay = 250;
+        internal const int MediumDelay = 500;
+        internal const int IdleDelay = 1500;
+        internal const int NonFocusDelay = 3000;
+
         internal static TimeSpan ComputeTimeDelay(this TaggerDelay behavior, ITextBuffer textBufferOpt)
         {
             if (TextBufferAssociatedViewService.AnyAssociatedViewHasFocus(textBufferOpt))
@@ -19,16 +25,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 return ComputeTimeDelay(behavior);
             }
 
-            return DelayTimeSpan.NonFocus;
+            return TimeSpan.FromMilliseconds(NonFocusDelay);
         }
 
         internal static TimeSpan ComputeTimeDelay(this TaggerDelay behavior)
             => behavior switch
             {
-                TaggerDelay.NearImmediate => DelayTimeSpan.NearImmediate,
-                TaggerDelay.Short => DelayTimeSpan.Short,
-                TaggerDelay.Medium => DelayTimeSpan.Medium,
-                _ => DelayTimeSpan.Idle,
+                TaggerDelay.NearImmediate => TimeSpan.FromMilliseconds(NearImmediateDelay),
+                TaggerDelay.Short => TimeSpan.FromMilliseconds(ShortDelay),
+                TaggerDelay.Medium => TimeSpan.FromMilliseconds(MediumDelay),
+                _ => TimeSpan.FromMilliseconds(IdleDelay),
             };
     }
 }

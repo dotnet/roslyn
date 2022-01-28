@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -193,9 +192,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         generator.Initialize(pipelineContext);
                     }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-                    catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, cancellationToken))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+                    catch (Exception e)
                     {
                         ex = e;
                     }

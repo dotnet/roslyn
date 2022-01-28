@@ -13,13 +13,14 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     using static FindUsagesHelpers;
 
