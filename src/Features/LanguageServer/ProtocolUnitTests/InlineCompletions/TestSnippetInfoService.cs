@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Snippets;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -33,8 +34,9 @@ internal class TestSnippetInfoService : ISnippetInfoService
 
         var testSnippetsXml = XDocument.Load(snippetsFile);
         var snippets = InlineCompletionsHandler.CodeSnippet.ReadSnippets(testSnippetsXml);
+        Contract.ThrowIfNull(snippets);
 
-        var snippetInfos = snippets.Select(s => new SnippetInfo(s.Shortcut, s.Title, s.Title, snippetsFile));
+        var snippetInfos = snippets.Value.Select(s => new SnippetInfo(s.Shortcut, s.Title, s.Title, snippetsFile));
         return snippetInfos;
     }
 

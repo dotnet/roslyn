@@ -104,9 +104,10 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         var expansion = new ExpansionTemplate(matchingSnippet);
 
         // Parse the snippet XML
-        var parsedSnippet = expansion.Parse();
+        var parsedSnippet = expansion.Parse(context);
         if (parsedSnippet == null)
         {
+            context.TraceError($"Could not parse code from snippet {matchingSnippet.Title}");
             return null;
         }
 
@@ -282,7 +283,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
         // Load the xml for the snippet from disk.
         // Any exceptions thrown here we allow to bubble up and let the queue log it.
-        var snippet = CodeSnippet.ReadSnippetFromFile(snippetInfo.Path, snippetInfo.Title);
+        var snippet = CodeSnippet.ReadSnippetFromFile(snippetInfo.Path, snippetInfo.Title, context);
         return snippet;
     }
 }

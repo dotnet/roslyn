@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -61,34 +62,43 @@ internal partial class InlineCompletionsHandler
             return _snippetTypes?.Contains(ExpansionSnippetType, StringComparer.OrdinalIgnoreCase) == true;
         }
 
-        public static CodeSnippet ReadSnippetFromFile(string filePath, string snippetTitle)
-        {
-            var document = XDocument.Load(filePath);
-            var snippets = ReadSnippets(document);
-            var matchingSnippet = snippets.Single(s => string.Equals(s.Title, snippetTitle, StringComparison.OrdinalIgnoreCase));
-            return matchingSnippet;
-        }
-
-        private static ImmutableArray<XElement> ReadCodeSnippetElements(XDocument document)
+        public static CodeSnippet? ReadSnippetFromFile(string filePath, string snippetTitle, RequestContext context)
         {
             try
             {
-                var codeSnippetsElement = document.Root;
-                if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippets", StringComparison.OrdinalIgnoreCase))
+                context.TraceInformation($"Reading XML from {filePath} for snippet {snippetTitle}");
+                var document = XDocument.Load(filePath);
+                var snippets = ReadSnippets(document);
+                if (snippets == null)
                 {
-                    return codeSnippetsElement.Elements().Where(e => e.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase)).ToImmutableArray();
-                }
-                else if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase))
-                {
-                    return ImmutableArray.Create(codeSnippetsElement);
+                    context.TraceError($"Did not find any code snippets in XML");
+                    return null;
                 }
 
-                return ImmutableArray<XElement>.Empty;
+                var matchingSnippet = snippets.Value.Single(s => string.Equals(s.Title, snippetTitle, StringComparison.OrdinalIgnoreCase));
+                return matchingSnippet;
             }
-            catch (XmlException)
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
-                return ImmutableArray<XElement>.Empty;
+                context.TraceError($"Got exception reading snippet XML from {filePath} for {snippetTitle}");
+                context.TraceException(ex);
+                return null;
             }
+        }
+
+        private static ImmutableArray<XElement>? ReadCodeSnippetElements(XDocument document)
+        {
+            var codeSnippetsElement = document.Root;
+            if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippets", StringComparison.OrdinalIgnoreCase))
+            {
+                return codeSnippetsElement.Elements().Where(e => e.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase)).ToImmutableArray();
+            }
+            else if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase))
+            {
+                return ImmutableArray.Create(codeSnippetsElement);
+            }
+
+            return null;
         }
 
         public static IEnumerable<XElement> GetElementsWithoutNamespace(XElement element, string localName)
@@ -110,9 +120,9 @@ internal partial class InlineCompletionsHandler
         /// <summary>
         /// Visible for testing.
         /// </summary>
-        internal static ImmutableArray<CodeSnippet> ReadSnippets(XDocument document)
+        internal static ImmutableArray<CodeSnippet>? ReadSnippets(XDocument document)
         {
-            return ReadCodeSnippetElements(document).Select(element => new CodeSnippet(element)).ToImmutableArray();
+            return ReadCodeSnippetElements(document)?.Select(element => new CodeSnippet(element)).ToImmutableArray();
         }
     }
 
@@ -132,8 +142,11 @@ internal partial class InlineCompletionsHandler
         private readonly string? _code;
         private readonly string _delimiter = "$";
 
+        private readonly CodeSnippet _snippet;
+
         public ExpansionTemplate(CodeSnippet snippet)
         {
+            _snippet = snippet;
             var snippetElement = CodeSnippet.GetElementWithoutNamespace(snippet.CodeSnippetElement, "Snippet");
             var declarationsElement = CodeSnippet.GetElementWithoutNamespace(snippetElement, "Declarations");
             ReadDeclarations(declarationsElement);
@@ -172,7 +185,21 @@ internal partial class InlineCompletionsHandler
             }
         }
 
-        public ParsedXmlSnippet? Parse()
+        public ParsedXmlSnippet? Parse(RequestContext context)
+        {
+            try
+            {
+                return Parse();
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+            {
+                context.TraceInformation($"Got exception parsing snippet code for {_snippet.Title}");
+                context.TraceException(ex);
+                return null;
+            }
+        }
+
+        private ParsedXmlSnippet? Parse()
         {
             int iTokenLen;
             var currentCharIndex = 0;

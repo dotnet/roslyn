@@ -62,11 +62,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Tracing object that can be used to log information about the status of requests.
         /// </summary>
-        private readonly Action<string> _traceInformation;
+        private readonly ILspLogger _logger;
 
         public RequestContext(
             Solution? solution,
-            Action<string> traceInformation,
+            ILspLogger logger,
             ClientCapabilities clientCapabilities,
             string? clientName,
             Document? document,
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SupportedLanguages = supportedLanguages;
             GlobalOptions = globalOptions;
             _documentChangeTracker = documentChangeTracker;
-            _traceInformation = traceInformation;
+            _logger = logger;
             _trackedDocuments = trackedDocuments;
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                return new RequestContext(solution: null, logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
+                return new RequestContext(solution: null, logger, clientCapabilities, clientName, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
             }
 
             // Go through each registered workspace, find the solution that contains the document that
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var context = new RequestContext(
                 workspaceSolution,
-                logger.TraceInformation,
+                logger,
                 clientCapabilities,
                 clientName,
                 document,
@@ -178,6 +178,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Logs an informational message.
         /// </summary>
         public void TraceInformation(string message)
-            => _traceInformation(message);
+            => _logger.TraceInformation(message);
+
+        public void TraceWarning(string message)
+            => _logger.TraceWarning(message);
+
+        public void TraceError(string message)
+            => _logger.TraceError(message);
+
+        public void TraceException(Exception exception)
+            => _logger.TraceException(exception);
     }
 }
