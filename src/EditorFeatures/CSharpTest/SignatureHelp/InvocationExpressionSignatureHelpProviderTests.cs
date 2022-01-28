@@ -1880,7 +1880,6 @@ class D
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("void D.M(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0),
             };
@@ -1907,7 +1906,6 @@ class D
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("void D.M(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0),
             };
@@ -1933,7 +1931,6 @@ class D
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("void D.M(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0),
             };
@@ -1959,7 +1956,6 @@ class D
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("void D.M(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0, isSelected: true),
             };
@@ -2113,7 +2109,6 @@ class Program
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem($"void Program.M(int i, string s)", currentParameterIndex: expectedParameterIndex),
                 new SignatureHelpTestItem($"void Program.M(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: true),
             };
 
@@ -2223,7 +2218,6 @@ class Program
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem("void Program.M(int i, string s)", currentParameterIndex: expectedParameterIndex, isSelected: true),
-                new SignatureHelpTestItem("void Program.M(string s, string s2)", currentParameterIndex: expectedParameterIndex),
             };
 
             await TestAsync(markup.Replace("ARGUMENTS", arguments), expectedOrderedItems);

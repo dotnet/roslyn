@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -66,26 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 parameter.IsOptional,
                 parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
                 parameter.ToMinimalDisplayParts(semanticModel, position, s_allowDefaultLiteralFormat));
-        }
-
-        /// <summary>
-        /// Return the items to display.
-        /// If we have selectedSymbol and selectedParameterIndex, we will highlight the correct parameter.
-        /// Otherwise, we try to guess which parameter to highlight based on the cursor's position in the arguments.
-        /// </summary>
-        protected static SignatureHelpItems MakeSignatureHelpItems(IList<SignatureHelpItem> items, Text.TextSpan textSpan,
-            IMethodSymbol? selectedSymbol, int selectedParameterIndex, int? selectedItem,
-            SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
-        {
-            if (selectedSymbol is null || selectedParameterIndex < 0)
-            {
-                var argumentIndex = LightweightOverloadResolution.TryGetArgumentIndex(arguments, position);
-                return new SignatureHelpItems(items, textSpan, argumentIndex < 0 ? 0 : argumentIndex, arguments.Count, argumentName: null, selectedItem);
-            }
-
-            var parameters = selectedSymbol.Parameters;
-            var name = parameters.Length == 0 ? null : parameters[selectedParameterIndex].Name;
-            return new SignatureHelpItems(items, textSpan, selectedParameterIndex, parameters.Length, name, selectedItem);
         }
 
         /// <summary>

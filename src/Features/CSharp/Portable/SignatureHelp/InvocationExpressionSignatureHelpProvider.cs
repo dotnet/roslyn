@@ -115,10 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 methods, document, invocationExpression, semanticModel, symbolInfo, currentSymbol, cancellationToken).ConfigureAwait(false);
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
-            return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, parameterIndex, syntaxFacts, textSpan, cancellationToken), selectedItem);
         }
 
-        protected static async Task<SignatureHelpItems?> GetItemsWorkerForDelegateOrFunctionPointerAsync(Document document, int position,
+        protected async Task<SignatureHelpItems?> GetItemsWorkerForDelegateOrFunctionPointerAsync(Document document, int position,
             InvocationExpressionSyntax invocationExpression, ISymbol within, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(invocationExpression, cancellationToken).ConfigureAwait(false);
@@ -156,7 +157,31 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, out var selectedItem, cancellationToken);
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
-            return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, parameterIndex, syntaxFacts, textSpan, cancellationToken), selectedItem);
+        }
+
+        private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, int parameterIndex, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        {
+            if (TryGetInvocationExpression(
+                    root,
+                    position,
+                    syntaxFacts,
+                    SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
+                    cancellationToken,
+                    out var expression) &&
+                currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
+            {
+                var result = SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);
+                if (result is not null && parameterIndex >= 0)
+                {
+                    result.ArgumentIndex = parameterIndex;
+                }
+                return result;
+            }
+
+            return null;
         }
     }
 }

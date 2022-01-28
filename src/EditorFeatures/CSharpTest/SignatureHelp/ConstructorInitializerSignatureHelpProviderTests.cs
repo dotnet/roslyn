@@ -249,7 +249,6 @@ class D
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("D(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0),
             };
@@ -272,7 +271,6 @@ class D
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("D(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0, isSelected: true),
             };

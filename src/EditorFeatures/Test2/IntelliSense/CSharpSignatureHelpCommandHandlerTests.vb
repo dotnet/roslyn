@@ -289,7 +289,7 @@ class Program
                 state.SendTypeChars("(name: 1")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void Program.F(string name)")
-                Assert.Equal({"void Program.F(string name)", "void Program.F(int i, int j)"},
+                Assert.Equal({"void Program.F(string name)"},
                              state.GetSignatureHelpItems().Select(Function(i) i.ToString()))
             End Using
         End Function
@@ -550,7 +550,7 @@ class C
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
 
                 state.SendTypeChars("1")
-                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
             End Using
         End Function
 

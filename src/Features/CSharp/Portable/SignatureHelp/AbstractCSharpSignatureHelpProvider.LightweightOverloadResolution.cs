@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             /// Given the cursor position, find which argument is active.
             /// This will be useful to later find which parameter should be highlighted.
             /// </summary>
-            internal static int TryGetArgumentIndex(SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
+            private static int TryGetArgumentIndex(SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
             {
                 if (arguments.Count == 0)
                 {

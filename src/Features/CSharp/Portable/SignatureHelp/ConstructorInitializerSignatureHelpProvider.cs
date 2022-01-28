@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
@@ -114,7 +115,24 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var items = constructors.SelectAsArray(m => Convert(m, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
             var selectedItem = TryGetSelectedIndex(constructors, currentSymbol);
 
-            return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, parameterIndex, syntaxFacts, textSpan, cancellationToken), selectedItem);
+        }
+
+        private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, int parameterIndex, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        {
+            if (TryGetConstructorInitializer(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, out var expression) &&
+                currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
+            {
+                var result = SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);
+                if (result is not null && parameterIndex >= 0)
+                {
+                    result.ArgumentIndex = parameterIndex;
+                }
+                return result;
+            }
+
+            return null;
         }
 
         private static SignatureHelpItem Convert(
