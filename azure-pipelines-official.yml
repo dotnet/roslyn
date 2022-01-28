@@ -122,7 +122,7 @@ stages:
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
-        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
+        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, dotnet-core-internal-tooling
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
