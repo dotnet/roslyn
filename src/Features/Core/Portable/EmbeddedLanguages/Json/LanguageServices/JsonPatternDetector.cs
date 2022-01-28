@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -54,9 +56,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         {
             // Do a quick non-allocating check first.
             if (_modelToDetector.TryGetValue(semanticModel, out var detector))
-            {
                 return detector;
-            }
 
             return _modelToDetector.GetValue(
                 semanticModel, _ => Create(semanticModel, info));
@@ -72,14 +72,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         public static bool IsDefinitelyNotJson(SyntaxToken token, ISyntaxFacts syntaxFacts)
         {
             if (!syntaxFacts.IsStringLiteral(token))
-            {
                 return true;
-            }
 
             if (token.ValueText == "")
-            {
                 return true;
-            }
 
             return false;
         }
@@ -88,16 +84,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             SyntaxToken token, ISyntaxFacts syntaxFacts, out JsonOptions options)
         {
             if (HasJsonLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts, out options))
-            {
                 return true;
-            }
 
             for (var node = token.Parent; node != null; node = node.Parent)
             {
                 if (HasJsonLanguageComment(node.GetLeadingTrivia(), syntaxFacts, out options))
-                {
                     return true;
-                }
             }
 
             options = default;
@@ -110,9 +102,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             foreach (var trivia in list)
             {
                 if (HasJsonLanguageComment(trivia, syntaxFacts, out options))
-                {
                     return true;
-                }
             }
 
             options = default;
@@ -141,19 +131,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         {
             var syntaxFacts = _info.SyntaxFacts;
             if (IsDefinitelyNotJson(token, syntaxFacts))
-            {
                 return false;
-            }
 
             if (HasJsonLanguageComment(token, syntaxFacts, out _))
-            {
                 return true;
-            }
 
             if (!IsMethodArgument(token, syntaxFacts))
-            {
                 return false;
-            }
 
             var stringLiteral = token;
             var literalNode = stringLiteral.GetRequiredParent();
@@ -189,17 +173,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         {
             var syntaxFacts = _info.SyntaxFacts;
             if (IsDefinitelyNotJson(token, syntaxFacts))
-            {
                 return null;
-            }
 
             HasJsonLanguageComment(token, syntaxFacts, out var options);
 
             var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
             if (chars.IsDefaultOrEmpty)
-            {
                 return null;
-            }
 
             return JsonParser.TryParse(chars, options);
         }
@@ -230,9 +210,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         {
             var tree = TryParseJson(token);
             if (tree == null || !tree.Diagnostics.IsEmpty)
-            {
                 return false;
-            }
 
             return ContainsProbableJsonObject(tree.Root);
         }
@@ -243,9 +221,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             {
                 var objNode = (JsonObjectNode)node;
                 if (objNode.Sequence.Length >= 1)
-                {
                     return true;
-                }
             }
 
             foreach (var child in node)
@@ -253,9 +229,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
                 if (child.IsNode)
                 {
                     if (ContainsProbableJsonObject(child.Node))
-                    {
                         return true;
-                    }
                 }
             }
 
