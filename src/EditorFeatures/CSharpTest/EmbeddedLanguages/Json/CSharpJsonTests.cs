@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
         protected void Test(
             string stringText,
-            string expected,
+            string? expected,
             string looseDiagnostics,
             string strictDiagnostics,
             bool runLooseSubTreeCheck = true)
@@ -48,12 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
         private void Test(
             string stringText, bool strict,
-            string expectedTree, string expectedDiagnostics,
+            string? expectedTree, string expectedDiagnostics,
             bool runSubTreeChecks)
         {
             var tree = TryParseTree(stringText, strict, conversionFailureOk: false);
             if (tree == null)
+            {
+                Assert.Null(expectedTree);
                 return;
+            }
+
+            Assert.NotNull(expectedTree);
 
             // Tests are allowed to not run the subtree tests.  This is because some
             // subtrees can cause the native regex parser to exhibit very bad behavior
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 TryParseSubTrees(stringText, strict);
 
             var actualTree = TreeToText(tree).Replace("\"", "\"\"");
-            Assert.Equal(expectedTree.Replace("\"", "\"\""), actualTree);
+            Assert.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
 
             var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
             Assert.Equal(expectedDiagnostics.Replace("\"", "\"\""), actualDiagnostics);

@@ -107,6 +107,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             try
             {
+                if (text.Length == 0)
+                    return null;
+
                 return new JsonParser(text).ParseTree(strict);
             }
             catch (InsufficientExecutionStackException)
@@ -162,6 +165,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (sequence.IsEmpty)
             {
                 // json is not allowed to be just whitespace.
+                //
+                // Note: we always have at least some content (either real nodes in the tree) or trivia on the EOF token
+                // as we only parse when we have a non-empty sequence of virtual chars to begin with.
                 if (text.Length > 0 &&
                     compilationUnit.EndOfFileToken.LeadingTrivia.All(
                         t => t.Kind is JsonKind.WhitespaceTrivia or JsonKind.EndOfLineTrivia))
