@@ -933,7 +933,6 @@ public class C
 }",
                         SymbolEqualityComparerStubCSharp,
                     }
-
                 }
             }.RunAsync();
 
