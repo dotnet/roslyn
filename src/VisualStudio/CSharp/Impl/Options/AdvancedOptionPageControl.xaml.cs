@@ -179,8 +179,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             var normalPullDiagnosticsOption = OptionStore.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode);
             Enable_pull_diagnostics_experimental_requires_restart.IsChecked = GetCheckboxValueForDiagnosticMode(normalPullDiagnosticsOption);
 
-            Enable_Razor_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
-
             static bool? GetCheckboxValueForDiagnosticMode(DiagnosticMode mode)
             {
                 return mode switch
@@ -225,18 +223,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private void Enable_pull_diagnostics_experimental_requires_restart_Indeterminate(object sender, RoutedEventArgs e)
         {
             this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Default);
-            UpdatePullDiagnosticsOptions();
-        }
-
-        private void Enable_Razor_pull_diagnostics_experimental_requires_restart_Checked(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.RazorDiagnosticMode, DiagnosticMode.Pull);
-            UpdatePullDiagnosticsOptions();
-        }
-
-        private void Enable_Razor_pull_diagnostics_experimental_requires_restart_Unchecked(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.RazorDiagnosticMode, DiagnosticMode.Push);
             UpdatePullDiagnosticsOptions();
         }
 
