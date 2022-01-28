@@ -123,16 +123,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var root = new JsonCompilationUnit(arraySequence, _currentToken);
 
-            // We only report a single diagnostic when parsing out json.  This helps prevent lots of cascading errors
-            // from being reported.  First, we see if there are any diagnostics directly in tokens in the tree.  If not,
-            // we then check for any incorrect tree structure (that would be incorrect for both json.net or
-            // strict-mode).  If we don't run into any problems, we'll then perform specific json.net or strict-mode
-            // checks.
+            // There are three forms of diagnostics we can detect.  The first were generated directly when parsing and
+            // relate to unknown tokens encountered or tokens that were needed but not found.  The second relates to a
+            // set of grammar check rules that apply to both strict and non-strict json.  The last is the specific
+            // strict/loose checks we perform.  We look for all three forms, but only report the first issue we found.
+            // We want to avoid reporting a ton of cascaded errors.
             var diagnostic1 = GetFirstDiagnostic(root);
             var diagnostic2 = CheckTopLevel(_lexer.Text, root);
-
-            // If we didn't have any diagnostics in the tree so far, then do the json.net/strict checks depending on how we
-            // were invoked.
             var diagnostic3 = strict
                 ? StrictSyntaxChecker.CheckSyntax(root)
                 : JsonNetSyntaxChecker.CheckSyntax(root);
