@@ -157,6 +157,8 @@ namespace Microsoft.CodeAnalysis.Completion
             default, default, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
 
+        internal bool IsEmpty => Items.IsEmpty && SuggestionModeItem is null;
+
         internal TestAccessor GetTestAccessor()
             => new(this);
 

@@ -35,7 +35,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim list = Await completionService.GetCompletionsAsync(
                     document, caretPosition:=0, options:=CompletionOptions.Default, trigger:=CompletionTrigger.Invoke)
 
-                Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)
                 Assert.True(list.Items.Length = 1, "Completion list contained more than one item")
                 Assert.Equal("Completion Item From Test Completion Provider", list.Items.First.DisplayText)

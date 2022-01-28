@@ -1206,7 +1206,7 @@ class Program
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
-            if (completionList != null)
+            if (!completionList.IsEmpty)
             {
                 Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
             }

@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var displayOptions = SymbolDescriptionOptions.From(document.Project);
             var completionService = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger, options);
-            var items = completionList == null ? ImmutableArray<RoslynCompletion.CompletionItem>.Empty : completionList.Items;
+            var items = completionList.Items;
 
             if (hasSuggestionModeItem != null)
             {
@@ -1114,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var completionService = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
 
-            return completionList == null ? ImmutableArray<RoslynCompletion.CompletionItem>.Empty : completionList.Items;
+            return completionList.Items;
         }
     }
 }
