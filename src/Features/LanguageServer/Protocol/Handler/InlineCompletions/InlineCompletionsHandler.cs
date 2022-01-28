@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// </summary>
 [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
 [ProvidesMethod(VSInternalMethods.TextDocumentInlineCompletionName)]
-internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList>
+internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
     /// The set of built in snippets from, typically found in
@@ -58,7 +58,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         return request.TextDocument;
     }
 
-    public override async Task<VSInternalInlineCompletionList> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
+    public override async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Document);
 
@@ -67,7 +67,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         var snippetInfo = snippetInfoService.GetSnippetsIfAvailable();
         if (!snippetInfo.Any())
         {
-            return new VSInternalInlineCompletionList();
+            return null;
         }
 
         // Then attempt to get the word at the requested position.
@@ -77,28 +77,28 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         var position = sourceText.Lines.GetPosition(linePosition);
         if (!SnippetUtilities.TryGetWordOnLeft(position, sourceText, syntaxFactsService, out var wordOnLeft))
         {
-            return new VSInternalInlineCompletionList();
+            return null;
         }
 
         // Find the snippet with shortcut text that matches the typed word.
         var wordText = sourceText.GetSubText(wordOnLeft.Value).ToString();
         if (!BuiltInSnippets.Contains(wordText, StringComparer.OrdinalIgnoreCase))
         {
-            return new VSInternalInlineCompletionList();
+            return null;
         }
 
-        var matchingSnippetInfo = snippetInfo.Single(s => wordText.Equals(s.Shortcut, StringComparison.OrdinalIgnoreCase));
+        var matchingSnippetInfo = snippetInfo.First(s => wordText.Equals(s.Shortcut, StringComparison.OrdinalIgnoreCase));
 
         var matchingSnippet = RetrieveSnippetFromXml(matchingSnippetInfo, context);
         if (matchingSnippet == null)
         {
-            return new VSInternalInlineCompletionList();
+            return null;
         }
 
         // We currently only support snippet expansions, the others require selection support which is not applicable here.
-        if (!matchingSnippet.SnippetTypes.Contains("Expansion", StringComparer.OrdinalIgnoreCase))
+        if (!matchingSnippet.IsExpansionSnippet())
         {
-            return new VSInternalInlineCompletionList();
+            return null;
         }
 
         var expansion = new ExpansionTemplate(matchingSnippet);
@@ -107,7 +107,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         var parsedSnippet = expansion.Parse();
         if (parsedSnippet == null)
         {
-            return new VSInternalInlineCompletionList();
+            return null;
         }
 
         var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, context.Document, sourceText, cancellationToken).ConfigureAwait(false);

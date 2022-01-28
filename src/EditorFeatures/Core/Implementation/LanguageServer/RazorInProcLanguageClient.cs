@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 vsServerCapabilities.SupportsDiagnosticRequests = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
 
                 var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);
-                var regex = new Regex(regexExpression);
+                var regex = new Regex(regexExpression, RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1));
                 vsServerCapabilities.InlineCompletionOptions = new VSInternalInlineCompletionOptions
                 {
                     Pattern = regex

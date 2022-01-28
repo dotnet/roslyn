@@ -23,6 +23,8 @@ internal partial class InlineCompletionsHandler
     /// </summary>
     internal class CodeSnippet
     {
+        private const string ExpansionSnippetType = "Expansion";
+
         private readonly string[]? _snippetTypes;
 
         /// <summary>
@@ -52,9 +54,12 @@ internal partial class InlineCompletionsHandler
 
         public string Shortcut { get; }
 
-        public IEnumerable<string>? SnippetTypes { get { return _snippetTypes; } }
-
         public XElement CodeSnippetElement { get; }
+
+        public bool IsExpansionSnippet()
+        {
+            return _snippetTypes?.Contains(ExpansionSnippetType, StringComparer.OrdinalIgnoreCase) == true;
+        }
 
         public static CodeSnippet ReadSnippetFromFile(string filePath, string snippetTitle)
         {
@@ -119,8 +124,8 @@ internal partial class InlineCompletionsHandler
     {
         private record ExpansionField(string ID, string Default, string? FunctionName, string? FunctionParam, bool IsEditable);
 
-        private const string _selected = "selected";
-        private const string _end = "end";
+        private const string Selected = "selected";
+        private const string End = "end";
 
         private readonly List<ExpansionField> _tokens = new();
 
@@ -178,7 +183,7 @@ internal partial class InlineCompletionsHandler
             var fieldNameToSnippetIndex = new Dictionary<string, int>();
             var currentTabStopIndex = 1;
 
-            using var _builder = ArrayBuilder<SnippetPart>.GetInstance(out var snippetParts);
+            using var builder = ArrayBuilder<SnippetPart>.GetInstance(out var snippetParts);
 
             // Mechanically ported from env/msenv/textmgr/ExpansionTemplate.cpp
             while (currentCharIndex < _code!.Length)
@@ -223,13 +228,13 @@ internal partial class InlineCompletionsHandler
                                 var fieldName = _code.Substring(currentTokenCharIndex, fieldNameLength);
 
                                 // first check to see if this is a "special" literal
-                                if (string.Equals(fieldName, _selected, StringComparison.Ordinal))
+                                if (string.Equals(fieldName, Selected, StringComparison.Ordinal))
                                 {
                                     // LSP client currently only invokes on typing (tab) so there is no way to have a selection as part of a snippet request.
                                     // Additionally, TM_SELECTED_TEXT is not supported in the VS LSP client, so we can't set the selection even if we wanted to.
                                     // Since there's no way for the user to ask for a selection replacement, we can ignore it.
                                 }
-                                else if (string.Equals(fieldName, _end, StringComparison.Ordinal))
+                                else if (string.Equals(fieldName, End, StringComparison.Ordinal))
                                 {
                                     snippetParts.Add(new SnippetCursorPart());
                                 }
