@@ -5,8 +5,6 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
@@ -14,17 +12,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are JSON text.
     /// </summary>
-    internal class JsonDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string DiagnosticId = "JSON001";
 
         private readonly EmbeddedLanguageInfo _info;
 
-        public JsonDiagnosticAnalyzer(EmbeddedLanguageInfo info)
+        protected AbstractJsonDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
                    EnforceOnBuildValues.Json,
                    JsonFeatureOptions.ReportInvalidJsonPatterns,
-                   new LocalizableResourceString(nameof(FeaturesResources.JSON_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Invalid_JSON_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.JSON_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _info = info;

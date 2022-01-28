@@ -900,6 +900,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Introducir la variable de consulta</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_JSON_pattern">
+        <source>Invalid JSON pattern</source>
+        <target state="new">Invalid JSON pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_constructor_name">
         <source>Invalid constructor name</source>
         <target state="new">Invalid constructor name</target>
