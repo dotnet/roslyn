@@ -605,7 +605,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
-                case ConversionKind.InterpolatedStringHandler:
 
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
@@ -647,9 +646,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Added for C# 7.1
                 case ConversionKind.DefaultLiteral:
-
-                // Added for C# 9
-                case ConversionKind.ImplicitPointer:
                     return true;
 
                 default:

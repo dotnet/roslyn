@@ -1397,12 +1397,6 @@ namespace System.Runtime.CompilerServices
                 string exprFullText = node.ToFullString();
                 exprFullText = exprFullText.Trim();
 
-                // Account for comments being added as leading trivia for this node.
-                while (exprFullText.StartsWith("//"))
-                {
-                    exprFullText = exprFullText[exprFullText.IndexOf('\n')..].Trim();
-                }
-
                 if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains(EndString))
