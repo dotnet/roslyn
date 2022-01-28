@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Json = /*JSON001*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        // Pure IDE feature for lighting up editor features.  Do not enforce on build.
+        public const EnforceOnBuild DetectProbableJsonStrings = /*JSON002*/ EnforceOnBuild.Never;
 
         /* EnforceOnBuild.Never */
         // TODO: Allow enforcing simplify names and related diagnostics on build once we validate their performance charactericstics.
