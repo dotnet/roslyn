@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct SyntaxValueProvider
     {
-        private readonly ArrayBuilder<ISyntaxInputNode> _inputNodes;
+        private readonly ArrayBuilder<SyntaxInputNode> _inputNodes;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
 
-        internal SyntaxValueProvider(ArrayBuilder<ISyntaxInputNode> inputNodes, Action<IIncrementalGeneratorOutputNode> registerOutput)
+        internal SyntaxValueProvider(ArrayBuilder<SyntaxInputNode> inputNodes, Action<IIncrementalGeneratorOutputNode> registerOutput)
         {
             _inputNodes = inputNodes;
             _registerOutput = registerOutput;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
             return new IncrementalValueProvider<ISyntaxContextReceiver?>(node);
         }
 
-        private void RegisterOutputAndDeferredInput(ISyntaxInputNode node, IIncrementalGeneratorOutputNode output)
+        private void RegisterOutputAndDeferredInput(SyntaxInputNode node, IIncrementalGeneratorOutputNode output)
         {
             _registerOutput(output);
             if (!_inputNodes.Contains(node))

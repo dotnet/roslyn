@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             _filterFunc = filterFunc;
         }
 
-        public ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer) => new Builder(this, key, table, trackIncrementalSteps, name, (IEqualityComparer<T>?)comparer ?? EqualityComparer<T>.Default);
+        public ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T>? comparer) => new Builder(this, key, table, trackIncrementalSteps, name, comparer ?? EqualityComparer<T>.Default);
 
         private sealed class Builder : ISyntaxInputBuilder
         {

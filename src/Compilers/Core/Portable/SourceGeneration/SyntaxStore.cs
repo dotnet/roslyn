@@ -23,17 +23,19 @@ namespace Microsoft.CodeAnalysis
             _compilation = compilation;
         }
 
+        public Builder ToBuilder(Compilation compilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, bool enableTracking, CancellationToken cancellationToken = default) => new Builder(compilation, syntaxInputNodes, enableTracking, this, cancellationToken);
+
         public sealed class Builder
         {
-            private readonly ImmutableDictionary<ISyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<ISyntaxInputNode, Exception>();
+            private readonly ImmutableDictionary<SyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<SyntaxInputNode, Exception>();
             private readonly StateTableStore.Builder _tableBuilder = new StateTableStore.Builder();
             private readonly Compilation _compilation;
-            private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
+            private readonly ImmutableArray<SyntaxInputNode> _syntaxInputNodes;
             private readonly bool _enableTracking;
             private readonly SyntaxStore _previous;
             private readonly CancellationToken _cancellationToken;
 
-            public Builder(Compilation compilation, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, bool enableTracking, SyntaxStore previousStore, CancellationToken cancellationToken = default)
+            internal Builder(Compilation compilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, bool enableTracking, SyntaxStore previousStore, CancellationToken cancellationToken = default)
             {
                 _compilation = compilation;
                 _syntaxInputNodes = syntaxInputNodes;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis
                 _cancellationToken = cancellationToken;
             }
 
-            public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode, NodeStateTable<SyntaxTree> syntaxTreeTable)
+            public IStateTable GetSyntaxInputTable(SyntaxInputNode syntaxInputNode, NodeStateTable<SyntaxTree> syntaxTreeTable)
             {
                 Debug.Assert(_syntaxInputNodes.Contains(syntaxInputNode));
 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                     var compilationIsCached = _compilation == _previous._compilation;
 
                     // get a builder for each input node
-                    var syntaxInputBuilders = ArrayBuilder<(ISyntaxInputNode node, ISyntaxInputBuilder builder)>.GetInstance(_syntaxInputNodes.Length);
+                    var syntaxInputBuilders = ArrayBuilder<(SyntaxInputNode node, ISyntaxInputBuilder builder)>.GetInstance(_syntaxInputNodes.Length);
                     foreach (var node in _syntaxInputNodes)
                     {
                         // TODO: We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
@@ -112,13 +114,11 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // if we don't have an entry for this node, it must have thrown an exception
-                if (!_tableBuilder.Contains(syntaxInputNode))
+                if (!_tableBuilder.TryGetTable(syntaxInputNode, out var result))
                 {
                     throw _syntaxExceptions[syntaxInputNode];
                 }
-
-                _tableBuilder.TryGetTable(syntaxInputNode, out var result);
-                return result!;
+                return result;
             }
 
             public SyntaxStore ToImmutable()

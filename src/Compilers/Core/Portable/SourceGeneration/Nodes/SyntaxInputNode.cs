@@ -8,14 +8,19 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
+    internal abstract class SyntaxInputNode
+    {
+        internal abstract ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps);
+    }
+
+    internal sealed class SyntaxInputNode<T> : SyntaxInputNode, IIncrementalGeneratorNode<T>
     {
         private readonly ISyntaxSelectionStrategy<T> _inputNode;
-        private readonly Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly Action<SyntaxInputNode, IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly IEqualityComparer<T> _comparer;
         private readonly string? _name;
 
-        internal SyntaxInputNode(ISyntaxSelectionStrategy<T> inputNode, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutput, IEqualityComparer<T>? comparer = null, string? name = null)
+        internal SyntaxInputNode(ISyntaxSelectionStrategy<T> inputNode, Action<SyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutput, IEqualityComparer<T>? comparer = null, string? name = null)
         {
             _inputNode = inputNode;
             _registerOutput = registerOutput;
@@ -34,6 +39,6 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(this, output);
 
-        public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps) => _inputNode.GetBuilder(table, this, trackIncrementalSteps, _name, _comparer);
+        internal override ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps) => _inputNode.GetBuilder(table, this, trackIncrementalSteps, _name, _comparer);
     }
 }
