@@ -141,15 +141,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
             foreach (var statement in block.Statements)
             {
-                var parameter = TryGetParameterNullCheckedByStatement(statement);
-                if (ParameterCanUseNullChecking(parameter)
+                if (TryGetParameterNullCheckedByStatement(statement) is var (parameter, diagnosticLocation)
+                    && ParameterCanUseNullChecking(parameter)
                     && parameter.DeclaringSyntaxReferences.FirstOrDefault() is SyntaxReference reference
                     && reference.SyntaxTree.Equals(statement.SyntaxTree)
                     && reference.GetSyntax() is ParameterSyntax parameterSyntax)
                 {
                     context.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
-                        statement.GetLocation(),
+                        diagnosticLocation,
                         option.Notification.Severity,
                         additionalLocations: new[] { parameterSyntax.GetLocation() },
                         properties: null));
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 if (parameter is null)
                     return false;
 
-                if (parameter.RefKind != RefKind.None)
+                if (parameter.RefKind == RefKind.Out)
                     return false;
 
                 if (parameter.Type.IsValueType)
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 return true;
             }
 
-            IParameterSymbol? TryGetParameterNullCheckedByStatement(StatementSyntax statement)
+            (IParameterSymbol parameter, Location diagnosticLocation)? TryGetParameterNullCheckedByStatement(StatementSyntax statement)
             {
                 switch (statement)
                 {
@@ -229,18 +229,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             return null;
                         }
 
-                        return parameterInBinary;
+                        return (parameterInBinary, ifStatement.GetLocation());
 
                     // this.field = param ?? throw new ArgumentNullException(nameof(param));
                     case ExpressionStatementSyntax
                     {
                         Expression: AssignmentExpressionSyntax
                         {
+                            Left: var leftOfAssignment,
                             Right: BinaryExpressionSyntax
                             {
                                 OperatorToken.RawKind: (int)SyntaxKind.QuestionQuestionToken,
                                 Left: ExpressionSyntax maybeParameter,
-                                Right: ThrowExpressionSyntax { Expression: ObjectCreationExpressionSyntax thrownInNullCoalescing }
+                                Right: ThrowExpressionSyntax { Expression: ObjectCreationExpressionSyntax thrownInNullCoalescing } throwExpression
                             }
                         }
                     }:
@@ -250,7 +251,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             return null;
                         }
 
-                        return coalescedParameter;
+                        // ensure we delete the entire statement in the below scenario:
+                        //     void M(string s) { s = s ?? throw new ArgumentNullException(); }
+                        // otherwise, we just replace the '??' expression with its left operand
+                        var diagnosticLocation = coalescedParameter.Equals(semanticModel.GetSymbolInfo(leftOfAssignment, cancellationToken).Symbol)
+                            ? statement.GetLocation()
+                            : throwExpression.GetLocation();
+
+                        return (coalescedParameter, diagnosticLocation);
 
                     default:
                         return null;

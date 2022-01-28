@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
                 return content is not null;
             }
 
-            private string? GetLocationString(SettingLocation location)
+            private static string? GetLocationString(SettingLocation location)
             {
                 return location.LocationKind switch
                 {

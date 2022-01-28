@@ -796,6 +796,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.IsAssignableFrom<RemoteWorkspace>(recoveredSolution.Workspace);
             var primaryWorkspace = recoveredSolution.Workspace;
             Assert.Equal(solutionChecksum, await recoveredSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Same(primaryWorkspace.PrimaryBranchId, recoveredSolution.BranchId);
 
             // get new solution
             var newSolution = newSolutionGetter(solution);
@@ -806,12 +807,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var recoveredNewSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, newSolutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await recoveredNewSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.NotSame(primaryWorkspace.PrimaryBranchId, recoveredNewSolution.BranchId);
 
             // do same once updating primary workspace
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, newSolutionChecksum, solution.WorkspaceVersion + 1, CancellationToken.None);
             var third = await remoteWorkspace.GetSolutionAsync(assetProvider, newSolutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Same(primaryWorkspace.PrimaryBranchId, third.BranchId);
 
             newSolutionValidator?.Invoke(recoveredNewSolution);
         }

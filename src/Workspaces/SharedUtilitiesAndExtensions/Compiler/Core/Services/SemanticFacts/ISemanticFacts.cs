@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
 
+        bool IsNullChecked(IParameterSymbol parameter, CancellationToken cancellationToken);
+
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
         IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken);
@@ -99,5 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Finds all local function definitions within the syntax references for a given <paramref name="symbol"/>
         /// </summary>
         ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken);
+
+        bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
     }
 }

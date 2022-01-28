@@ -236,6 +236,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
         }
 
+        public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
+        {
+            foreach (var syntaxReference in parameterSymbol.DeclaringSyntaxReferences)
+            {
+                if (syntaxReference.GetSyntax(cancellationToken) is ParameterSyntax parameterSyntax
+                    && parameterSyntax.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public IEnumerable<ISymbol> GetDeclaredSymbols(
             SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
         {
@@ -355,5 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return builder.ToImmutable();
         }
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
     }
 }

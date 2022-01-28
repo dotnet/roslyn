@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var (document, textSpan, cancellationToken) = context;
 
             var syntaxTree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
-            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(((CSharpParseOptions)syntaxTree.Options).LanguageVersion))
+            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(syntaxTree.Options.LanguageVersion()))
             {
                 return;
             }

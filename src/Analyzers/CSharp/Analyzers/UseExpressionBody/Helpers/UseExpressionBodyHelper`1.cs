@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return false;
             }
 
-            var languageVersion = ((CSharpParseOptions)body.SyntaxTree.Options).LanguageVersion;
+            var languageVersion = body.SyntaxTree.Options.LanguageVersion();
 
             return body.TryConvertToArrowExpressionBody(
                 declaration.Kind(), languageVersion, conversionPreference,

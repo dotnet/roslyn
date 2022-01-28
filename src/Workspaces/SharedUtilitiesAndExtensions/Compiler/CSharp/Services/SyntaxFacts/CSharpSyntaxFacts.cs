@@ -50,22 +50,22 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
         public bool SupportsIndexingInitializer(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
+            => options.LanguageVersion() >= LanguageVersion.CSharp6;
 
         public bool SupportsThrowExpression(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+            => options.LanguageVersion() >= LanguageVersion.CSharp7;
 
         public bool SupportsLocalFunctionDeclaration(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+            => options.LanguageVersion() >= LanguageVersion.CSharp7;
 
         public bool SupportsRecord(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+            => options.LanguageVersion() >= LanguageVersion.CSharp9;
 
         public bool SupportsRecordStruct(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion.IsCSharp10OrAbove();
+            => options.LanguageVersion() >= LanguageVersion.CSharp10;
 
         public bool SupportsTargetTypedConditionalExpression(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+            => options.LanguageVersion() >= LanguageVersion.CSharp9;
 
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
@@ -1492,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool SupportsNotPattern(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion.IsCSharp9OrAbove();
+            => options.LanguageVersion() >= LanguageVersion.CSharp9;
 
         public bool IsAndPattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.AndPattern);

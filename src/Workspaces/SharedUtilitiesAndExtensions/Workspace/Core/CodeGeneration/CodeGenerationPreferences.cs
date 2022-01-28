@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editing;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -20,12 +21,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// </summary>
     internal abstract class CodeGenerationPreferences
     {
-        public readonly OptionSet Options;
+        protected readonly OptionSet Options;
 
         public CodeGenerationPreferences(OptionSet options)
         {
             Options = options;
         }
+
+        public abstract string Language { get; }
+        public abstract bool PlaceImportsInsideNamespaces { get; }
+
+        public bool PlaceSystemNamespaceFirst
+            => Options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, Language);
 
 #if !CODE_STYLE
         public abstract CodeGenerationOptions GetOptions(CodeGenerationContext context);

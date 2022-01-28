@@ -55,7 +55,7 @@ public class [|C|]
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -101,16 +101,12 @@ public class [|C|]
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
 {{
-    public int Property
-    {{
-        get;
-        set;
-    }}
+    public int Property {{ get; init; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -147,7 +143,7 @@ public class [|C|]
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -205,7 +201,7 @@ namespace System
 }}",
                     false => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
 // System.ValueTuple.dll
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Collections;
@@ -428,7 +424,7 @@ public class [|C|]
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]

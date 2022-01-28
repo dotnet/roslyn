@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate, cancellationToken);
                     }
 
-                    private DocumentId? GetProperDocumentId(DiagnosticTableItem item)
+                    private static DocumentId? GetProperDocumentId(DiagnosticTableItem item)
                     {
                         var documentId = item.DocumentId;
                         var projectId = item.ProjectId;
