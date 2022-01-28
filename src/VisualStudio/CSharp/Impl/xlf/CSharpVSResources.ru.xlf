@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Prefer_extended_property_pattern">
         <source>Prefer extended property pattern</source>
-        <target state="new">Prefer extended property pattern</target>
+        <target state="translated">Предпочитать расширенный шаблон свойства</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
@@ -140,6 +140,11 @@
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Предпочитать проверку "null" проверке типа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

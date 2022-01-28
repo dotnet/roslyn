@@ -104,11 +104,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return _original.GetMessage(formatProvider);
                 }
 
-                public override bool Equals(object? obj)
-                {
-                    return _original.Equals(obj);
-                }
-
                 public override int GetHashCode()
                 {
                     return _original.GetHashCode();

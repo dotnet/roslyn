@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
 
-namespace Microsoft.CodeAnalysis.Editor.FindUsages
+namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal static class FindUsagesHelpers
     {

@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     additionalProperties);
             }
 
-            private async Task<(ExcerptResult, SourceText)> ExcerptAsync(
+            private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(
                 SourceText sourceText, DocumentSpan documentSpan, ClassificationOptions options, CancellationToken cancellationToken)
             {
                 var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
@@ -463,7 +463,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return ValueTaskFactory.CompletedTask;
             }
 
-            protected DefinitionItem CreateNoResultsDefinitionItem(string message)
+            protected static DefinitionItem CreateNoResultsDefinitionItem(string message)
                 => DefinitionItem.CreateNonNavigableItem(
                     GlyphTags.GetTags(Glyph.StatusInformation),
                     ImmutableArray.Create(new TaggedText(TextTags.Text, message)));

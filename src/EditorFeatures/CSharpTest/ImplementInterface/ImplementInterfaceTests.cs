@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 FixedCode = expectedMarkup,
                 CodeActionEquivalenceKey = codeAction?.equivalenceKey,
                 CodeActionIndex = codeAction?.index,
+                LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
 
@@ -9379,6 +9380,103 @@ class C : IGoo<string>
     }
 }
 ");
+        }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : {|CS0535:I|}
+{
+}",
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : I
+{
+    public void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter_ExplicitInterfaceImplementation()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : {|CS0535:I|}
+{
+}",
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : I
+{
+    void I.M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+        where T1 : default
+        where T3 : default
+    {
+        throw new System.NotImplementedException();
+    }
+}", codeAction: ("True;False;False:global::I;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+        }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter_ExplicitInterfaceImplementationWithClassConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) where T1 : class;
+}
+
+class D : {|CS0535:I|}
+{
+}",
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) where T1 : class;
+}
+
+class D : I
+{
+    void I.M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+        where T1 : class
+        where T3 : default
+    {
+        throw new System.NotImplementedException();
+    }
+}", codeAction: ("True;False;False:global::I;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
         }
 
         [WorkItem(51779, "https://github.com/dotnet/roslyn/issues/51779")]

@@ -4,8 +4,12 @@
 
 #nullable disable
 
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -28,7 +32,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestCSharpDefaultRules()
         {
-            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace(), LanguageNames.CSharp);
+            using var workspace = new AdhocWorkspace();
+
+            var service = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ISyntaxFormattingService>();
+            var rules = service.GetDefaultFormattingRules();
 
             Assert.NotNull(rules);
             Assert.NotEmpty(rules);
@@ -54,7 +61,9 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestVisualBasicDefaultFormattingRules()
         {
-            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace(), LanguageNames.VisualBasic);
+            using var workspace = new AdhocWorkspace();
+            var service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService<ISyntaxFormattingService>();
+            var rules = service.GetDefaultFormattingRules();
 
             Assert.NotNull(rules);
             Assert.NotEmpty(rules);
@@ -63,19 +72,20 @@ End Class
         private static void AssertFormatCSharp(string expected, string input)
         {
             var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree);
+            AssertFormat(expected, tree, CSharpSyntaxFormattingOptions.Default);
         }
 
         private static void AssertFormatVB(string expected, string input)
         {
             var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree);
+            AssertFormat(expected, tree, VisualBasicSyntaxFormattingOptions.Default);
         }
 
-        private static void AssertFormat(string expected, SyntaxTree tree)
+        private static void AssertFormat(string expected, SyntaxTree tree, SyntaxFormattingOptions options)
         {
             using var workspace = new AdhocWorkspace();
-            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace);
+
+            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services, options, CancellationToken.None);
             var actualFormattedText = formattedRoot.ToFullString();
 
             Assert.Equal(expected, actualFormattedText);

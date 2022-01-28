@@ -10,6 +10,7 @@ using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -88,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         protected override string FallbackDefaultLiteral => "default";
 
         internal override Document AddImports(
-            Document document, OptionSet options, int position, XElement snippetNode,
+            Document document, CodeGenerationPreferences preferences, int position, XElement snippetNode,
             bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, options, allowInHiddenRegions, cancellationToken);
+            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, preferences, allowInHiddenRegions, cancellationToken);
 
             var newDocument = document.WithSyntaxRoot(newRoot);
 

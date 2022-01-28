@@ -6997,7 +6997,7 @@ class Program
                 //         var d3 = delegate () { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { }").WithArguments("inferred delegate type", "10.0").WithLocation(10, 18));
 
-            comp = CreateCompilation(new[] { source, s_utils }, options: TestOptions.DebugExe);
+            comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -8099,7 +8099,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -8320,7 +8320,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -8768,7 +8768,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, validator: validator, expectedOutput: "D");
 
             static void validator(PEAssembly assembly)
@@ -8809,7 +8809,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, validator: validator, expectedOutput:
 @"<>A{00000001}`2[System.Object,System.Object]
 D2

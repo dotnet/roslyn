@@ -589,6 +589,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             Debug.Assert(member.AdaptedSymbol.IsDefinition);
             Debug.Assert(ModuleBeingBuilt.SourceModule.AnyReferencedAssembliesAreLinked);
 
+            if (member.AdaptedSymbol.OriginalDefinition is SynthesizedGlobalMethodSymbol)
+            {
+                // No need to embed an internal type from current assembly
+                return null;
+            }
+
             NamedTypeSymbol namedType = member.AdaptedSymbol.ContainingType;
 
             if (IsValidEmbeddableType(namedType, syntaxNodeOpt, diagnostics, this))
