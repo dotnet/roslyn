@@ -12,11 +12,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-    internal class GoToSymbolContext
+    internal sealed class GoToSymbolContext
     {
         private readonly object _gate = new();
-
         private readonly MultiDictionary<string, DefinitionItem> _items = new();
+
+        public Document Document { get; }
+        public int Position { get; }
+        public CancellationToken CancellationToken { get; }
+
+        public TextSpan Span { get; set; }
 
         public GoToSymbolContext(Document document, int position, CancellationToken cancellationToken)
         {
@@ -24,12 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             Position = position;
             CancellationToken = cancellationToken;
         }
-
-        public Document Document { get; }
-        public int Position { get; }
-        public CancellationToken CancellationToken { get; }
-
-        public TextSpan Span { get; set; }
 
         internal bool TryGetItems(string key, out IEnumerable<DefinitionItem> items)
         {
