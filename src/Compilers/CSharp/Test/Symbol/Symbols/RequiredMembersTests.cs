@@ -376,7 +376,9 @@ class C
             Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("C.Field", "0").WithLocation(5, 25)
         );
 
-        verifier.VerifyTypeIL("C", @"
+        if (ExecutionConditionUtil.IsCoreClr)
+        {
+            verifier.VerifyTypeIL("C", @"
 .class private auto ansi beforefieldinit C
     extends [netstandard]System.Object
 {
@@ -443,6 +445,7 @@ class C
     }
 } // end of class C
 ");
+        }
     }
 
     [Fact]
@@ -510,7 +513,10 @@ class Derived : Base
         var verifier = CompileAndVerify(comp, sourceSymbolValidator: ValidateRequiredMembersInModule(expectedRequiredMembers));
         verifier.VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Base", @"
+
+        if (ExecutionConditionUtil.IsCoreClr)
+        {
+            verifier.VerifyTypeIL("Base", @"
 .class private auto ansi beforefieldinit Base
     extends [netstandard]System.Object
 {
@@ -574,7 +580,7 @@ class Derived : Base
 } // end of class Base
 ");
 
-        verifier.VerifyTypeIL("Derived", @"
+            verifier.VerifyTypeIL("Derived", @"
 .class private auto ansi beforefieldinit Derived
     extends Base
 {
@@ -637,6 +643,7 @@ class Derived : Base
     }
 } // end of class Derived
 ");
+        }
     }
 
     [Fact]
@@ -662,7 +669,10 @@ class DerivedDerived : Derived
         var verifier = CompileAndVerify(comp, sourceSymbolValidator: ValidateRequiredMembersInModule(expectedRequiredMembers));
         verifier.VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Base", @"
+
+        if (ExecutionConditionUtil.IsCoreClr)
+        {
+            verifier.VerifyTypeIL("Base", @"
 .class private auto ansi beforefieldinit Base
     extends [netstandard]System.Object
 {
@@ -720,7 +730,7 @@ class DerivedDerived : Derived
 } // end of class Base
 ");
 
-        verifier.VerifyTypeIL("Derived", @"
+            verifier.VerifyTypeIL("Derived", @"
 .class private auto ansi beforefieldinit Derived
     extends Base
 {
@@ -784,7 +794,7 @@ class DerivedDerived : Derived
 } // end of class Derived
 ");
 
-        verifier.VerifyTypeIL("DerivedDerived", @"
+            verifier.VerifyTypeIL("DerivedDerived", @"
 .class private auto ansi beforefieldinit DerivedDerived
     extends Derived
 {
@@ -847,6 +857,7 @@ class DerivedDerived : Derived
     }
 } // end of class DerivedDerived
 ");
+        }
     }
 
     [Fact]
