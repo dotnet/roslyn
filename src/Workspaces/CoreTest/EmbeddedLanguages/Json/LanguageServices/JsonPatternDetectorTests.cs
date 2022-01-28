@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServices
 {
     public class JsonPatternDetectorTests
     {
-        private void Match(string value, JsonFeatureOptions? expectedOptions = null)
+        private static void Match(string value, JsonOptions? expectedOptions = null)
         {
             Assert.True(JsonPatternDetector.TestAccessor.TryMatch(value, out var actualOptions));
 
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
             }
         }
 
-        private void NoMatch(string value)
+        private static void NoMatch(string value)
         {
             Assert.False(JsonPatternDetector.TestAccessor.TryMatch(value, out _));
         }
@@ -119,31 +118,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
         [Fact]
         public void TestOption()
         {
-            Match("lang=json,strict", JsonFeatureOptions.Strict);
+            Match("lang=json,strict", JsonOptions.Strict);
         }
 
         [Fact]
         public void TestOptionWithSpaces()
         {
-            Match("lang=json , strict", JsonFeatureOptions.Strict);
+            Match("lang=json , strict", JsonOptions.Strict);
         }
 
         [Fact]
         public void TestOptionFollowedByPeriod()
         {
-            Match("lang=json,strict. Explanation", JsonFeatureOptions.Strict);
+            Match("lang=json,strict. Explanation", JsonOptions.Strict);
         }
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod()
         {
-            Match("lang=json,strict,Strict. Explanation", JsonFeatureOptions.Strict);
+            Match("lang=json,strict,Strict. Explanation", JsonOptions.Strict);
         }
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod_CaseInsensitive()
         {
-            Match("Language=Json,Strict. Explanation", JsonFeatureOptions.Strict);
+            Match("Language=Json,Strict. Explanation", JsonOptions.Strict);
         }
 
         [Fact]

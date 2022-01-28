@@ -5,16 +5,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
@@ -46,7 +41,7 @@ class Program
                 options: OptionOn(),
                 diagnosticId: JsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(WorkspacesResources.JSON_issue_0, WorkspacesResources.Constructors_not_allowed));
+                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
@@ -63,8 +58,8 @@ class Program
                 options: OptionOn(),
                 diagnosticId: JsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(WorkspacesResources.JSON_issue_0, 
-                    string.Format(WorkspacesResources._0_unexpected, '}')));
+                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, 
+                    string.Format(FeaturesResources._0_unexpected, '}')));
         }
     }
 }

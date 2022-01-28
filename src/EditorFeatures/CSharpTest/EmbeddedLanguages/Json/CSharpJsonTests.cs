@@ -9,8 +9,8 @@ using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 return (token, null, allChars);
             }
 
-            var tree = JsonParser.TryParse(allChars, strict);
+            var tree = JsonParser.TryParse(allChars, strict ? JsonOptions.Strict : JsonOptions.None);
             return (token, tree, allChars);
         }
 

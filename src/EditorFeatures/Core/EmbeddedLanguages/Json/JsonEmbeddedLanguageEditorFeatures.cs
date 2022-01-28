@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
 {
-    internal class JsonEmbeddedLanguageEditorFeatures : JsonEmbeddedLanguageFeatures, IEmbeddedLanguageEditorFeatures
+    internal class JsonEmbeddedLanguageEditorFeatures : JsonEmbeddedLanguage, IEmbeddedLanguageEditorFeatures
     {
         public IBraceMatcher BraceMatcher { get; }
 
-        public JsonEmbeddedLanguageEditorFeatures(AbstractEmbeddedLanguageEditorFeaturesProvider provider, EmbeddedLanguageInfo info)
-            : base(provider, info)
+        public JsonEmbeddedLanguageEditorFeatures(EmbeddedLanguageInfo info)
+            : base(info)
         {
             BraceMatcher = new JsonEmbeddedBraceMatcher(info);
         }

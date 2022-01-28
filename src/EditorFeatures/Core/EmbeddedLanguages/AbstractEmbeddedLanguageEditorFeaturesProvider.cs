@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
         {
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguageEditorFeatures(info),
-                new JsonEmbeddedLanguageEditorFeatures(this, info),
+                new JsonEmbeddedLanguageEditorFeatures(info),
                 new RegexEmbeddedLanguageEditorFeatures(this, info),
                 new FallbackEmbeddedLanguage(info));
         }
