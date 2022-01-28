@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
@@ -19,15 +18,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             Return (New VisualBasicRegexDiagnosticAnalyzer(), Nothing)
         End Function
 
-<<<<<<< HEAD
-        Private Function OptionOn() As IDictionary(Of OptionKey, Object)
-            Dim values = New Dictionary(Of OptionKey, Object)
-            values.Add(New OptionKey(RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), True)
-=======
         Private Shared Function OptionOn() As OptionsCollection
             Dim values = New OptionsCollection(LanguageNames.VisualBasic)
             values.Add(RegularExpressionsOptions.ReportInvalidRegexPatterns, True)
->>>>>>> jsonTests
             Return values
         End Function
 

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
 {
@@ -30,16 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-<<<<<<< HEAD
-            var option = document.Project.Solution.Workspace.Options.GetOption(
-                RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
-            if (!option)
-=======
             if (!options.HighlightRelatedRegexComponentsUnderCursor)
->>>>>>> jsonTests
-            {
                 return null;
-            }
 
             var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
             return tree == null ? null : GetMatchingBraces(tree, position);
