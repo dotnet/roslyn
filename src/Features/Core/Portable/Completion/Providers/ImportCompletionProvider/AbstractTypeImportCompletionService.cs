@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 : GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken);
         }
 
-        public async Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
+        public async Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(
             Project currentProject,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             }
 
             var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            return getCacheResults.SelectAsArray(GetItemsFromCacheResult);
+            return (getCacheResults.SelectAsArray(GetItemsFromCacheResult), isPartialResult);
 
             ImmutableArray<CompletionItem> GetItemsFromCacheResult(GetCacheResult cacheResult)
             {
