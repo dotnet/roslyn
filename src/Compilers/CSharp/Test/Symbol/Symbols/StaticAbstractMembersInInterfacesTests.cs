@@ -10641,22 +10641,10 @@ class Test
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (14,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 20),
-                // (15,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 20),
-                // (28,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 20),
-                // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
                 // (35,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
                 //         _ = nameof(T.P03);
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 20),
@@ -11500,18 +11488,6 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (14,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 20),
-                // (15,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 20),
-                // (28,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 20),
-                // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
                 // (35,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
                 //         _ = nameof(T.P03);
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 20),

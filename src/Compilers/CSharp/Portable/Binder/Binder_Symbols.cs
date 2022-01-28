@@ -2503,7 +2503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ((CSharpParseOptions)syntax.SyntaxTree.Options).IsFeatureEnabled(feature);
         }
-        
+
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
         {
             return CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
