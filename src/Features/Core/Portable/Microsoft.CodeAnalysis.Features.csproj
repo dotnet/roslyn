@@ -116,6 +116,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="SymbolSearch\Windows\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
     <Compile Include="..\..\..\CodeStyle\Core\Analyzers\FormattingAnalyzerHelper.cs" Link="Formatting\FormattingAnalyzerHelper.cs" />
     <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FormattingCodeFixHelper.cs" Link="Formatting\FormattingCodeFixHelper.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\TextUtilities.cs" Link="Shared\Utilities\TextUtilities.cs" />
@@ -133,6 +134,8 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
   </ItemGroup>

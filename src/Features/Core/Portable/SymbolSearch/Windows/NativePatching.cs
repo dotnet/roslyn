@@ -5,20 +5,18 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch.Patching
+namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
     /// Wrapper around the msdelta api so we can consume patches produced by the Elfie service.
     /// Pinvokes and code provided by Dan Thompson
     /// </summary>
-    internal static unsafe class Delta
+    internal static unsafe class NativePatching
     {
         [StructLayout(LayoutKind.Sequential)]
         private struct DeltaInput
