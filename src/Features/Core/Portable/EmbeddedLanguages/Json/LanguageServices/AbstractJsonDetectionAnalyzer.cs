@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var options = context.Options;
 
             var option = context.GetOption(JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, syntaxTree.Options.Language);
             if (!option)
