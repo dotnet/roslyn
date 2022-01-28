@@ -12,10 +12,9 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     [ExportWorkspaceService(typeof(IStackTraceExplorerService)), Shared]
     internal class StackTraceExplorerService : IStackTraceExplorerService

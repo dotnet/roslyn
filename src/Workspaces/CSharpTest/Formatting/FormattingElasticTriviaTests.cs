@@ -6,6 +6,7 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -90,7 +91,7 @@ class B
             Assert.NotNull(compilation);
 
             using var workspace = new AdhocWorkspace();
-            var newCompilation = Formatter.Format(compilation, workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
+            var newCompilation = Formatter.Format(compilation, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
 
@@ -117,7 +118,7 @@ public class SomeAttribute : System.Attribute { }
             var decl = generator.GetDeclaration(root.DescendantNodes().OfType<VariableDeclaratorSyntax>().First(vd => vd.Identifier.Text == "f2"));
             var newDecl = generator.AddAttributes(decl, generator.Attribute("Some")).WithAdditionalAnnotations(Formatter.Annotation);
             var newRoot = root.ReplaceNode(decl, newDecl);
-            var options = SyntaxFormattingOptions.Default;
+            var options = CSharpSyntaxFormattingOptions.Default;
 
             var expected = @"
 public class C
@@ -195,7 +196,7 @@ public class SomeAttribute : System.Attribute { }
             Assert.NotNull(compilation);
 
             using var workspace = new AdhocWorkspace();
-            var newCompilation = Formatter.Format(compilation, workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
+            var newCompilation = Formatter.Format(compilation, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
     }
