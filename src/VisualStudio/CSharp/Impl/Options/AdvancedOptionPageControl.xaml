@@ -165,16 +165,15 @@
             </GroupBox>
 
             <GroupBox x:Uid="RegularExpressionsGroupBox"
-<<<<<<< HEAD
-                    Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
+                        Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
                 <StackPanel>
                     <CheckBox x:Name="Colorize_regular_expressions"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
                     <CheckBox x:Name="Report_invalid_regular_expressions"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
                     <CheckBox x:Name="Highlight_related_regular_expression_components_under_cursor"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
-                  <CheckBox x:Name="Show_completion_list"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
+                    <CheckBox x:Name="Show_completion_list"
                             Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
                 </StackPanel>
             </GroupBox>
@@ -192,20 +191,6 @@
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
                 </StackPanel>
             </GroupBox>
-=======
-                        Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
-                <StackPanel>
-                    <CheckBox x:Name="Colorize_regular_expressions"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
-                    <CheckBox x:Name="Report_invalid_regular_expressions"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
-                    <CheckBox x:Name="Highlight_related_components_under_cursor"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
-                    <CheckBox x:Name="Show_completion_list"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
-                </StackPanel>
-            </GroupBox>
->>>>>>> jsonTests
 
             <GroupBox x:Uid="ClassificationsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">

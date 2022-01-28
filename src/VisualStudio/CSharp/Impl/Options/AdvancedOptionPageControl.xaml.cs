@@ -17,8 +17,8 @@ using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineHints;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -127,21 +127,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
 
-<<<<<<< HEAD
-            BindToOption(Colorize_regular_expressions, RegexFeatureOptions.ColorizeRegexPatterns, LanguageNames.CSharp);
-            BindToOption(Report_invalid_regular_expressions, RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp);
-            BindToOption(Highlight_related_regular_expression_components_under_cursor, RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
-            BindToOption(Show_completion_list, RegexFeatureOptions.ProvideRegexCompletions, LanguageNames.CSharp);
-
-            BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.CSharp);
-            BindToOption(Colorize_JSON_strings, JsonFeatureOptions.ColorizeJsonPatterns, LanguageNames.CSharp);
-            BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.CSharp);
-            BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.CSharp);
-=======
             BindToOption(Colorize_regular_expressions, ClassificationOptions.Metadata.ColorizeRegexPatterns, LanguageNames.CSharp);
             BindToOption(Report_invalid_regular_expressions, RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp);
-            BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
+            BindToOption(Highlight_related_regular_expression_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
             BindToOption(Show_completion_list, CompletionOptions.Metadata.ProvideRegexCompletions, LanguageNames.CSharp);
+
+            BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.CSharp);
+            BindToOption(Colorize_JSON_strings, ClassificationOptions.Metadata.ColorizeJsonPatterns, LanguageNames.CSharp);
+            BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.CSharp);
+            BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.CSharp);
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
 
@@ -215,7 +209,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 // Update the actual value of the feature flag to ensure CPS is informed of the new feature flag value.
                 this.OptionStore.SetOption(DiagnosticOptions.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
             }
->>>>>>> jsonTests
 
             // Update the workspace option.
             this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, newDiagnosticMode);
