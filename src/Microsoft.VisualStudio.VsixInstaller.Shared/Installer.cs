@@ -40,7 +40,19 @@ namespace Microsoft.VisualStudio.VsixInstaller
 
             Assembly? HandleAssemblyResolve(object sender, ResolveEventArgs args)
             {
-                string path = Path.Combine(installationPath, @"Common7\IDE\PrivateAssemblies", new AssemblyName(args.Name).Name + ".dll");
+                string path = Path.Combine(installationPath, @"Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Threading.17.x", new AssemblyName(args.Name).Name + ".dll");
+                if (File.Exists(path))
+                {
+                    return Assembly.LoadFrom(path);
+                }
+
+                path = Path.Combine(installationPath, @"Common7\IDE\PrivateAssemblies\Newtonsoft.Json.13.0.1.0", new AssemblyName(args.Name).Name + ".dll");
+                if (File.Exists(path))
+                {
+                    return Assembly.LoadFrom(path);
+                }
+
+                path = Path.Combine(installationPath, @"Common7\IDE\PrivateAssemblies", new AssemblyName(args.Name).Name + ".dll");
                 if (File.Exists(path))
                 {
                     return Assembly.LoadFrom(path);
