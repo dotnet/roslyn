@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal partial class RegexEmbeddedCompletionProvider.LanguageServices
+    internal partial class RegexEmbeddedCompletionProvider
     {
         private readonly struct EmbeddedCompletionContext
         {
