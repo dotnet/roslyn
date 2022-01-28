@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
             BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
 
-            BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptions.OpenOnFocus);
+            BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsMetadata.OpenOnFocus);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

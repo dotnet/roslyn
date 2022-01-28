@@ -26,12 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             _package = package;
             _threadingContext = package.ComponentModel.GetService<IThreadingContext>();
+            var globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
 
-            var workspace = package.ComponentModel.GetService<VisualStudioWorkspace>();
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
-            optionService.OptionChanged += OptionService_OptionChanged;
+            globalOptions.OptionChanged += OptionService_OptionChanged;
 
-            var enabled = workspace.CurrentSolution.Options.GetOption(StackTraceExplorerOptions.OpenOnFocus);
+            var enabled = globalOptions.GetOption(StackTraceExplorerOptionsMetadata.OpenOnFocus);
             if (enabled)
             {
                 AdviseBroadcastMessages();
@@ -112,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option == StackTraceExplorerOptions.OpenOnFocus && e.Value is not null)
+            if (e.Option == StackTraceExplorerOptionsMetadata.OpenOnFocus && e.Value is not null)
             {
                 var enabled = (bool)e.Value;
                 if (enabled)

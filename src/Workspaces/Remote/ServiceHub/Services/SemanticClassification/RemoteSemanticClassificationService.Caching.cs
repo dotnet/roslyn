@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             : base(arguments)
         {
             _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationOptions, StorageDatabase)>(
-                TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
+                DelayTimeSpan.Short,
                 CacheSemanticClassificationsAsync,
                 EqualityComparer<(Document, ClassificationOptions, StorageDatabase)>.Default,
                 AsynchronousOperationListenerProvider.NullListener,

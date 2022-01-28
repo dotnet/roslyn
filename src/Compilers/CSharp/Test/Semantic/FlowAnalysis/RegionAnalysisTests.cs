@@ -8032,6 +8032,59 @@ class Program
             Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
+        [WorkItem(57428, "https://github.com/dotnet/roslyn/issues/57428")]
+        [Fact]
+        public void AttributeArgumentWithLambdaBody_01()
+        {
+            var source =
+@"using System.Runtime.InteropServices;
+class Program
+{
+    static void F([DefaultParameterValue(() => { return 0; })] object obj)
+    {
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (4,42): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     static void F([DefaultParameterValue(() => { return 0; })] object obj)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "() => { return 0; }").WithLocation(4, 42));
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var analysis = model.AnalyzeDataFlow(expr);
+            Assert.False(analysis.Succeeded);
+        }
+
+        [Fact]
+        public void AttributeArgumentWithLambdaBody_02()
+        {
+            var source =
+@"using System;
+class A : Attribute
+{
+    internal A(object o) { }
+}
+class Program
+{
+    static void F([A(() => { return 0; })] object obj)
+    {
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     static void F([A(() => { return 0; })] object obj)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "() => { return 0; }").WithLocation(8, 22));
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var analysis = model.AnalyzeDataFlow(expr);
+            Assert.False(analysis.Succeeded);
+        }
+
         #endregion
 
         #region "Used Local Functions"

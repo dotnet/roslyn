@@ -275,6 +275,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">문자 범위에 \{0} 클래스를 포함할 수 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
       </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
         <target state="translated">캡처 그룹 번호는 Int32.MaxValue보다 작거나 같아야 합니다.</target>
@@ -2430,6 +2435,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">선언이 없는 로컬 함수 호출이 선택 영역에 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_symbol_has_no_implementations">
+        <source>The symbol has no implementations.</source>
+        <target state="new">The symbol has no implementations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Timeout_SourceLink">
         <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
         <target state="translated">SourceLink에서 원본 코드를 다운로드하는 동안 시간이 초과되었습니다. 후속 요청이 성공할 수 있습니다.</target>
@@ -2780,6 +2790,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">SourceLink를 통해 '{0}'을(를) 찾았지만 임시 파일을 읽을 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_implementations">
+        <source>'{0}' implementations</source>
+        <target state="new">'{0}' implementations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}'은(는) 여기에서 null이 아닙니다.</target>
@@ -2788,6 +2803,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
         <target state="translated">'{0}'은(는) 여기에서 null일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>'{0}' references</source>
+        <target state="new">'{0}' references</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
