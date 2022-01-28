@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -19,13 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpEmbeddedLanguageDiagnosticAnalyzer(), null);
 
-        private IDictionary<OptionKey, object> OptionOn()
-        {
-            var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.CSharp), true);
-            optionsSet.Add(new OptionKey(JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.VisualBasic), true);
-            return optionsSet;
-        }
+        private OptionsCollection OptionOn()
+            => new(LanguageNames.CSharp)
+            {
+                { JsonFeatureOptions.ReportInvalidJsonPatterns, true }
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
         public async Task TestWarning1()
@@ -58,7 +57,7 @@ class Program
                 options: OptionOn(),
                 diagnosticId: JsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, 
+                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
                     string.Format(FeaturesResources._0_unexpected, '}')));
         }
     }
