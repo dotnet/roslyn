@@ -15,9 +15,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
-    public class ValidateValidateEmbeddedLanguageStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public ValidateValidateEmbeddedLanguageStringTests(ITestOutputHelper logger) : base(logger)
+        public ValidateJsonStringTests(ITestOutputHelper logger) : base(logger)
         {
         }
 
