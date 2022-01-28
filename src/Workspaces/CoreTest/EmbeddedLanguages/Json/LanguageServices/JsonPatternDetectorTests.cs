@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
         }
 
         [Fact]
-        public void TestSpaceBetweenRegexAndNextWord()
+        public void TestSpaceBetweenJsonAndNextWord()
         {
             Match("lang=json here");
         }

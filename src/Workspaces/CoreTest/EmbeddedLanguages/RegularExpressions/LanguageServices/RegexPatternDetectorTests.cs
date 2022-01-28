@@ -12,163 +12,183 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
     {
         private static void Match(string value, RegexOptions? expectedOptions = null)
         {
-            var (success, actualOptions) = RegexPatternDetector.TestAccessor.TryMatch(value);
-            Assert.True(success);
+            MatchWorker($"/*{value}*/", expectedOptions);
+            MatchWorker($"/*{value} */", expectedOptions);
+            MatchWorker($"//{value}", expectedOptions);
+            MatchWorker($"// {value}", expectedOptions);
+            MatchWorker($"'{value}", expectedOptions);
+            MatchWorker($"' {value}", expectedOptions);
 
-            if (expectedOptions != null)
+            static void MatchWorker(string value, RegexOptions? expectedOptions)
             {
-                Assert.Equal(expectedOptions.Value, actualOptions);
+                var (success, actualOptions) = RegexPatternDetector.TestAccessor.TryMatch(value);
+                Assert.True(success);
+
+                if (expectedOptions != null)
+                {
+                    Assert.Equal(expectedOptions.Value, actualOptions);
+                }
             }
         }
 
         private static void NoMatch(string value)
         {
-            var (success, _) = RegexPatternDetector.TestAccessor.TryMatch(value);
-            Assert.False(success);
+            NoMatchWorker($"/*{value}*/");
+            NoMatchWorker($"/*{value} */");
+            NoMatchWorker($"//{value}");
+            NoMatchWorker($"// {value}");
+            NoMatchWorker($"'{value}");
+            NoMatchWorker($"' {value}");
+
+            static void NoMatchWorker(string value)
+            {
+                var (success, _) = RegexPatternDetector.TestAccessor.TryMatch(value);
+                Assert.False(success);
+            }
         }
 
         [Fact]
         public void TestSimpleForm()
         {
-            RegexPatternDetectorTests.Match("lang=regex");
+            Match("lang=regex");
         }
 
         [Fact]
         public void TestIncompleteForm1()
         {
-            RegexPatternDetectorTests.NoMatch("lan=regex");
+            NoMatch("lan=regex");
         }
 
         [Fact]
         public void TestIncompleteForm2()
         {
-            RegexPatternDetectorTests.NoMatch("lang=rege");
+            NoMatch("lang=rege");
         }
 
         [Fact]
         public void TestMissingEquals()
         {
-            RegexPatternDetectorTests.NoMatch("lang regex");
+            NoMatch("lang regex");
         }
 
         [Fact]
         public void TestEndingInP()
         {
-            RegexPatternDetectorTests.Match("lang=regexp");
+            Match("lang=regexp");
         }
 
         [Fact]
         public void TestLanguageForm()
         {
-            RegexPatternDetectorTests.Match("language=regex");
+            Match("language=regex");
         }
 
         [Fact]
         public void TestLanguageFormWithP()
         {
-            RegexPatternDetectorTests.Match("language=regexp");
+            Match("language=regexp");
         }
 
         [Fact]
         public void TestLanguageFullySpelled()
         {
-            RegexPatternDetectorTests.NoMatch("languag=regexp");
+            NoMatch("languag=regexp");
         }
 
         [Fact]
         public void TestSpacesAroundEquals()
         {
-            RegexPatternDetectorTests.Match("lang = regex");
+            Match("lang = regex");
         }
 
         [Fact]
         public void TestSpacesAroundPieces()
         {
-            RegexPatternDetectorTests.Match(" lang=regex ");
+            Match(" lang=regex ");
         }
 
         [Fact]
         public void TestSpacesAroundPiecesAndEquals()
         {
-            RegexPatternDetectorTests.Match(" lang = regex ");
+            Match(" lang = regex ");
         }
 
         [Fact]
         public void TestSpaceBetweenRegexAndP()
         {
-            RegexPatternDetectorTests.Match("lang=regex p");
+            Match("lang=regex p");
         }
 
         [Fact]
         public void TestPeriodAtEnd()
         {
-            RegexPatternDetectorTests.Match("lang=regex.");
+            Match("lang=regex.");
         }
 
         [Fact]
         public void TestNotWithWordCharAtEnd()
         {
-            RegexPatternDetectorTests.NoMatch("lang=regexc");
+            NoMatch("lang=regexc");
         }
 
         [Fact]
         public void TestWithNoNWordBeforeStart1()
         {
-            RegexPatternDetectorTests.Match(":lang=regex");
+            NoMatch(":lang=regex");
         }
 
         [Fact]
         public void TestWithNoNWordBeforeStart2()
         {
-            RegexPatternDetectorTests.Match(": lang=regex");
+            NoMatch(": lang=regex");
         }
 
         [Fact]
         public void TestNotWithWordCharAtStart()
         {
-            RegexPatternDetectorTests.NoMatch("clang=regex");
+            NoMatch("clang=regex");
         }
 
         [Fact]
         public void TestOption()
         {
-            RegexPatternDetectorTests.Match("lang=regex,ecmascript", RegexOptions.ECMAScript);
+            Match("lang=regex,ecmascript", RegexOptions.ECMAScript);
         }
 
         [Fact]
         public void TestOptionWithSpaces()
         {
-            RegexPatternDetectorTests.Match("lang=regex , ecmascript", RegexOptions.ECMAScript);
+            Match("lang=regex , ecmascript", RegexOptions.ECMAScript);
         }
 
         [Fact]
         public void TestOptionFollowedByPeriod()
         {
-            RegexPatternDetectorTests.Match("lang=regex,ecmascript. Explanation", RegexOptions.ECMAScript);
+            Match("lang=regex,ecmascript. Explanation", RegexOptions.ECMAScript);
         }
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod()
         {
-            RegexPatternDetectorTests.Match("lang=regex,ecmascript,ignorecase. Explanation", RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            Match("lang=regex,ecmascript,ignorecase. Explanation", RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
         }
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod_CaseInsensitive()
         {
-            RegexPatternDetectorTests.Match("Language=Regexp,ECMAScript,IgnoreCase. Explanation", RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
+            Match("Language=Regexp,ECMAScript,IgnoreCase. Explanation", RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
         }
 
         [Fact]
         public void TestInvalidOption1()
         {
-            RegexPatternDetectorTests.NoMatch("lang=regex,ignore");
+            NoMatch("lang=regex,ignore");
         }
 
         [Fact]
         public void TestInvalidOption2()
         {
-            RegexPatternDetectorTests.NoMatch("lang=regex,ecmascript,ignore");
+            NoMatch("lang=regex,ecmascript,ignore");
         }
     }
 }
