@@ -380,6 +380,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private JsonPropertyNode ParseProperty(JsonToken stringLiteralOrText)
         {
             Debug.Assert(_currentToken.Kind == JsonKind.ColonToken);
+
+            // Kind could be anything else we might have parsed as a value (for example, an integer/boolean literal).
             if (stringLiteralOrText.Kind != JsonKind.StringToken)
                 stringLiteralOrText = stringLiteralOrText.With(kind: JsonKind.TextToken);
 
@@ -441,8 +443,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             // We'll check for these later in the strict-mode pass.
             Debug.Assert(token.VirtualChars.Length > 0);
             if (TryMatch(token, "NaN", JsonKind.NaNLiteralToken, out var newKind) ||
-                TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
                 TryMatch(token, "null", JsonKind.NullLiteralToken, out newKind) ||
+                TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
                 TryMatch(token, "false", JsonKind.FalseLiteralToken, out newKind) ||
                 TryMatch(token, "Infinity", JsonKind.InfinityLiteralToken, out newKind) ||
                 TryMatch(token, "undefined", JsonKind.UndefinedLiteralToken, out newKind))
@@ -460,7 +462,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var firstChar = token.VirtualChars[0];
             if (firstChar == '-' || firstChar == '.' || IsDigit(firstChar))
-                return ParseNumber(token);
+                return new JsonLiteralNode(token.With(kind: JsonKind.NumberToken));
 
             return new JsonTextNode(
                 token.With(kind: JsonKind.TextToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
@@ -513,9 +515,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private static bool IsDigit(VirtualChar ch)
             => ch.Value is >= '0' and <= '9';
-
-        private static JsonLiteralNode ParseNumber(JsonToken textToken)
-            => new(textToken.With(kind: JsonKind.NumberToken));
 
         private JsonCommaValueNode ParseCommaValue()
             => new(ConsumeCurrentToken());

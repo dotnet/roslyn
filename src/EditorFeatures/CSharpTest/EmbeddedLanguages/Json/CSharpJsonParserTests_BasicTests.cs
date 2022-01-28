@@ -5870,5 +5870,65 @@ b""</StringToken>
   <Diagnostic Message=""Only properties allowed in an object"" Start=""14"" Length=""1"" />
 </Diagnostics>");
         }
+
+        [Fact]
+        public void TestIntegerPropertyName()
+        {
+            Test(@"""{ 0: true }""", expected: @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <TextToken>0</TextToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <TrueLiteralToken>true<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></TrueLiteralToken>
+            </Literal>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""11"" Length=""1"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestColonPropertyName()
+        {
+            Test(@"""{ :: true }""", expected: @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Object>
+        <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
+        <Sequence>
+          <Property>
+            <TextToken>:</TextToken>
+            <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
+            <Literal>
+              <TrueLiteralToken>true<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></TrueLiteralToken>
+            </Literal>
+          </Property>
+        </Sequence>
+        <CloseBraceToken>}</CloseBraceToken>
+      </Object>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid property name"" Start=""11"" Length=""1"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Property name must be a string"" Start=""11"" Length=""1"" />
+</Diagnostics>");
+        }
     }
 }
