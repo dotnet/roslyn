@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -42,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             var asyncListener = listenerProvider.GetListener(nameof(PdbSourceDocumentOutputWindowLogger));
 
             _logItemsQueue = new AsyncBatchingWorkQueue<string>(
-                DelayTimeSpan.NearImmediate,
+                TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay),
                 ProcessLogMessagesAsync,
                 asyncListener,
                 _cancellationTokenSource.Token);

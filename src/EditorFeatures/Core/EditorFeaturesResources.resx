@@ -724,6 +724,9 @@ Do you want to proceed?</value>
   <data name="Go_To_Base" xml:space="preserve">
     <value>Go To Base</value>
   </data>
+  <data name="The_symbol_has_no_implementations" xml:space="preserve">
+    <value>The symbol has no implementations.</value>
+  </data>
   <data name="New_name_colon_0" xml:space="preserve">
     <value>New name: {0}</value>
   </data>
@@ -738,6 +741,12 @@ Do you want to proceed?</value>
   </data>
   <data name="Suggestion_ellipses" xml:space="preserve">
     <value>Suggestion ellipses (…)</value>
+  </data>
+  <data name="_0_references" xml:space="preserve">
+    <value>'{0}' references</value>
+  </data>
+  <data name="_0_implementations" xml:space="preserve">
+    <value>'{0}' implementations</value>
   </data>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>

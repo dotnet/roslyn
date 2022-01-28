@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             if (symbolAndProjectOpt == null)
             {
                 await context.ReportMessageAsync(
-                    FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
+                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
                 return;
             }
 

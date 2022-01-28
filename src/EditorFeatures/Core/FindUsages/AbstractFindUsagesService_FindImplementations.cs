@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             if (symbolAndProjectOpt == null)
             {
                 await context.ReportMessageAsync(
-                    FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
+                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
         {
             await context.SetSearchTitleAsync(
-                string.Format(FeaturesResources._0_implementations,
+                string.Format(EditorFeaturesResources._0_implementations,
                 FindUsagesHelpers.GetDisplayName(symbol)),
                 cancellationToken).ConfigureAwait(false);
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             if (implementations.IsEmpty)
             {
-                await context.ReportMessageAsync(FeaturesResources.The_symbol_has_no_implementations, cancellationToken).ConfigureAwait(false);
+                await context.ReportMessageAsync(EditorFeaturesResources.The_symbol_has_no_implementations, cancellationToken).ConfigureAwait(false);
                 return;
             }
 

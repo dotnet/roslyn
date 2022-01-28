@@ -12,11 +12,6 @@
         <target state="translated">应用更改</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="new">Cannot navigate to the symbol under the caret.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
         <target state="translated">更改配置</target>
@@ -972,6 +967,11 @@
         <target state="translated">正在设置当前所选文本的格式...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="translated">无法导航到插入点下面的符号。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
         <target state="translated">转到定义</target>
@@ -1379,6 +1379,11 @@ Do you want to proceed?</source>
         <target state="translated">转到实现</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_symbol_has_no_implementations">
+        <source>The symbol has no implementations.</source>
+        <target state="translated">符号没有实现。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="New_name_colon_0">
         <source>New name: {0}</source>
         <target state="translated">新名称: {0}</target>
@@ -1402,6 +1407,16 @@ Do you want to proceed?</source>
       <trans-unit id="Suggestion_ellipses">
         <source>Suggestion ellipses (…)</source>
         <target state="translated">建议使用省略号(…)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>'{0}' references</source>
+        <target state="translated">“{0}”引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implementations">
+        <source>'{0}' implementations</source>
+        <target state="translated">“{0}”实现</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">
