@@ -272,6 +272,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
         public const string SystemRuntimeCompilerServicesConfiguredAsyncDisposable = "System.Runtime.CompilerServices.ConfiguredAsyncDisposable";
         public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1 = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1";
+        public const string SystemRuntimeCompilerServicesDisableRuntimeMarshallingAttribute = "System.Runtime.CompilerServices.DisableRuntimeMarshallingAttribute";
         public const string SystemRuntimeCompilerServicesICriticalNotifyCompletion = "System.Runtime.CompilerServices.ICriticalNotifyCompletion";
         public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
         public const string SystemRuntimeCompilerServicesInternalsVisibleToAttribute = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
@@ -292,12 +293,15 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesFieldOffsetAttribute = "System.Runtime.InteropServices.FieldOffsetAttribute";
         public const string SystemRuntimeInteropServicesGCHandle = "System.Runtime.InteropServices.GCHandle";
         public const string SystemRuntimeInteropServicesHandleRef = "System.Runtime.InteropServices.HandleRef";
+        public const string SystemRuntimeInteropServicesLCIDConversionAttribute = "System.Runtime.InteropServices.LCIDConversionAttribute";
+        public const string SystemRuntimeInteropServicesMarshal = "System.Runtime.InteropServices.Marshal";
         public const string SystemRuntimeInteropServicesMarshalAsAttribute = "System.Runtime.InteropServices.MarshalAsAttribute";
         public const string SystemRuntimeInteropServicesOSPlatform = "System.Runtime.InteropServices.OSPlatform";
         public const string SystemRuntimeInteropServicesOutAttribute = "System.Runtime.InteropServices.OutAttribute";
         public const string SystemRuntimeInteropServicesRuntimeInformation = "System.Runtime.InteropServices.RuntimeInformation";
         public const string SystemRuntimeInteropServicesSafeHandle = "System.Runtime.InteropServices.SafeHandle";
         public const string SystemRuntimeInteropServicesStructLayoutAttribute = "System.Runtime.InteropServices.StructLayoutAttribute";
+        public const string SystemRuntimeInteropServicesUnmanagedFunctionPoitnerAttribute = "System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute";
         public const string SystemRuntimeInteropServicesUnmanagedType = "System.Runtime.InteropServices.UnmanagedType";
         public const string SystemRuntimeSerializationDataContractAttribute = "System.Runtime.Serialization.DataContractAttribute";
         public const string SystemRuntimeSerializationDataContractSerializer = "System.Runtime.Serialization.DataContractSerializer";
@@ -553,5 +557,6 @@ namespace Analyzer.Utilities
         public const string XunitAssert = "Xunit.Assert";
         public const string XunitFactAttribute = "Xunit.FactAttribute";
         public const string XunitTraitAttribute = "Xunit.TraitAttribute";
+
     }
 }

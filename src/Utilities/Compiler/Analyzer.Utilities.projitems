@@ -68,6 +68,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\ITypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\IFunctionPointerInvocationOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IUsingDeclarationOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IUsingOperationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\LightupHelpers.cs" />

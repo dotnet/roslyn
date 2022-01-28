@@ -14,7 +14,8 @@ namespace Analyzer.Utilities.Lightup
         private static readonly Assembly s_codeAnalysisAssembly = typeof(SyntaxNode).GetTypeInfo().Assembly;
 
         private static readonly ImmutableDictionary<Type, Type?> WrappedTypes = ImmutableDictionary.Create<Type, Type?>()
-            .Add(typeof(IUsingDeclarationOperationWrapper), s_codeAnalysisAssembly.GetType(IUsingDeclarationOperationWrapper.WrappedTypeName));
+            .Add(typeof(IUsingDeclarationOperationWrapper), s_codeAnalysisAssembly.GetType(IUsingDeclarationOperationWrapper.WrappedTypeName))
+            .Add(typeof(IFunctionPointerInvocationOperationWrapper), s_codeAnalysisAssembly.GetType(IFunctionPointerInvocationOperationWrapper.WrappedTypeName));
 
         /// <summary>
         /// Gets the type that is wrapped by the given wrapper.
