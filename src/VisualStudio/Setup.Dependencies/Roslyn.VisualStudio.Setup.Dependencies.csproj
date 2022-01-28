@@ -29,6 +29,7 @@
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Buffers" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Pipelines" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Memory" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" PkgDefEntry="BindingRedirect" />
@@ -57,6 +58,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
