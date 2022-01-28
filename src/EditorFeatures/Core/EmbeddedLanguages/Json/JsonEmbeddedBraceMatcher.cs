@@ -28,81 +28,62 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
         }
 
         public async Task<BraceMatchingResult?> FindBracesAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            var option = document.Project.Solution.Workspace.Options.GetOption(JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, document.Project.Language);
-            if (!option)
-            {
-                return default;
-            }
+            if (!options.HighlightRelatedJsonComponentsUnderCursor)
+                return null;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (JsonPatternDetector.IsDefinitelyNotJson(token, syntaxFacts))
-            {
-                return default;
-            }
+                return null;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = JsonPatternDetector.GetOrCreate(semanticModel, _info);
             if (!detector.IsDefinitelyJson(token, cancellationToken))
-            {
-                return default;
-            }
+                return null;
 
             var tree = detector.TryParseJson(token);
             if (tree == null)
-            {
-                return default;
-            }
+                return null;
 
             return GetMatchingBraces(tree, position);
         }
 
         private static BraceMatchingResult? GetMatchingBraces(JsonTree tree, int position)
         {
-            var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
+            var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
             if (virtualChar == null)
-            {
                 return null;
-            }
 
             var ch = virtualChar.Value;
-            if (ch == '{' || ch == '[' || ch == '(' ||
-                ch == '}' || ch == ']' || ch == ')')
-            {
-                return FindBraceHighlights(tree, ch);
-            }
-
-            return null;
+            return ch.Value is '{' or '[' or '(' or '}' or ']' or ')'
+                ? FindBraceHighlights(tree, ch)
+                : null;
         }
 
         private static BraceMatchingResult? FindBraceHighlights(JsonTree tree, VirtualChar ch)
         {
             var node = FindObjectOrArrayNode(tree.Root, ch);
-            switch (node)
+            return node switch
             {
-                case JsonObjectNode obj: return Create(obj.OpenBraceToken, obj.CloseBraceToken);
-                case JsonArrayNode array: return Create(array.OpenBracketToken, array.CloseBracketToken);
-                case JsonConstructorNode cons: return Create(cons.OpenParenToken, cons.CloseParenToken);
-            }
-
-            return default;
+                JsonObjectNode obj => Create(obj.OpenBraceToken, obj.CloseBraceToken),
+                JsonArrayNode array => Create(array.OpenBracketToken, array.CloseBracketToken),
+                JsonConstructorNode cons => Create(cons.OpenParenToken, cons.CloseParenToken),
+                _ => null,
+            };
         }
 
         private static BraceMatchingResult? Create(JsonToken open, JsonToken close)
         {
-            if (open.IsMissing || close.IsMissing)
-            {
-                return default;
-            }
-
-            return new BraceMatchingResult(open.GetSpan(), close.GetSpan());
+            return open.IsMissing || close.IsMissing
+                ? null
+                : new BraceMatchingResult(open.GetSpan(), close.GetSpan());
         }
 
-        private static JsonValueNode FindObjectOrArrayNode(JsonNode node, VirtualChar ch)
+        private static JsonValueNode? FindObjectOrArrayNode(JsonNode node, VirtualChar ch)
         {
             switch (node)
             {
@@ -122,9 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
                 {
                     var result = FindObjectOrArrayNode(child.Node, ch);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
             }
 
