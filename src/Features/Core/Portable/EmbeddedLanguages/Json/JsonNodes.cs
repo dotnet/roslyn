@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
     using JsonNodeOrToken = EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode>;
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
+    using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
 
     internal sealed class JsonCompilationUnit : JsonNode
     {
@@ -87,12 +88,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     {
         public JsonObjectNode(
             JsonToken openBraceToken,
-            ImmutableArray<JsonValueNode> sequence,
+            JsonSeparatedList sequence,
             JsonToken closeBraceToken)
             : base(JsonKind.Object)
         {
             Debug.Assert(openBraceToken.Kind == JsonKind.OpenBraceToken);
-            Debug.Assert(sequence != null);
             Debug.Assert(closeBraceToken.Kind == JsonKind.CloseBraceToken);
 
             OpenBraceToken = openBraceToken;
@@ -101,20 +101,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         public JsonToken OpenBraceToken { get; }
-        public ImmutableArray<JsonValueNode> Sequence { get; }
+        public JsonSeparatedList Sequence { get; }
         public JsonToken CloseBraceToken { get; }
 
-        internal override int ChildCount => 2 + Sequence.Length;
+        internal override int ChildCount => 2 + Sequence.NodesAndTokens.Length;
 
         internal override JsonNodeOrToken ChildAt(int index)
         {
             if (index == 0)
                 return OpenBraceToken;
 
-            if (index == Sequence.Length + 1)
+            if (index == Sequence.NodesAndTokens.Length + 1)
                 return CloseBraceToken;
 
-            return Sequence[index - 1];
+            return Sequence.NodesAndTokens[index - 1];
         }
 
         public override void Accept(IJsonNodeVisitor visitor)

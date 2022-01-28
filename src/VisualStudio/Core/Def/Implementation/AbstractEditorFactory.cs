@@ -336,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            var targetLineEnding = formattingOptions.GetOption(FormattingOptions2.NewLine)!;
+            var targetLineEnding = formattingOptions.NewLine;
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)

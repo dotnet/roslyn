@@ -20,9 +20,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
 
         public DocumentPullDiagnosticHandler(
+            WellKnownLspServerKinds serverKind,
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService)
-            : base(diagnosticService)
+            : base(serverKind, diagnosticService)
         {
             _analyzerService = analyzerService;
         }

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
@@ -17,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
+    using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
     using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
 
@@ -35,27 +35,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return token;
         }
 
-        protected void Test(string stringText,
-            string expected, string looseDiagnostics, string strictDiagnostics,
-            bool runLooseSubTreeCheck = true,
-            bool runStrictSubTreeCheck = true,
-            [CallerMemberName] string _ = "")
+        protected void Test(
+            string stringText,
+            string? expected,
+            string looseDiagnostics,
+            string strictDiagnostics,
+            bool runLooseSubTreeCheck = true)
         {
-            if (runLooseSubTreeCheck)
-                Test(stringText, strict: false, expected, looseDiagnostics, runLooseSubTreeCheck);
-
-            if (runStrictSubTreeCheck)
-                Test(stringText, strict: true, expected, strictDiagnostics, runStrictSubTreeCheck);
+            Test(stringText, strict: false, expected, looseDiagnostics, runLooseSubTreeCheck);
+            Test(stringText, strict: true, expected, strictDiagnostics, runSubTreeChecks: true);
         }
 
         private void Test(
             string stringText, bool strict,
-            string expectedTree, string expectedDiagnostics,
+            string? expectedTree, string expectedDiagnostics,
             bool runSubTreeChecks)
         {
             var tree = TryParseTree(stringText, strict, conversionFailureOk: false);
             if (tree == null)
+            {
+                Assert.Null(expectedTree);
                 return;
+            }
+
+            Assert.NotNull(expectedTree);
 
             // Tests are allowed to not run the subtree tests.  This is because some
             // subtrees can cause the native regex parser to exhibit very bad behavior
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 TryParseSubTrees(stringText, strict);
 
             var actualTree = TreeToText(tree).Replace("\"", "\"\"");
-            Assert.Equal(expectedTree.Replace("\"", "\"\""), actualTree);
+            Assert.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
 
             var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
             Assert.Equal(expectedDiagnostics.Replace("\"", "\"\""), actualDiagnostics);
@@ -192,9 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
             var element = new XElement(node.Kind.ToString());
             foreach (var child in node)
-                element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
+                element.Add(NodeOrTokenToElement(child));
 
             return element;
+        }
+
+        private static XElement NodeOrTokenToElement(EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode> child)
+        {
+            return child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token);
         }
 
         private static XElement ConstructorNodeToElement(JsonConstructorNode node)
@@ -239,6 +247,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             var element = new XElement("Sequence");
             foreach (var child in sequence)
                 element.Add(NodeToElement(child));
+            return element;
+        }
+
+        private static XElement CreateSequenceNode(JsonSeparatedList sequence)
+        {
+            var element = new XElement("Sequence");
+            foreach (var child in sequence.NodesAndTokens)
+                element.Add(NodeOrTokenToElement(child));
             return element;
         }
 
