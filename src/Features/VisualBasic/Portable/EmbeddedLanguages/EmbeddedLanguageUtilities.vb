@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     Friend Module EmbeddedLanguageUtilities
-<<<<<<< HEAD
         Friend Sub AddComment(editor As SyntaxEditor, stringLiteral As SyntaxToken, commentContents As String)
             Dim trivia = SyntaxFactory.TriviaList(
                 SyntaxFactory.CommentTrivia($"' {commentContents}"),
@@ -19,10 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
             editor.ReplaceNode(containingStatement, newStatement)
         End Sub
 
-        Public Function EscapeText(text As String, token As SyntaxToken) As String
-=======
         Public Function EscapeText(text As String) As String
->>>>>>> jsonTests
             ' VB has no need to escape any regex characters that would be passed in through this API.
             Return text
         End Function
