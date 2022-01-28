@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,10 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
         {
         }
 
-        internal override void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents)
-            => EmbeddedLanguageUtilities.AddComment(editor, stringLiteral, commentContents);
-
-        internal override string EscapeText(string text, SyntaxToken token)
+        public override string EscapeText(string text, SyntaxToken token)
             => EmbeddedLanguageUtilities.EscapeText(text, token);
     }
 }

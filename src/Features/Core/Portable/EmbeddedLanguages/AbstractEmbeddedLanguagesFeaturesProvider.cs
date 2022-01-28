@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
@@ -28,14 +26,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                 new FallbackEmbeddedLanguage(info));
         }
 
-        /// <summary>
-        /// Helper method used by the VB and C# embedded language <see cref="CodeFixProvider"/>s so they can
-        /// add special comments to string literals to convey that language services should light up
-        /// for them.
-        /// </summary>
-        internal abstract void AddComment(
-            SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents);
-
         /// <summary>Escapes <paramref name="text"/> appropriately so it can be inserted into 
         /// <paramref name="token"/>.  For example if inserting `\p{Number}` into a normal C#
         /// string token, the `\` would have to be escaped into `\\`.  However in a verbatim-string
@@ -43,6 +33,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         /// </summary>
         /// <param name="token">The original string token that <paramref name="text"/> is being
         /// inserted into.</param>
-        internal abstract string EscapeText(string text, SyntaxToken token);
+        public abstract string EscapeText(string text, SyntaxToken token);
     }
 }

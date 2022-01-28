@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -20,11 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub
 
-        Friend Overrides Sub AddComment(editor As SyntaxEditor, stringLiteral As SyntaxToken, commentContents As String)
-            EmbeddedLanguageUtilities.AddComment(editor, stringLiteral, commentContents)
-        End Sub
-
-        Friend Overrides Function EscapeText(text As String, token As SyntaxToken) As String
+        Public Overrides Function EscapeText(text As String, token As SyntaxToken) As String
             Return EmbeddedLanguageUtilities.EscapeText(text)
         End Function
     End Class

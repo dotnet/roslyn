@@ -3,25 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
-    public class JsonStringDetectorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
-    {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpEmbeddedLanguageDiagnosticAnalyzer(), new CSharpEmbeddedLanguageCodeFixProvider());
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpJsonDetectionAnalyzer,
+        CSharpJsonDetectionCodeFixProvider>;
 
+    public class JsonStringDetectorTests
+    {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
         public async Task TestStrict()
         {
-            await TestInRegularAndScriptAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"
 class C
 {
@@ -30,6 +30,7 @@ class C
         var j = [||]""{ \""a\"": 0 }"";
     }
 }",
+                FixedCode =
 @"
 class C
 {
@@ -37,13 +38,16 @@ class C
     {
         var j = /*lang=json,strict*/ ""{ \""a\"": 0 }"";
     }
-}");
+}",
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
         public async Task TestNonStrict()
         {
-            await TestInRegularAndScriptAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"
 class C
 {
@@ -52,6 +56,7 @@ class C
         var j = [||]""{ 'a': 00 }"";
     }
 }",
+                FixedCode =
 @"
 class C
 {
@@ -59,7 +64,8 @@ class C
     {
         var j = /*lang=json*/ ""{ 'a': 00 }"";
     }
-}");
+}",
+            }.RunAsync();
         }
     }
 }

@@ -2,25 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
     public class ValidateValidateEmbeddedLanguageStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpEmbeddedLanguageDiagnosticAnalyzer(), null);
+        public ValidateValidateEmbeddedLanguageStringTests(ITestOutputHelper logger) : base(logger)
+        {
+        }
 
-        private OptionsCollection OptionOn()
+        internal override (DiagnosticAnalyzer, CodeFixProvider?) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpJsonDiagnosticAnalyzer(), null);
+
+        private static OptionsCollection OptionOn()
             => new(LanguageNames.CSharp)
             {
                 { JsonFeatureOptions.ReportInvalidJsonPatterns, true }
@@ -38,7 +42,7 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: JsonDiagnosticAnalyzer.DiagnosticId,
+                diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
         }
@@ -55,7 +59,7 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: JsonDiagnosticAnalyzer.DiagnosticId,
+                diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
                     string.Format(FeaturesResources._0_unexpected, '}')));

@@ -3,15 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
-    <ExportLanguageService(GetType(IEmbeddedLanguagesProvider), LanguageNames.VisualBasic, ServiceLayer.Editor), [Shared]>
-    Friend Class VisualBasicEmbeddedLanguageEditorFeaturesProvider
-        Inherits AbstractEmbeddedLanguageEditorFeaturesProvider
+    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicJsonDetectionCodeFixProvider
+        Inherits AbstractJsonDetectionCodeFixProvider
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub
 
-        Public Overrides Function EscapeText(text As String, token As SyntaxToken) As String
-            Return EmbeddedLanguageUtilities.EscapeText(text)
-        End Function
+        Protected Overrides Sub AddComment(editor As CodeAnalysis.Editing.SyntaxEditor, stringLiteral As SyntaxToken, commentContents As String)
+            EmbeddedLanguageUtilities.AddComment(editor, stringLiteral, commentContents)
+        End Sub
     End Class
 End Namespace
