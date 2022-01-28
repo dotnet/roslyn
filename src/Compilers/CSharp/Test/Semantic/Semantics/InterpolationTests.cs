@@ -3988,7 +3988,7 @@ struct S
 
     static void M()
     {
-        /*<bind>*/S s = $"""";/*<bind>*/
+        /*<bind>*/S s = $"""";/*</bind>*/
     }
 }
 ";
@@ -4029,7 +4029,7 @@ struct S
 
     static void M()
     {
-        /*<bind>*/S s = (S)$"""";/*<bind>*/
+        /*<bind>*/S s = (S)$"""";/*</bind>*/
     }
 }
 ";
@@ -4064,7 +4064,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         public void UserDefinedConversion_AsFromTypeOfConversion_03()
         {
             var code = @"
-/*<bind>*/S s = (CustomHandler)$"""";/*<bind>*/
+/*<bind>*/S s = (CustomHandler)$"""";/*</bind>*/
 
 struct S
 {
