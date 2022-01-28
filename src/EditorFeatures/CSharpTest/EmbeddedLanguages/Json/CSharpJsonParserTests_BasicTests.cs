@@ -3672,7 +3672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
-</Diagnostics>", runStrictSubTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]
@@ -4547,7 +4547,7 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"", runStrictSubTreeCheck: false);
+        @"");
         }
 
         [Fact]
@@ -4564,7 +4564,7 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"", runStrictSubTreeCheck: false);
+        @"");
         }
 
         [Fact]
@@ -4813,7 +4813,7 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"", runStrictSubTreeCheck: false);
+        @"");
         }
 
         [Fact]
@@ -4830,7 +4830,7 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"", runStrictSubTreeCheck: false);
+        @"");
         }
 
         [Fact]
@@ -4847,7 +4847,7 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"", runStrictSubTreeCheck: false);
+        @"");
         }
 
         [Fact]
@@ -4864,7 +4864,7 @@ b""</StringToken>
   </CompilationUnit>
 </Tree>",
         @"",
-        @"", runStrictSubTreeCheck: false);
+        @"");
         }
 
         [Fact]
@@ -4995,7 +4995,7 @@ b""</StringToken>
 </Diagnostics>",
         @"<Diagnostics>
   <Diagnostic Message=""Invalid number"" Start=""10"" Length=""4"" />
-</Diagnostics>", runStrictSubTreeCheck: false);
+</Diagnostics>");
         }
 
         [Fact]

@@ -40,11 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             string expected,
             string looseDiagnostics,
             string strictDiagnostics,
-            bool runLooseSubTreeCheck = true,
-            bool runStrictSubTreeCheck = true)
+            bool runLooseSubTreeCheck = true)
         {
             Test(stringText, strict: false, expected, looseDiagnostics, runLooseSubTreeCheck);
-            Test(stringText, strict: true, expected, strictDiagnostics, runStrictSubTreeCheck);
+            Test(stringText, strict: true, expected, strictDiagnostics, runSubTreeChecks: true);
         }
 
         private void Test(
