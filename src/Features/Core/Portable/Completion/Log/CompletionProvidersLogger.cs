@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             ExtensionMethodCompletionRemoteTicks,
             CommitsOfExtensionMethodImportCompletionItem,
             ExtensionMethodCompletionPartialResultCount,
-            ExtensionMethodCompletionTimeoutCount,
 
             CommitUsingSemicolonToAddParenthesis,
             CommitUsingDotToAddParenthesis
@@ -82,9 +81,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogExtensionMethodCompletionPartialResultCount() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionPartialResultCount);
-
-        internal static void LogExtensionMethodCompletionTimeoutCount() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTimeoutCount);
 
         internal static void LogCommitUsingSemicolonToAddParenthesis() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingSemicolonToAddParenthesis);

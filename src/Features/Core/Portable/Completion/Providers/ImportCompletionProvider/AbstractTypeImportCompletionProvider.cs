@@ -35,25 +35,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var telemetryCounter = new TelemetryCounter();
                 var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
 
-                var itemsFromAllAssemblies = await typeImportCompletionService.GetAllTopLevelTypesAsync(
+                var (itemsFromAllAssemblies, isPartialResult) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
                     completionContext.Document.Project,
                     syntaxContext,
                     forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
                     completionContext.CompletionOptions,
                     cancellationToken).ConfigureAwait(false);
 
-                if (itemsFromAllAssemblies == null)
-                {
+                var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
+                foreach (var items in itemsFromAllAssemblies)
+                    AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
+
+                if (isPartialResult)
                     telemetryCounter.CacheMiss = true;
-                }
-                else
-                {
-                    var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
-                    foreach (var items in itemsFromAllAssemblies)
-                    {
-                        AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
-                    }
-                }
 
                 telemetryCounter.Report();
             }
