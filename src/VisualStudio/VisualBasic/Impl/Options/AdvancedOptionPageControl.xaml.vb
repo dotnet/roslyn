@@ -15,7 +15,9 @@ Imports Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Fading
@@ -127,6 +129,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
             BindToOption(Show_completion_list, CompletionOptions.Metadata.ProvideRegexCompletions, LanguageNames.VisualBasic)
 
+
+            BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.VisualBasic)
+            BindToOption(Colorize_JSON_strings, ClassificationOptions.Metadata.ColorizeJsonPatterns, LanguageNames.VisualBasic)
+            BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.VisualBasic)
+            BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.VisualBasic)
+
             ' Editor color scheme
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
 
@@ -140,17 +148,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(prefer_throwing_properties, ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.VisualBasic)
             BindToOption(prefer_auto_properties, ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.VisualBasic)
 
-<<<<<<< HEAD
-            BindToOption(Colorize_regular_expressions, RegexFeatureOptions.ColorizeRegexPatterns, LanguageNames.VisualBasic)
-            BindToOption(Report_invalid_regular_expressions, RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic)
-            BindToOption(Highlight_related_regular_expression_components_under_cursor, RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
-            BindToOption(Show_completion_list, RegexFeatureOptions.ProvideRegexCompletions, LanguageNames.VisualBasic)
-
-            BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.VisualBasic)
-            BindToOption(Colorize_JSON_strings, JsonFeatureOptions.ColorizeJsonPatterns, LanguageNames.VisualBasic)
-            BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.VisualBasic)
-            BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.VisualBasic)
-=======
             ' Inline hints
             BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1)
             BindToOption(ColorHints, InlineHintsViewOptions.ColorHints, LanguageNames.VisualBasic)
@@ -202,7 +199,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Me.OptionStore.SetOption(InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic, True)
             UpdateInlineHintsOptions()
         End Sub
->>>>>>> jsonTests
 
         Private Sub DisplayInlineParameterNameHints_Unchecked()
             Me.OptionStore.SetOption(InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic, False)
