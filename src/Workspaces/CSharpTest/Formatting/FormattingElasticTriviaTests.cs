@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -88,7 +90,8 @@ class B
 
             Assert.NotNull(compilation);
 
-            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+            var newCompilation = Formatter.Format(compilation, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
 
@@ -109,12 +112,13 @@ public class C
 public class SomeAttribute : System.Attribute { }
 ";
 
-            var ws = new AdhocWorkspace();
-            var generator = SyntaxGenerator.GetGenerator(ws, LanguageNames.CSharp);
+            var workspace = new AdhocWorkspace();
+            var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
             var root = SyntaxFactory.ParseCompilationUnit(text);
             var decl = generator.GetDeclaration(root.DescendantNodes().OfType<VariableDeclaratorSyntax>().First(vd => vd.Identifier.Text == "f2"));
             var newDecl = generator.AddAttributes(decl, generator.Attribute("Some")).WithAdditionalAnnotations(Formatter.Annotation);
             var newRoot = root.ReplaceNode(decl, newDecl);
+            var options = CSharpSyntaxFormattingOptions.Default;
 
             var expected = @"
 public class C
@@ -129,13 +133,13 @@ public class C
 public class SomeAttribute : System.Attribute { }
 ";
 
-            var formatted = Formatter.Format(newRoot, ws).ToFullString();
+            var formatted = Formatter.Format(newRoot, workspace.Services, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, formatted);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, ws).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, workspace.Services, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
 
-            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, ws).ToFullString();
+            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, workspace.Services, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, annotationFormatted);
         }
 
@@ -191,7 +195,8 @@ public class SomeAttribute : System.Attribute { }
 
             Assert.NotNull(compilation);
 
-            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+            var newCompilation = Formatter.Format(compilation, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
     }

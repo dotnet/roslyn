@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan span,
+            ClassificationOptions options,
             CancellationToken cancellationToken,
             bool removeAdditiveSpans = true,
             bool fillInClassifiedSpanGaps = true)
@@ -32,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 return default;
             }
-
-            var options = ClassificationOptions.From(document.Project);
 
             // Call out to the individual language to classify the chunk of text around the
             // reference. We'll get both the syntactic and semantic spans for this region.
@@ -137,11 +137,13 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 if (i > 0 && intersection != null)
                 {
-                    var isAdditiveClassification = spans[i - 1].TextSpan == span.TextSpan &&
-                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType);
+                    // The additiveType's may appear before or after their modifier due to sorting.
+                    var previousSpan = spans[i - 1];
+                    var isAdditiveClassification = previousSpan.TextSpan == span.TextSpan &&
+                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType) || ClassificationTypeNames.AdditiveTypeNames.Contains(previousSpan.ClassificationType);
 
                     // Additive classifications are intended to overlap so do not ignore it.
-                    if (!isAdditiveClassification && spans[i - 1].TextSpan.End > intersection.Value.Start)
+                    if (!isAdditiveClassification && previousSpan.TextSpan.End > intersection.Value.Start)
                     {
                         // This span isn't strictly after the previous span.  Ignore it.
                         intersection = null;
@@ -198,10 +200,19 @@ namespace Microsoft.CodeAnalysis.Classification
                 // Take the semantic part if it's just 'text'.  We want to keep it if
                 // the semantic classifier actually produced an interesting result 
                 // (as opposed to it just being a 'gap' classification).
-                var part = replacementIndex >= 0 && !IsClassifiedAsText(semanticParts[replacementIndex])
-                    ? semanticParts[replacementIndex]
-                    : syntaxPartAndSpan;
-                finalParts.Add(part);
+                if (replacementIndex >= 0 && !IsClassifiedAsText(semanticParts[replacementIndex]))
+                {
+                    finalParts.Add(semanticParts[replacementIndex]);
+                }
+                // We might already have a semantic part for the given TextSpan, in
+                // which case we don't want to add the syntactic part unless it's an
+                // additive type name (e.g. `static`).
+                else if (finalParts.Count == 0 ||
+                    !finalParts[^1].TextSpan.Equals(syntaxPartAndSpan.TextSpan) ||
+                    ClassificationTypeNames.AdditiveTypeNames.Contains(syntaxPartAndSpan.ClassificationType))
+                {
+                    finalParts.Add(syntaxPartAndSpan);
+                }
 
                 if (replacementIndex >= 0)
                 {

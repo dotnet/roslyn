@@ -2677,11 +2677,11 @@ class C
             TestPropertyDescriptors(Of EnvDTE80.CodeFunction2)(code)
         End Sub
 
-        Private Function GetExtensionMethodExtender(codeElement As EnvDTE80.CodeFunction2) As ICSExtensionMethodExtender
+        Private Shared Function GetExtensionMethodExtender(codeElement As EnvDTE80.CodeFunction2) As ICSExtensionMethodExtender
             Return CType(codeElement.Extender(ExtenderNames.ExtensionMethod), ICSExtensionMethodExtender)
         End Function
 
-        Private Function GetPartialMethodExtender(codeElement As EnvDTE80.CodeFunction2) As ICSPartialMethodExtender
+        Private Shared Function GetPartialMethodExtender(codeElement As EnvDTE80.CodeFunction2) As ICSPartialMethodExtender
             Return CType(codeElement.Extender(ExtenderNames.PartialMethod), ICSPartialMethodExtender)
         End Function
 

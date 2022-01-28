@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 case AssemblyMetadata assemblyMetadata:
                     {
-                        if (assemblyMetadata.GetModules() is { Length: 1 } modules)
+                        if (assemblyMetadata.GetModules() is { Length: > 0 } modules)
                         {
                             return modules[0];
                         }

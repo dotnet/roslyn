@@ -2310,6 +2310,13 @@ partial class C
 }
 ";
             var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
             comp.VerifyDiagnostics(
                 // (4,28): warning CS0414: The field 'C.s1' is assigned but its value is never used
                 //     static readonly string s1;
@@ -2333,10 +2340,122 @@ partial class C
 }
 ";
             var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify(
+                    // (4,37): warning CS8602: Dereference of a possibly null reference.
+                    //     static readonly string Field1 = Field2.ToString(); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field2").WithLocation(4, 37));
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
             comp.VerifyDiagnostics(
                 // (4,37): warning CS8602: Dereference of a possibly null reference.
                 //     static readonly string Field1 = Field2.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field2").WithLocation(4, 37));
+        }
+
+        [Fact]
+        public void StaticInitializers_MultipleFiles_03()
+        {
+            var source1 = @"
+public partial class Class1
+{
+    public static readonly string Value1;
+
+    static Class1 ()
+    {
+        Value1 = string.Empty;
+        Value2 = string.Empty;
+    }
+}
+";
+            var source2 = @"
+public partial class Class1
+{
+    public static readonly string Value2;
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StaticInitializers_MultipleFiles_04()
+        {
+            var source1 = @"
+public partial class Class1
+{
+    public static readonly string Value1; // 1
+}
+";
+            var source2 = @"
+public partial class Class1
+{
+    public static readonly string Value2; // 2
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify(
+                    // (4,35): warning CS8618: Non-nullable field 'Value1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    //     public static readonly string Value1; // 1
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value1").WithArguments("field", "Value1").WithLocation(4, 35));
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify(
+                    // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    //     public static readonly string Value2; // 2
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
+
+            comp.VerifyDiagnostics(
+                // (4,35): warning CS8618: Non-nullable field 'Value1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public static readonly string Value1; // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value1").WithArguments("field", "Value1").WithLocation(4, 35),
+                // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public static readonly string Value2; // 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
+        }
+
+        [Fact]
+        public void StaticInitializers_MultipleFiles_05()
+        {
+            var source1 = @"
+public partial class Class1
+{
+    public static readonly string Value1 = ""a"";
+}
+";
+            var source2 = @"
+public partial class Class1
+{
+    public static readonly string Value2; // 1
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify(
+                    // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    //     public static readonly string Value2; // 1
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
+
+            comp.VerifyDiagnostics(
+                // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public static readonly string Value2; // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
         }
 
         [Fact]

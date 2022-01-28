@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         parameters: _state.Parameters,
                         statements: statements,
                         thisConstructorArguments: thisConstructorArguments),
-                    new CodeGenerationOptions(
+                    new CodeGenerationContext(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
                         afterThisLocation: afterThisLocation),
                     cancellationToken: cancellationToken).ConfigureAwait(false);

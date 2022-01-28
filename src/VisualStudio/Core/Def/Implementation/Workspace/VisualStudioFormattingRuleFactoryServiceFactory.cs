@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             public bool ShouldNotFormatOrCommitOnPaste(Document document)
                 => IsContainedDocument(document);
 
-            private bool IsContainedDocument(Document document)
+            private static bool IsContainedDocument(Document document)
             {
                 var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
                 return visualStudioWorkspace?.TryGetContainedDocument(document.Id) != null;

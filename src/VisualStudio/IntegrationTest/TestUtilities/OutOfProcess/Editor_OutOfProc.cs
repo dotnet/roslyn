@@ -359,7 +359,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return Deserialize(_editorInProc.GetOutliningSpans());
         }
 
-        private TextSpan[] Deserialize(string[] v)
+        private static TextSpan[] Deserialize(string[] v)
         {
             // returned tag looks something like 'text'[12-13]
             return v.Select(tag =>
@@ -384,6 +384,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             _editorInProc.GoToImplementation();
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
+        }
+
+        public void GoToBase(string expectedWindowName)
+        {
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+            _editorInProc.GoToBase();
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToBase);
             _editorInProc.WaitForActiveWindow(expectedWindowName);
         }
 

@@ -94,9 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             return count;
         }
 
-        protected override bool IsMemberDeclaration(MemberDeclarationSyntax member)
-            => true;
-
         protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member)
         {
             var list = new List<string>

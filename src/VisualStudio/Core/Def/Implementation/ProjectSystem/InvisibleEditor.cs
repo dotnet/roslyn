@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 GC.SuppressFinalize(this);
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical)) // critical severity, since this means we're not saving edited files
             {
                 throw ExceptionUtilities.Unreachable;
             }

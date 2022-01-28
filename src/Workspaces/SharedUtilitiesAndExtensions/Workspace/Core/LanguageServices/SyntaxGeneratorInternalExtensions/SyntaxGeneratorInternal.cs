@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that declares a single local variable with an optional initializer.
         /// </summary>
         internal abstract SyntaxNode LocalDeclarationStatement(
-            SyntaxNode type, SyntaxToken identifier, SyntaxNode initializer = null, bool isConst = false);
+            SyntaxNode? type, SyntaxToken identifier, SyntaxNode? initializer = null, bool isConst = false);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.

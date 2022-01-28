@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         static VisualStudioWorkspace()
         {
-            WatsonReporter.InitializeFatalErrorHandlers();
+            FaultReporter.InitializeFatalErrorHandlers();
         }
 
         internal VisualStudioWorkspace(HostServices hostServices)

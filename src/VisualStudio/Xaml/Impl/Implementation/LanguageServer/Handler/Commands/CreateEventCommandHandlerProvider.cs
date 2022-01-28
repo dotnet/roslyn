@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         {
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
             return ImmutableArray.Create<IRequestHandler>(new CreateEventCommandHandler());
         }

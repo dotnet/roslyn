@@ -26,7 +26,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             AssertValidId(id, Sub(value) Assert.False(value))
         End Sub
 
+#Disable Warning CA1822 ' Mark members as static - False positive due to https://github.com/dotnet/roslyn/issues/50582
         Private Sub AssertValidId(id As String, assertion As Action(Of Boolean))
+#Enable Warning CA1822
             Using workspace = TestWorkspace.Create(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">

@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -17,24 +14,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             private void FixAllStructuralTypes(ISymbol firstSymbol)
             {
-                // First, inline all the delegate anonymous types.  This is how VB prefers to display
-                // things.
-                InlineAllDelegateAnonymousTypes(_semanticModel, _position, _structuralTypeDisplayService, _groupMap);
-
                 // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
                 // Structural Types: section to display their info.
-                FixStructuralTypes(firstSymbol);
-            }
 
-            protected abstract void InlineAllDelegateAnonymousTypes(SemanticModel semanticModel, int position, IStructuralTypeDisplayService structuralTypeDisplayService, Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> groupMap);
-
-            private void FixStructuralTypes(ISymbol firstSymbol)
-            {
                 var directStructuralTypes =
                     from parts in _groupMap.Values
                     from part in parts
-                    where part.Symbol.IsNormalAnonymousType() || part.Symbol.IsTupleType()
-                    select (INamedTypeSymbol)part.Symbol;
+                    where part.Symbol.IsAnonymousType() || part.Symbol.IsTupleType()
+                    select (INamedTypeSymbol)part.Symbol!;
+
+                // If the first symbol is an anonymous delegate, just show it's full sig in-line in the main
+                // description.  Otherwise, replace it with 'a, 'b etc. and show its sig in the 'Types:' section.
+
+                if (firstSymbol.IsAnonymousDelegateType())
+                    directStructuralTypes = directStructuralTypes.Except(new[] { (INamedTypeSymbol)firstSymbol });
 
                 var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
                     firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);

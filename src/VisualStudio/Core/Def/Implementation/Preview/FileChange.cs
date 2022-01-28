@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return new ChangeList(new[] { entireSpanChild });
         }
 
-        private string GetDisplayText(string excerpt)
+        private static string GetDisplayText(string excerpt)
         {
             if (excerpt.Contains("\r\n"))
             {
