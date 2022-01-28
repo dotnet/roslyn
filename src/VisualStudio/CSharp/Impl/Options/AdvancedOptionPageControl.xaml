@@ -210,7 +210,6 @@
                 </StackPanel>
             </GroupBox>
 
->>>>>>> master
             <GroupBox x:Uid="ExtractMethodGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
                 <StackPanel>
