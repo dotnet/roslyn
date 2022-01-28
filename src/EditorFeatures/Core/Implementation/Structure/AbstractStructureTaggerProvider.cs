@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     context, documentSnapshotSpan.SnapshotSpan, outliningService,
                     blockStructure.Spans);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

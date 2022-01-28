@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // re-run just the body
                         await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, reasons, c), cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

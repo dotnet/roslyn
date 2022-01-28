@@ -601,7 +601,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 return new ProjectState(installedPackagesMap);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.Diagnostic))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.Diagnostic, cancellationToken))
             {
                 return null;
             }

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return default;
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

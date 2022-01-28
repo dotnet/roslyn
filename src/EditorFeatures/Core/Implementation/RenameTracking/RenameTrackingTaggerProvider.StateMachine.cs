@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                     return default;
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Diagnostic))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Diagnostic, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

@@ -359,7 +359,7 @@ namespace Roslyn.Utilities
 
         public static Task ReportNonFatalErrorUnlessCancelledAsync(this Task task, ErrorSeverity severity, CancellationToken cancellationToken)
         {
-            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!, cancellationToken, severity),
+            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!, severity, cancellationToken),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);

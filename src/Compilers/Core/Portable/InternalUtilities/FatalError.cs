@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
         /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportAndPropagateUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity)
+        public static bool ReportAndPropagateUnlessCanceled(Exception exception, ErrorSeverity severity, CancellationToken contextCancellationToken)
         {
             if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
         /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
         [DebuggerHidden]
-        public static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity)
+        public static bool ReportAndCatchUnlessCanceled(Exception exception, ErrorSeverity severity, CancellationToken contextCancellationToken)
         {
             if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {

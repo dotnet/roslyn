@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 return BreakpointResolutionResult.CreateSpanResult(document, span);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 return null;
             }

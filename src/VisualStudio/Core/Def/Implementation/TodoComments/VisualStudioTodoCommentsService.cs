@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
                 workQueue.AddWork(new DocumentAndComments(documentId, infos));
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Diagnostic))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Diagnostic, cancellationToken))
             {
                 // report NFW before returning back to the remote process
                 throw ExceptionUtilities.Unreachable;

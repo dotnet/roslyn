@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis
                     return text.GetTextChanges(oldText).ToList();
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
                 {
                     return ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
                 }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
                 {
                     return new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.InternalError, e.Message);
                 }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     await _debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
                 {
                     // nop
                 }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
                 {
                     return ImmutableArray<string>.Empty;
                 }

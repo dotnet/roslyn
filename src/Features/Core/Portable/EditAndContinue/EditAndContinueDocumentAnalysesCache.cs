@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return allResults.ToImmutableArray();
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return await lazyResults.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var analyzer = document.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
                         return await analyzer.AnalyzeDocumentAsync(baseProject, _baseActiveStatements, document, activeStatementSpans, _capabilities, cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

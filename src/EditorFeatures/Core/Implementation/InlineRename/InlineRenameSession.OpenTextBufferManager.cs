@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

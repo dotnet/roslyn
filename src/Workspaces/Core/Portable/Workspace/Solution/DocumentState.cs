@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis
                     return IncrementallyParse(newTextAndVersion, oldTreeAndVersion, cancellationToken);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis
                     return IncrementallyParse(newTextAndVersion, oldTreeAndVersion, cancellationToken);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

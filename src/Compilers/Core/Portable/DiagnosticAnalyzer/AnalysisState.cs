@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     OnCompilationEventsGenerated_NoLock(getCompilationEvents(eventQueue, additionalFiles));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

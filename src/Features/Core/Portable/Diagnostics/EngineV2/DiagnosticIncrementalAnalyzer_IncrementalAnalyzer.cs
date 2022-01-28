@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
