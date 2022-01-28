@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
     internal class StackFrameLocalMethodResolver : AbstractStackTraceSymbolResolver
     {

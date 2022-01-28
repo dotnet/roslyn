@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
-    internal interface IFindUsagesService : ILanguageService
+    internal interface IFindUsagesLSPService : ILanguageService
     {
         /// <summary>
         /// Finds the references for the symbol at the specific position in the document,

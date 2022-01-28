@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             await context.SetSearchTitleAsync(
-                string.Format(FeaturesResources._0_references,
+                string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol)),
                 cancellationToken).ConfigureAwait(false);
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 title = title.Substring(0, 10) + "...";
             }
 
-            var searchTitle = string.Format(FeaturesResources._0_references, title);
+            var searchTitle = string.Format(EditorFeaturesResources._0_references, title);
             await context.SetSearchTitleAsync(searchTitle, cancellationToken).ConfigureAwait(false);
 
             var solution = document.Project.Solution;

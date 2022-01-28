@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     /// <summary>
     /// Simple implementation of a <see cref="FindUsagesContext"/> that just aggregates the results
