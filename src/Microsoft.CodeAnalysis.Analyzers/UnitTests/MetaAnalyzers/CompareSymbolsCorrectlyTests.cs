@@ -874,6 +874,7 @@ public class C
 
         [|new Dictionary<ISymbol, int>()|];
         [|new Dictionary<ISymbol, int>(42)|];
+        [|new Dictionary<ISymbol, int>(capacity: 42)|];
         [|new Dictionary<ISymbol, int>(kvps)|];
 
         [|new HashSet<ISymbol>()|];
@@ -890,6 +891,8 @@ public class C
         new Dictionary<int, ISymbol>();
         new HashSet<string>();
         new ConcurrentDictionary<int, ISymbol>();
+
+        new Dictionary<ISymbol, int>(SymbolEqualityComparer.Default);
     }
 }",
                         SymbolEqualityComparerStubCSharp,
@@ -913,6 +916,7 @@ public class C
 
         new Dictionary<ISymbol, int>(SymbolEqualityComparer.Default);
         new Dictionary<ISymbol, int>(42, SymbolEqualityComparer.Default);
+        new Dictionary<ISymbol, int>(capacity: 42, SymbolEqualityComparer.Default);
         new Dictionary<ISymbol, int>(kvps, SymbolEqualityComparer.Default);
 
         new HashSet<ISymbol>(SymbolEqualityComparer.Default);
@@ -929,6 +933,8 @@ public class C
         new Dictionary<int, ISymbol>();
         new HashSet<string>();
         new ConcurrentDictionary<int, ISymbol>();
+
+        new Dictionary<ISymbol, int>(SymbolEqualityComparer.Default);
     }
 }",
                         SymbolEqualityComparerStubCSharp,
@@ -969,6 +975,8 @@ Public Class C
         Dim x1 = New Dictionary(Of Integer, ISymbol)()
         Dim x2 = New HashSet(Of String)()
         Dim x3 = New ConcurrentDictionary(Of Integer, ISymbol)()
+
+        Dim x4 = New Dictionary(Of ISymbol, Integer)(SymbolEqualityComparer.Default)
     End Sub
 End Class",
                         SymbolEqualityComparerStubVisualBasic,
@@ -1005,6 +1013,8 @@ Public Class C
         Dim x1 = New Dictionary(Of Integer, ISymbol)()
         Dim x2 = New HashSet(Of String)()
         Dim x3 = New ConcurrentDictionary(Of Integer, ISymbol)()
+
+        Dim x4 = New Dictionary(Of ISymbol, Integer)(SymbolEqualityComparer.Default)
     End Sub
 End Class",
                         SymbolEqualityComparerStubVisualBasic,
