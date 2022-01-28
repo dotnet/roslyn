@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Comment;
-                this.ForegroundColor = Color.FromRgb(0x57, 0xa6, 0x4a);
+                this.ForegroundColor = Color.FromRgb(0x00, 0x80, 0x00);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonNumberFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Number;
-                this.ForegroundColor = Color.FromRgb(0xb5, 0xce, 0xa8);
+                this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonStringFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_String;
-                this.ForegroundColor = Color.FromRgb(0xd6, 0x9d, 0x85);
+                this.ForegroundColor = Color.FromRgb(0x9e, 0x5b, 0x71);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonKeywordFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Keyword;
-                this.ForegroundColor = Color.FromRgb(0x56, 0x9c, 0xd6);
+                this.ForegroundColor = Color.FromRgb(0x00, 0x73, 0xff);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -984,7 +984,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Text;
-                this.ForegroundColor = Color.FromRgb(0xdc, 0xdc, 0xdc);
+                this.ForegroundColor = Color.FromRgb(0x80, 0x00, 0x00);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -1001,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonOperatorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Operator;
-                this.ForegroundColor = Color.FromRgb(0xb4, 0xb4, 0xb4);
+                this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonPunctuationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Punctuation;
-                this.ForegroundColor = Color.FromRgb(0xdc, 0xdc, 0xdc);
+                this.ForegroundColor = Color.FromRgb(0x80, 0x00, 0x00);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -1035,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonObjectFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Object;
-                this.ForegroundColor = Color.FromRgb(0xd8, 0x50, 0x50);
+                this.ForegroundColor = Color.FromRgb(0x05, 0xc3, 0xba);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonArrayFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Array;
-                this.ForegroundColor = Color.FromRgb(0xd8, 0x50, 0x50);
+                this.ForegroundColor = Color.FromRgb(0x05, 0xc3, 0xba);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -1069,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonPropertyNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Property_Name;
-                this.ForegroundColor = Color.FromRgb(0xca, 0x79, 0xec);
+                this.ForegroundColor = Color.FromRgb(0x9e, 0x5b, 0x71);
             }
         }
         [Export(typeof(EditorFormatDefinition))]
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public JsonConstructorNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.JSON_Constructor_Name;
-                this.ForegroundColor = Color.FromRgb(0x4e, 0xc9, 0xb0);
+                this.ForegroundColor = Color.FromRgb(0x9e, 0x5b, 0x71);
             }
         }
         #endregion
