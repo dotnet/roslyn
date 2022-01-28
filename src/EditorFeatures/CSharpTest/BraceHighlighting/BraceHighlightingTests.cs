@@ -266,6 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
@@ -282,6 +283,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
@@ -298,6 +300,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
@@ -314,6 +317,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
@@ -330,6 +334,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
@@ -346,10 +351,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
-<<<<<<< HEAD
 
-=======
->>>>>>> jsonFeatures
 class C
 {
     void Goo()
@@ -366,6 +368,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
@@ -382,6 +385,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
@@ -397,6 +401,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
@@ -413,6 +418,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
@@ -429,6 +435,7 @@ class C
         {
             var input = @"
 using System.Text.RegularExpressions;
+
 class C
 {
     void Goo()
