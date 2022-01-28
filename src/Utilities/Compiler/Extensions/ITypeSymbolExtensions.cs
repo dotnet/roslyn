@@ -301,6 +301,9 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsNullableOfBoolean([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
 
+        public static ITypeSymbol? GetNullableValueTypeUnderlyingType(this ITypeSymbol? typeSymbol)
+            => typeSymbol.IsNullableValueType() ? ((INamedTypeSymbol)typeSymbol).TypeArguments[0] : null;
+
 #if HAS_IOPERATION
         public static ITypeSymbol GetUnderlyingValueTupleTypeOrThis(this ITypeSymbol typeSymbol)
             => (typeSymbol as INamedTypeSymbol)?.TupleUnderlyingType ?? typeSymbol;
