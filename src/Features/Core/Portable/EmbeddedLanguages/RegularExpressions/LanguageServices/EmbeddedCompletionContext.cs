@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    internal partial class RegexEmbeddedCompletionProvider
+    internal partial class RegexEmbeddedCompletionProvider.LanguageServices
     {
         private readonly struct EmbeddedCompletionContext
         {

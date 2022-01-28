@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
     using System.Collections.Immutable;
     using Microsoft.CodeAnalysis.Classification.Classifiers;

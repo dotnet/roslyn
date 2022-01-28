@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
     /// <summary>
     /// Code fix impl for embedded json strings.

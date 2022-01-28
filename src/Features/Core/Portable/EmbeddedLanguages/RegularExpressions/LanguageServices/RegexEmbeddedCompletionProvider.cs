@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
     using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
     /// <summary>
     /// Analyzer that helps find strings that are likely to be JSON and which we should offer the

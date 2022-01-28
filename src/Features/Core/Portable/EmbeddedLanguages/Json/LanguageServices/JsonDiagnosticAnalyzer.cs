@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are JSON text.

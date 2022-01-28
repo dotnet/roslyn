@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
     internal class JsonEmbeddedLanguage : IEmbeddedLanguage
     {

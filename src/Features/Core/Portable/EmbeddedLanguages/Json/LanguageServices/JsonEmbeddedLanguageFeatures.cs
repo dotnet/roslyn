@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
     internal class JsonEmbeddedLanguageFeatures : JsonEmbeddedLanguage, IEmbeddedLanguageFeatures
     {
