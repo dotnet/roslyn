@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2574,6 +2575,50 @@ public class C
                 //     [MaybeNull] public string P { get; set; } = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 49)
                 );
+        }
+
+        [Fact]
+        [WorkItem(58073, "https://github.com/dotnet/roslyn/issues/58073")]
+        public void DiagnosticAdditionalLocations_SquiggleConstructor()
+        {
+            var source =
+@"
+public class C
+{
+    public C() { }
+
+    public string S { get; }
+}";
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (4,12): warning CS8618: Non-nullable property 'S' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public C() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "S").WithLocation(4, 12));
+
+            var property = comp.GetTypeByMetadataName("C").GetMember("S");
+            var actualAdditionalLocations = comp.GetDiagnostics().Single().AdditionalLocations;
+            Assert.Equal(property.Locations.Single(), actualAdditionalLocations.Single());
+        }
+
+        [Fact]
+        [WorkItem(58073, "https://github.com/dotnet/roslyn/issues/58073")]
+        public void DiagnosticAdditionalLocations_SquiggleProperty()
+        {
+            var source =
+@"
+public class C
+{
+    public string S { get; }
+}";
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (4,19): warning CS8618: Non-nullable property 'S' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public string S { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "S").WithLocation(4, 19));
+
+            var property = comp.GetTypeByMetadataName("C").GetMember("S");
+            var actualAdditionalLocations = comp.GetDiagnostics().Single().AdditionalLocations;
+            Assert.Equal(property.Locations.Single(), actualAdditionalLocations.Single());
         }
     }
 }
