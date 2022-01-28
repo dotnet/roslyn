@@ -6942,7 +6942,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
   <data name="ERR_RequiredNameDisallowed" xml:space="preserve">
-    <value>Types and aliases cannot not be named 'required'.</value>
+    <value>Types and aliases cannot be named 'required'.</value>
   </data>
   <data name="IDS_FeatureRequiredMembers" xml:space="preserve">
     <value>required members</value>
@@ -6957,6 +6957,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Required member '{0}' cannot be less visible than the containing type '{1}'.</value>
   </data>
   <data name="ERR_ExplicitRequiredMembers" xml:space="preserve">
-    <value>Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.</value>
+    <value>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</value>
   </data>
 </root>

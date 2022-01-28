@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         // PROTOTYPE(req): Implement
-        public override bool HasDeclaredRequiredMembers => false;
+        internal override bool HasDeclaredRequiredMembers => false;
 
         public override ImmutableArray<Symbol> GetMembers()
         {

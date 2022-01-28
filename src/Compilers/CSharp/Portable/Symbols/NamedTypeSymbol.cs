@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// True if this type declares any required members. It does not recursively check up the tree for _all_ required members.
         /// </summary>
-        public abstract bool HasDeclaredRequiredMembers { get; }
+        internal abstract bool HasDeclaredRequiredMembers { get; }
 
         /// <summary>
         /// Get all the members of this symbol.

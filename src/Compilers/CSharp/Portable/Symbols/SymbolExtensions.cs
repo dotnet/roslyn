@@ -840,11 +840,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool IsRequired(this Symbol symbol)
-            => symbol switch
-            {
-                FieldSymbol { IsRequired: true } or PropertySymbol { IsRequired: true } => true,
-                _ => false
-            };
+        internal static bool IsRequired(this Symbol symbol) => symbol is FieldSymbol { IsRequired: true } or PropertySymbol { IsRequired: true };
     }
 }

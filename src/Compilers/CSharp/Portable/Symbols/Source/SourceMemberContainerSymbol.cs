@@ -1326,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool HasDeclaredRequiredMembers
+        internal override bool HasDeclaredRequiredMembers
         {
             get
             {
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return hasDeclaredMembers;
                 }
 
-                hasDeclaredMembers = GetMembersUnordered().Any(SymbolExtensions.IsRequired);
+                hasDeclaredMembers = declaration.Declarations.Any(static decl => decl.HasRequiredMembers);
                 _flags.SetHasDeclaredRequiredMembers(hasDeclaredMembers);
                 return hasDeclaredMembers;
             }

@@ -1420,7 +1420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.WRN_NewOrOverrideExpected, hidingMemberLocation, hidingMember, hiddenMember);
                             diagnosticAdded = true;
                         }
-                        else if (hiddenMember.IsRequired())
+
+                        if (hiddenMember.IsRequired())
                         {
                             // Required member '{0}' cannot be hidden by '{1}'.
                             diagnostics.Add(ErrorCode.ERR_RequiredMembersCannotBeHidden, hidingMemberLocation, hiddenMember, hidingMember);

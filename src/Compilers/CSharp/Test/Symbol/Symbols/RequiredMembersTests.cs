@@ -6,6 +6,7 @@ using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
@@ -26,7 +27,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-    private CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null)
+    private CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, TargetFramework tfm = TargetFramework.NetCoreApp)
         => CreateCompilation(new[] { source, RequiredMemberAttribute }, options: options, parseOptions: parseOptions);
 
     private Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths)
@@ -285,28 +286,28 @@ namespace N8
                 } :
                 new[]
                 {
-                    // (4,12): error CS9500: Types and aliases cannot not be named 'required'.
+                    // (4,12): error CS9500: Types and aliases cannot be named 'required'.
                     //     struct required {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(4, 12),
-                    // (8,11): error CS9500: Types and aliases cannot not be named 'required'.
+                    // (8,11): error CS9500: Types and aliases cannot be named 'required'.
                     //     class required {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(8, 11),
-                    // (12,15): error CS9500: Types and aliases cannot not be named 'required'.
+                    // (12,15): error CS9500: Types and aliases cannot be named 'required'.
                     //     interface required {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(12, 15),
-                    // (16,19): error CS9500: Types and aliases cannot not be named 'required'.
+                    // (16,19): error CS9500: Types and aliases cannot be named 'required'.
                     //     delegate void required();
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(16, 19),
-                    // (20,12): error CS9500: Types and aliases cannot not be named 'required'.
+                    // (20,12): error CS9500: Types and aliases cannot be named 'required'.
                     //     record required();
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(20, 12),
-                    // (24,19): error CS9500: Types and aliases cannot not be named 'required'.
+                    // (24,19): error CS9500: Types and aliases cannot be named 'required'.
                     //     record struct required();
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(24, 19),
-                    // (30,15): error CS9500: Types and aliases cannot not be named 'required'.
+                    // (30,15): error CS9500: Types and aliases cannot be named 'required'.
                     //         class required {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(30, 15),
-                    // (35,11): error CS9500: Types and aliases cannot not be named 'required'.
+                    // (35,11): error CS9500: Types and aliases cannot be named 'required'.
                     //     class required<T> {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(35, 11)
                 }
@@ -445,23 +446,48 @@ class C
     }
 
     [Fact]
-    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride()
+    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride01()
     {
         var comp = CreateCompilationWithRequiredMembers(@"
 class Base
 {
     public virtual required int Prop { get; set; }
 }
-class Dervied : Base
+class Derived : Base
 {
     public override int Prop { get; set; }
 }
 ");
 
         comp.VerifyDiagnostics(
-            // (8,25): error CS9501: 'Dervied.Prop': cannot remove 'required' from 'Base.Prop' when overriding
+            // (8,25): error CS9501: 'Derived.Prop': cannot remove 'required' from 'Base.Prop' when overriding
             //     public override int Prop { get; set; }
-            Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("Dervied.Prop", "Base.Prop").WithLocation(8, 25)
+            Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("Derived.Prop", "Base.Prop").WithLocation(8, 25)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride02()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+class Base
+{
+    public virtual int Prop { get; set; }
+}
+class Derived : Base
+{
+    public override required int Prop { get; set; }
+}
+class DerivedDerived : Derived
+{
+    public override int Prop { get; set; }
+}
+");
+
+        comp.VerifyDiagnostics(
+            // (12,25): error CS9501: 'DerivedDerived.Prop': cannot remove 'required' from 'Derived.Prop' when overriding
+            //     public override int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("DerivedDerived.Prop", "Derived.Prop").WithLocation(12, 25)
         );
     }
 
@@ -843,6 +869,11 @@ class Derived2 : Base
     public new int Prop; // 3
     public new int Field { get; set; } // 4
 }
+class Derived3 : Base
+{
+    public int Field; // 1
+    public int Prop { get; set; } // 2
+}
 ");
 
         comp.VerifyDiagnostics(
@@ -857,7 +888,16 @@ class Derived2 : Base
             Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived2.Prop").WithLocation(15, 20),
             // (16,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived2.Field'.
             //     public new int Field { get; set; } // 4
-            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeHidden, "Field").WithArguments("Base.Field", "Derived2.Field").WithLocation(16, 20)
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeHidden, "Field").WithArguments("Base.Field", "Derived2.Field").WithLocation(16, 20),
+            // (20,16): warning CS0108: 'Derived3.Field' hides inherited member 'Base.Field'. Use the new keyword if hiding was intended.
+            //     public int Field; // 1
+            Diagnostic(ErrorCode.WRN_NewRequired, "Field").WithArguments("Derived3.Field", "Base.Field").WithLocation(20, 16),
+            // (20,16): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived3.Field'.
+            //     public int Field; // 1
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeHidden, "Field").WithArguments("Base.Field", "Derived3.Field").WithLocation(20, 16),
+            // (21,16): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived3.Prop'.
+            //     public int Prop { get; set; } // 2
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived3.Prop").WithLocation(21, 16)
         );
     }
 
@@ -1057,27 +1097,6 @@ internal class Outer
     }
 
     [Fact]
-    public void RequiredMembersCannotBeExplicitInterfaceImplementations()
-    {
-        var comp = CreateCompilationWithRequiredMembers(@"
-interface I
-{
-    int Prop { get; set; }
-}
-class C : I
-{
-    required int I.Prop { get; set; }
-}
-");
-
-        comp.VerifyDiagnostics(
-            // (8,20): error CS0106: The modifier 'required' is not valid for this item
-            //     required int I.Prop { get; set; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Prop").WithArguments("required").WithLocation(8, 20)
-        );
-    }
-
-    [Fact]
     public void UsingRequiredMemberAttributeExplicitly()
     {
         var comp = CreateCompilationWithRequiredMembers(@"
@@ -1093,13 +1112,13 @@ class C
 ");
 
         comp.VerifyDiagnostics(
-            // (3,2): error CS9504: Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // (3,2): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
             // [RequiredMember]
             Diagnostic(ErrorCode.ERR_ExplicitRequiredMembers, "RequiredMember").WithLocation(3, 2),
-            // (6,6): error CS9504: Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // (6,6): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
             //     [RequiredMember]
             Diagnostic(ErrorCode.ERR_ExplicitRequiredMembers, "RequiredMember").WithLocation(6, 6),
-            // (8,6): error CS9504: Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // (8,6): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
             //     [RequiredMember]
             Diagnostic(ErrorCode.ERR_ExplicitRequiredMembers, "RequiredMember").WithLocation(8, 6),
             // (9,16): warning CS0649: Field 'C.Field' is never assigned to, and will always have its default value 0
@@ -1109,5 +1128,43 @@ class C
 
         var prop = comp.SourceModule.GlobalNamespace.GetMember<PropertySymbol>("C.Prop");
         Assert.False(prop.IsRequired);
+    }
+
+    [Fact]
+    public void UsingRequiredMemberAttributeExplicitly_WrongLocations()
+    {
+        var comp = CreateCompilation(@"
+using System;
+using System.Runtime.CompilerServices;
+class C
+{
+    [RequiredMember]
+    void M() {}
+    [RequiredMember]
+    event Action E;
+    [RequiredMember]
+    C() {}
+    [RequiredMember]
+    ~C() {}
+    [return: RequiredMember]
+    void M<[RequiredMember] T>([RequiredMember] int i) {}
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class RequiredMemberAttribute : Attribute
+    {
+        public RequiredMemberAttribute()
+        {
+        }
+    }
+}
+");
+
+        comp.VerifyDiagnostics(
+            // (9,18): warning CS0067: The event 'C.E' is never used
+            //     event Action E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(9, 18)
+        );
     }
 }

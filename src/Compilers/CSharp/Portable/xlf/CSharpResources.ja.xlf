@@ -433,8 +433,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitRequiredMembers">
-        <source>Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
-        <target state="new">Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
+        <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -1108,8 +1108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredNameDisallowed">
-        <source>Types and aliases cannot not be named 'required'.</source>
-        <target state="new">Types and aliases cannot not be named 'required'.</target>
+        <source>Types and aliases cannot be named 'required'.</source>
+        <target state="new">Types and aliases cannot be named 'required'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">

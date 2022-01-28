@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IEnumerable<string> MemberNames => Constructors.Select(m => m.Name);
 
-        public override bool HasDeclaredRequiredMembers => false;
+        internal override bool HasDeclaredRequiredMembers => false;
 
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 

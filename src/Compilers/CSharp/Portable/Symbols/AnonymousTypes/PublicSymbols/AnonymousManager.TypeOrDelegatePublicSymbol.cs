@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            public override bool HasDeclaredRequiredMembers => false;
+            internal override bool HasDeclaredRequiredMembers => false;
 
             public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             {

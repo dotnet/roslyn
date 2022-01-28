@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override bool HasDeclaredRequiredMembers => _underlyingType.HasDeclaredRequiredMembers;
+        internal override bool HasDeclaredRequiredMembers => _underlyingType.HasDeclaredRequiredMembers;
 
         public override ImmutableArray<Symbol> GetMembers()
         {

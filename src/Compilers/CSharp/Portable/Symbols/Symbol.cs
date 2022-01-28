@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((reserved & ReservedAttributes.RequiredMemberAttribute) != 0 &&
                 attribute.IsTargetAttribute(this, AttributeDescription.RequiredMemberAttribute))
             {
-                // Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.
+                // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMembers, arguments.AttributeSyntaxOpt.Location);
             }
             else
