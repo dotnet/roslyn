@@ -3,11 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-<<<<<<< HEAD
 Imports Microsoft.CodeAnalysis.Editing
-=======
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
->>>>>>> jsonTests
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
