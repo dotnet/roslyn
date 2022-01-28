@@ -345,21 +345,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         private bool ShouldConsumeSequenceElement()
-        {
-            if (_currentToken.Kind == JsonKind.EndOfFile)
-                return false;
-
-            if (_currentToken.Kind == JsonKind.CloseBraceToken)
-                return !_inObject;
-
-            if (_currentToken.Kind == JsonKind.CloseBracketToken)
-                return !_inArray;
-
-            if (_currentToken.Kind == JsonKind.CloseParenToken)
-                return !_inConstructor;
-
-            return true;
-        }
+            => _currentToken.Kind switch
+            {
+                JsonKind.EndOfFile => false,
+                JsonKind.CloseBraceToken => !_inObject,
+                JsonKind.CloseBracketToken => !_inArray,
+                JsonKind.CloseParenToken => !_inConstructor,
+                _ => true
+            };
 
         private JsonValueNode ParseValue()
             => _currentToken.Kind switch
