@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(INavigateToSearchService), InternalLanguageNames.TypeScript), Shared]
-    internal partial class VSTypeScriptNavigateToSearchService : INavigateToSearchService
+    internal sealed class VSTypeScriptNavigateToSearchService : INavigateToSearchService
     {
         private readonly IVSTypeScriptNavigateToSearchService? _searchService;
 
