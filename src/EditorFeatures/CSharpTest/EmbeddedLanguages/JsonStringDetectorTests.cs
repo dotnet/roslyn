@@ -27,7 +27,7 @@ class C
 {
     void Goo()
     {
-        var j = [||]""{ \""a\"": 0 }"";
+        var j = [|""{ \""a\"": 0 }""|];
     }
 }",
                 FixedCode =
@@ -53,7 +53,7 @@ class C
 {
     void Goo()
     {
-        var j = [||]""{ 'a': 00 }"";
+        var j = [|""{ 'a': 00 }""|];
     }
 }",
                 FixedCode =
