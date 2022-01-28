@@ -41,32 +41,22 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             CancellationToken cancellationToken)
         {
             if (_info.StringLiteralTokenKind != token.RawKind)
-            {
                 return;
-            }
 
             if (!options.ColorizeJsonPatterns)
-            {
                 return;
-            }
 
             // Do some quick syntactic checks before doing any complex work.
             if (JsonPatternDetector.IsDefinitelyNotJson(token, _info.SyntaxFacts))
-            {
                 return;
-            }
 
             var detector = JsonPatternDetector.GetOrCreate(semanticModel, _info);
             if (!detector.IsDefinitelyJson(token, cancellationToken))
-            {
                 return;
-            }
 
             var tree = detector?.TryParseJson(token);
             if (tree == null)
-            {
                 return;
-            }
 
             var visitor = s_visitorPool.Allocate();
             try
@@ -101,19 +91,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private static void AddTriviaClassifications(JsonToken token, ArrayBuilder<ClassifiedSpan> result)
         {
             foreach (var trivia in token.LeadingTrivia)
-            {
                 AddTriviaClassifications(trivia, result);
-            }
 
             foreach (var trivia in token.TrailingTrivia)
-            {
                 AddTriviaClassifications(trivia, result);
-            }
         }
 
         private static void AddTriviaClassifications(JsonTrivia trivia, ArrayBuilder<ClassifiedSpan> result)
         {
-            if ((trivia.Kind == JsonKind.MultiLineCommentTrivia || trivia.Kind == JsonKind.SingleLineCommentTrivia) &&
+            if (trivia.Kind is JsonKind.MultiLineCommentTrivia or JsonKind.SingleLineCommentTrivia &&
                 trivia.VirtualChars.Length > 0)
             {
                 result.Add(new ClassifiedSpan(
@@ -178,9 +164,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             }
 
             public void Visit(JsonLiteralNode node)
-            {
-                VisitLiteral(node.LiteralToken);
-            }
+                => VisitLiteral(node.LiteralToken);
 
             private void VisitLiteral(JsonToken literalToken)
             {
