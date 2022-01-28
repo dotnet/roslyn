@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 {
                     result.ArgumentIndex = parameterIndex;
                 }
+
                 return result;
             }
 
