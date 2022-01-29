@@ -132,7 +132,7 @@ End Module");
         {
             try
             {
-                VisualStudio.Workspace.SetPerLanguageOption("PrettyListing", "FeatureOnOffOptions", LanguageNames.VisualBasic, false);
+                VisualStudio.Workspace.SetGlobalOption("FeatureOnOffOptions", "PrettyListing", LanguageName, value: false);
                 VisualStudio.Editor.SetText(@"Module M
     Sub M()
     End Sub
@@ -151,7 +151,7 @@ End Module");
             }
             finally
             {
-                VisualStudio.Workspace.SetPerLanguageOption("PrettyListing", "FeatureOnOffOptions", LanguageNames.VisualBasic, true);
+                VisualStudio.Workspace.SetGlobalOption("FeatureOnOffOptions", "PrettyListing", LanguageName, value: true);
             }
         }
     }

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -30,6 +31,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpRename(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(CSharpRename))
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
+            // reset relevant global options to default values:
+            VisualStudio.Workspace.SetGlobalOption("InlineRenameDashboardOptions", "RenameInComments", language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption("InlineRenameDashboardOptions", "RenameInStrings", language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption("InlineRenameDashboardOptions", "RenameOverloads", language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption("InlineRenameDashboardOptions", "RenameFile", language: null, value: true);
+            VisualStudio.Workspace.SetGlobalOption("InlineRenameDashboardOptions", "PreviewChanges", language: null, value: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
