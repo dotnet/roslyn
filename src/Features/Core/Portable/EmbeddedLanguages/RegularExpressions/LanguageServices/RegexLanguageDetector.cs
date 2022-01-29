@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         private static RegexLanguageDetector Create(
             Compilation compilation, EmbeddedLanguageInfo info)
         {
-            var regexType = compilation.GetTypeByMetadataName(typeof(Regex).FullName);
+            var regexType = compilation.GetTypeByMetadataName(typeof(Regex).FullName!);
             var methodNamesOfInterest = GetMethodNamesOfInterest(regexType, info.SyntaxFacts);
             return new RegexLanguageDetector(info, regexType, methodNamesOfInterest);
         }
