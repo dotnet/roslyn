@@ -3978,6 +3978,141 @@ namespace System.Runtime.CompilerServices
             );
         }
 
+        [Fact, WorkItem(58346, "https://github.com/dotnet/roslyn/issues/58346")]
+        public void UserDefinedConversion_AsFromTypeOfConversion_01()
+        {
+            var code = @"
+struct S
+{
+    public static implicit operator S(CustomHandler c) => default;
+
+    static void M()
+    {
+        /*<bind>*/S s = $"""";/*</bind>*/
+    }
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            var comp = CreateCompilation(new[] { code, handler });
+            comp.VerifyDiagnostics(
+                // (8,25): error CS0029: Cannot implicitly convert type 'string' to 'S'
+                //         /*<bind>*/S s = $"";/*<bind>*/
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""""").WithArguments("string", "S").WithLocation(8, 25)
+            );
+
+            VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'S s = $"""";')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'S s = $""""')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: S s) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 's = $""""')
+          Initializer:
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= $""""')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsInvalid, IsImplicit) (Syntax: '$""""')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: """", IsInvalid) (Syntax: '$""""')
+                    Parts(0)
+    Initializer:
+      null
+");
+        }
+
+        [Fact, WorkItem(58346, "https://github.com/dotnet/roslyn/issues/58346")]
+        public void UserDefinedConversion_AsFromTypeOfConversion_02()
+        {
+            var code = @"
+struct S
+{
+    public static implicit operator S(CustomHandler c) => default;
+
+    static void M()
+    {
+        /*<bind>*/S s = (S)$"""";/*</bind>*/
+    }
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            var comp = CreateCompilation(new[] { code, handler });
+            comp.VerifyDiagnostics(
+                // (8,25): error CS0030: Cannot convert type 'string' to 'S'
+                //         /*<bind>*/S s = (S)$"";/*<bind>*/
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(S)$""""").WithArguments("string", "S").WithLocation(8, 25)
+            );
+
+            VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'S s = (S)$"""";')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'S s = (S)$""""')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: S s) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 's = (S)$""""')
+          Initializer:
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (S)$""""')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsInvalid) (Syntax: '(S)$""""')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: """", IsInvalid) (Syntax: '$""""')
+                    Parts(0)
+    Initializer:
+      null
+");
+        }
+
+        [Fact, WorkItem(58346, "https://github.com/dotnet/roslyn/issues/58346")]
+        public void UserDefinedConversion_AsFromTypeOfConversion_03()
+        {
+            var code = @"
+/*<bind>*/S s = (CustomHandler)$"""";/*</bind>*/
+
+struct S
+{
+    public static implicit operator S(CustomHandler c) 
+    {
+        System.Console.WriteLine(""In handler"");
+        return default;
+    }
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            var comp = CreateCompilation(new[] { code, handler });
+            CompileAndVerify(comp, expectedOutput: "In handler").VerifyDiagnostics();
+
+            VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'S s = (Cust ... andler)$"""";')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'S s = (CustomHandler)$""""')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: S s) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's = (CustomHandler)$""""')
+          Initializer:
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (CustomHandler)$""""')
+              IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S S.op_Implicit(CustomHandler c)) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: '(CustomHandler)$""""')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: S S.op_Implicit(CustomHandler c))
+                Operand:
+                  IInterpolatedStringHandlerCreationOperation (HandlerAppendCallsReturnBool: False, HandlerCreationHasSuccessParameter: False) (OperationKind.InterpolatedStringHandlerCreation, Type: CustomHandler) (Syntax: '(CustomHandler)$""""')
+                    Creation:
+                      IObjectCreationOperation (Constructor: CustomHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount)) (OperationKind.ObjectCreation, Type: CustomHandler, IsImplicit) (Syntax: '$""""')
+                        Arguments(2):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""""')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""""')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""""')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""""')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Initializer:
+                          null
+                    Content:
+                      IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: """") (Syntax: '$""""')
+                        Parts(0)
+    Initializer:
+      null
+");
+        }
+
         [Theory]
         [InlineData(@"$""Text{1}""")]
         [InlineData(@"$""Text"" + $""{1}""")]
