@@ -207,7 +207,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
             _allModuleData = testEnvironment.GetAllModuleData();
             testEnvironment.Verify(peVerify);
+#if NETCOREAPP
             ILVerify(peVerify);
+#endif
 
             if (expectedSignatures != null)
             {
@@ -269,7 +271,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var resolver = new Resolver(_allModuleData);
                 var verifier = new ILVerify.Verifier(resolver);
                 var mscorlibModules = _allModuleData.Where(m => m.SimpleName == "mscorlib").ToArray();
-                // TODO2 identify corlib in rigorous way
                 if (mscorlibModules.Length == 1)
                 {
                     verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].SimpleName));
