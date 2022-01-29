@@ -62,9 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
         {
             var trivia = FindTrivia(tree.Root, ch);
             if (trivia?.Kind != RegexKind.CommentTrivia)
-            {
                 return null;
-            }
 
             var firstChar = trivia.Value.VirtualChars[0];
             var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
@@ -97,9 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
             where TNode : RegexNode
         {
             if (node is TNode nodeMatch && predicate(nodeMatch, ch))
-            {
                 return nodeMatch;
-            }
 
             foreach (var child in node)
             {
@@ -107,9 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
                 {
                     var result = FindNode(child.Node, ch, predicate);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
             }
 
@@ -124,9 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
                 {
                     var result = FindTrivia(child.Node, ch);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 else
                 {
@@ -135,9 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
                                  TryGetTrivia(token.TrailingTrivia, ch);
 
                     if (trivia != null)
-                    {
                         return trivia;
-                    }
                 }
             }
 
@@ -149,9 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
             foreach (var trivia in triviaList)
             {
                 if (trivia.VirtualChars.Contains(ch))
-                {
                     return trivia;
-                }
             }
 
             return null;

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
         public VirtualCharSequence GetSubSequence(TextSpan span)
-           => new( _leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
+           => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
 
         public VirtualChar First() => this[0];
         public VirtualChar Last() => this[^1];
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             => new(this);
 
         /// <summary>
-        /// Finds the virtual chr in this sequence that contains the position.  Will return null if this position is not
+        /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
         /// in the span of this sequence.
         /// </summary>
         public VirtualChar? Find(int position)
@@ -98,9 +98,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             foreach (var ch in this)
             {
                 if (ch == @char)
-                {
                     return index;
-                }
 
                 index++;
             }
