@@ -24,23 +24,23 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     /// <summary>
     /// Helper class to detect regex pattern tokens in a document efficiently.
     /// </summary>
-    internal sealed class RegexPatternDetector : AbstractLanguageDetector<RegexOptions, RegexTree>
+    internal sealed class RegexLanguageDetector : AbstractLanguageDetector<RegexOptions, RegexTree>
     {
         private const string _patternName = "pattern";
 
         /// <summary>
-        /// Cache so that we can reuse the same <see cref="RegexPatternDetector"/> when analyzing a particular
+        /// Cache so that we can reuse the same <see cref="RegexLanguageDetector"/> when analyzing a particular
         /// compilation model.  This saves the time from having to recreate this for every string literal that features
         /// examine for a particular compilation.
         /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, RegexPatternDetector> _modelToDetector = new();
+        private static readonly ConditionalWeakTable<Compilation, RegexLanguageDetector> _modelToDetector = new();
 
         private readonly INamedTypeSymbol? _regexType;
         private readonly HashSet<string> _methodNamesOfInterest;
 
         private static readonly LanguageCommentDetector<RegexOptions> s_languageCommentDetector = new("regex", "regexp");
 
-        public RegexPatternDetector(
+        public RegexLanguageDetector(
             EmbeddedLanguageInfo info,
             INamedTypeSymbol? regexType,
             HashSet<string> methodNamesOfInterest)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             _methodNamesOfInterest = methodNamesOfInterest;
         }
 
-        public static RegexPatternDetector GetOrCreate(
+        public static RegexLanguageDetector GetOrCreate(
             Compilation compilation, EmbeddedLanguageInfo info)
         {
             // Do a quick non-allocating check first.
@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             return _modelToDetector.GetValue(compilation, _ => Create(compilation, info));
         }
 
-        private static RegexPatternDetector Create(
+        private static RegexLanguageDetector Create(
             Compilation compilation, EmbeddedLanguageInfo info)
         {
             var regexType = compilation.GetTypeByMetadataName(typeof(Regex).FullName);
             var methodNamesOfInterest = GetMethodNamesOfInterest(regexType, info.SyntaxFacts);
-            return new RegexPatternDetector(info, regexType, methodNamesOfInterest);
+            return new RegexLanguageDetector(info, regexType, methodNamesOfInterest);
         }
 
         /// <summary>

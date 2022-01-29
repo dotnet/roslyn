@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void MatchWorker(string value, RegexOptions? expectedOptions)
             {
-                Assert.True(RegexPatternDetector.TestAccessor.TryMatch(value, out var actualOptions));
+                Assert.True(RegexLanguageDetector.TestAccessor.TryMatch(value, out var actualOptions));
 
                 if (expectedOptions != null)
                     Assert.Equal(expectedOptions.Value, actualOptions);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void NoMatchWorker(string value)
             {
-                Assert.False(RegexPatternDetector.TestAccessor.TryMatch(value, out _));
+                Assert.False(RegexLanguageDetector.TestAccessor.TryMatch(value, out _));
             }
         }
 

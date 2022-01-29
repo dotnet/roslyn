@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             if (!options.ColorizeRegexPatterns)
                 return;
 
-            var detector = RegexPatternDetector.GetOrCreate(semanticModel.Compilation, _info);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
             var tree = detector.TryParseString(token, semanticModel, cancellationToken);
             if (tree == null)
                 return;

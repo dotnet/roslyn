@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             if (!option)
                 return;
 
-            var detector = RegexPatternDetector.GetOrCreate(semanticModel.Compilation, _info);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
 
             // Use an actual stack object so that we don't blow the actual stack through recursion.
             var root = syntaxTree.GetRoot(cancellationToken);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
         private void AnalyzeToken(
             SemanticModelAnalysisContext context,
-            RegexPatternDetector detector,
+            RegexLanguageDetector detector,
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
