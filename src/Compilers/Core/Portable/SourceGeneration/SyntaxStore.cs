@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly StateTableStore _tables;
         private readonly Compilation? _compilation;
-        internal static SyntaxStore Empty = new SyntaxStore(StateTableStore.Empty, compilation: null);
+        internal static readonly SyntaxStore Empty = new SyntaxStore(StateTableStore.Empty, compilation: null);
 
         private SyntaxStore(StateTableStore tables, Compilation? compilation)
         {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             _compilation = compilation;
         }
 
-        public Builder ToBuilder(Compilation compilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, bool enableTracking, CancellationToken cancellationToken = default) => new Builder(compilation, syntaxInputNodes, enableTracking, this, cancellationToken);
+        public Builder ToBuilder(Compilation compilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, bool enableTracking, CancellationToken cancellationToken) => new Builder(compilation, syntaxInputNodes, enableTracking, this, cancellationToken);
 
         public sealed class Builder
         {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
             private readonly SyntaxStore _previous;
             private readonly CancellationToken _cancellationToken;
 
-            internal Builder(Compilation compilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, bool enableTracking, SyntaxStore previousStore, CancellationToken cancellationToken = default)
+            internal Builder(Compilation compilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, bool enableTracking, SyntaxStore previousStore, CancellationToken cancellationToken)
             {
                 _compilation = compilation;
                 _syntaxInputNodes = syntaxInputNodes;
