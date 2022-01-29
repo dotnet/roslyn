@@ -42,16 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             string strictDiagnostics,
             bool runLooseSubTreeCheck = true)
         {
-            Test(stringText, strict: false, expected, looseDiagnostics, runLooseSubTreeCheck);
-            Test(stringText, strict: true, expected, strictDiagnostics, runSubTreeChecks: true);
+            Test(stringText, JsonOptions.None, expected, looseDiagnostics, runLooseSubTreeCheck);
+            Test(stringText, JsonOptions.Strict, expected, strictDiagnostics, runSubTreeChecks: true);
         }
 
         private void Test(
-            string stringText, bool strict,
+            string stringText, JsonOptions options,
             string? expectedTree, string expectedDiagnostics,
             bool runSubTreeChecks)
         {
-            var tree = TryParseTree(stringText, strict, conversionFailureOk: false);
+            var tree = TryParseTree(stringText, options, conversionFailureOk: false);
             if (tree == null)
             {
                 Assert.Null(expectedTree);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             // subtrees can cause the native regex parser to exhibit very bad behavior
             // (like not ever actually finishing compiling).
             if (runSubTreeChecks)
-                TryParseSubTrees(stringText, strict);
+                TryParseSubTrees(stringText, options);
 
             var actualTree = TreeToText(tree).Replace("\"", "\"\"");
             Assert.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             Assert.Equal(expectedDiagnostics.Replace("\"", "\"\""), actualDiagnostics);
         }
 
-        private void TryParseSubTrees(string stringText, bool strict)
+        private void TryParseSubTrees(string stringText, JsonOptions options)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
             while (current != "@\"\"" && current != "\"\"")
             {
                 current = current[0..^2] + "\"";
-                TryParseTree(current, strict, conversionFailureOk: true);
+                TryParseTree(current, options, conversionFailureOk: true);
             }
 
             // Trim the input from the left and make sure tree invariants hold
@@ -91,22 +91,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                     ? "@\"" + current[3..]
                     : "\"" + current[2..];
 
-                TryParseTree(current, strict, conversionFailureOk: true);
+                TryParseTree(current, options, conversionFailureOk: true);
             }
 
             for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
             {
                 TryParseTree(
-                    stringText[..start] +
-                    stringText[(start + 1)..],
-                    strict, conversionFailureOk: true);
+                    stringText[..start] + stringText[(start + 1)..],
+                    options, conversionFailureOk: true);
             }
         }
 
         private protected (SyntaxToken, JsonTree?, VirtualCharSequence) JustParseTree(
-            string stringText, bool strict, bool conversionFailureOk)
+            string stringText, JsonOptions options, bool conversionFailureOk)
         {
-            var token = CSharpJsonParserTests.GetStringToken(stringText);
+            var token = GetStringToken(stringText);
             if (token.ValueText == "")
                 return default;
 
@@ -117,14 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 return (token, null, allChars);
             }
 
-            var tree = JsonParser.TryParse(allChars, strict ? JsonOptions.Strict : JsonOptions.None);
+            var tree = JsonParser.TryParse(allChars, options);
             return (token, tree, allChars);
         }
 
         private JsonTree? TryParseTree(
-            string stringText, bool strict, bool conversionFailureOk)
+            string stringText, JsonOptions options, bool conversionFailureOk)
         {
-            var (token, tree, allChars) = JustParseTree(stringText, strict, conversionFailureOk);
+            var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
             if (tree == null)
             {
                 Assert.True(allChars.IsDefault);
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
             CheckInvariants(tree, allChars);
 
-            if (!strict)
+            if (options == JsonOptions.None)
             {
                 try
                 {
@@ -386,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[""",
-strict: false, conversionFailureOk: false);
+JsonOptions.None, conversionFailureOk: false);
             Assert.False(token.IsMissing);
             Assert.False(chars.IsDefaultOrEmpty);
             Assert.Null(tree);

@@ -455,7 +455,7 @@ class C
 {
     void Goo()
     {
-        var r = /*lang=json*/ @""new Json[|$$(|]1, 2, 3[|)|]"");
+        var r = /*lang=json*/ @""new Json[|$$(|]1, 2, 3[|)|]"";
     }
 }";
             await TestBraceHighlightingAsync(input);
@@ -469,7 +469,7 @@ class C
 {
     void Goo()
     {
-        var r = /*lang=json*/ @""new Json[|(|]1, 2, 3[|)|]$$"");
+        var r = /*lang=json*/ @""new Json[|(|]1, 2, 3[|)|]$$"";
     }
 }";
             await TestBraceHighlightingAsync(input);
@@ -483,7 +483,7 @@ class C
 {
     void Goo()
     {
-        var r = /*lang=json*/ @""new Json$$(1, 2, 3"");
+        var r = /*lang=json*/ @""new Json$$(1, 2, 3"";
     }
 }";
             await TestBraceHighlightingAsync(input);
