@@ -110,21 +110,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                     Result!.Add(new ClassifiedSpan(typeName, token.GetSpan()));
             }
 
-            private void ClassifyWholeNode(JsonNode node, string typeName)
-            {
-                foreach (var child in node)
-                {
-                    if (child.IsNode)
-                    {
-                        ClassifyWholeNode(child.Node, typeName);
-                    }
-                    else
-                    {
-                        AddClassification(child.Token, typeName);
-                    }
-                }
-            }
-
             public void Visit(JsonCompilationUnit node)
             {
                 // nothing to do.
