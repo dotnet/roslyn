@@ -275,11 +275,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Não é possível incluir a classe \{0} no intervalo de caracteres</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="new">Cannot navigate to the symbol under the caret.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
         <target state="translated">Os números do grupo de captura devem ser menores ou iguais a Int32.MaxValue</target>
@@ -410,6 +405,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Para alterar a visibilidade de {0}, é necessário reiniciar o aplicativo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Comments_not_allowed">
+        <source>Comments not allowed</source>
+        <target state="new">Comments not allowed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurar estilo de código de {0}</target>
@@ -428,6 +428,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
         <target state="translated">Configurar gravidade para todos os analisadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constructors_not_allowed">
+        <source>Constructors not allowed</source>
+        <target state="new">Constructors not allowed</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -550,6 +555,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">As alterações feitas no projeto '{0}' requerem a reinicialização do aplicativo: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_JSON_editor_features">
+        <source>Enable JSON editor features</source>
+        <target state="new">Enable JSON editor features</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Erro ao ler o arquivo '{0}': {1}</target>
@@ -563,6 +573,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
         <source>Error creating instance of CodeFixProvider '{0}'</source>
         <target state="translated">Erro ao criar instância de CodeFixProvider '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_parsing_comment">
+        <source>Error parsing comment</source>
+        <target state="new">Error parsing comment</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_reading_PDB_0">
@@ -735,6 +750,16 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">\ ilegal no final do padrão</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \</note>
       </trans-unit>
+      <trans-unit id="Illegal_string_character">
+        <source>Illegal string character</source>
+        <target state="new">Illegal string character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Illegal_whitespace_character">
+        <source>Illegal whitespace character</source>
+        <target state="new">Illegal whitespace character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Illegal_x_y_with_x_less_than_y">
         <source>Illegal {x,y} with x &gt; y</source>
         <target state="translated">{x,y} ilegal com x&gt; y</target>
@@ -875,10 +900,30 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Introduzir a variável de consulta</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_constructor_name">
+        <source>Invalid constructor name</source>
+        <target state="new">Invalid constructor name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_escape_sequence">
+        <source>Invalid escape sequence</source>
+        <target state="new">Invalid escape sequence</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_group_name_Group_names_must_begin_with_a_word_character">
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">Nome de grupo inválido: nomes de grupos devem começar com um caractere de palavra</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Invalid_number">
+        <source>Invalid number</source>
+        <target state="new">Invalid number</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_property_name">
+        <source>Invalid property name</source>
+        <target state="new">Invalid property name</target>
+        <note />
       </trans-unit>
       <trans-unit id="Invalid_regex_pattern">
         <source>Invalid regex pattern</source>
@@ -888,6 +933,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Seleção inválida.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_issue_0">
+        <source>JSON issue: {0}</source>
+        <target state="new">JSON issue: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -964,6 +1014,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <source>Missing control character</source>
         <target state="translated">Caractere de controle ausente</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
+      </trans-unit>
+      <trans-unit id="Missing_property_value">
+        <source>Missing property value</source>
+        <target state="new">Missing property value</target>
+        <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application">
         <source>Modifying {0} which contains a static variable requires restarting the application.</source>
@@ -1080,9 +1135,19 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Mover {0} requer reiniciar o aplicativo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_expected">
+        <source>Name expected</source>
+        <target state="new">Name expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigating_to_symbol_0_from_1">
         <source>Navigating to symbol '{0}' from '{1}'.</source>
         <target state="translated">Navegando para o símbolo '{0}' de '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nested_properties_not_allowed">
+        <source>Nested properties not allowed</source>
+        <target state="new">Nested properties not allowed</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -1115,9 +1180,29 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Não há )'s suficientes</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Only_properties_allowed_in_an_object">
+        <source>Only properties allowed in an object</source>
+        <target state="new">Only properties allowed in an object</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operators">
         <source>Operators</source>
         <target state="translated">Operadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Probable_JSON_string_detected">
+        <source>Probable JSON string detected</source>
+        <target state="new">Probable JSON string detected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties_not_allowed_in_an_array">
+        <source>Properties not allowed in an array</source>
+        <target state="new">Properties not allowed in an array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_name_must_be_a_string">
+        <source>Property name must be a string</source>
+        <target state="new">Property name must be a string</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
@@ -2395,6 +2480,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">O fluxo deve fornecer suporte a operações de leitura e busca.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
+        <source>Strings must start with " not '</source>
+        <target state="new">Strings must start with " not '</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Suprimir {0}</target>
@@ -2408,6 +2498,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Symbol_found_in_assembly_path_0">
         <source>Symbol found in assembly path '{0}'</source>
         <target state="translated">Símbolo encontrado no caminho de montagem '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Syntax_error">
+        <source>Syntax error</source>
+        <target state="new">Syntax error</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
@@ -2435,11 +2530,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">A seleção contém uma chamada de função local sem sua declaração.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_implementations">
-        <source>The symbol has no implementations.</source>
-        <target state="new">The symbol has no implementations.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Timeout_SourceLink">
         <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
         <target state="translated">Tempo limite esgotado ao tentar baixar o código-fonte do SourceLink. As solicitações subsequentes podem ser bem-sucedidas.</target>
@@ -2459,6 +2549,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <source>Too many )'s</source>
         <target state="translated">Muitos )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Trailing_comma_not_allowed">
+        <source>Trailing comma not allowed</source>
+        <target state="new">Trailing comma not allowed</target>
+        <note />
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
@@ -2500,10 +2595,20 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Conjunto [] não finalizado</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [</note>
       </trans-unit>
+      <trans-unit id="Unterminated_comment">
+        <source>Unterminated comment</source>
+        <target state="new">Unterminated comment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unterminated_regex_comment">
         <source>Unterminated (?#...) comment</source>
         <target state="translated">Comentário (?#...) não finalizado</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?#</note>
+      </trans-unit>
+      <trans-unit id="Unterminated_string">
+        <source>Unterminated string</source>
+        <target state="new">Unterminated string</target>
+        <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
@@ -2665,6 +2770,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Valor:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_required">
+        <source>Value required</source>
+        <target state="new">Value required</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Aviso: a alteração do namespace pode produzir código inválido e mudar o significado do código.</target>
@@ -2750,6 +2860,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">{0} - {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_expected">
+        <source>'{0}' expected</source>
+        <target state="new">'{0}' expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_found_in_embedded_PDB">
         <source>'{0}' found in embedded PDB.</source>
         <target state="translated">'{0}' encontrado no PDB integrado.</target>
@@ -2790,14 +2905,14 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">'{0}' encontrado via SourceLink, mas não pôde ler o arquivo temporário.</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_implementations">
-        <source>'{0}' implementations</source>
-        <target state="new">'{0}' implementations</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}' não é nulo aqui.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_literal_not_allowed">
+        <source>'{0}' literal not allowed</source>
+        <target state="new">'{0}' literal not allowed</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
@@ -2805,9 +2920,9 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">'{0}' pode ser nulo aqui.</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_references">
-        <source>'{0}' references</source>
-        <target state="new">'{0}' references</target>
+      <trans-unit id="_0_unexpected">
+        <source>'{0}' unexpected</source>
+        <target state="new">'{0}' unexpected</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

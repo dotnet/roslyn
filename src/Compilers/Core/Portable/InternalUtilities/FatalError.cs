@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Threading;
+using Roslyn.Utilities;
 
 #if NET20
 // Some APIs referenced by documentation comments are not available on .NET Framework 2.0.
@@ -91,9 +92,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
 #endif
 
-        private static bool IsCurrentOperationBeingCancelled(Exception exception, CancellationToken cancellationToken)
-            => exception is OperationCanceledException && cancellationToken.IsCancellationRequested;
-
         /// <summary>
         /// Use in an exception filter to report an error without catching the exception.
         /// The error is reported by calling <see cref="Handler"/>.
@@ -143,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [DebuggerHidden]
         public static bool ReportAndPropagateUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            if (IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
+            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
                 return false;
             }
@@ -258,7 +256,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 #endif
             static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            if (IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
+            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
                 return false;
             }
@@ -290,7 +288,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [Obsolete("This is only to support places the compiler is catching and swallowing exceptions on the command line; do not use in new code.")]
         public static bool ReportIfNonFatalAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            if (IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
+            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
                 return false;
             }
