@@ -30,13 +30,9 @@ namespace Microsoft.CodeAnalysis
 
             // Walk up the tree to find a root for the operation
             // that contains the declaration
-            while (rootOperation.Parent is not null)
+            while (rootOperation is not IBlockOperation &&
+                rootOperation.Parent is not null)
             {
-                if (rootOperation is IBlockOperation)
-                {
-                    break;
-                }
-
                 rootOperation = rootOperation.Parent;
             }
 
@@ -51,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         public static bool? IsSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, IOperation operation, ISymbol symbol)
         {
             var references = operation.DescendantsAndSelf()
-                .Where(o => IsSymbolReferencedByOperation(o, symbol, allowNullInitializer: false));
+                .Where(o => IsSymbolReferencedByOperation(o, symbol));
 
             var hasReference = false;
 
@@ -96,18 +92,17 @@ namespace Microsoft.CodeAnalysis
             return hasReference ? (bool?)false : null;
         }
 
-        private static bool IsSymbolReferencedByOperation(IOperation operation, ISymbol symbol, bool allowNullInitializer)
+        private static bool IsSymbolReferencedByOperation(IOperation operation, ISymbol symbol)
             => operation switch
             {
                 ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
                 IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
-                IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target, symbol, allowNullInitializer: false),
-                IForEachLoopOperation loopOperation => IsSymbolReferencedByOperation(loopOperation.LoopControlVariable, symbol, allowNullInitializer: true),
-                ITupleOperation tupleOperation => tupleOperation.Elements.Any(element => IsSymbolReferencedByOperation(element, symbol, allowNullInitializer: false)),
+                IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target, symbol),
+                ITupleOperation tupleOperation => tupleOperation.Elements.Any(element => IsSymbolReferencedByOperation(element, symbol)),
+                IForEachLoopOperation { LoopControlVariable: IVariableDeclaratorOperation variableDeclarator } => variableDeclarator.Symbol.Equals(symbol),
 
-                // We want to be explicit about if we allow the variable to have a null variable initializer. The use case for now is around foreach loops 
-                // where the LoopControlVariable of the operation will have a null initializer.
-                IVariableDeclaratorOperation variableDeclarator => (allowNullInitializer || variableDeclarator.GetVariableInitializer() != null) && variableDeclarator.Symbol.Equals(symbol),
+                // A variable initializer is required for this to be a meaningful operation for determining possible null assignment
+                IVariableDeclaratorOperation variableDeclarator => variableDeclarator.GetVariableInitializer() != null && variableDeclarator.Symbol.Equals(symbol),
                 _ => false
             };
     }
