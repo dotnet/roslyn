@@ -38,24 +38,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         private readonly INamedTypeSymbol _regexType;
         private readonly HashSet<string> _methodNamesOfInterest;
 
-        /// <summary>
-        /// Helps match patterns of the form: language=regex,option1,option2,option3
-        /// 
-        /// All matching is case insensitive, with spaces allowed between the punctuation.
-        /// 'regex' or 'regexp' are both allowed.  Option values will be or'ed together
-        /// to produce final options value.  If an unknown option is encountered, processing
-        /// will stop with whatever value has accumulated so far.
-        /// 
-        /// Option names are the values from the <see cref="RegexOptions"/> enum.
-        /// </summary>
-        private static readonly Regex s_languageCommentDetector =
-            new(@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
-                RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-        private static readonly Dictionary<string, RegexOptions> s_nameToOption =
-            typeof(RegexOptions).GetTypeInfo().DeclaredFields
-                .Where(f => f.FieldType == typeof(RegexOptions))
-                .ToDictionary(f => f.Name, f => (RegexOptions)f.GetValue(null), StringComparer.OrdinalIgnoreCase);
+        private static readonly LanguageCommentDetector<RegexOptions> s_languageCommentDetector = new("regex", "regexp");
 
         public RegexPatternDetector(
             EmbeddedLanguageInfo info,
@@ -98,8 +81,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             if (!syntaxFacts.IsStringLiteral(token))
                 return false;
 
-            return IsMethodOrConstructorArgument(token, syntaxFacts) ||
-                   HasRegexLanguageComment(token, syntaxFacts, out _);
+            if (syntaxFacts.IsLiteralExpression(token.Parent) && syntaxFacts.IsArgument(token.Parent.Parent))
+                return true;
+
+            return HasRegexLanguageComment(token, syntaxFacts, out _);
         }
 
         private static bool HasRegexLanguageComment(
@@ -129,9 +114,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             foreach (var trivia in list)
             {
                 if (HasRegexLanguageComment(trivia, syntaxFacts, out options))
-                {
                     return true;
-                }
             }
 
             options = default;
@@ -185,10 +168,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
             return (true, options);
         }
-
-        private static bool IsMethodOrConstructorArgument(SyntaxToken token, ISyntaxFacts syntaxFacts)
-            => syntaxFacts.IsLiteralExpression(token.Parent) &&
-               syntaxFacts.IsArgument(token.Parent.Parent);
 
         /// <summary>
         /// Finds public, static methods in <see cref="Regex"/> that have a parameter called

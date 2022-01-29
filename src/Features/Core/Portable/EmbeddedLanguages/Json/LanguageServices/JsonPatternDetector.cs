@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// </summary>
     internal class JsonPatternDetector
     {
-        private const string s_jsonDotNetParameterName = "json";
-        private const string s_jsonDotNetMethodNameOfInterest = "Parse";
-        private static readonly HashSet<string> s_jsonDotNetTypeNamesOfInterest = new()
+        private const string s_jsonParameterName = "json";
+        private const string s_parseMethodName = "Parse";
+        private static readonly HashSet<string> s_typeNamesOfInterest = new()
         {
             "Newtonsoft.Json.Linq.JToken",
             "Newtonsoft.Json.Linq.JObject",
-            "Newtonsoft.Json.Linq.JArray"
+            "Newtonsoft.Json.Linq.JArray",
+            "System.Text.Json.JsonDocument",
         };
 
-        private static readonly ConditionalWeakTable<SemanticModel, JsonPatternDetector> s_modelToDetector = new();
+        private static readonly ConditionalWeakTable<Compilation, JsonPatternDetector> s_compilationToDetector = new();
 
-        private readonly SemanticModel _semanticModel;
         private readonly EmbeddedLanguageInfo _info;
         private readonly ISet<INamedTypeSymbol> _typesOfInterest;
 
@@ -42,42 +42,39 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private static readonly LanguageCommentDetector<JsonOptions> s_languageCommentDetector = new("json");
 
         public JsonPatternDetector(
-            SemanticModel semanticModel,
             EmbeddedLanguageInfo info,
             ISet<INamedTypeSymbol> typesOfInterest)
         {
-            _semanticModel = semanticModel;
             _info = info;
             _typesOfInterest = typesOfInterest;
         }
 
         public static JsonPatternDetector GetOrCreate(
-            SemanticModel semanticModel, EmbeddedLanguageInfo info)
+            Compilation compilation, EmbeddedLanguageInfo info)
         {
             // Do a quick non-allocating check first.
-            if (s_modelToDetector.TryGetValue(semanticModel, out var detector))
+            if (s_compilationToDetector.TryGetValue(compilation, out var detector))
                 return detector;
 
-            return s_modelToDetector.GetValue(
-                semanticModel, _ => Create(semanticModel, info));
+            return s_compilationToDetector.GetValue(compilation, _ => Create(compilation, info));
         }
 
         private static JsonPatternDetector Create(
-            SemanticModel semanticModel, EmbeddedLanguageInfo info)
+            Compilation compilation, EmbeddedLanguageInfo info)
         {
-            var types = s_jsonDotNetTypeNamesOfInterest.Select(t => semanticModel.Compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
+            var types = s_typeNamesOfInterest.Select(t => compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
             return new JsonPatternDetector(semanticModel, info, types);
         }
 
-        public static bool IsDefinitelyNotJson(SyntaxToken token, ISyntaxFacts syntaxFacts)
+        public static bool IsPossiblyPatternToken(SyntaxToken token, ISyntaxFacts syntaxFacts)
         {
             if (!syntaxFacts.IsStringLiteral(token))
+                return false;
+
+            if (syntaxFacts.IsLiteralExpression(token.Parent) && syntaxFacts.IsArgument(token.Parent.Parent))
                 return true;
 
-            if (token.ValueText == "")
-                return true;
-
-            return false;
+            return HasJsonLanguageComment(token, syntaxFacts, out _);
         }
 
         private static bool HasJsonLanguageComment(
@@ -90,6 +87,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             {
                 if (HasJsonLanguageComment(node.GetLeadingTrivia(), syntaxFacts, out options))
                     return true;
+
+                // Stop walking up once we hit a statement.  We don't need/want statements higher up the parent chain to
+                // have any impact on this token.
+                if (syntaxFacts.IsStatement(node))
+                    break;
             }
 
             options = default;
@@ -127,13 +129,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                syntaxFacts.IsArgument(token.Parent.Parent) &&
                syntaxFacts.IsInvocationExpression(token.Parent.Parent.Parent?.Parent);
 
-        public bool IsDefinitelyJson(SyntaxToken token, CancellationToken cancellationToken)
+        public bool IsDefinitelyJson(SyntaxToken token, CancellationToken cancellationToken, out JsonOptions options)
         {
+            options = default;
             var syntaxFacts = _info.SyntaxFacts;
             if (IsDefinitelyNotJson(token, syntaxFacts))
                 return false;
 
-            if (HasJsonLanguageComment(token, syntaxFacts, out _))
+            if (HasJsonLanguageComment(token, syntaxFacts, out options))
                 return true;
 
             if (!IsMethodArgument(token, syntaxFacts))
@@ -150,18 +153,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             {
                 var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(invocationOrCreation);
                 var name = GetNameOfInvokedExpression(invokedExpression);
-                if (syntaxFacts.StringComparer.Equals(name, s_jsonDotNetMethodNameOfInterest))
+                if (syntaxFacts.StringComparer.Equals(name, s_parseMethodName))
                 {
                     // Is a string argument to a method that looks like it could be a json-parsing
                     // method. Need to do deeper analysis
-                    var method = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
-                    if (method != null &&
-                        method.DeclaredAccessibility == Accessibility.Public &&
-                        method.IsStatic &&
-                        _typesOfInterest.Contains(method.ContainingType))
+                    var symbol = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
+                    if (symbol is IMethodSymbol { DeclaredAccessibility: Accessibility.Public, IsStatic: true } &&
+                        _typesOfInterest.Contains(symbol.ContainingType))
                     {
-                        return IsArgumentToParameterWithName(
-                            argumentNode, s_jsonDotNetParameterName, cancellationToken);
+                        return IsArgumentToParameterWithName(argumentNode, s_jsonParameterName, cancellationToken);
                     }
                 }
             }

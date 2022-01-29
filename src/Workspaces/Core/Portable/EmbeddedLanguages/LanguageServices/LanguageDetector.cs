@@ -10,6 +10,15 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
+    /// <summary>
+    /// Helps match patterns of the form: language=name,option1,option2,option3
+    /// 
+    /// All matching is case insensitive, with spaces allowed between the punctuation. Option values will be or'ed
+    /// together to produce final options value.  If an unknown option is encountered, processing will stop with
+    /// whatever value has accumulated so far.
+    /// 
+    /// Option names are the values from the TOptions enum.
+    /// </summary>
     internal struct LanguageCommentDetector<TOptions> where TOptions : struct, Enum
     {
         private static readonly Dictionary<string, TOptions> s_nameToOption =
@@ -21,9 +30,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 
         public LanguageCommentDetector(params string[] languageNames)
         {
-            var namePortion = string.Join("|", languageNames.Select(Regex.Escape));
-
-            _regex = new Regex($@"\blang(uage)?\s*=\s*({namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            var namePortion = string.Join("|", languageNames.Select(n => $"({Regex.Escape(n)})"));
+            _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*{namePortion}?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
@@ -32,9 +40,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             var match = _regex.Match(text);
             options = default;
             if (!match.Success)
-            {
                 return false;
-            }
 
             var optionGroup = match.Groups["option"];
             foreach (Capture? capture in optionGroup.Captures)
