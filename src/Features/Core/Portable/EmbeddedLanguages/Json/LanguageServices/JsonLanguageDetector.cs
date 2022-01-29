@@ -107,21 +107,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             return false;
         }
 
-        //public JsonTree? TryParseJson(SyntaxToken token)
-        //{
-        //    var syntaxFacts = Info.SyntaxFacts;
-        //    if (IsDefinitelyNotJson(token, syntaxFacts))
-        //        return null;
-
-        //    HasJsonLanguageComment(token, syntaxFacts, out var options);
-
-        //    var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-        //    if (chars.IsDefaultOrEmpty)
-        //        return null;
-
-        //    return JsonParser.TryParse(chars, options);
-        //}
-
         private bool IsArgumentToParameterWithName(
             SemanticModel semanticModel, SyntaxNode argumentNode, string name, CancellationToken cancellationToken)
         {
