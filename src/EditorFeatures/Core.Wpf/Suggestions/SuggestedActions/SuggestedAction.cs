@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
             }
         }

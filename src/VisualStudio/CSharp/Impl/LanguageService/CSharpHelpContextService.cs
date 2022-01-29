@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return string.Empty;
         }
 
-        private bool TryGetTextForSpecialCharacters(SyntaxToken token, out string text)
+        private static bool TryGetTextForSpecialCharacters(SyntaxToken token, out string text)
         {
             if (token.IsKind(SyntaxKind.InterpolatedStringStartToken) ||
                 token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||

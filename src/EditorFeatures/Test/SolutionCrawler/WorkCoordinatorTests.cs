@@ -335,6 +335,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
+
+            Assert.Equal(1, worker.NonSourceDocumentIds.Count);
         }
 
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
@@ -701,22 +703,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSyntaxEvents = 5;
             var expectedDocumentSemanticEvents = 5;
+            var expectedNonSourceDocumentEvents = 1;
 
             var ncfile = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "D6");
 
             var worker = await ExecuteOperation(workspace, w => w.OnAdditionalDocumentAdded(ncfile));
             Assert.Equal(expectedDocumentSyntaxEvents, worker.SyntaxDocumentIds.Count);
             Assert.Equal(expectedDocumentSemanticEvents, worker.DocumentIds.Count);
+            Assert.Equal(expectedNonSourceDocumentEvents, worker.NonSourceDocumentIds.Count);
 
             worker = await ExecuteOperation(workspace, w => w.ChangeAdditionalDocument(ncfile.Id, SourceText.From("//")));
 
             Assert.Equal(expectedDocumentSyntaxEvents, worker.SyntaxDocumentIds.Count);
             Assert.Equal(expectedDocumentSemanticEvents, worker.DocumentIds.Count);
+            Assert.Equal(expectedNonSourceDocumentEvents, worker.NonSourceDocumentIds.Count);
 
             worker = await ExecuteOperation(workspace, w => w.OnAdditionalDocumentRemoved(ncfile.Id));
 
             Assert.Equal(expectedDocumentSyntaxEvents, worker.SyntaxDocumentIds.Count);
             Assert.Equal(expectedDocumentSemanticEvents, worker.DocumentIds.Count);
+            Assert.Empty(worker.NonSourceDocumentIds);
         }
 
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
@@ -1163,35 +1169,11 @@ class C
         }
 
         [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
-        public async Task SemanticChange_Propagation_Transitive()
-        {
-            var solution = GetInitialSolutionInfoWithP2P();
-
-            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false)));
-
-            workspace.OnSolutionAdded(solution);
-            await WaitWaiterAsync(workspace.ExportProvider);
-
-            var id = solution.Projects[0].Id;
-            var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
-
-            var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
-
-            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-            Assert.Equal(4, worker.DocumentIds.Count);
-        }
-
-        [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
         public async Task SemanticChange_Propagation_Direct()
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true)));
-
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -1619,7 +1601,7 @@ class C
             public static readonly IncrementalAnalyzerProviderMetadata Crawler = new IncrementalAnalyzerProviderMetadata(new Dictionary<string, object> { { "WorkspaceKinds", new[] { SolutionCrawlerWorkspaceKind } }, { "HighPriorityForActiveFile", false }, { "Name", "TestAnalyzer" } });
         }
 
-        private class Analyzer : IIncrementalAnalyzer
+        private class Analyzer : IIncrementalAnalyzer2
         {
             public static readonly Option<bool> TestOption = new Option<bool>("TestOptions", "TestOption", defaultValue: true);
 
@@ -1628,6 +1610,7 @@ class C
 
             public readonly HashSet<DocumentId> SyntaxDocumentIds = new HashSet<DocumentId>();
             public readonly HashSet<DocumentId> DocumentIds = new HashSet<DocumentId>();
+            public readonly HashSet<DocumentId> NonSourceDocumentIds = new HashSet<DocumentId>();
             public readonly HashSet<ProjectId> ProjectIds = new HashSet<ProjectId>();
 
             public readonly HashSet<DocumentId> InvalidateDocumentIds = new HashSet<DocumentId>();
@@ -1653,6 +1636,7 @@ class C
 
                 SyntaxDocumentIds.Clear();
                 DocumentIds.Clear();
+                NonSourceDocumentIds.Clear();
                 ProjectIds.Clear();
 
                 InvalidateDocumentIds.Clear();
@@ -1679,6 +1663,12 @@ class C
             {
                 this.SyntaxDocumentIds.Add(document.Id);
                 Process(document.Id, cancellationToken);
+                return Task.CompletedTask;
+            }
+
+            public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+            {
+                this.NonSourceDocumentIds.Add(textDocument.Id);
                 return Task.CompletedTask;
             }
 
@@ -1731,6 +1721,15 @@ class C
                 => Task.CompletedTask;
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
                 => Task.CompletedTask;
             #endregion
         }

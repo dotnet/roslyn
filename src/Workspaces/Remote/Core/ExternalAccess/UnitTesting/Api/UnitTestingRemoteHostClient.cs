@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             return new UnitTestingRemoteHostClient((ServiceHubRemoteHostClient)client, serviceDescriptors, callbackDispatchers);
         }
 
+        [Obsolete("Use UnitTestingGlobalOptions.IsServiceHubProcessCoreClr instead")]
         public static bool IsServiceHubProcessCoreClr(HostWorkspaceServices services)
         {
             var optionServices = services.GetRequiredService<IOptionService>();

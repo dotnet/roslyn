@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return unregisteredRegistration;
         }
 
-        private bool IsClaimedByAnotherWorkspace(WorkspaceRegistration registration)
+        private static bool IsClaimedByAnotherWorkspace(WorkspaceRegistration registration)
         {
             // Currently, we are also responsible for pushing documents to the metadata as source workspace,
             // so we count that here as well

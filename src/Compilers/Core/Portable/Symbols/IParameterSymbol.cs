@@ -91,10 +91,5 @@ namespace Microsoft.CodeAnalysis
         /// source or metadata.
         /// </summary>
         new IParameterSymbol OriginalDefinition { get; }
-
-        /// <summary>
-        /// True if the compiler will synthesize a null check for this parameter (the parameter is declared in source with a <c>!!</c> following the parameter name).
-        /// </summary>
-        bool IsNullChecked { get; }
     }
 }

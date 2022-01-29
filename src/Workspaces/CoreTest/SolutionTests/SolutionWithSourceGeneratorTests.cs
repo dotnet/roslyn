@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
-            bool fetchCompilationBeforeAddingGenerator,
+            bool fetchCompilationBeforeAddingAdditionalFile,
             bool useRecoverableTrees)
         {
             // This test is just the sanity test to make sure generators work at all. There's not a special scenario being
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // when the file already exists, and when it is added incrementally.
             Compilation? originalCompilation = null;
 
-            if (fetchCompilationBeforeAddingGenerator)
+            if (fetchCompilationBeforeAddingAdditionalFile)
             {
                 originalCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             }
@@ -67,6 +67,36 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             Assert.Same(generatedTree, await generatedDocument.GetSyntaxTreeAsync());
+        }
+
+        [Fact]
+        public async Task WithReferencesMethodCorrectlyUpdatesRunningGenerators()
+        {
+            using var workspace = CreateWorkspace();
+
+            // We always have a single generator in this test, and we add or remove a second one. This is critical
+            // to ensuring we correctly update our existing GeneratorDriver we may have from a prior run with the new
+            // generators passed to WithAnalyzerReferences. If we only swap from zero generators to one generator,
+            // we don't have a prior GeneratorDriver to update, since we don't make a GeneratorDriver if we have no generators.
+            // Similarly, once we go from one back to zero, we end up getting rid of our GeneratorDriver entirely since
+            // we have no need for it, as an optimization.
+            var generatorReferenceToKeep = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent", hintName: "generatorReferenceToKeep"));
+            var analyzerReferenceToAddAndRemove = new TestGeneratorReference(new SingleFileTestGenerator2("// More Static Content", hintName: "analyzerReferenceToAddAndRemove"));
+
+            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+                .AddAnalyzerReference(generatorReferenceToKeep);
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Go from one generator to two.
+            project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep, analyzerReferenceToAddAndRemove });
+
+            Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
+
+            // And go back to one
+            project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep });
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
 
         [Fact]
@@ -343,7 +373,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // finalizing a compilation more than once doesn't recreate things incorrectly or run the generator more than once.
             generatorRan = false;
             var compilationReference = ObjectReference.CreateFromFactory(() => project.GetCompilationAsync().Result);
-            compilationReference.AssertReleased();
+            compilationReference.AssertHeld();
             var secondCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
             var generatedDocumentSecondTime = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
@@ -705,7 +735,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(generatorRan);
             generatorRan = false;
 
-            compilationReference.AssertReleased();
+            compilationReference.AssertHeld();
 
             var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
@@ -729,7 +759,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
             var compilationReference = ObjectReference.CreateFromFactory(() => project.GetRequiredCompilationAsync(CancellationToken.None).Result);
-            compilationReference.AssertReleased();
+            compilationReference.AssertHeld();
 
             var projectWithoutAdditionalFiles = project.RemoveAdditionalDocument(project.AdditionalDocumentIds.Single());
             Assert.Empty((await projectWithoutAdditionalFiles.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
