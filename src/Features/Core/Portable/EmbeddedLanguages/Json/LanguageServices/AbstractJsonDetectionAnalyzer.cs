@@ -53,15 +53,19 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             if (!option)
                 return;
 
-            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _info);
+            var detector = JsonLanguageDetector.TryGetOrCreate(semanticModel.Compilation, _info);
+            if (detector == null)
+                return;
 
             var root = syntaxTree.GetRoot(cancellationToken);
             Analyze(context, detector, root, cancellationToken);
         }
 
         private void Analyze(
-            SemanticModelAnalysisContext context, JsonPatternDetector detector,
-            SyntaxNode node, CancellationToken cancellationToken)
+            SemanticModelAnalysisContext context,
+            JsonLanguageDetector detector,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -75,9 +79,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 {
                     var token = child.AsToken();
                     if (token.RawKind == _info.StringLiteralTokenKind &&
-                        !JsonPatternDetector.IsDefinitelyNotJson(token, _info.SyntaxFacts) &&
-                        !detector.IsDefinitelyJson(token, cancellationToken) &&
-                        detector.IsProbablyJson(token))
+                        detector.TryParseString(token, context.SemanticModel, cancellationToken) == null &&
+                        IsProbablyJson(token))
                     {
                         var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
                         var strictTree = JsonParser.TryParse(chars, JsonOptions.Strict);
@@ -94,6 +97,37 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                     }
                 }
             }
+        }
+
+        public bool IsProbablyJson(SyntaxToken token)
+        {
+            var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
+            var tree = JsonParser.TryParse(chars, JsonOptions.None);
+            if (tree == null || !tree.Diagnostics.IsEmpty)
+                return false;
+
+            return ContainsProbableJsonObject(tree.Root);
+        }
+
+        private static bool ContainsProbableJsonObject(JsonNode node)
+        {
+            if (node.Kind == JsonKind.Object)
+            {
+                var objNode = (JsonObjectNode)node;
+                if (objNode.Sequence.Length >= 1)
+                    return true;
+            }
+
+            foreach (var child in node)
+            {
+                if (child.IsNode)
+                {
+                    if (ContainsProbableJsonObject(child.Node))
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }

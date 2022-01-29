@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     internal abstract class AbstractLanguageDetector<TOptions, TTree>
         where TOptions : struct, Enum

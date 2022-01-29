@@ -47,15 +47,19 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             if (!option)
                 return;
 
-            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _info);
+            var detector = JsonLanguageDetector.TryGetOrCreate(semanticModel.Compilation, _info);
+            if (detector == null)
+                return;
 
             var root = syntaxTree.GetRoot(cancellationToken);
             Analyze(context, detector, root, cancellationToken);
         }
 
         private void Analyze(
-            SemanticModelAnalysisContext context, JsonPatternDetector detector,
-            SyntaxNode node, CancellationToken cancellationToken)
+            SemanticModelAnalysisContext context,
+            JsonLanguageDetector detector,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -68,10 +72,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 else
                 {
                     var token = child.AsToken();
-                    if (token.RawKind == _info.StringLiteralTokenKind &&
-                        detector.IsDefinitelyJson(token, cancellationToken))
+                    if (token.RawKind == _info.StringLiteralTokenKind)
                     {
-                        var tree = detector.TryParseJson(token);
+                        var tree = detector.TryParseString(token, context.SemanticModel, cancellationToken);
                         if (tree != null)
                         {
                             foreach (var diag in tree.Diagnostics)

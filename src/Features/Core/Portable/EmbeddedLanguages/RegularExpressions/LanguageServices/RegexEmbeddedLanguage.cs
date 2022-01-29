@@ -43,13 +43,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!RegexPatternDetector.IsPossiblyPatternToken(token, syntaxFacts))
-                return default;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, this.Info);
-            var tree = detector?.TryParseRegexPattern(token, semanticModel, cancellationToken);
+            var tree = detector?.TryParseString(token, semanticModel, cancellationToken);
             return tree == null ? default : (tree, token);
         }
 

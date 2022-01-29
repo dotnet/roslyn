@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
         {
             try
             {
-                if (text.Length == 0)
+                if (text.IsDefaultOrEmpty)
                     return null;
 
                 return new JsonParser(text).ParseTree(options);

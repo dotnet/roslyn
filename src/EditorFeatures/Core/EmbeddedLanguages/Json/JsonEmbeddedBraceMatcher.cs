@@ -37,16 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (JsonPatternDetector.IsDefinitelyNotJson(token, syntaxFacts))
-                return null;
-
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _info);
-            if (!detector.IsDefinitelyJson(token, cancellationToken))
-                return null;
 
-            var tree = detector.TryParseJson(token);
+            var detector = JsonLanguageDetector.TryGetOrCreate(semanticModel.Compilation, _info);
+            var tree = detector?.TryParseString(token, semanticModel, cancellationToken);
             if (tree == null)
                 return null;
 

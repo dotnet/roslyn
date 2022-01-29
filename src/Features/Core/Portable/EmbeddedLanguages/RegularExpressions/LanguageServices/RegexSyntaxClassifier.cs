@@ -42,27 +42,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (_info.StringLiteralTokenKind != token.RawKind)
-            {
                 return;
-            }
 
             if (!options.ColorizeRegexPatterns)
-            {
                 return;
-            }
-
-            // Do some quick syntactic checks before doing any complex work.
-            if (!RegexPatternDetector.IsPossiblyPatternToken(token, _info.SyntaxFacts))
-            {
-                return;
-            }
 
             var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, _info);
-            var tree = detector?.TryParseRegexPattern(token, semanticModel, cancellationToken);
+            var tree = detector?.TryParseString(token, semanticModel, cancellationToken);
             if (tree == null)
-            {
                 return;
-            }
 
             var visitor = s_visitorPool.Allocate();
             try

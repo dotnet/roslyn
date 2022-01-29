@@ -80,12 +80,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         }
 
         private void AnalyzeToken(
-            SemanticModelAnalysisContext context, RegexPatternDetector detector,
-            SyntaxToken token, CancellationToken cancellationToken)
+            SemanticModelAnalysisContext context,
+            RegexPatternDetector detector,
+            SyntaxToken token,
+            CancellationToken cancellationToken)
         {
             if (token.RawKind == _info.StringLiteralTokenKind)
             {
-                var tree = detector.TryParseRegexPattern(token, context.SemanticModel, cancellationToken);
+                var tree = detector.TryParseString(token, context.SemanticModel, cancellationToken);
                 if (tree != null)
                 {
                     foreach (var diag in tree.Diagnostics)
