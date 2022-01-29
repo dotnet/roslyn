@@ -1574,9 +1574,24 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
             => node is SimpleNameSyntax;
 
+        public bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
+        {
+            return node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
+            {
+                Left: IdentifierNameSyntax
+            };
+        }
+
         #endregion
 
         #region GetPartsOfXXX members
+
+        public void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer)
+        {
+            var objectCreationExpression = (BaseObjectCreationExpressionSyntax)node;
+            argumentList = objectCreationExpression.ArgumentList;
+            initializer = objectCreationExpression.Initializer;
+        }
 
         public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
@@ -1634,6 +1649,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             members = namespaceDeclaration.Members;
         }
 
+        public void GetPartsOfNamedMemberInitializer(SyntaxNode node, out SyntaxNode identifier, out SyntaxNode expression)
+        {
+            var assignment = (AssignmentExpressionSyntax)node;
+            identifier = assignment.Left;
+            expression = assignment.Right;
+        }
+
         public void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
         {
             var objectCreationExpression = (ObjectCreationExpressionSyntax)node;
@@ -1675,6 +1697,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
             => ((ThrowExpressionSyntax)node).Expression;
+
+        public SeparatedSyntaxList<SyntaxNode> GetMemberInitializersOfInitializer(SyntaxNode node)
+            => ((InitializerExpressionSyntax)node).Expressions;
 
         #endregion
     }

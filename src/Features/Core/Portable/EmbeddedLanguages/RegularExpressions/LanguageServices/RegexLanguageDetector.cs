@@ -205,9 +205,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         }
 
         protected override bool TryGetOptions(
-            SemanticModel semanticModel, SyntaxNode expr, TypeInfo exprType, CancellationToken cancellationToken, out RegexOptions options)
+            SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out RegexOptions options)
         {
-            if (exprType.Type?.Name == nameof(RegexOptions))
+            if (exprType.Name == nameof(RegexOptions))
             {
                 var constVal = semanticModel.GetConstantValue(expr, cancellationToken);
                 if (constVal.Value is int intValue)

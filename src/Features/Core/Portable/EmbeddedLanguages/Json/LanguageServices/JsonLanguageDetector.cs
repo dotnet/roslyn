@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -91,7 +92,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                         _typesOfInterest.Contains(symbol.ContainingType) &&
                         IsArgumentToParameterWithName(semanticModel, argumentNode, s_jsonParameterName, cancellationToken))
                     {
-                        options = GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken);
+                        options = symbol.ContainingType.Name == nameof(JsonDocument) ? JsonOptions.Strict : default;
+                        options |= GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken);
                         return true;
                     }
                 }
@@ -101,10 +103,45 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             return false;
         }
 
-        protected override bool TryGetOptions(SemanticModel semanticModel, SyntaxNode expr, TypeInfo exprType, CancellationToken cancellationToken, out JsonOptions options)
+        protected override bool TryGetOptions(
+            SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out JsonOptions options)
         {
             options = default;
-            return false;
+
+            if (exprType.Name != nameof(JsonDocumentOptions))
+                return false;
+
+            var syntaxFacts = Info.SyntaxFacts;
+            expr = syntaxFacts.WalkDownParentheses(expr);
+            if (syntaxFacts.IsObjectCreationExpression(expr) ||
+                syntaxFacts.IsImplicitObjectCreationExpression(expr))
+            {
+                syntaxFacts.GetPartsOfBaseObjectCreationExpression(expr, out var argumentList, out var objectInitializer);
+                if (objectInitializer != null)
+                {
+                    var initializers = syntaxFacts.GetMemberInitializersOfInitializer(objectInitializer);
+                    foreach (var initializer in initializers)
+                    {
+                        if (syntaxFacts.IsNamedMemberInitializer(initializer))
+                        {
+                            syntaxFacts.GetPartsOfNamedMemberInitializer(initializer, out var name, out var initExpr);
+                            var propName = syntaxFacts.GetIdentifierOfIdentifierName(name).ValueText;
+                            if (syntaxFacts.StringComparer.Equals(propName, nameof(JsonDocumentOptions.AllowTrailingCommas)) &&
+                                semanticModel.GetConstantValue(initExpr).Value is true)
+                            {
+                                options |= JsonOptions.TrailingCommas;
+                            }
+                            else if (syntaxFacts.StringComparer.Equals(propName, nameof(JsonDocumentOptions.CommentHandling)) &&
+                                     semanticModel.GetConstantValue(initExpr).Value is (byte)JsonCommentHandling.Allow or (byte)JsonCommentHandling.Skip)
+                            {
+                                options |= JsonOptions.Comments;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
 
         private bool IsArgumentToParameterWithName(

@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             // We want to avoid reporting a ton of cascaded errors.
             var diagnostic1 = GetFirstDiagnostic(root);
             var diagnostic2 = CheckTopLevel(_lexer.Text, root);
-            var diagnostic3 = options == JsonOptions.Strict
-                ? StrictSyntaxChecker.CheckSyntax(root)
+            var diagnostic3 = options.HasFlag(JsonOptions.Strict)
+                ? StrictSyntaxChecker.CheckRootSyntax(root, options)
                 : JsonNetSyntaxChecker.CheckSyntax(root);
 
             var diagnostic = Earliest(Earliest(diagnostic1, diagnostic2), diagnostic3);

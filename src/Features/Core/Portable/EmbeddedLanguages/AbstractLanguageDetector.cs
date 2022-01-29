@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
         protected abstract bool IsEmbeddedLanguageString(SyntaxToken token, SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options);
         protected abstract TTree? TryParse(VirtualCharSequence chars, TOptions options);
-        protected abstract bool TryGetOptions(SemanticModel semanticModel, SyntaxNode expr, TypeInfo exprType, CancellationToken cancellationToken, out TOptions options);
+        protected abstract bool TryGetOptions(SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out TOptions options);
 
         public bool IsPossiblyPatternToken(SyntaxToken token, ISyntaxFacts syntaxFacts)
         {
@@ -132,8 +133,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                     if (expr != null)
                     {
                         var exprType = semanticModel.GetTypeInfo(expr, cancellationToken);
-                        if (TryGetOptions(semanticModel, expr, exprType, cancellationToken, out var options))
+                        if (exprType.Type != null &&
+                            TryGetOptions(semanticModel, exprType.Type, expr, cancellationToken, out var options))
+                        {
                             return options;
+                        }
                     }
                 }
             }
