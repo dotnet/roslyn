@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             if (!options.ColorizeJsonPatterns)
                 return;
 
-            var detector = JsonLanguageDetector.TryGetOrCreate(semanticModel.Compilation, _info);
-            var tree = detector?.TryParseString(token, semanticModel, cancellationToken);
+            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
             if (tree == null)
                 return;
 

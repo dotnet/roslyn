@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             "System.Text.Json.JsonDocument",
         };
 
-        private static readonly ConditionalWeakTable<Compilation, JsonLanguageDetector?> s_compilationToDetector = new();
+        private static readonly ConditionalWeakTable<Compilation, JsonLanguageDetector> s_compilationToDetector = new();
 
         private readonly ISet<INamedTypeSymbol> _typesOfInterest;
 
@@ -48,23 +48,20 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             _typesOfInterest = typesOfInterest;
         }
 
-        public static JsonLanguageDetector? TryGetOrCreate(
+        public static JsonLanguageDetector GetOrCreate(
             Compilation compilation, EmbeddedLanguageInfo info)
         {
             // Do a quick non-allocating check first.
             if (s_compilationToDetector.TryGetValue(compilation, out var detector))
                 return detector;
 
-            return s_compilationToDetector.GetValue(compilation, _ => TryCreate(compilation, info));
+            return s_compilationToDetector.GetValue(compilation, _ => Create(compilation, info));
         }
 
-        private static JsonLanguageDetector? TryCreate(
+        private static JsonLanguageDetector Create(
             Compilation compilation, EmbeddedLanguageInfo info)
         {
             var types = s_typeNamesOfInterest.Select(t => compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
-            if (types.Count == 0)
-                return null;
-
             return new JsonLanguageDetector(info, types);
         }
 

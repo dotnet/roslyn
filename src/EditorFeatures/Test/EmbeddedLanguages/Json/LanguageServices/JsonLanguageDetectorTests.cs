@@ -118,13 +118,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
         [Fact]
         public void TestWithNoNWordBeforeStart1()
         {
-            Match(":lang=json");
+            NoMatch(":lang=json");
         }
 
         [Fact]
         public void TestWithNoNWordBeforeStart2()
         {
-            Match(": lang=json");
+            NoMatch(": lang=json");
         }
 
         [Fact]

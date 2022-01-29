@@ -45,15 +45,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
             var option = context.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
             if (!option)
-            {
                 return;
-            }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, _info);
-            if (detector == null)
-            {
-                return;
-            }
+            var detector = RegexPatternDetector.GetOrCreate(semanticModel.Compilation, _info);
 
             // Use an actual stack object so that we don't blow the actual stack through recursion.
             var root = syntaxTree.GetRoot(cancellationToken);

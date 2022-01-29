@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
@@ -39,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var detector = JsonLanguageDetector.TryGetOrCreate(semanticModel.Compilation, _info);
-            var tree = detector?.TryParseString(token, semanticModel, cancellationToken);
+            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
             if (tree == null)
                 return null;
 

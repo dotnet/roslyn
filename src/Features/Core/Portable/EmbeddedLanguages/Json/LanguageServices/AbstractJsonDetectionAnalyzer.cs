@@ -53,10 +53,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             if (!option)
                 return;
 
-            var detector = JsonLanguageDetector.TryGetOrCreate(semanticModel.Compilation, _info);
-            if (detector == null)
-                return;
-
+            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
             var root = syntaxTree.GetRoot(cancellationToken);
             Analyze(context, detector, root, cancellationToken);
         }
