@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// </summary>
     internal class JsonLanguageDetector : AbstractLanguageDetector<JsonOptions, JsonTree>
     {
-        private const string s_jsonParameterName = "json";
-        private const string s_parseMethodName = "Parse";
+        private const string JsonParameterName = "json";
+        private const string ParseMethodName = "Parse";
+
         private static readonly HashSet<string> s_typeNamesOfInterest = new()
         {
             "Newtonsoft.Json.Linq.JToken",
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             {
                 var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(invocationOrCreation);
                 var name = GetNameOfInvokedExpression(invokedExpression);
-                if (syntaxFacts.StringComparer.Equals(name, s_parseMethodName))
+                if (syntaxFacts.StringComparer.Equals(name, ParseMethodName))
                 {
                     // Is a string argument to a method that looks like it could be a json-parsing
                     // method. Need to do deeper analysis
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
         {
             var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
-            return parameter?.Name == s_jsonParameterName;
+            return parameter?.Name == JsonParameterName;
         }
 
         internal static class TestAccessor
