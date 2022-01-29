@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                     var symbol = semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
                     if (symbol is IMethodSymbol { DeclaredAccessibility: Accessibility.Public, IsStatic: true } &&
                         _typesOfInterest.Contains(symbol.ContainingType) &&
-                        IsArgumentToParameterWithName(semanticModel, argumentNode, s_jsonParameterName, cancellationToken))
+                        IsArgumentToSuitableParameter(semanticModel, argumentNode, cancellationToken))
                     {
                         options = symbol.ContainingType.Name == nameof(JsonDocument) ? JsonOptions.Strict : default;
                         options |= GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken);
@@ -146,11 +146,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             return true;
         }
 
-        private bool IsArgumentToParameterWithName(
-            SemanticModel semanticModel, SyntaxNode argumentNode, string name, CancellationToken cancellationToken)
+        private bool IsArgumentToSuitableParameter(
+            SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
         {
             var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
-            return parameter?.Name == name;
+            return parameter?.Name == s_jsonParameterName;
         }
 
         internal static class TestAccessor
