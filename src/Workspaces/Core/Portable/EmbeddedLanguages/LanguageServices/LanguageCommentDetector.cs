@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         public LanguageCommentDetector(params string[] languageNames)
         {
             var namePortion = string.Join("|", languageNames.Select(n => $"({Regex.Escape(n)})"));
-            _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*{namePortion}?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*({namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
