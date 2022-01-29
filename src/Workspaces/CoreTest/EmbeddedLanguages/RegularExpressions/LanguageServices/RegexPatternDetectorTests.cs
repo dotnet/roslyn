@@ -21,13 +21,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void MatchWorker(string value, RegexOptions? expectedOptions)
             {
-                var (success, actualOptions) = RegexPatternDetector.TestAccessor.TryMatch(value);
-                Assert.True(success);
+                Assert.True(RegexPatternDetector.TestAccessor.TryMatch(value, out var actualOptions));
 
                 if (expectedOptions != null)
-                {
                     Assert.Equal(expectedOptions.Value, actualOptions);
-                }
             }
         }
 
@@ -42,8 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void NoMatchWorker(string value)
             {
-                var (success, _) = RegexPatternDetector.TestAccessor.TryMatch(value);
-                Assert.False(success);
+                Assert.False(RegexPatternDetector.TestAccessor.TryMatch(value, out _));
             }
         }
 

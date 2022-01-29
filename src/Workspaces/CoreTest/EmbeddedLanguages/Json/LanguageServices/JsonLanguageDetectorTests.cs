@@ -8,21 +8,39 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServices
 {
-    public class JsonPatternDetectorTests
+    public class JsonLanguageDetectorTests
     {
         private static void Match(string value, JsonOptions? expectedOptions = null)
         {
-            Assert.True(JsonPatternDetector.TestAccessor.TryMatch(value, out var actualOptions));
+            MatchWorker($"/*{value}*/", expectedOptions);
+            MatchWorker($"/*{value} */", expectedOptions);
+            MatchWorker($"//{value}", expectedOptions);
+            MatchWorker($"// {value}", expectedOptions);
+            MatchWorker($"'{value}", expectedOptions);
+            MatchWorker($"' {value}", expectedOptions);
 
-            if (expectedOptions != null)
+            static void MatchWorker(string value, JsonOptions? expectedOptions)
             {
-                Assert.Equal(expectedOptions.Value, actualOptions);
+                Assert.True(JsonLanguageDetector.TestAccessor.TryMatch(value, out var actualOptions));
+
+                if (expectedOptions != null)
+                    Assert.Equal(expectedOptions.Value, actualOptions);
             }
         }
 
         private static void NoMatch(string value)
         {
-            Assert.False(JsonPatternDetector.TestAccessor.TryMatch(value, out _));
+            NoMatchWorker($"/*{value}*/");
+            NoMatchWorker($"/*{value} */");
+            NoMatchWorker($"//{value}");
+            NoMatchWorker($"// {value}");
+            NoMatchWorker($"'{value}");
+            NoMatchWorker($"' {value}");
+
+            static void NoMatchWorker(string value)
+            {
+                Assert.False(JsonLanguageDetector.TestAccessor.TryMatch(value, out _));
+            }
         }
 
         [Fact]

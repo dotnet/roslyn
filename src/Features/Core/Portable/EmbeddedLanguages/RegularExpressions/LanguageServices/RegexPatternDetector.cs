@@ -219,13 +219,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
         internal static class TestAccessor
         {
-            public static (bool success, RegexOptions options) TryMatch(string text)
-            {
-                if (s_languageCommentDetector.TryMatch(text, out var options))
-                    return (true, options);
-
-                return default;
-            }
+            public static bool TryMatch(string text, out RegexOptions options)
+                => s_languageCommentDetector.TryMatch(text, out options);
         }
     }
 }
