@@ -808,30 +808,69 @@ characteristics are still observed when editing a syntax tree.
 ## Outputting values
 
 At some point in the pipeline the author will want to actually use the
-transformed data to produce an output, such as a `SourceText`. For this purpose
-there are 'terminating' extension methods that allow the author to provide the
-resulting data the generator produces. The set of terminating extensions
-include:
+transformed data to produce an output, such as a `SourceText`. There are a set
+of `Register...Output` methods on the
+`IncrementalGeneratorInitializationContext` that allow the generator author to
+construct an output from a series of transformations.
 
-- GenerateSource
-- GenerateEmbeddedFile
-- GenerateArtifact
+These output registrations are terminal, in that the they do not return a value
+provider and can have no further transformations applied to them. However an
+author is free to register multiple outputs of the same type with different
+input transformations.
 
-GenerateSource for example looks like:
+The set of output methods are
+
+- RegisterSourceOutput
+- RegisterImplementationSourceOutput
+- RegisterPostInitializationOutput
+
+**RegisterSourceOutput**:
+
+RegisterSourceOutput allows a generator author to produce source files and
+diagnostics that will be included in the users compilation. As input, it takes a
+`Value[s]Provider` and a matching `Action<SourceProductionContext, TSource>`
+that is invoked for every value in the value provider.
 
 ``` csharp
-static partial class IncrementalValueSourceExtensions
+public static partial class IncrementalValueSourceExtensions
 {
-    public internal static IncrementalGeneratorOutput GenerateSource<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, T> action) => ...
+    public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action);
+    public void RegisterSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action);
 }
 ```
 
-That can be used by the author to supply `SourceText` to be appended to the
-compilation via the passed in `SourceProductionContext`:
+The provided `SourceProductionContext` can be used to add source files and report diagnostics:
+
+```csharp
+public readonly struct SourceProductionContext
+{
+    public CancellationToken CancellationToken { get; }
+
+    public void AddSource(string hintName, string source);
+   
+    public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, sourceText);
+
+    public void ReportDiagnostic(Diagnostic diagnostic);
+}
+```
+
+For example, a generator can extract out the set of paths for the additional
+files and create a method that prints them out:
 
 ``` csharp
+initContext.RegisterExecutionPipeline(context =>
+{
+    // get the additional text provider
+    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+
+    // apply a 1-to-1 transform on each text, extracting the path
+    IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
+
+    // collect the paths into a batch
+    IncrementalValueProvider<ImmutableArray<string>> collected = transformed.Collect();
+    
     // take the file paths from the above batch and make some user visible syntax
-    batched.GenerateSource(static (sourceProductionContext, filePaths) =>
+    initContext.RegisterSourceOutput(collected, static (sourceProductionContext, filePaths) =>
     {
         sourceProductionContext.AddSource("additionalFiles.cs", @"
 namespace Generated
@@ -845,62 +884,32 @@ namespace Generated
     }
 }");
     });
-```
-
-A generator may create and register multiple output nodes as part of the
-pipeline, but an output cannot be further transformed once it is created.
-
-Splitting the outputs by type produced allows the host (such as the IDE) to not
-run outputs that are not required. For instance artifacts are only produced as
-part of a command line build, so the IDE has no need to run the artifact based
-outputs or steps that feed into it.
-
-**OPEN QUESTION** Should we have `GenerateBatch...` versions of the output
-methods? This can already be achieved by the author calling `BatchTransform`
-before calling `Generate...` so would just be a helper, but seems common enough
-that it could be useful.
-
-## Simple example
-
-Putting together the various steps outlined above, an example incremental
-generator might look like the following:
-
-``` csharp
-[Generator(LanguageNames.CSharp)]
-public class MyGenerator : IIncrementalGenerator
-{
-    public void Initialize(IncrementalGeneratorInitializationContext initContext)
-    {
-        initContext.RegisterExecutionPipeline(context =>
-        {
-            // get the additional text source
-            IncrementalValueSource<AdditionalText> additionalTexts = context.Sources.AdditionalTexts;
-
-            // apply a 1-to-1 transform on each text, extracting the path
-            IncrementalValueSource<string> transformed = additionalTexts.Transform(static text => text.Path);
-
-            // batch the collected file paths into a single collection
-            IncrementalValueSource<IEnumerable<string>> batched = transformed.BatchTransform(static paths => paths);
-
-            // take the file paths from the above batch and make some user visible syntax
-            batched.GenerateSource(static (sourceContext, filePaths) =>
-            {
-                sourceContext.AddSource("additionalFiles.cs", @"
-namespace Generated
-{
-    public class AdditionalTextList
-    {
-        public static void PrintTexts()
-        {
-            System.Console.WriteLine(""Additional Texts were: " + string.Join(", ", filePaths) + @" "");
-        }
-    }
-}");
-            });
-        });
-    }
 }
 ```
+
+**RegisterImplementationSourceOutput**:
+
+`RegisterImplementationSourceOutput` works in the same way as
+`RegisterSourceOutput` but declares that the source produced has no semantic
+impact on user code from the point of view of code analysis. This allows a host
+such as the IDE, to chose not to run these outputs as a performance
+optimization. A host that produces executable code will always run these
+outputs.
+
+**RegisterPostInitializationOutput**:
+
+`RegisterPostInitializationOutput` allows a generator author to provide source
+code immediately after initialization has run. It takes no inputs, and so cannot
+refer to any source code written by the user, or any other compiler inputs.
+
+Post initialization source is included in the Compilation before any other
+transformations are run, meaning that it will be visible as part of the rest of
+the regular execution pipeline, and an author may ask semantic questions about
+it.
+
+It is particularly useful for adding attributes to the users source code. These
+can then be added by the user their code, and the generator may find the
+attributed code via the semantic model.
 
 ## Caching
 
@@ -1003,20 +1012,11 @@ var compareTransform = transform.WithComparer(myComparer).Transform(...);
 The same transform node can have no comparer when acting as input to one step,
 and still provide one when acting as input to a different step.
 
-**OPEN QUESTION**: This again gives maximal flexibility, but might be annoying
-if you have lots of custom data structures that you use in multiple places. Should
-we consider allowing the author to specify a set of 'default' comparers that
-apply to all transforms unless overridden?
-
-**OPEN QUESTION**: `IValueComparer<T>` seems like the correct type to use, but
-can be less ergonomic as it requires the author to define a type not inline and
-reference it here. Should we provided a 'functional' overload that creates the
-equality comparer for the author under the hood given a lambda?
-
-### Syntax Trees
 
 ## Internal Implementation
 
-TK: compiler specific implementation. StateTables etc.
+TK: compiler specific implementation. StateTables etc. 
+
+Do we need this at all?
 
 ### Hosting ISourceGenerator on the new APIs
