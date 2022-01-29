@@ -64,5 +64,95 @@ class Program
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
                     string.Format(FeaturesResources._0_unexpected, '}')));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        public async Task TestJsonDocument()
+        {
+            await TestDiagnosticInfoAsync(@"<Workspace>
+    <Project Language=""C#"" CommonReferencesNet6=""true"">
+        <Document>
+using System.Text.Json;
+
+class Program
+{
+    void Main()
+    {
+        var r = JsonDocument.Parse(@""[1[|,|]]"");
+    }     
+}
+        </Document>
+    </Project>
+</Workspace>",
+                options: OptionOn(),
+                diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
+                    FeaturesResources.Trailing_comma_not_allowed));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        public async Task TestJsonDocumentTrailingCommaDisallowed()
+        {
+            await TestDiagnosticInfoAsync(@"<Workspace>
+    <Project Language=""C#"" CommonReferencesNet6=""true"">
+        <Document>
+using System.Text.Json;
+
+class Program
+{
+    void Main()
+    {
+        var r = JsonDocument.Parse(@""[1[|,|]]"", new JsonDocumentOptions { AllowTrailingCommas = false });
+    }     
+}
+        </Document>
+    </Project>
+</Workspace>",
+                options: OptionOn(),
+                diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
+                    FeaturesResources.Trailing_comma_not_allowed));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        public async Task TestJsonDocumentTrailingCommaAllowed()
+        {
+            await TestDiagnosticMissingAsync(@"<Workspace>
+    <Project Language=""C#"" CommonReferencesNet6=""true"">
+        <Document>
+using System.Text.Json;
+
+class Program
+{
+    void Main()
+    {
+        var r = JsonDocument.Parse(@""[1[|,|]]"", new JsonDocumentOptions { AllowTrailingCommas = true });
+    }     
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        public async Task TestJsonDocumentTrailingCommaAllowedImplicitObject()
+        {
+            await TestDiagnosticMissingAsync(@"<Workspace>
+    <Project Language=""C#"" CommonReferencesNet6=""true"">
+        <Document>
+using System.Text.Json;
+
+class Program
+{
+    void Main()
+    {
+        var r = JsonDocument.Parse(@""[1[|,|]]"", new() { AllowTrailingCommas = true });
+    }     
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
     }
 }
