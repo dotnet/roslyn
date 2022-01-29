@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             Workspace workspace,
             ISymbolSearchLogService logService,
             CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult<ISymbolSearchUpdateEngine>(NoOpUpdateEngine.Instance);
+            => ValueTaskFactory.FromResult<ISymbolSearchUpdateEngine>(SymbolSearchUpdateNoOpEngine.Instance);
     }
 }
 #endif
