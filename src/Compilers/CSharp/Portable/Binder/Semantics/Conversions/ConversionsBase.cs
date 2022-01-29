@@ -628,11 +628,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 
             // We extend the definition of standard implicit conversions to include
             // all of the implicit conversions that are allowed based on an expression,
-            // with the exception of the switch expression conversion and the interpolated
-            // string builder conversion.
+            // with the exception of the switch expression conversion.
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
-            if (conversion.Exists && !conversion.IsInterpolatedStringHandler)
+            if (conversion.Exists)
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
