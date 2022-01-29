@@ -173,13 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     out var expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
-                var result = SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);
-                if (result is not null && parameterIndex >= 0)
-                {
-                    result.ArgumentIndex = parameterIndex;
-                }
-
-                return result;
+                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position, parameterIndex);
             }
 
             return null;
