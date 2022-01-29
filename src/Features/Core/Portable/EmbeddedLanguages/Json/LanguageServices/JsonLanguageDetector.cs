@@ -108,6 +108,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         {
             options = default;
 
+            // look for an argument of the form `new JsonDocumentOptions { AllowTrailingCommas = ..., CommentHandling = ... }`
+
             if (exprType.Name != nameof(JsonDocumentOptions))
                 return false;
 
