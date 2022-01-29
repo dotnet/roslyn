@@ -59,43 +59,27 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
         }
 
         private static BraceMatchingResult? FindBraceHighlights(JsonTree tree, VirtualChar ch)
-        {
-            var node = FindObjectOrArrayNode(tree.Root, ch);
-            return node switch
-            {
-                JsonObjectNode obj => Create(obj.OpenBraceToken, obj.CloseBraceToken),
-                JsonArrayNode array => Create(array.OpenBracketToken, array.CloseBracketToken),
-                JsonConstructorNode cons => Create(cons.OpenParenToken, cons.CloseParenToken),
-                _ => null,
-            };
-        }
+            => FindBraceMatchingResult(tree.Root, ch);
 
-        private static BraceMatchingResult? Create(JsonToken open, JsonToken close)
-        {
-            return open.IsMissing || close.IsMissing
-                ? null
-                : new BraceMatchingResult(open.GetSpan(), close.GetSpan());
-        }
-
-        private static JsonValueNode? FindObjectOrArrayNode(JsonNode node, VirtualChar ch)
+        private static BraceMatchingResult? FindBraceMatchingResult(JsonNode node, VirtualChar ch)
         {
             switch (node)
             {
                 case JsonArrayNode array when Matches(array.OpenBracketToken, array.CloseBracketToken, ch):
-                    return array;
+                    return Create(array.OpenBracketToken, array.CloseBracketToken);
 
                 case JsonObjectNode obj when Matches(obj.OpenBraceToken, obj.CloseBraceToken, ch):
-                    return obj;
+                    return Create(obj.OpenBraceToken, obj.CloseBraceToken);
 
                 case JsonConstructorNode cons when Matches(cons.OpenParenToken, cons.CloseParenToken, ch):
-                    return cons;
+                    return Create(cons.OpenParenToken, cons.CloseParenToken);
             }
 
             foreach (var child in node)
             {
                 if (child.IsNode)
                 {
-                    var result = FindObjectOrArrayNode(child.Node, ch);
+                    var result = FindBraceMatchingResult(child.Node, ch);
                     if (result != null)
                         return result;
                 }
@@ -103,6 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
 
             return null;
         }
+
+        private static BraceMatchingResult? Create(JsonToken open, JsonToken close)
+           => open.IsMissing || close.IsMissing
+               ? null
+               : new BraceMatchingResult(open.GetSpan(), close.GetSpan());
 
         private static bool Matches(JsonToken openToken, JsonToken closeToken, VirtualChar ch)
             => openToken.VirtualChars.Contains(ch) || closeToken.VirtualChars.Contains(ch);

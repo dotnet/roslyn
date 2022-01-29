@@ -455,7 +455,35 @@ class C
 {
     void Goo()
     {
+        var r = /*lang=json*/ @""new Json[|$$(|]1, 2, 3[|)|]"");
+    }
+}";
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestJsonBracket2()
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
         var r = /*lang=json*/ @""new Json[|(|]1, 2, 3[|)|]$$"");
+    }
+}";
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestUnmatchedJsonBracket1()
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = /*lang=json*/ @""new Json$$(1, 2, 3"");
     }
 }";
             await TestBraceHighlightingAsync(input);
