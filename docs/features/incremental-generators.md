@@ -14,6 +14,40 @@ strategies that can be applied in a high performance way by the hosting layer.
 - Support generating more items that just source texts
 - Exist alongside `ISourceGenerator` based implementations
 
+## Simple Example
+
+We begin by defining a simple incremental generator that extracts the contents
+of additional text files and makes their contents available as compile time
+`const`s. In the following section we'll go into more depth around the concepts
+shown.
+
+```csharp
+[Generator]
+public class Generator : IIncrementalGenerator
+{
+    public void Initialize(IncrementalGeneratorInitializationContext initContext)
+    {
+        // define the execution pipeline here via a series of transformations:
+
+        // find all additional files that end with .txt
+        IncrementalValuesProvider<AdditionalText> textFiles = context.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".txt"));
+
+        // read their contents and save their name
+        IncrementalValuesProvider<(string name, string content)> namesAndContents = textFiles.Select((text, cancellationToken) => (name: Path.GetFileNameWithoutExtension(text.Path), content: text.GetText(cancellationToken)!.ToString()));
+
+        // generate a class that contains their values as const strings
+        context.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) =>
+        {
+            spc.AddSource($"ConstStrings.{nameAndContent.name}", $@"
+    public static partial class ConstStrings
+    {{
+        public const string {nameAndContent.name} = ""{nameAndContent.content}"";
+    }}");
+        });
+    }
+}
+```
+
 ## Implementation
 
 An incremental generator is an implementation of `Microsoft.CodeAnalysis.IIncrementalGenerator`.
@@ -44,8 +78,11 @@ incremental generators.
 
 ### Pipeline based execution
 
-`IIncrementalGenerator` has an `Initialize` method that is called by the host[^1]
-exactly once, regardless of the number of further compilations that may occur.
+`IIncrementalGenerator` has an `Initialize` method that is called by the
+host[^1] exactly once, regardless of the number of further compilations that may
+occur. For instance a host with multiple loaded projects may share the same
+generator instance across multiple projects, and will only call `Initialize` a
+single time for the lifetime of the host.
 
 [^1]: Such as the IDE or the command-line compiler
 
@@ -53,21 +90,43 @@ Rather than a dedicated `Execute` method, an Incremental Generator instead
 defines an immutable execution pipeline as part of initialization. The
 `Initialize` method receives an instance of
 `IncrementalGeneratorInitializationContext`which is used by the generator to
-define a set of transformations:
+define a set of transformations.
+
 
 ```csharp
 public void Initialize(IncrementalGeneratorInitializationContext initContext)
 {
-    // define the execution pipeline here via transformations of initContext
+    // define the execution pipeline here via a series of transformations:
 }
 ```
 
-These transformations are not executed directly at initialization. Instead they
-are used to form a directed graph of actions that can be executed on demand later,
-as the input data changes. Between each transformation, the data
-produced is cached, allowing previously calculated values to be re-used where
-applicable. This caching reduces the computation required for subsequent
-compilations. See [caching](#caching) for more details.
+The defined transformations are not executed directly at initialization, and
+instead are deferred until the data they are using changes. Conceptually this is
+similar to LINQ, where a lambda expression might not be executed until the
+enumerable is actually iterated over:
+
+**IEnumerable**:
+
+```csharp
+    var squares = Enumerable.Range(1, 10).Select(i => i * 2); 
+
+    // the code inside select is not executed until we iterate the collection
+    foreach (var square in squares) { ... }
+```
+
+These transformations are used to form a directed graph of actions that can be
+executed on demand later, as the input data changes.
+
+**Incremental Generators**:
+
+```csharp
+    IncrementalValuesProvider<AdditionalText> textFiles = context.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".txt"));
+    // the code in the Where(...) above will not be executed until the value of the additional texts actually changes
+```
+ 
+Between each transformation, the data produced is cached, allowing previously calculated
+values to be re-used where applicable. This caching reduces the computation
+required for subsequent compilations. See [caching](#caching) for more details.
 
 ### IncrementalValue\[s\]Provider&lt;T&gt;
 
