@@ -45,134 +45,94 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
 
         [Fact]
         public void TestSimpleForm()
-        {
-            Match("lang=json");
-        }
+            => Match("lang=json");
+
+        [Fact]
+        public void TestAllCaps()
+            => Match("lang=JSON");
 
         [Fact]
         public void TestIncompleteForm1()
-        {
-            NoMatch("lan=json");
-        }
+            => NoMatch("lan=json");
 
         [Fact]
         public void TestIncompleteForm2()
-        {
-            NoMatch("lang=rege");
-        }
+            => NoMatch("lang=jso");
 
         [Fact]
         public void TestMissingEquals()
-        {
-            NoMatch("lang json");
-        }
+            => NoMatch("lang json");
 
         [Fact]
         public void TestLanguageForm()
-        {
-            Match("language=json");
-        }
+            => Match("language=json");
 
         [Fact]
         public void TestLanguageNotFullySpelled()
-        {
-            NoMatch("languag=json");
-        }
+            => NoMatch("languag=json");
 
         [Fact]
         public void TestSpacesAroundEquals()
-        {
-            Match("lang = json");
-        }
+            => Match("lang = json");
 
         [Fact]
         public void TestSpacesAroundPieces()
-        {
-            Match(" lang=json ");
-        }
+            => Match(" lang=json ");
 
         [Fact]
         public void TestSpacesAroundPiecesAndEquals()
-        {
-            Match(" lang = json ");
-        }
+            => Match(" lang = json ");
 
         [Fact]
         public void TestSpaceBetweenJsonAndNextWord()
-        {
-            Match("lang=json here");
-        }
+            => Match("lang=json here");
 
         [Fact]
         public void TestPeriodAtEnd()
-        {
-            Match("lang=json.");
-        }
+            => Match("lang=json.");
 
         [Fact]
         public void TestNotWithWordCharAtEnd()
-        {
-            NoMatch("lang=jsonc");
-        }
+            => NoMatch("lang=jsonc");
 
         [Fact]
         public void TestWithNoNWordBeforeStart1()
-        {
-            NoMatch(":lang=json");
-        }
+            => NoMatch(":lang=json");
 
         [Fact]
         public void TestWithNoNWordBeforeStart2()
-        {
-            NoMatch(": lang=json");
-        }
+            => NoMatch(": lang=json");
 
         [Fact]
         public void TestNotWithWordCharAtStart()
-        {
-            NoMatch("clang=json");
-        }
+            => NoMatch("clang=json");
 
         [Fact]
         public void TestOption()
-        {
-            Match("lang=json,strict", JsonOptions.Strict);
-        }
+            => Match("lang=json,strict", JsonOptions.Strict);
 
         [Fact]
         public void TestOptionWithSpaces()
-        {
-            Match("lang=json , strict", JsonOptions.Strict);
-        }
+            => Match("lang=json , strict", JsonOptions.Strict);
 
         [Fact]
         public void TestOptionFollowedByPeriod()
-        {
-            Match("lang=json,strict. Explanation", JsonOptions.Strict);
-        }
+            => Match("lang=json,strict. Explanation", JsonOptions.Strict);
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod()
-        {
-            Match("lang=json,strict,Strict. Explanation", JsonOptions.Strict);
-        }
+            => Match("lang=json,strict,Strict. Explanation", JsonOptions.Strict);
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod_CaseInsensitive()
-        {
-            Match("Language=Json,Strict. Explanation", JsonOptions.Strict);
-        }
+            => Match("Language=Json,Strict. Explanation", JsonOptions.Strict);
 
         [Fact]
         public void TestInvalidOption1()
-        {
-            NoMatch("lang=json,ignore");
-        }
+            => NoMatch("lang=json,ignore");
 
         [Fact]
         public void TestInvalidOption2()
-        {
-            NoMatch("lang=json,strict,ignore");
-        }
+            => NoMatch("lang=json,strict,ignore");
     }
 }
