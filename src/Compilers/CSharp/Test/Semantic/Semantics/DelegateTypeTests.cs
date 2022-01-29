@@ -8491,12 +8491,13 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 24 }
             CompileAndVerify(comp, expectedOutput:
 @"0
 System.Object
 <>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
-");
+", verify: Verification.FailsIlVerify);
         }
 
         [Fact]
