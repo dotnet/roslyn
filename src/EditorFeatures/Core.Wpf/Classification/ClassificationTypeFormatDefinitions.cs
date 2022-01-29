@@ -914,10 +914,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonCommentFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Comment;
-                this.ForegroundColor = Color.FromRgb(0x00, 0x80, 0x00);
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Comment;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonNumber)]
@@ -931,10 +928,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonNumberFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Number;
-                this.ForegroundColor = Colors.Black;
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Number;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonString)]
@@ -948,10 +942,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonStringFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_String;
-                this.ForegroundColor = Color.FromRgb(0xa3, 0x15, 0x15);
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_String;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonKeyword)]
@@ -965,10 +956,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonKeywordFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Keyword;
-                this.ForegroundColor = Color.FromRgb(0x00, 0x00, 0xff);
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Keyword;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonText)]
@@ -982,10 +970,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonTextFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Text;
-                this.ForegroundColor = Color.FromRgb(0x80, 0x00, 0x00);
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Text;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonOperator)]
@@ -999,10 +984,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonOperatorFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Operator;
-                this.ForegroundColor = Colors.Black;
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Operator;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonPunctuation)]
@@ -1016,10 +998,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonPunctuationFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Punctuation;
-                this.ForegroundColor = Colors.Black;
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Punctuation;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonObject)]
@@ -1033,10 +1012,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonObjectFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Object;
-                this.ForegroundColor = Colors.Black;
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Object;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonArray)]
@@ -1050,10 +1026,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonArrayFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Array;
-                this.ForegroundColor = Colors.Black;
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Array;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonPropertyName)]
@@ -1067,10 +1040,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonPropertyNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Property_Name;
-                this.ForegroundColor = Color.FromRgb(0x74, 0x53, 0x1f);
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Property_Name;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonConstructorName)]
@@ -1084,10 +1054,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonConstructorNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.JSON_Constructor_Name;
-                this.ForegroundColor = Color.FromRgb(0x2b, 0x91, 0xaf); ;
-            }
+                => this.DisplayName = EditorFeaturesResources.JSON_Constructor_Name;
         }
         #endregion
 

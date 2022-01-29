@@ -19,16 +19,16 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// </summary>
     internal class JsonPatternDetector
     {
-        private const string _jsonName = "json";
-        private const string _methodNameOfInterest = "Parse";
-        private static readonly HashSet<string> _typeNamesOfInterest = new()
+        private const string s_jsonDotNetParameterName = "json";
+        private const string s_jsonDotNetMethodNameOfInterest = "Parse";
+        private static readonly HashSet<string> s_jsonDotNetTypeNamesOfInterest = new()
         {
             "Newtonsoft.Json.Linq.JToken",
             "Newtonsoft.Json.Linq.JObject",
             "Newtonsoft.Json.Linq.JArray"
         };
 
-        private static readonly ConditionalWeakTable<SemanticModel, JsonPatternDetector> _modelToDetector = new();
+        private static readonly ConditionalWeakTable<SemanticModel, JsonPatternDetector> s_modelToDetector = new();
 
         private readonly SemanticModel _semanticModel;
         private readonly EmbeddedLanguageInfo _info;
@@ -55,17 +55,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             SemanticModel semanticModel, EmbeddedLanguageInfo info)
         {
             // Do a quick non-allocating check first.
-            if (_modelToDetector.TryGetValue(semanticModel, out var detector))
+            if (s_modelToDetector.TryGetValue(semanticModel, out var detector))
                 return detector;
 
-            return _modelToDetector.GetValue(
+            return s_modelToDetector.GetValue(
                 semanticModel, _ => Create(semanticModel, info));
         }
 
         private static JsonPatternDetector Create(
             SemanticModel semanticModel, EmbeddedLanguageInfo info)
         {
-            var types = _typeNamesOfInterest.Select(t => semanticModel.Compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
+            var types = s_jsonDotNetTypeNamesOfInterest.Select(t => semanticModel.Compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
             return new JsonPatternDetector(semanticModel, info, types);
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             {
                 var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(invocationOrCreation);
                 var name = GetNameOfInvokedExpression(invokedExpression);
-                if (syntaxFacts.StringComparer.Equals(name, _methodNameOfInterest))
+                if (syntaxFacts.StringComparer.Equals(name, s_jsonDotNetMethodNameOfInterest))
                 {
                     // Is a string argument to a method that looks like it could be a json-parsing
                     // method. Need to do deeper analysis
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                         _typesOfInterest.Contains(method.ContainingType))
                     {
                         return IsArgumentToParameterWithName(
-                            argumentNode, _jsonName, cancellationToken);
+                            argumentNode, s_jsonDotNetParameterName, cancellationToken);
                     }
                 }
             }

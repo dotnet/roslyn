@@ -284,57 +284,57 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         #region JSON
         [Export]
         [Name(ClassificationTypeNames.JsonComment)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Comment)]
         internal readonly ClassificationTypeDefinition JsonCommentTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonNumber)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Number)]
         internal readonly ClassificationTypeDefinition JsonNumberTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonString)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.String)]
         internal readonly ClassificationTypeDefinition JsonStringTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonKeyword)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Keyword)]
         internal readonly ClassificationTypeDefinition JsonKeywordTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonText)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Text)]
         internal readonly ClassificationTypeDefinition JsonTextTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonOperator)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Operator)]
         internal readonly ClassificationTypeDefinition JsonOperatorTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonPunctuation)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Punctuation)]
         internal readonly ClassificationTypeDefinition JsonPunctuationTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonArray)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Punctuation)]
         internal readonly ClassificationTypeDefinition JsonArrayTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonObject)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Punctuation)]
         internal readonly ClassificationTypeDefinition JsonObjectTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonPropertyName)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(ClassificationTypeNames.MethodName)]
         internal readonly ClassificationTypeDefinition JsonPropertyNameTypeDefinition;
 
         [Export]
         [Name(ClassificationTypeNames.JsonConstructorName)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        [BaseDefinition(ClassificationTypeNames.StructName)]
         internal readonly ClassificationTypeDefinition JsonConstructorNameTypeDefinition;
 
         #endregion
