@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.JsonDetection), [Shared]>
     Friend Class VisualBasicJsonDetectionCodeFixProvider
         Inherits AbstractJsonDetectionCodeFixProvider
 

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.JsonDetection), Shared]
     internal class CSharpJsonDetectionCodeFixProvider : AbstractJsonDetectionCodeFixProvider
     {
         [ImportingConstructor]
