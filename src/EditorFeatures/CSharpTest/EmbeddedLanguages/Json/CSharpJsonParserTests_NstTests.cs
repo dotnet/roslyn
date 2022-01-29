@@ -2617,7 +2617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""',' expected"" Start=""13"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""',' expected"" Start=""13"" Length=""1"" />
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""1"" />
 </Diagnostics>");
         }
 

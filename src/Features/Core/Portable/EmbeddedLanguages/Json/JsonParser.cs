@@ -142,17 +142,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             return new JsonTree(_lexer.Text, root, diagnostic == null
                 ? ImmutableArray<EmbeddedDiagnostic>.Empty
                 : ImmutableArray.Create(diagnostic.Value));
+        }
 
-            static EmbeddedDiagnostic? Earliest(EmbeddedDiagnostic? d1, EmbeddedDiagnostic? d2)
-            {
-                if (d1 == null)
-                    return d2;
+        private static EmbeddedDiagnostic? Earliest(EmbeddedDiagnostic? d1, EmbeddedDiagnostic? d2)
+        {
+            if (d1 == null)
+                return d2;
 
-                if (d2 == null)
-                    return d1;
+            if (d2 == null)
+                return d1;
 
-                return d1.Value.Span.Start <= d2.Value.Span.Start ? d1 : d2;
-            }
+            return d1.Value.Span.Start <= d2.Value.Span.Start ? d1 : d2;
         }
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                     _ => null,
                 };
 
-                return diagnostic ?? CheckChildren(node);
+                return Earliest(diagnostic, CheckChildren(node));
             }
 
             static EmbeddedDiagnostic? CheckChildren(JsonNode node)

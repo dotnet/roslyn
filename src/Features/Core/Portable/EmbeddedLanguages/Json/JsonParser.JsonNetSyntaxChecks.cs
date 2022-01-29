@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                     _ => null,
                 };
 
-                return diagnostic ?? CheckChildren(node);
+                return Earliest(diagnostic, CheckChildren(node));
 
                 static EmbeddedDiagnostic? CheckChildren(JsonNode node)
                 {

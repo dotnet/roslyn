@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                     _ => null,
                 };
 
-                return diagnostic ?? CheckChildren(node);
+                return Earliest(diagnostic, CheckChildren(node));
 
                 EmbeddedDiagnostic? CheckChildren(JsonNode node)
                 {
