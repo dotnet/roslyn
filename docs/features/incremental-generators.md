@@ -1073,3 +1073,80 @@ The host will only invoke the given comparer when the item it is derived from
 has been modified. When the input value is new or being removed, or the input
 transformation was determined to be cached (possibly by a provided comparer) the
 given comparer is not considered.
+
+### Authoring a cache friendly generator
+
+Much of the success of an incremental generator will depend on creating an
+optimal pipeline that is amenable to caching. This section includes some general
+tips and best practices to achieve that
+
+**Extract out information early**: It is best to get the information out of the
+inputs as early as possible in the pipeline. This ensures the host is not
+caching large, expensive object such as symbols.
+
+**Use value types where possible**: Value types are more amenable to caching and
+usually have well defined and easy to understand comparison semantics.
+
+**Use multiple transformations**: The more transformations you break the
+operations into, the more opportunities there are to cache. Think of
+transformations as being 'check points' in the execution graph. The more check
+points the more chances there are to match a cached value and skip any remaining
+work.
+
+**Build a data model**: Rather than trying to pass each input item into a
+`Register...Output` method, consider building a data model to be the final item
+passed to the output. Use the transformations to manipulate the data model, and
+have well defined equality that allows you to correctly compare between
+revisions of the model. This also makes testing the final `Register...Outputs`
+significantly simpler: you can just call the method with a dummy data model and
+check the generated code, rather than trying to emulate the incremental
+transformations.
+
+**Consider the order of combines**: Ensure that you are only combining the
+minimal amount of information needed (this comes back to 'Extract out
+information early'). 
+
+Consider the following (incorrect) combine where the basic inputs are combined,
+then used to generate some source:
+
+```csharp
+public void Initialize(IncrementalGeneratorInitializationContext context)
+{
+    var compilation = context.CompilationProvider;
+    var texts = context.AdditionalTextsProvider;
+
+    // Don't do this!
+    var combined = texts.Combine(compilation);
+
+    context.RegisterSourceOutput(combined, (spc, pair) =>
+    {
+        var assemblyName = pair.Right.AssemblyName;
+        // produce source ...
+    });
+```
+
+Any time the compilation changes, which it will frequently as the user is typing
+in the IDE, then `RegisterSourceOutput` will get re-run. Instead, look up the
+compilation dependant information first, then combine _that_ with the additional
+files:
+
+```csharp
+public void Initialize(IncrementalGeneratorInitializationContext context)
+{
+    var assemblyName = context.CompilationProvider.Select((c, _) => c.AssemblyName);
+    var texts = context.AdditionalTextsProvider;
+
+    var combined = texts.Combine(assemblyName);
+
+    context.RegisterSourceOutput(combined, (spc, pair) =>
+    {
+        var assemblyName = pair.Right;
+        // produce source ...
+    });
+}
+```
+
+Now, as the user types in the IDE, the `assemblyName` transform will re-run, but
+is very cheap and quickly returns what is likely the same value each time. That
+means that unless the additional texts have also changed, the host does not need
+to re-run the combine or re-generate any of the source.
