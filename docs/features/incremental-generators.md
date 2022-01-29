@@ -828,8 +828,8 @@ The set of output methods are
 
 RegisterSourceOutput allows a generator author to produce source files and
 diagnostics that will be included in the users compilation. As input, it takes a
-`Value[s]Provider` and a matching `Action<SourceProductionContext, TSource>`
-that is invoked for every value in the value provider.
+`Value[s]Provider` and an `Action<SourceProductionContext, TSource>` that will
+be invoked for every value in the value provider.
 
 ``` csharp
 public static partial class IncrementalValueSourceExtensions
@@ -848,8 +848,6 @@ public readonly struct SourceProductionContext
 
     public void AddSource(string hintName, string source);
    
-    public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, sourceText);
-
     public void ReportDiagnostic(Diagnostic diagnostic);
 }
 ```
@@ -911,6 +909,59 @@ It is particularly useful for adding attributes to the users source code. These
 can then be added by the user their code, and the generator may find the
 attributed code via the semantic model.
 
+## Handling Cancellation
+
+Incremental generators are designed to be used in interactive hosts such as an
+IDE. As such, it is critically important that generators respect and respond to
+the passed in cancellation tokens.
+
+In general, it is likely that the amount of user computation performed per
+transformation is low, but often will be calling into Roslyn APIs that may have
+a significant performance impact. As such the author should always forward the
+provided cancellation token to any Roslyn APIs that accept it.
+
+For example, when retrieving the contents of an additional file, the token
+should be passed into `GetText(...)`:
+
+```csharp
+public void Initialize(IncrementalGeneratorInitializationContext context)
+{
+    var txtFiles = context.AdditionalTextsProvider.Where(f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
+    
+    // ensure we forward the cancellation token to GeText
+    var fileContents = txtFiles.Select((file, cancellationToken) => file.GetText(cancellationToken));   
+}
+```
+
+This will ensure that an incremental generator correctly and quickly responds to
+cancellation requests and does not cause delays in the host.
+
+If the generator author is doing something expensive, such as looping over
+values, they should regularly check for cancellation themselves. It is recommend
+that the author use `CancellationToken.ThrowIfCancellationRequested()` at
+regular intervals, and allow the host to re-run them, rather than attempting to
+save partially generated results which can be extremely difficult to author
+correctly.
+
+```csharp
+public void Initialize(IncrementalGeneratorInitializationContext context)
+{
+    var txtFilesArray = context.AdditionalTextsProvider.Where(f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)).Collect();
+    
+    var expensive = txtFilesArray.Select((files, cancellationToken) => 
+    {
+        foreach (var file in files)
+        {
+            // check for cancellation so we don't hang the host
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // perform some expensive operation (ideally passing in the token as well)
+            ExpensiveOperation(file, cancellationToken);
+        }
+    });   
+}
+```
+
 ## Caching
 
 While the finer grained steps allow for some coarse control of output types via
@@ -922,21 +973,20 @@ true.
 
 When calculating the required transformations to be applied as part of a step,
 the generator driver is free to look at inputs it has seen before and used
-previous computed and cached values of the transformation for these inputs. When
-using non batch transforms it can do this on an element by element basis.
+previous computed and cached values of the transformation for these inputs.
 
-Consider the following transform:
+Consider the following transformation:
 
 ```csharp
-IValueSource<string> transform = context.Sources.AdditionalTexts
-                                                .Transform(static t => t.Path)
-                                                .Transform(static p => "prefix_" + p);
+IValuesProvider<string> transform = context.AdditionalTextsProvider
+                                           .Select(static (t, _) => t.Path)
+                                           .Select(static (p, _) => "prefix_" + p);
 ```
 
 During the first execution of the pipeline each of the two lambdas will be
 executed for each additional file:
 
-AdditionalText          | Transform1 | Transform2
+AdditionalText          | Select1    | Select2
 ------------------------|------------|-----------------
 Text{ Path: "abc.txt" } | "abc.txt"  | "prefix_abc.txt"
 Text{ Path: "def.txt" } | "def.txt"  | "prefix_def.txt"
@@ -946,32 +996,32 @@ Now consider the case where in some future iteration, the first additional file
 has changed and has a different path, and the second file has changed, but kept
 its path the same.
 
-AdditionalText               | Transform1 | Transform2
+AdditionalText               | Select1    | Select2
 -----------------------------|------------|-----------
 **Text{ Path: "diff.txt" }** |            |
 **Text{ Path: "def.txt" }**  |            |
 Text{ Path: "ghi.txt" }      |            |
 
-The generator would run transform1 on the first and second files, producing
+The generator would run select1 on the first and second files, producing
 "diff.txt" and "def.txt" respectively. However, it would not need to re-run the
-transform for the third file, as the input has not changed. It can just use the
+select for the third file, as the input has not changed. It can just use the
 previously cached value.
 
-AdditionalText               | Transform1     | Transform2
+AdditionalText               | Select1    | Select2
 -----------------------------|----------------|-----------
 **Text{ Path: "diff.txt" }** | **"diff.txt"** |
 **Text{ Path: "def.txt" }**  | **"def.txt"**  |
 Text{ Path: "ghi.txt" }      | "ghi.txt"      |
 
-Next the driver would look to run Transform2. It would operate on `"diff.txt"`
+Next the driver would look to run Select2. It would operate on `"diff.txt"`
 producing `"prefix_diff.txt"`, but when it comes to `"def.txt"` it can observe
 that the item produced was the same as the last iteration. Even though the
-original input (`Text{ Path: "def.txt" }`) was changed, the result of Transform1
-on it was the same. Thus there is no need to re-run Transform2 on `"def.txt"` as
+original input (`Text{ Path: "def.txt" }`) was changed, the result of Select1
+on it was the same. Thus there is no need to re-run Select2 on `"def.txt"` as
 it can just use the cached value from before. Similarly the cached state of
 "ghi.txt" can be used.
 
-AdditionalText               | Transform1     | Transform2
+AdditionalText               | Select1    | Select2
 -----------------------------|----------------|----------------------
 **Text{ Path: "diff.txt" }** | **"diff.txt"** | **"prefix_diff.txt"**
 **Text{ Path: "def.txt" }**  | **"def.txt"**  | "prefix_diff.txt"
@@ -983,40 +1033,43 @@ the driver knows there can be no work to be done when a `SyntaxTree` changes.
 
 ### Comparing Items
 
-For a user provided result to be comparable across iterations, there needs to be some concept of equivalence. Rather than requiring types returned from transformations implement `IEquatable<T>`, there exists an extension method that allows the author to supply a comparer that should be used when comparing values for the given transformation:
+For a user provided result to be comparable across iterations, there needs to be
+some concept of equivalence. By default the host will use `EqualityComparer<T>`
+to determine equivalence. There are obviously times where this is insufficient,
+and there exists an extension method that allows the author to supply a comparer
+that should be used when comparing values for the given transformation:
 
 ```csharp
-public static partial class IncrementalValueSourceExtensions
+public static partial class IncrementalValueProviderExtensions
 {
-    public static IncrementalValueSource<T> WithComparer(IEqualityComparer<T> comparer) => ...
+        public static IncrementalValueProvider<TSource> WithComparer<TSource>(this IncrementalValueProvider<TSource> source, IEqualityComparer<TSource> comparer);
+
+        public static IncrementalValuesProvider<TSource> WithComparer<TSource>(this IncrementalValuesProvider<TSource> source, IEqualityComparer<TSource> comparer);
 }
 ```
 
-Allowing the user to specify a given comparer.
+Allowing the generator author to specify a given comparer.
 
 ```csharp
-var withComparer = context.Sources.AdditionalTexts
-                                  .Transform(t => t.Path)
-                                  .WithComparer(myComparer);
+var withComparer = context.AdditionalTextsProvider
+                          .Select(t => t.Path)
+                          .WithComparer(myComparer);
 ```
 
-Note that the comparer is on a per-transformation basis, meaning an author can specify different comparers for different parts of the pipeline. 
+Note that the comparer is on a per-transformation basis, meaning an author can
+specify different comparers for different parts of the pipeline.
 
 ```csharp
-var transform = context.Sources.AdditionalTexts.Transform(t => t.Path);
+var select = context.AdditionalTextsProvider.Select(t => t.Path);
 
-var noCompareTransform = transform.Transform(...);
-var compareTransform = transform.WithComparer(myComparer).Transform(...);
+var noCompareSelect = select.Select(...);
+var compareSelect = select.WithComparer(myComparer).Select(...);
 ```
 
-The same transform node can have no comparer when acting as input to one step,
-and still provide one when acting as input to a different step.
+The same select node can have no comparer when acting as input to one transformation,
+and still provide one when acting as input to a different transformation.
 
-
-## Internal Implementation
-
-TK: compiler specific implementation. StateTables etc. 
-
-Do we need this at all?
-
-### Hosting ISourceGenerator on the new APIs
+The host will only invoke the given comparer when the item it is derived from
+has been modified. When the input value is new or being removed, or the input
+transformation was determined to be cached (possibly by a provided comparer) the
+given comparer is not considered.
