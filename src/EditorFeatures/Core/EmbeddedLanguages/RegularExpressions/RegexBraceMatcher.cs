@@ -40,24 +40,17 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
 
         private static BraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)
         {
-            var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
+            var virtualChar = tree.Text.Find(position);
             if (virtualChar == null)
-            {
                 return null;
-            }
 
             var ch = virtualChar.Value;
-            switch (ch.Value)
+            return ch.Value switch
             {
-                case '(':
-                case ')':
-                    return FindGroupingBraces(tree, ch) ?? FindCommentBraces(tree, ch);
-                case '[':
-                case ']':
-                    return FindCharacterClassBraces(tree, ch);
-                default:
-                    return null;
-            }
+                '(' or ')' => FindGroupingBraces(tree, ch) ?? FindCommentBraces(tree, ch),
+                '[' or ']' => FindCharacterClassBraces(tree, ch),
+                _ => null,
+            };
         }
 
         private static BraceMatchingResult? CreateResult(RegexToken open, RegexToken close)

@@ -60,11 +60,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
         private ImmutableArray<HighlightSpan> GetReferences(RegexTree tree, int position)
         {
-            var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
+            var virtualChar = tree.Text.Find(position);
             if (virtualChar == null)
-            {
                 return ImmutableArray<HighlightSpan>.Empty;
-            }
 
             var ch = virtualChar.Value;
             return FindReferenceHighlights(tree, ch);

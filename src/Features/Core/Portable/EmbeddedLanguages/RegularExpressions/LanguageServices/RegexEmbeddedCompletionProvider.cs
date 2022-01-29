@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
             // We added no items, but the user explicitly asked for completion.  Add all the
             // items we can to help them out.
-            var virtualChar = context.Tree.Text.FirstOrNull(vc => vc.Span.Contains(context.Position));
+            var virtualChar = context.Tree.Text.Find(context.Position);
             var inCharacterClass = virtualChar != null && IsInCharacterClass(context.Tree.Root, virtualChar.Value);
 
             ProvideBackslashCompletions(context, inCharacterClass, parentOpt: null);
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         /// </summary>
         private void ProvideCompletionsBasedOffOfPrecedingCharacter(EmbeddedCompletionContext context)
         {
-            var previousVirtualCharOpt = context.Tree.Text.FirstOrNull(vc => vc.Span.Contains(context.Position - 1));
+            var previousVirtualCharOpt = context.Tree.Text.Find(context.Position - 1);
             if (previousVirtualCharOpt == null)
             {
                 // We didn't have a previous character.  Can't determine the set of 

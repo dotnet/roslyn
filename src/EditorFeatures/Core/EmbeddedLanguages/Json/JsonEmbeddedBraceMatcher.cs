@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
 
         private static BraceMatchingResult? GetMatchingBraces(JsonTree tree, int position)
         {
-            var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
+            var virtualChar = tree.Text.Find(position);
             if (virtualChar == null)
                 return null;
 

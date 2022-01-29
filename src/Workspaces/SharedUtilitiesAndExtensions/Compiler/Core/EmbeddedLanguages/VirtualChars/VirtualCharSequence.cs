@@ -74,8 +74,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
         public VirtualCharSequence GetSubSequence(TextSpan span)
-           => new(
-               _leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
+           => new( _leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
 
         public VirtualChar First() => this[0];
         public VirtualChar Last() => this[^1];
@@ -83,16 +82,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public Enumerator GetEnumerator()
             => new(this);
 
-        public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
-        {
-            foreach (var ch in this)
-            {
-                if (predicate(ch))
-                    return ch;
-            }
-
-            return null;
-        }
+        /// <summary>
+        /// Finds the virtual chr in this sequence that contains the position.  Will return null if this position is not
+        /// in the span of this sequence.
+        /// </summary>
+        public VirtualChar? Find(int position)
+            => _leafCharacters?.Find(position);
 
         public bool Contains(VirtualChar @char)
             => IndexOf(@char) >= 0;
