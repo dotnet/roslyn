@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         public bool IsProbablyJson(SyntaxToken token)
         {
             var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-            var tree = JsonParser.TryParse(chars, JsonOptions.Newtonsoft);
+            var tree = JsonParser.TryParse(chars, JsonOptions.Loose);
             if (tree == null || !tree.Diagnostics.IsEmpty)
                 return false;
 

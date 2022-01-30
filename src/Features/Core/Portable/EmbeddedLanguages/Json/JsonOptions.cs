@@ -10,10 +10,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 internal enum JsonOptions
 {
     /// <summary>
-    /// Parse using Newtonsoft JSON.net rules.  This is very relaxed and allows lots of features not allowed by standard
-    /// IETF 8259.
+    /// Parse using loose rules.  This is very relaxed and allows lots of features not allowed by standard IETF 8259
+    /// (like comments, and trailing commas).  This also allows all the additional constructs added by Json.net, like
+    /// constructors and string that use single-quotes instead of double-quotes.
     /// </summary> 
-    Newtonsoft = 0,
+    Loose = 0,
     /// <summary>
     /// Strict IETF 8259 mode.  Anything not allowed by that spec is flagged as an error.
     /// </summary>

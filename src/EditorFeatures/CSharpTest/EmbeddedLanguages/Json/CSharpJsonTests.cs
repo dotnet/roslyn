@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             string strictDiagnostics,
             bool runLooseSubTreeCheck = true)
         {
-            Test(stringText, JsonOptions.Newtonsoft, expected, looseDiagnostics, runLooseSubTreeCheck);
+            Test(stringText, JsonOptions.Loose, expected, looseDiagnostics, runLooseSubTreeCheck);
             Test(stringText, JsonOptions.Strict, expected, strictDiagnostics, runSubTreeChecks: true);
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
             CheckInvariants(tree, allChars);
 
-            if (options == JsonOptions.Newtonsoft)
+            if (options == JsonOptions.Loose)
             {
                 try
                 {
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[""",
-JsonOptions.Newtonsoft, conversionFailureOk: false);
+JsonOptions.Loose, conversionFailureOk: false);
             Assert.False(token.IsMissing);
             Assert.False(chars.IsDefaultOrEmpty);
             Assert.Null(tree);
