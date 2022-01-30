@@ -18,8 +18,19 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Neu zugewiesene Variablen unterstreichen;Inlinehinweise anzeigen;Automatisches Einfügen von Endkonstrukten;Einstellungen für ziemliche Auflistung ändern;Gliederungsmodus ändern;Automatisches Einfügen von Schnittstellen- und MustOverride-Membern;Prozedurzeilentrennzeichen ein- oder ausblenden;Fehlerkorrekturvorschläge aktivieren oder deaktivieren;Aktivieren oder Deaktivieren der Hervorhebung von Verweisen und Schlüsselwörtern;Regulärer Ausdruck;Reguläre Ausdrücke farbisieren;Verwandte Komponenten unter dem Cursor hervorheben;Ungültige reguläre Ausdrücke melden;regex;regulärer Ausdruck;Erweiterte Farben verwenden;Editor-Farbschema;Vererbungsrand;Importdirektiven;</target>
+        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
+        <target state="needs-review-translation">Neu zugewiesene Variablen unterstreichen;Inlinehinweise anzeigen;Automatisches Einfügen von Endkonstrukten;Einstellungen für ziemliche Auflistung ändern;Gliederungsmodus ändern;Automatisches Einfügen von Schnittstellen- und MustOverride-Membern;Prozedurzeilentrennzeichen ein- oder ausblenden;Fehlerkorrekturvorschläge aktivieren oder deaktivieren;Aktivieren oder Deaktivieren der Hervorhebung von Verweisen und Schlüsselwörtern;Regulärer Ausdruck;Reguläre Ausdrücke farbisieren;Verwandte Komponenten unter dem Cursor hervorheben;Ungültige reguläre Ausdrücke melden;regex;regulärer Ausdruck;Erweiterte Farben verwenden;Editor-Farbschema;Vererbungsrand;Importdirektiven;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
