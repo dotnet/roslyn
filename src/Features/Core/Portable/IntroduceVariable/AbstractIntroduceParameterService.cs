@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
+            var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
+            if (expressionSymbol is IParameterSymbol parameterSymbol && parameterSymbol.ContainingSymbol.Equals(containingSymbol))
+            {
+                return;
+            }
+
             // Code actions for trampoline and overloads will not be offered if the method is a constructor.
             // Code actions for overloads will not be offered if the method if the method is a local function.
             var methodKind = methodSymbol.MethodKind;

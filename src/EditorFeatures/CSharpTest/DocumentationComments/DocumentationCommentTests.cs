@@ -706,6 +706,48 @@ C()
             VerifyTypingCharacter(code, expected);
         }
 
+        [WorkItem(59081, "https://github.com/dotnet/roslyn/issues/59081")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_NotInTopLevel()
+        {
+            var code = @"
+using System;
+
+//$$
+Console.WriteLine();
+";
+
+            var expected = @"
+using System;
+
+///$$
+Console.WriteLine();
+";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WorkItem(59081, "https://github.com/dotnet/roslyn/issues/59081")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_NotInNamespace()
+        {
+            var code = @"
+using System;
+
+//$$
+namespace NS { }
+";
+
+            var expected = @"
+using System;
+
+///$$
+namespace NS { }
+";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class1()
         {

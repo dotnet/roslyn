@@ -47,12 +47,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        private static async Task<SyntaxFormattingOptions> GetOptionsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxFormattingOptions> GetOptionsAsync(Document document, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var analyzerConfigOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-
-            return SyntaxFormattingOptions.Create(analyzerConfigOptions);
+            return SyntaxFormattingService.GetFormattingOptions(analyzerConfigOptions);
         }
 
         public sealed override FixAllProvider GetFixAllProvider()

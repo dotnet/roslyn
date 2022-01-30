@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 
-namespace Roslyn.VisualStudio.DiagnosticsWindow.Telemetry
+namespace Roslyn.VisualStudio.DiagnosticsWindow
 {
     /// <summary>
     /// Interaction logic for TelemetryPanel.xaml

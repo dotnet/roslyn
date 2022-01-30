@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
             Dim queryNode = token.GetAncestor(Of QueryClauseSyntax)()
             If queryNode IsNot Nothing Then
-                Dim subQuerySpaces = If(token.IsLastTokenOfStatement(), 0, indenter.Options.FormattingOptions.GetOption(FormattingOptions2.IndentationSize))
+                Dim subQuerySpaces = If(token.IsLastTokenOfStatement(), 0, indenter.Options.FormattingOptions.IndentationSize)
                 Return indenter.GetIndentationOfToken(queryNode.GetFirstToken(includeZeroWidth:=True), subQuerySpaces)
             End If
 
@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             If statement Is Nothing Then
                 If trivia.Kind <> SyntaxKind.None Then
                     Dim triviaLine = sourceText.Lines.GetLineFromPosition(trivia.SpanStart)
-                    Return indenter.GetIndentationOfLine(triviaLine, indenter.Options.FormattingOptions.GetOption(FormattingOptions2.IndentationSize))
+                    Return indenter.GetIndentationOfLine(triviaLine, indenter.Options.FormattingOptions.IndentationSize)
                 End If
 
                 ' no base line to use to calculate the indentation
@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Private Shared Function GetIndentationFromTwoLines(indenter As Indenter, firstLine As TextLine, secondLine As TextLine, token As SyntaxToken, position As Integer) As IndentationResult
             If firstLine.LineNumber = secondLine.LineNumber Then
                 ' things are on same line, put the indentation size
-                Return GetIndentationOfCurrentPosition(indenter, token, position, indenter.Options.FormattingOptions.GetOption(FormattingOptions2.IndentationSize))
+                Return GetIndentationOfCurrentPosition(indenter, token, position, indenter.Options.FormattingOptions.IndentationSize)
             End If
 
             ' multiline

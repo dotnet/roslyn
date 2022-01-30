@@ -2266,7 +2266,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (documentLineEdits.Count > 0 && segment.oldStartLine > previousOldEndLine + 1)
                 {
                     Debug.Assert(previousOldEndLine >= 0);
-                    documentLineEdits.Add(CreateZeroDeltaSourceLineUpdate(previousOldEndLine + 1));
+                    documentLineEdits.Add(new SourceLineUpdate(previousOldEndLine + 1, previousOldEndLine + 1));
                     previousLineDelta = 0;
                 }
 
@@ -2287,22 +2287,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 lineEdits.Add(new SequencePointUpdates(currentDocumentPath, documentLineEdits.ToImmutable()));
             }
-        }
-
-        // TODO: Currently the constructor SourceLineUpdate does not allow update with zero delta.
-        // Workaround until the debugger updates.
-        internal static SourceLineUpdate CreateZeroDeltaSourceLineUpdate(int line)
-        {
-            var result = new SourceLineUpdate();
-
-            // TODO: Currently the constructor SourceLineUpdate does not allow update with zero delta.
-            // Workaround until the debugger updates.
-            unsafe
-            {
-                Unsafe.Write(&result, ((long)line << 32) | (long)line);
-            }
-
-            return result;
         }
 
         #endregion

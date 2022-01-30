@@ -915,14 +915,14 @@ namespace System.Runtime.CompilerServices
 
         #region SyntaxTree Factories
 
-        public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null, Encoding encoding = null)
+        public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             if ((object)options == null)
             {
                 options = TestOptions.RegularPreview;
             }
 
-            var stringText = StringText.From(text, encoding ?? Encoding.UTF8);
+            var stringText = StringText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
             return CheckSerializable(SyntaxFactory.ParseSyntaxTree(stringText, options, filename));
         }
 
