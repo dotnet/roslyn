@@ -20,11 +20,13 @@ internal enum JsonOptions
     /// </summary>
     Strict = 1,
     /// <summary>
-    /// Same as <see cref="Strict"/> except that comments are allowed as well.
+    /// Same as <see cref="Strict"/> except that comments are allowed as well. Corresponds to <c>new JsonDocumentOptions
+    /// { CommentHandling = Allow }</c>
     /// </summary>
     Comments = 2 | Strict,
     /// <summary>
-    /// Same as <see cref="Strict"/> except that trailing commas are allowed as well.
+    /// Same as <see cref="Strict"/> except that trailing commas are allowed as well. Corresponds to <c>new
+    /// JsonDocumentOptions { AllowTrailingCommas = true }</c>
     /// </summary>
     TrailingCommas = 4 | Strict,
 }
