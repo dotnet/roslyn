@@ -11,21 +11,20 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Roslyn.Hosting.Diagnostics.PerfMargin
 {
-    public class PerfMarginPanel : UserControl
+    public sealed class PerfMarginPanel : UserControl
     {
-        private static readonly DataModel s_model = new DataModel();
-        private static readonly PerfEventActivityLogger s_logger = new PerfEventActivityLogger(s_model);
+        private static readonly DataModel s_model = new();
+        private static readonly PerfEventActivityLogger s_logger = new(s_model);
 
         private readonly ListView _mainListView;
         private readonly Grid _mainGrid;
 
         private readonly DispatcherTimer _timer;
-        private readonly List<StatusIndicator> _indicators = new List<StatusIndicator>();
+        private readonly List<StatusIndicator> _indicators = new();
 
         private ListView _detailsListView;
         private bool _stopTimer;
@@ -47,9 +46,9 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
             _mainGrid.Children.Add(_mainListView);
 
-            this.Content = _mainGrid;
+            Content = _mainGrid;
 
-            _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(500), DispatcherPriority.Background, UpdateUI, this.Dispatcher);
+            _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(500), DispatcherPriority.Background, UpdateUI, Dispatcher);
             StartTimer();
 
             s_model.RootNode.IsActiveChanged += (s, e) =>
@@ -91,17 +90,16 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
             foreach (var item in items)
             {
-                StackPanel s = new StackPanel() { Orientation = Orientation.Horizontal };
-                ////g.HorizontalAlignment = HorizontalAlignment.Stretch;
+                var s = new StackPanel() { Orientation = Orientation.Horizontal };
 
-                StatusIndicator indicator = new StatusIndicator(item);
+                var indicator = new StatusIndicator(item);
                 indicator.Subscribe();
                 indicator.Width = 30;
                 indicator.Height = 10;
                 s.Children.Add(indicator);
                 _indicators.Add(indicator);
 
-                TextBlock label = new TextBlock();
+                var label = new TextBlock();
                 label.Text = item.Name;
                 Grid.SetColumn(label, 1);
                 s.Children.Add(label);
@@ -141,8 +139,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                 _detailsListView = null;
             }
 
-            var selectedItem = _mainListView.SelectedItem as StackPanel;
-            if (selectedItem == null)
+            if (_mainListView.SelectedItem is not StackPanel selectedItem)
             {
                 return;
             }

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -84,8 +85,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             where TService : class
          => InvokeOnUIThread(cancellationToken => GetComponentModel().GetService<TService>());
 
-        protected static TestingOnly_WaitingService GetWaitingService()
-            => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
+        protected static TestWaitingService GetWaitingService()
+            => new(GetComponentModel().DefaultExportProvider.GetExport<AsynchronousOperationListenerProvider>().Value);
 
         protected static DTE GetDTE()
             => GetGlobalService<SDTE, DTE>();

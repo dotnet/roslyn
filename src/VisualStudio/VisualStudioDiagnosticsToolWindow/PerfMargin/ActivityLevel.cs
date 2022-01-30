@@ -25,13 +25,13 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
         public ActivityLevel(string name)
         {
-            this.Name = name;
+            Name = name;
             _children = new List<ActivityLevel>();
         }
 
         public ActivityLevel(string name, ActivityLevel parent, bool createChildList)
         {
-            this.Name = name;
+            Name = name;
             _parent = parent;
             _parent._children.Add(this);
 
@@ -46,12 +46,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
         public string Name { get; }
 
         public bool IsActive
-        {
-            get
-            {
-                return _isActive > 0;
-            }
-        }
+            => _isActive > 0;
 
         public void Start()
         {
@@ -95,12 +90,10 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
         private void ActivityLevelChanged()
         {
-            this.IsActiveChanged?.Invoke(this, EventArgs.Empty);
+            IsActiveChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public IReadOnlyCollection<ActivityLevel> Children
-        {
-            get { return _children; }
-        }
+            => _children;
     }
 }
