@@ -143,11 +143,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var newRoot = Rewrite(
                 externAliases, usingDirectives, staticUsingDirectives, aliasDirectives,
                 externContainer, usingContainer, staticUsingContainer, aliasContainer,
-<<<<<<< HEAD
-                preferences.PlaceSystemNamespaceFirst, allowInHiddenRegions, root, cancellationToken);
-=======
                 options, root, cancellationToken);
->>>>>>> f7b20ca241f (AddImportPlacementOptions)
 
             return newRoot;
         }
@@ -169,11 +165,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             // If there aren't any existing imports then make sure we honour the inside namespace preference
             // for using directings if it's set
-<<<<<<< HEAD
-            if (fallbackNode is null && preferences.PlaceImportsInsideNamespaces)
-=======
             if (fallbackNode is null && options.PlaceImportsInsideNamespaces)
->>>>>>> f7b20ca241f (AddImportPlacementOptions)
                 fallbackNode = contextSpine.OfType<TNamespaceDeclarationSyntax>().FirstOrDefault();
 
             // If all else fails use the root
