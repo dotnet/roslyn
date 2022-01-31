@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             {
                 return new[]
                 {
+                    SchemeName.VisualStudio2022,
                     SchemeName.VisualStudio2019,
                     SchemeName.VisualStudio2017
                 }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
@@ -112,17 +113,31 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 var useEnhancedColorsSetting = _globalOptions.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
 
                 // Return if we have already migrated.
-                if (useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.Migrated)
+                if (useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.MigratedFromVS2019ColorScheme)
                 {
                     return;
                 }
 
-                var colorScheme = useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.DoNotUse
-                    ? SchemeName.VisualStudio2017
-                    : SchemeName.VisualStudio2019;
+                SchemeName colorScheme;
+                if (useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.MigratedFromUseEnhancedColors)
+                {
+                    // When migrating from the ColorScheme setting, users who are using VisualStudio2019
+                    // should migrate to the new VisualStudio2022 scheme.
+                    colorScheme = GetConfiguredColorScheme() == SchemeName.VisualStudio2017
+                        ? SchemeName.VisualStudio2017
+                        : SchemeName.VisualStudio2022;
+                }
+                else
+                {
+                    // When migrating from the initial UseEnhancedColors setting, users who want enhanced colors
+                    // should migrate to the new VisualStudio2022 scheme.
+                    colorScheme = useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.DoNotUse
+                        ? SchemeName.VisualStudio2017
+                        : SchemeName.VisualStudio2022;
+                }
 
                 _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
-                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
+                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.MigratedFromVS2019ColorScheme);
             }
         }
     }
