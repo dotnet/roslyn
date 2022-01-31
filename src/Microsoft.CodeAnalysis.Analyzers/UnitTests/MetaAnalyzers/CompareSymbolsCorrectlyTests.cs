@@ -858,6 +858,7 @@ End Class");
             {
                 TestState =
                 {
+                    ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
                     Sources =
                     {
                         @"
@@ -946,6 +947,7 @@ public class C
             {
                 TestState =
                 {
+                    ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
                     Sources =
                     {
                         @"
