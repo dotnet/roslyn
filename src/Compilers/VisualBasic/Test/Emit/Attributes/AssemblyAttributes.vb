@@ -566,7 +566,7 @@ end class
                          dependencies:={New ModuleData(en_usRef.Compilation.Assembly.Identity,
                                                        OutputKind.DynamicallyLinkedLibrary,
                                                        en_usRef.Compilation.EmitToArray(),
-                                                       ImmutableArray(Of Byte).Empty, False)}).
+                                                       ImmutableArray(Of Byte).Empty, False, False)}).
             VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlib40AndReferences(
@@ -599,11 +599,11 @@ end class
                          dependencies:={New ModuleData(en_UKRef.Compilation.Assembly.Identity,
                                                        OutputKind.DynamicallyLinkedLibrary,
                                                        en_UKRef.Compilation.EmitToArray(),
-                                                       ImmutableArray(Of Byte).Empty, False),
+                                                       ImmutableArray(Of Byte).Empty, False, False),
                                         New ModuleData(neutralRef.Compilation.Assembly.Identity,
                                                        OutputKind.DynamicallyLinkedLibrary,
                                                        neutralRef.Compilation.EmitToArray(),
-                                                       ImmutableArray(Of Byte).Empty, False)},
+                                                       ImmutableArray(Of Byte).Empty, False, False)},
                          sourceSymbolValidator:=Sub(m As ModuleSymbol)
                                                     Assert.Equal(1, m.GetReferencedAssemblySymbols().Length)
 

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -91,7 +92,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Emit all of the references which are not directly or indirectly a <see cref="Compilation"/> value.
         /// </summary>
-        internal static void EmitReferences(Compilation compilation, HashSet<string> fullNameSet, List<ModuleData> dependencies, DiagnosticBag diagnostics)
+        internal static void EmitReferences(Compilation compilation, HashSet<string> fullNameSet, List<ModuleData> dependencies, DiagnosticBag diagnostics, AssemblyIdentity corLibIdentity)
         {
             // NOTE: specifically don't need to consider previous submissions since they will always be compilations.
             foreach (var metadataReference in compilation.References)
@@ -115,6 +116,7 @@ namespace Roslyn.Test.Utilities
                     continue;
                 }
 
+                var isCorLib = isManifestModule && corLibIdentity == identity;
                 foreach (var module in EnumerateModules(metadata))
                 {
                     ImmutableArray<byte> bytes = module.Module.PEReaderOpt.GetEntireImage().GetContent();
@@ -126,14 +128,16 @@ namespace Roslyn.Test.Utilities
                                                     OutputKind.DynamicallyLinkedLibrary,
                                                     bytes,
                                                     pdb: default(ImmutableArray<byte>),
-                                                    inMemoryModule: true);
+                                                    inMemoryModule: true,
+                                                    isCorLib);
                     }
                     else
                     {
                         moduleData = new ModuleData(module.Name,
                                                     bytes,
                                                     pdb: default(ImmutableArray<byte>),
-                                                    inMemoryModule: true);
+                                                    inMemoryModule: true,
+                                                    isCorLib: false);
                     }
 
                     dependencies.Add(moduleData);
@@ -194,9 +198,10 @@ namespace Roslyn.Test.Utilities
             List<ModuleData> dependencies,
             DiagnosticBag diagnostics,
             CompilationTestData testData,
-            EmitOptions emitOptions
-        )
+            EmitOptions emitOptions)
         {
+            var corLibIdentity = compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity;
+
             // A Compilation can appear multiple times in a dependency graph as both a Compilation and as a MetadataReference
             // value.  Iterate the Compilations eagerly so they are always emitted directly and later references can re-use 
             // the value.  This gives better, and consistent, diagnostic information.
@@ -208,11 +213,13 @@ namespace Roslyn.Test.Utilities
                 var emitData = EmitCompilationCore(referencedCompilation, null, diagnostics, null, emitOptions);
                 if (emitData.HasValue)
                 {
-                    var moduleData = new ModuleData(referencedCompilation.Assembly.Identity,
+                    var identity = referencedCompilation.Assembly.Identity;
+                    var moduleData = new ModuleData(identity,
                                                     OutputKind.DynamicallyLinkedLibrary,
                                                     emitData.Value.Assembly,
                                                     pdb: default(ImmutableArray<byte>),
-                                                    inMemoryModule: true);
+                                                    inMemoryModule: true,
+                                                    isCorLib: corLibIdentity == identity);
                     fullNameSet.Add(moduleData.Id.FullName);
                     dependencies.Add(moduleData);
                 }
@@ -221,7 +228,7 @@ namespace Roslyn.Test.Utilities
             // Now that the Compilation values have been emitted, emit the non-compilation references
             foreach (var current in (new[] { compilation }).Concat(referencedCompilations))
             {
-                EmitReferences(current, fullNameSet, dependencies, diagnostics);
+                EmitReferences(current, fullNameSet, dependencies, diagnostics, corLibIdentity);
             }
 
             return EmitCompilationCore(compilation, manifestResources, diagnostics, testData, emitOptions);

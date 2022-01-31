@@ -214,12 +214,15 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 var mainImage = mainOutput.Value.Assembly;
                 var mainPdb = mainOutput.Value.Pdb;
+                var corLibIdentity = mainCompilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity;
+                var identity = mainCompilation.Assembly.Identity;
                 _emitData.MainModule = new ModuleData(
-                    mainCompilation.Assembly.Identity,
+                    identity,
                     mainCompilation.Options.OutputKind,
                     mainImage,
                     pdb: usePdbForDebugging ? mainPdb : default(ImmutableArray<byte>),
-                    inMemoryModule: true);
+                    inMemoryModule: true,
+                    isCorLib: corLibIdentity == identity);
                 _emitData.MainModulePdb = mainPdb;
                 _emitData.AllModuleData = dependencies;
 

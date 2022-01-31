@@ -270,27 +270,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 var resolver = new Resolver(_allModuleData);
                 var verifier = new ILVerify.Verifier(resolver);
-                var mscorlibModules = _allModuleData.Where(m => m.SimpleName == "mscorlib").ToArray();
-                if (mscorlibModules.Length == 1)
-                {
-                    verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].SimpleName));
-                }
-                else
-                {
-                    // ILVerify requires a "system" module to be identified (see ILVerify.Verifier.ThrowMissingSystemModule)
-                    // So we auto-detect a candidate module
-                    // This comes in handy in tests that use TestBase.AacorlibRef for instance.
-                    foreach (var module in _allModuleData)
-                    {
-                        var name = module.SimpleName;
-                        var metadataReader = resolver.Resolve(name).GetMetadataReader();
-                        if (metadataReader.AssemblyReferences.Count == 0)
-                        {
-                            verifier.SetSystemModuleName(new AssemblyName(name));
-                            break;
-                        }
-                    }
-                }
+
+                var mscorlibModule = _allModuleData.Single(m => m.IsCorLib);
+                verifier.SetSystemModuleName(new AssemblyName(mscorlibModule.SimpleName));
 
                 // Main module is the first one
                 var result = verifier.Verify(resolver.Resolve(_allModuleData[0].SimpleName));
