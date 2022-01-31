@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool isOpenDocument,
                 bool isGeneratedRazorDocument)
             {
-                if (isGeneratedRazorDocument)
+                if (isActiveDocument) Debug.Assert(isOpenDocument || isGeneratedRazorDocument);
                 {
                     // This is a generated Razor document, and they always want all analyzer diagnostics.
                     return false;
