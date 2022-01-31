@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ConvertToRawString;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -17,13 +16,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 
     public class ConvertToRegularStringToRawStringStringTests
     {
-        private async Task VerifyRefactoringAsync(string testCode, string fixedCode)
+        private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0)
         {
             await new VerifyCS.Test
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                CodeActionIndex = index,
             }.RunAsync();
         }
 
@@ -379,6 +379,96 @@ goobar
 """""";
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestIndentedString()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""goo\r\nbar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+            goo
+            bar
+            """""";
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestVerbatimIndentedString()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""goo
+bar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+            goo
+            bar
+            """""";
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestIndentedStringOnOwnLine()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v =
+                [||]""goo\r\nbar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v =
+                """"""
+                goo
+                bar
+                """""";
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestVerbatimIndentedStringOnOwnLine()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v =
+                [||]@""goo
+bar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v =
+                """"""
+                goo
+                bar
+                """""";
+    }
+}", index: 1);
         }
     }
 }
