@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,37 +16,37 @@ using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
+    using static BannedApiAnalyzerResources;
+
     internal static class SymbolIsBannedAnalyzer
     {
-        public const string BannedSymbolsFileName = "BannedSymbols.txt";
-
         public static readonly DiagnosticDescriptor SymbolIsBannedRule = new(
             id: DiagnosticIds.SymbolIsBannedRuleId,
-            title: BannedApiAnalyzerResources.SymbolIsBannedTitle,
-            messageFormat: BannedApiAnalyzerResources.SymbolIsBannedMessage,
+            title: CreateLocalizableResourceString(nameof(SymbolIsBannedTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(SymbolIsBannedMessage)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: BannedApiAnalyzerResources.SymbolIsBannedDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(SymbolIsBannedDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new(
             id: DiagnosticIds.DuplicateBannedSymbolRuleId,
-            title: BannedApiAnalyzerResources.DuplicateBannedSymbolTitle,
-            messageFormat: BannedApiAnalyzerResources.DuplicateBannedSymbolMessage,
+            title: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolMessage)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: BannedApiAnalyzerResources.DuplicateBannedSymbolDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
     }
 
     public abstract class SymbolIsBannedAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
             ImmutableArray.Create(SymbolIsBannedAnalyzer.SymbolIsBannedRule, SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule);
 
         protected abstract TSyntaxKind XmlCrefSyntaxKind { get; }
@@ -82,12 +83,12 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 compilationContext.RegisterCompilationEndAction(
                     context =>
                     {
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes());
-                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes());
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.Assembly.GetAttributes(), context.CancellationToken);
+                        VerifyAttributes(context.ReportDiagnostic, compilationContext.Compilation.SourceModule.GetAttributes(), context.CancellationToken);
                     });
 
                 compilationContext.RegisterSymbolAction(
-                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes()),
+                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken),
                     SymbolKind.NamedType,
                     SymbolKind.Method,
                     SymbolKind.Field,
@@ -154,6 +155,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifyType(context.ReportDiagnostic, incrementOrDecrement.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
                             break;
+                        case ITypeOfOperation typeOfOperation:
+                            VerifyType(context.ReportDiagnostic, typeOfOperation.TypeOperand, context.Operation.Syntax);
+                            break;
                     }
                 },
                 OperationKind.ObjectCreation,
@@ -168,7 +172,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.UnaryOperator,
                 OperationKind.BinaryOperator,
                 OperationKind.Increment,
-                OperationKind.Decrement);
+                OperationKind.Decrement,
+                OperationKind.TypeOf);
 
             compilationContext.RegisterSyntaxNodeAction(
                 context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
@@ -180,7 +185,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             {
                 var query =
                     from additionalFile in compilationContext.Options.AdditionalFiles
-                    where StringComparer.Ordinal.Equals(Path.GetFileName(additionalFile.Path), SymbolIsBannedAnalyzer.BannedSymbolsFileName)
+                    let fileName = Path.GetFileName(additionalFile.Path)
+                    where fileName != null && fileName.StartsWith("BannedSymbols.", StringComparison.Ordinal) && fileName.EndsWith(".txt", StringComparison.Ordinal)
+                    orderby additionalFile.Path // Additional files are sorted by DocumentId (which is a GUID), make the file order deterministic
                     let sourceText = additionalFile.GetText(compilationContext.CancellationToken)
                     where sourceText != null
                     from line in sourceText.Lines
@@ -234,13 +241,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 return result;
             }
 
-            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes)
+            void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
             {
                 foreach (var attribute in attributes)
                 {
                     if (entryByAttributeSymbol.TryGetValue(attribute.AttributeClass, out var entry))
                     {
-                        var node = attribute.ApplicationSyntaxReference?.GetSyntax();
+                        var node = attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken);
                         if (node != null)
                         {
                             reportDiagnostic(
@@ -273,9 +280,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (entryBySymbol.TryGetValue(type, out var entry))
                     {
                         reportDiagnostic(
-                            Diagnostic.Create(
+                            syntaxNode.CreateDiagnostic(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                                syntaxNode.GetLocation(),
                                 type.ToDisplayString(SymbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         return false;
@@ -326,16 +332,33 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             {
                 RoslynDebug.Assert(entryBySymbol != null);
 
-                symbol = symbol.OriginalDefinition;
-
-                if (entryBySymbol.TryGetValue(symbol, out var entry))
+                foreach (var currentSymbol in GetSymbolAndOverridenSymbols(symbol))
                 {
-                    reportDiagnostic(
-                        Diagnostic.Create(
-                            SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                            syntaxNode.GetLocation(),
-                            symbol.ToDisplayString(SymbolDisplayFormat),
-                            string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
+                    if (entryBySymbol.TryGetValue(currentSymbol, out var entry))
+                    {
+                        reportDiagnostic(
+                            syntaxNode.CreateDiagnostic(
+                                SymbolIsBannedAnalyzer.SymbolIsBannedRule,
+                                currentSymbol.ToDisplayString(SymbolDisplayFormat),
+                                string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
+                        return;
+                    }
+                }
+
+                static IEnumerable<ISymbol> GetSymbolAndOverridenSymbols(ISymbol symbol)
+                {
+                    ISymbol? currentSymbol = symbol.OriginalDefinition;
+
+                    while (currentSymbol != null)
+                    {
+                        yield return currentSymbol;
+
+                        // It's possible to have `IsOverride` true and yet have `GetOverriddeMember` returning null when the code is invalid
+                        // (e.g. base symbol is not marked as `virtual` or `abstract` and current symbol has the `overrides` modifier).
+                        currentSymbol = currentSymbol.IsOverride
+                            ? currentSymbol.GetOverriddenMember()?.OriginalDefinition
+                            : null;
+                    }
                 }
             }
 
@@ -374,13 +397,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 }
                 else if (index == text.Length - 1)
                 {
-                    DeclarationId = text.Substring(0, text.Length - 1).Trim();
+                    DeclarationId = text[0..^1].Trim();
                     Message = "";
                 }
                 else
                 {
                     DeclarationId = text.Substring(0, index).Trim();
-                    Message = text.Substring(index + 1).Trim();
+                    Message = text[(index + 1)..].Trim();
                 }
 
                 Span = span;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -22,11 +22,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public sealed class InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>
         : CacheBasedEquatable<InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>>
         where TAnalysisContext : class, IDataFlowAnalysisContext
+        where TAnalysisData : AbstractAnalysisData
     {
         public InterproceduralAnalysisData(
-            TAnalysisData initialAnalysisData,
-            (AnalysisEntity?, PointsToAbstractValue)? invocationInstanceOpt,
-            (AnalysisEntity, PointsToAbstractValue)? thisOrMeInstanceForCallerOpt,
+            TAnalysisData? initialAnalysisData,
+            (AnalysisEntity?, PointsToAbstractValue)? invocationInstance,
+            (AnalysisEntity, PointsToAbstractValue)? thisOrMeInstanceForCaller,
             ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
             ImmutableDictionary<ISymbol, PointsToAbstractValue> capturedVariablesMap,
             ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntities,
@@ -38,8 +39,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Func<ISymbol, ImmutableStack<IOperation>?> getInterproceduralCallStackForOwningSymbol)
         {
             InitialAnalysisData = initialAnalysisData;
-            InvocationInstanceOpt = invocationInstanceOpt;
-            ThisOrMeInstanceForCallerOpt = thisOrMeInstanceForCallerOpt;
+            InvocationInstance = invocationInstance;
+            ThisOrMeInstanceForCaller = thisOrMeInstanceForCaller;
             ArgumentValuesMap = argumentValuesMap;
             CapturedVariablesMap = capturedVariablesMap;
             AddressSharedEntities = addressSharedEntities;
@@ -51,9 +52,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             GetInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
         }
 
-        public TAnalysisData InitialAnalysisData { get; }
-        public (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? InvocationInstanceOpt { get; }
-        public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCallerOpt { get; }
+        public TAnalysisData? InitialAnalysisData { get; }
+        public (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? InvocationInstance { get; }
+        public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCaller { get; }
         public ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> ArgumentValuesMap { get; }
         public ImmutableDictionary<ISymbol, PointsToAbstractValue> CapturedVariablesMap { get; }
         public ImmutableDictionary<AnalysisEntity, CopyAbstractValue> AddressSharedEntities { get; }
@@ -67,8 +68,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
             hashCode.Add(InitialAnalysisData.GetHashCodeOrDefault());
-            AddHashCodeParts(InvocationInstanceOpt, ref hashCode);
-            AddHashCodeParts(ThisOrMeInstanceForCallerOpt, ref hashCode);
+            AddHashCodeParts(InvocationInstance, ref hashCode);
+            AddHashCodeParts(ThisOrMeInstanceForCaller, ref hashCode);
             hashCode.Add(HashUtilities.Combine(ArgumentValuesMap));
             hashCode.Add(HashUtilities.Combine(CapturedVariablesMap));
             hashCode.Add(HashUtilities.Combine(AddressSharedEntities));
@@ -80,8 +81,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             var other = (InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>)obj;
             return InitialAnalysisData.GetHashCodeOrDefault() == other.InitialAnalysisData.GetHashCodeOrDefault()
-                && EqualsByHashCodeParts(InvocationInstanceOpt, other.InvocationInstanceOpt)
-                && EqualsByHashCodeParts(ThisOrMeInstanceForCallerOpt, other.ThisOrMeInstanceForCallerOpt)
+                && EqualsByHashCodeParts(InvocationInstance, other.InvocationInstance)
+                && EqualsByHashCodeParts(ThisOrMeInstanceForCaller, other.ThisOrMeInstanceForCaller)
                 && HashUtilities.Combine(ArgumentValuesMap) == HashUtilities.Combine(other.ArgumentValuesMap)
                 && HashUtilities.Combine(CapturedVariablesMap) == HashUtilities.Combine(other.CapturedVariablesMap)
                 && HashUtilities.Combine(AddressSharedEntities) == HashUtilities.Combine(other.AddressSharedEntities)

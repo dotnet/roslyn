@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
     public abstract class ApplyDiagnosticAnalyzerAttributeFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -33,15 +34,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             // Register fixes.
 
             // 1) Apply C# DiagnosticAnalyzerAttribute.
-            string title = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp);
+            string title = string.Format(CultureInfo.CurrentCulture, CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp);
             AddFix(title, context, root, classDecl, generator, LanguageNames.CSharp);
 
             // 2) Apply VB DiagnosticAnalyzerAttribute.
-            title = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic);
+            title = string.Format(CultureInfo.CurrentCulture, CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic);
             AddFix(title, context, root, classDecl, generator, LanguageNames.VisualBasic);
 
             // 3) Apply both C# and VB DiagnosticAnalyzerAttributes.
-            title = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic);
+            title = string.Format(CultureInfo.CurrentCulture, CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic);
             AddFix(title, context, root, classDecl, generator, LanguageNames.CSharp, LanguageNames.VisualBasic);
         }
 
@@ -51,12 +52,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         {
             var fix = new MyCodeAction(
                 codeFixTitle,
-                c => GetFix(context.Document, root, classDecl, generator, languages),
+                c => GetFixAsync(context.Document, root, classDecl, generator, languages),
                 equivalenceKey: codeFixTitle);
             context.RegisterCodeFix(fix, context.Diagnostics);
         }
 
-        private Task<Document> GetFix(Document document, SyntaxNode root, SyntaxNode classDecl, SyntaxGenerator generator, params string[] languages)
+        private Task<Document> GetFixAsync(Document document, SyntaxNode root, SyntaxNode classDecl, SyntaxGenerator generator, params string[] languages)
         {
             string languageNamesFullName = typeof(LanguageNames).FullName;
             var arguments = new SyntaxNode[languages.Length];
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 arguments[i] = generator.AttributeArgument(parsedExpression);
             }
 
-            SyntaxNode attribute = generator.Attribute(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName, arguments);
+            SyntaxNode attribute = generator.Attribute(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute, arguments);
             SyntaxNode newClassDecl = generator.AddAttributes(classDecl, attribute);
             SyntaxNode newRoot = root.ReplaceNode(classDecl, newClassDecl);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));

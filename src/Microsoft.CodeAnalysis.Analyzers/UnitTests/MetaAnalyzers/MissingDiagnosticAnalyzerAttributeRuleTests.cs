@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#pragma warning disable CA1305
 
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class MissingDiagnosticAnalyzerAttributeRuleTests
     {
         [Fact]
-        public async Task CSharp_VerifyDiagnosticAndFixes()
+        public async Task CSharp_VerifyDiagnosticAndFixesAsync()
         {
             var source = @"
 using System;
@@ -38,7 +41,9 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName);
+#pragma warning disable RS0030 // Do not used banned APIs
+            DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
+#pragma warning restore RS0030 // Do not used banned APIs
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
 
             var fixedCode_WithCSharpAttribute = @"
@@ -71,10 +76,8 @@ class MyAnalyzer : DiagnosticAnalyzer
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAttribute } },
-#pragma warning disable CS0618 // Type or member is obsolete
-                CodeFixIndex = 0,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
-#pragma warning restore CS0618 // Type or member is obsolete
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -107,15 +110,13 @@ class MyAnalyzer : DiagnosticAnalyzer
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
-#pragma warning disable CS0618 // Type or member is obsolete
-                CodeFixIndex = 2,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
-#pragma warning restore CS0618 // Type or member is obsolete
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
             }.RunAsync();
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyDiagnosticAndFixes()
+        public async Task VisualBasic_VerifyDiagnosticAndFixesAsync()
         {
             var source = @"
 Imports System
@@ -135,7 +136,9 @@ Class MyAnalyzer
 	End Sub
 End Class
 ";
-            DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName);
+#pragma warning disable RS0030 // Do not used banned APIs
+            DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
+#pragma warning restore RS0030 // Do not used banned APIs
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
 
             var fixedCode_WithVBAttribute = @"
@@ -166,10 +169,8 @@ End Class
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithVBAttribute } },
-#pragma warning disable CS0618 // Type or member is obsolete
-                CodeFixIndex = 1,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
-#pragma warning restore CS0618 // Type or member is obsolete
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -200,15 +201,13 @@ End Class
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
-#pragma warning disable CS0618 // Type or member is obsolete
-                CodeFixIndex = 2,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
-#pragma warning restore CS0618 // Type or member is obsolete
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
             }.RunAsync();
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCasesAsync()
         {
             var source = @"
 using System;
@@ -240,7 +239,7 @@ public abstract class MyAbstractAnalyzerWithoutAttribute : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
             var source = @"
 Imports System

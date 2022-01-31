@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 
 namespace Analyzer.Utilities.Extensions
 {
+#pragma warning disable CA1027 // Mark enums with FlagsAttribute
     internal enum SymbolVisibility
+#pragma warning restore CA1027 // Mark enums with FlagsAttribute
     {
         Public = 0,
         Internal = 1,
@@ -34,20 +36,6 @@ namespace Analyzer.Utilities.Extensions
                 SymbolVisibility.Internal => comparisonVisibility != SymbolVisibility.Public,
                 SymbolVisibility.Private => comparisonVisibility == SymbolVisibility.Private,
                 _ => throw new ArgumentOutOfRangeException(nameof(typeVisibility), typeVisibility, null),
-            };
-        }
-
-        public static SymbolVisibilityGroup ToSymbolVisibilityGroup(this SymbolVisibility symbolVisibility)
-        {
-            return symbolVisibility switch
-            {
-                SymbolVisibility.Public => SymbolVisibilityGroup.Public,
-
-                SymbolVisibility.Internal => SymbolVisibilityGroup.Internal,
-
-                SymbolVisibility.Private => SymbolVisibilityGroup.Private,
-
-                _ => throw new ArgumentOutOfRangeException(nameof(symbolVisibility), symbolVisibility, null),
             };
         }
     }

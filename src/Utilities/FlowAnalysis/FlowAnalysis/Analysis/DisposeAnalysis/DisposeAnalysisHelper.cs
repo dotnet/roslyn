@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -106,10 +106,9 @@ namespace Analyzer.Utilities
             PointsToAnalysisKind defaultPointsToAnalysisKind,
             bool trackInstanceFields,
             bool trackExceptionPaths,
-            CancellationToken cancellationToken,
             [NotNullWhen(returnValue: true)] out DisposeAnalysisResult? disposeAnalysisResult,
             [NotNullWhen(returnValue: true)] out PointsToAnalysisResult? pointsToAnalysisResult,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt = null,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
             bool defaultDisposeOwnershipTransferAtConstructor = false)
         {
             var cfg = operationBlocks.GetControlFlowGraph();
@@ -117,8 +116,7 @@ namespace Analyzer.Utilities
             {
                 disposeAnalysisResult = DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
                     analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, defaultPointsToAnalysisKind, trackInstanceFields,
-                    trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
-                    interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
+                    trackExceptionPaths, out pointsToAnalysisResult, interproceduralAnalysisPredicate: interproceduralAnalysisPredicate,
                     defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
                 if (disposeAnalysisResult != null)
                 {
@@ -178,13 +176,13 @@ namespace Analyzer.Utilities
         /// </summary>
         public bool IsDisposableCreationOrDisposeOwnershipTransfer(AbstractLocation location, IMethodSymbol containingMethod)
         {
-            if (location.CreationOpt == null)
+            if (location.Creation == null)
             {
-                return location.SymbolOpt?.Kind == SymbolKind.Parameter &&
+                return location.Symbol?.Kind == SymbolKind.Parameter &&
                     HasDisposableOwnershipTransferForConstructorParameter(containingMethod);
             }
 
-            return IsDisposableCreation(location.CreationOpt);
+            return IsDisposableCreation(location.Creation);
         }
 
         public bool IsDisposable([NotNullWhen(returnValue: true)] ITypeSymbol? type)

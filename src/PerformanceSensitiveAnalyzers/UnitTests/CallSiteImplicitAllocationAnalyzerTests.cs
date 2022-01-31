@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests.CSharpPerformanceCodeFixVerifier<
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysisPerformanceSensitiveAnalyzers.UnitTests
     public class CallSiteImplicitAllocationAnalyzerTests
     {
         [Fact]
-        public async Task CallSiteImplicitAllocation_Param()
+        public async Task CallSiteImplicitAllocation_ParamAsync()
         {
             var sampleProgram =
 @"using System;
@@ -25,7 +26,7 @@ public class MyClass
     public void Testing()
     {
 
-        Params();
+        Params(); //no allocation, because compiler will implicitly substitute Array.Empty<int>()
         Params(1, 2);
         Params(new [] { 1, 2}); // explicit, so no warning
         ParamsWithObjects(new [] { 1, 2}); // explicit, but converted to objects, so stil la warning?!
@@ -44,18 +45,60 @@ public class MyClass
 }";
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                // Test0.cs(10,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
-                VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(10, 9),
-                // Test0.cs(11,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
+                // Test0.cs(11,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(11, 9),
-                // Test0.cs(13,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
+#pragma warning restore RS0030 // Do not used banned APIs
+                // Test0.cs(13,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(13, 9),
-                // Test0.cs(16,20): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
+#pragma warning restore RS0030 // Do not used banned APIs
+                // Test0.cs(16,20): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(16, 20));
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+
+        [Fact, WorkItem(3272, "https://github.com/dotnet/roslyn-analyzers/issues/3272")]
+        public async Task EmptyParamsWithNetFramework45Async()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net45.Default,
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        Params(); // allocation
+    }
+
+    public void Params(params int[] args)
+    {
+    }
+}",
+                        ("PerformanceSensitiveAttribute.cs", VerifyCS.PerformanceSensitiveAttributeSource)
+                    },
+                    ExpectedDiagnostics =
+                    {
+#pragma warning disable RS0030 // Do not used banned APIs
+                        VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(10, 9),
+#pragma warning restore RS0030 // Do not used banned APIs
+                    },
+                },
+            }.RunAsync();
         }
 
         [Fact]
-        public async Task CallSiteImplicitAllocation_NonOverridenMethodOnStruct()
+        public async Task CallSiteImplicitAllocation_NonOverridenMethodOnStructAsync()
         {
             var sampleProgram = @"
 using System;
@@ -83,14 +126,15 @@ public struct OverrideToHashCode
     }
 }";
 
-
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(10,22): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(10, 22));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
-        public async Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForStaticCalls()
+        public async Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForStaticCallsAsync()
         {
             var sampleProgram = @"
 using System;
@@ -128,8 +172,33 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ParamsIsPrecededByOptionalParametersAsync()
+        {
+            var sampleProgram = @"
+using System.IO;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    void Fun1()
+    {
+        Fun2();
+        {|#0:Fun2(args: """", i: 5)|};
+    }
+
+    void Fun2(int i = 0, params object[] args)
+    {
+    }
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(0));
+        }
+
+        [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Calling_non_overridden_virtual_methods_on_value_types()
+        public async Task Calling_non_overridden_virtual_methods_on_value_typesAsync()
         {
             var source = @"
 using System;
@@ -140,14 +209,16 @@ enum E { A }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         E.A.GetHashCode();
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
                 // Test0.cs(12,9): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(12, 9));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
     }
 }

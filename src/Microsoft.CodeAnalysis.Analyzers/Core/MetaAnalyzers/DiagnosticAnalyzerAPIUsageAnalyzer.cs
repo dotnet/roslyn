@@ -1,26 +1,27 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Analyzer.Utilities;
-using Analyzer.Utilities.Extensions;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
+using System.Linq;
+using System.Threading;
+using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Helpers;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     public abstract class DiagnosticAnalyzerApiUsageAnalyzer<TTypeSyntax> : DiagnosticAnalyzer
         where TTypeSyntax : SyntaxNode
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleDirectMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableIndirectMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleIndirectMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(AnalysisContext), DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCompilationStartActionName);
+        private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleTitle));
+        private static readonly LocalizableString s_localizableDescription = CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleDescription), nameof(AnalysisContext), DiagnosticWellKnownNames.RegisterCompilationStartActionName);
         private const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         private static readonly ImmutableArray<string> s_WorkspaceAssemblyNames = ImmutableArray.Create(
             "Microsoft.CodeAnalysis.Workspaces",
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyDirectRule = new(
             DiagnosticIds.DoNotUseTypesFromAssemblyRuleId,
             s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleDirectMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyIndirectRule = new(
             DiagnosticIds.DoNotUseTypesFromAssemblyRuleId,
             s_localizableTitle,
-            s_localizableIndirectMessage,
+            CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleIndirectMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         protected abstract bool IsNamedTypeDeclarationBlock(SyntaxNode syntax);
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotUseTypesFromAssemblyDirectRule, DoNotUseTypesFromAssemblyIndirectRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DoNotUseTypesFromAssemblyDirectRule, DoNotUseTypesFromAssemblyIndirectRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                INamedTypeSymbol? diagnosticAnalyzer = compilationStartContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerTypeFullName);
+                INamedTypeSymbol? diagnosticAnalyzer = compilationStartContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzer);
                 if (diagnosticAnalyzer == null)
                 {
                     // Does not contain any diagnostic analyzers.
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         do
                         {
                             var typeToProcess = typesToProcess.Dequeue();
-                            Debug.Assert(typeToProcess.ContainingAssembly.Equals(declaredType.ContainingAssembly));
+                            Debug.Assert(SymbolEqualityComparer.Default.Equals(typeToProcess.ContainingAssembly, declaredType.ContainingAssembly));
                             Debug.Assert(namedTypesToAccessedTypesMap.ContainsKey(typeToProcess));
 
                             foreach (INamedTypeSymbol usedType in namedTypesToAccessedTypesMap[typeToProcess])

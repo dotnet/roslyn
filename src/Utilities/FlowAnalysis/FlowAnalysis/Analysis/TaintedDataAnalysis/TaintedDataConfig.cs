@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     /// <summary>
-    /// Manages tainted data sources, sanitizers, and sinks for all the 
+    /// Manages tainted data sources, sanitizers, and sinks for all the
     /// different tainted data analysis rules.
     /// </summary>
     /// <remarks>
@@ -36,6 +36,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         private static ImmutableDictionary<SinkKind, ImmutableHashSet<SanitizerInfo>> s_sinkKindToSanitizerInfo
             = ImmutableDictionary.Create<SinkKind, ImmutableHashSet<SanitizerInfo>>();
+
+        /// <summary>
+        /// Caches the results for <see cref="HasTaintArraySource(SinkKind)"/>.
+        /// </summary>
+        private static ImmutableDictionary<SinkKind, bool> s_sinkKindHasTaintArraySource
+            = ImmutableDictionary.Create<SinkKind, bool>();
 
         /// <summary>
         /// <see cref="WellKnownTypeProvider"/> for this instance's <see cref="Compilation"/>.
@@ -64,7 +70,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Gets a cached <see cref="TaintedDataConfig"/> for <paramref name="compilation"/>.
         /// </summary>
-        /// <param name="compilation">Whatev is being compiled.</param>
+        /// <param name="compilation">Whatever is being compiled.</param>
         /// <returns>The TaintedDataConfig.</returns>
         public static TaintedDataConfig GetOrCreate(Compilation compilation)
             => s_ConfigsByCompilation.GetOrCreateValue(compilation, Create);
@@ -174,7 +180,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public static bool HasTaintArraySource(SinkKind sinkKind)
         {
-            return GetSourceInfos(sinkKind).Any(o => o.TaintConstantArray);
+            return ImmutableInterlocked.GetOrAdd(
+                ref s_sinkKindHasTaintArraySource,
+                sinkKind,
+                static sinkKind => GetSourceInfos(sinkKind).Any(static o => o.TaintConstantArray));
         }
 
         private TaintedDataSymbolMap<T> GetFromMap<T>(SinkKind sinkKind, ImmutableDictionary<SinkKind, Lazy<TaintedDataSymbolMap<T>>> map)

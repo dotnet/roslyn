@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -64,7 +64,7 @@ namespace Metrics
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            errorCode = writeOutput();
+            errorCode = await writeOutputAsync().ConfigureAwait(false);
             if (!quiet && errorCode == ErrorCode.None)
             {
                 Console.WriteLine("Completed Successfully.");
@@ -83,7 +83,7 @@ namespace Metrics
                         return usage();
                     }
 
-                    arg = arg.Substring(1);
+                    arg = arg[1..];
                     switch (arg.ToUpperInvariant())
                     {
                         case "Q":
@@ -103,7 +103,7 @@ namespace Metrics
                             }
 
                             var key = arg.Substring(0, index).ToUpperInvariant();
-                            var value = arg.Substring(index + 1);
+                            var value = arg[(index + 1)..];
                             switch (key)
                             {
                                 case "P":
@@ -217,7 +217,7 @@ Display this help message.");
                 return ErrorCode.InvalidOutputFile;
             }
 
-            ErrorCode writeOutput()
+            async Task<ErrorCode> writeOutputAsync()
             {
                 XmlTextWriter? metricFile = null;
                 try
@@ -239,7 +239,7 @@ Display this help message.");
                     MetricsOutputWriter.WriteMetricFile(metricDatas, metricFile);
                     if (outputFile == null)
                     {
-                        metricFile.WriteString(Environment.NewLine + Environment.NewLine);
+                        await metricFile.WriteStringAsync(Environment.NewLine + Environment.NewLine).ConfigureAwait(false);
                     }
 
                     return ErrorCode.None;
@@ -253,10 +253,7 @@ Display this help message.");
 #pragma warning restore CA1031 // Do not catch general exception types
                 finally
                 {
-                    if (metricFile != null)
-                    {
-                        metricFile.Close();
-                    }
+                    metricFile?.Close();
                 }
             }
         }
@@ -316,7 +313,7 @@ Display this help message.");
 
                 cancellation.ThrowIfCancellationRequested();
                 var compilation = await project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false);
-                var metricData = await CodeAnalysisMetricData.ComputeAsync(compilation.Assembly, compilation, CancellationToken.None).ConfigureAwait(false);
+                var metricData = await CodeAnalysisMetricData.ComputeAsync(compilation!.Assembly, new CodeMetricsAnalysisContext(compilation, CancellationToken.None)).ConfigureAwait(false);
                 builder.Add((projectFile, metricData));
             }
 
@@ -349,8 +346,8 @@ Display this help message.");
 
                     cancellation.ThrowIfCancellationRequested();
                     var compilation = await project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false);
-                    var metricData = await CodeAnalysisMetricData.ComputeAsync(compilation.Assembly, compilation, CancellationToken.None).ConfigureAwait(false);
-                    builder.Add((project.FilePath, metricData));
+                    var metricData = await CodeAnalysisMetricData.ComputeAsync(compilation!.Assembly, new CodeMetricsAnalysisContext(compilation, CancellationToken.None)).ConfigureAwait(false);
+                    builder.Add((project.FilePath!, metricData));
                 }
             }
         }
@@ -368,5 +365,4 @@ Display this help message.");
             WriteException
         }
     }
-
 }

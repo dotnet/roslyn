@@ -1,9 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -13,10 +12,9 @@ namespace Analyzer.Utilities.Extensions
         {
             foreach (var operationRoot in operationBlocks)
             {
-                IBlockOperation? topmostBlock = operationRoot.GetTopmostParentBlock();
-                if (topmostBlock != null)
+                if (operationRoot.TryGetEnclosingControlFlowGraph(out var cfg))
                 {
-                    return topmostBlock.GetEnclosingControlFlowGraph();
+                    return cfg;
                 }
             }
 

@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CompareSymbolsCorrectlyAnalyzer,
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.CompareSymbolsCorrectlyFix>;
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers.CSharpCompareSymbolsCorrectlyFix>;
 using VerifyVB = Test.Utilities.VisualBasicSecurityCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CompareSymbolsCorrectlyAnalyzer,
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.CompareSymbolsCorrectlyFix>;
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.Fixers.BasicCompareSymbolsCorrectlyFix>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_CSharp(string symbolType)
+        public async Task CompareTwoSymbolsEquals_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -227,7 +229,7 @@ class TestClass {{
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_NoComparer_CSharp(string symbolType)
+        public async Task CompareTwoSymbolsEquals_NoComparer_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -252,7 +254,7 @@ class TestClass {{
         [WorkItem(2335, "https://github.com/dotnet/roslyn-analyzers/issues/2335")]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsByIdentity_CSharp(string symbolType)
+        public async Task CompareTwoSymbolsByIdentity_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -274,7 +276,7 @@ class TestClass {{
 
         [Fact]
         [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
-        public async Task CompareTwoSymbolImplementations_CSharp()
+        public async Task CompareTwoSymbolImplementations_CSharpAsync()
         {
             var source = $@"
 class TestClass {{
@@ -294,7 +296,7 @@ class TestClass {{
         [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolImplementationWithInterface_CSharp(string symbolType)
+        public async Task CompareSymbolImplementationWithInterface_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -323,7 +325,7 @@ class TestClass {{
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolImplementationWithInterface_NoComparer_CSharp(string symbolType)
+        public async Task CompareSymbolImplementationWithInterface_NoComparer_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -351,7 +353,7 @@ class TestClass {{
 
         [Theory]
         [CombinatorialData]
-        public async Task CompareSymbolWithNull_CSharp(
+        public async Task CompareSymbolWithNull_CSharpAsync(
             [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("==", "!=")] string @operator,
             [CombinatorialValues("null", "default", "default(ISymbol)")] string value)
@@ -375,7 +377,7 @@ class TestClass {{
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolWithNullPattern_CSharp(string symbolType)
+        public async Task CompareSymbolWithNullPattern_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -392,7 +394,7 @@ class TestClass {{
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_VisualBasic(string symbolType)
+        public async Task CompareTwoSymbolsEquals_VisualBasicAsync(string symbolType)
         {
             var source = $@"
 Imports Microsoft.CodeAnalysis
@@ -421,7 +423,7 @@ End Class
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_NoComparer_VisualBasic(string symbolType)
+        public async Task CompareTwoSymbolsEquals_NoComparer_VisualBasicAsync(string symbolType)
         {
             var source = $@"
 Imports Microsoft.CodeAnalysis
@@ -447,7 +449,7 @@ End Class
         [WorkItem(2335, "https://github.com/dotnet/roslyn-analyzers/issues/2335")]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsByIdentity_VisualBasic(string symbolType)
+        public async Task CompareTwoSymbolsByIdentity_VisualBasicAsync(string symbolType)
         {
             var source = $@"
 Imports Microsoft.CodeAnalysis
@@ -464,7 +466,7 @@ End Class
         [Theory]
         [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
         [CombinatorialData]
-        public async Task CompareTwoSymbolImplementations_VisualBasic(
+        public async Task CompareTwoSymbolImplementations_VisualBasicAsync(
             [CombinatorialValues("Symbol", nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("=", "<>", "Is", "IsNot")] string @operator)
         {
@@ -489,7 +491,7 @@ End Class
 
         [Theory]
         [CombinatorialData]
-        public async Task CompareSymbolWithNull_VisualBasic(
+        public async Task CompareSymbolWithNull_VisualBasicAsync(
             [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("Is", "IsNot")] string @operator)
         {
@@ -509,11 +511,298 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task CompareSymbolFromInstanceEquals_VisualBasicAsync(
+            [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
+            [CombinatorialValues("", "Not ")] string @operator)
+        {
+            var source = $@"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As {symbolType}, y As {symbolType})
+        If {@operator}[|x.Equals(y)|] Then Exit Sub
+    End Sub
+End Class
+";
+
+            var fixedSource = $@"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As {symbolType}, y As {symbolType})
+        If {@operator}SymbolEqualityComparer.Default.Equals(x, y) Then Exit Sub
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubVisualBasic } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubVisualBasic } },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CompareSymbolFromInstanceEquals_CSharpAsync(
+            [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
+            [CombinatorialValues("", "!")] string @operator)
+        {
+            var source = $@"
+using Microsoft.CodeAnalysis;
+class TestClass
+{{
+    void Method1({symbolType} x , {symbolType} y)
+    {{
+        if ({@operator}[|x.Equals(y)|]) return;
+    }}
+}}
+";
+
+            var fixedSource = $@"
+using Microsoft.CodeAnalysis;
+class TestClass
+{{
+    void Method1({symbolType} x , {symbolType} y)
+    {{
+        if ({@operator}SymbolEqualityComparer.Default.Equals(x, y)) return;
+    }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithConditionalAccess_VisualBasicAsync()
+        {
+            var source = @"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As ISymbol, y As ISymbol)
+        If x?[|.Equals(y)|] Then Exit Sub
+    End Sub
+End Class
+";
+
+            var fixedSource = @"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As ISymbol, y As ISymbol)
+        If SymbolEqualityComparer.Default.Equals(x, y) Then Exit Sub
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubVisualBasic } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubVisualBasic } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithNullConditionalAccess_CSharpAsync()
+        {
+            var source = @"
+using Microsoft.CodeAnalysis;
+class TestClass
+{
+    void Method1(ISymbol x, ISymbol y)
+    {
+        if (x?[|.Equals(y)|] == true) return;
+    }
+}
+";
+
+            var fixedSource = @"
+using Microsoft.CodeAnalysis;
+class TestClass
+{
+    void Method1(ISymbol x, ISymbol y)
+    {
+        if (SymbolEqualityComparer.Default.Equals(x, y) == true) return;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithChainConditionalAccess_VisualBasicAsync()
+        {
+            var source = @"
+Imports Microsoft.CodeAnalysis
+
+Class A
+    Public b As B
+End Class
+
+Class B
+    Public s As ISymbol
+End Class
+
+Class TestClass
+    Sub Method1(a As A, b As B, s As ISymbol)
+        If a?.b?.s?[|.Equals(s)|] Then Exit Sub
+        If b?.s?[|.Equals(s)|] Then Exit Sub
+    End Sub
+End Class
+";
+
+            var fixedSource = @"
+Imports Microsoft.CodeAnalysis
+
+Class A
+    Public b As B
+End Class
+
+Class B
+    Public s As ISymbol
+End Class
+
+Class TestClass
+    Sub Method1(a As A, b As B, s As ISymbol)
+        If SymbolEqualityComparer.Default.Equals(a?.b?.s, s) Then Exit Sub
+        If SymbolEqualityComparer.Default.Equals(b?.s, s) Then Exit Sub
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubVisualBasic } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubVisualBasic } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithChainNullConditionalAccess_CSharpAsync()
+        {
+            var source = @"
+using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+}
+
+class B
+{
+    public ISymbol s;
+}
+
+class TestClass
+{
+    void Method1(A a, B b, ISymbol s)
+    {
+        if (a?.b?.s?[|.Equals(s)|] == true) return;
+        if (b?.s?[|.Equals(s)|] == true) return;
+    }
+}
+";
+
+            var fixedSource = @"
+using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+}
+
+class B
+{
+    public ISymbol s;
+}
+
+class TestClass
+{
+    void Method1(A a, B b, ISymbol s)
+    {
+        if (SymbolEqualityComparer.Default.Equals(a?.b?.s, s) == true) return;
+        if (SymbolEqualityComparer.Default.Equals(b?.s, s) == true) return;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithChain_CSharpAsync()
+        {
+            var source = @"
+using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+    public B GetB() => null;
+}
+
+class B
+{
+    public ISymbol s;
+    public ISymbol GetS() => null;
+}
+
+class TestClass
+{
+    void Method1(A a, ISymbol symbol)
+    {
+        if ([|a.b.s.Equals(symbol)|] == true) return;
+        if ([|a.GetB().GetS().Equals(symbol)|] == true) return;
+    }
+}";
+
+            var fixedSource = @"
+using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+    public B GetB() => null;
+}
+
+class B
+{
+    public ISymbol s;
+    public ISymbol GetS() => null;
+}
+
+class TestClass
+{
+    void Method1(A a, ISymbol symbol)
+    {
+        if (SymbolEqualityComparer.Default.Equals(a.b.s, symbol) == true) return;
+        if (SymbolEqualityComparer.Default.Equals(a.GetB().GetS(), symbol) == true) return;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
 
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolImplementationWithInterface_EqualsComparison_CSharp(string symbolType)
+        public async Task CompareSymbolImplementationWithInterface_EqualsComparison_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -538,5 +827,593 @@ class TestClass {{
                 FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
             }.RunAsync();
         }
+
+        [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
+        public async Task GetHashCode_DiagnosticAsync()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using Microsoft.CodeAnalysis;
+public class C
+{
+    public int M(ISymbol symbol, INamedTypeSymbol namedType)
+    {
+        return [|symbol.GetHashCode()|] + [|namedType.GetHashCode()|];
+    }
+}");
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+    Public Function M(ByVal symbol As ISymbol, ByVal namedType As INamedTypeSymbol) As Integer
+        Return [|symbol.GetHashCode()|] + [|namedType.GetHashCode()|]
+    End Function
+End Class");
+        }
+
+        [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
+        public async Task CollectionConstructorsKnownToRequireComparer_DiagnosticAsync()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+public class C
+{
+    public void MethodWithDiagnostics()
+    {
+        [|new Dictionary<ISymbol, int>()|];
+        [|new HashSet<ISymbol>()|];
+        [|new ConcurrentDictionary<ISymbol, int>()|];
+    }
+
+    public void MethodWithoutDiagnostics()
+    {
+        new Dictionary<int, ISymbol>();
+        new HashSet<string>();
+        new ConcurrentDictionary<int, ISymbol>();
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+Imports System.Collections.Concurrent
+Imports System.Collections.Generic
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+    Public Sub MethodWithDiagnostics()
+        Dim x1 = [|New Dictionary(Of ISymbol, Integer)()|]
+        Dim x2 = [|New HashSet(Of ISymbol)()|]
+        Dim x3 = [|New ConcurrentDictionary(Of ISymbol, Integer)()|]
+    End Sub
+
+    Public Sub MethodWithoutDiagnostics()
+        Dim x1 = New Dictionary(Of Integer, ISymbol)()
+        Dim x2 = New HashSet(Of String)()
+        Dim x3 = New ConcurrentDictionary(Of Integer, ISymbol)()
+    End Sub
+End Class",
+                        SymbolEqualityComparerStubVisualBasic,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
+        public async Task CollectionMethodsKnownToRequireComparer_DiagnosticAsync()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Immutable;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+public class C
+{
+    public void MethodWithDiagnostics(IEnumerable<KeyValuePair<ISymbol, int>> kvps, IEnumerable<ISymbol> symbols, ISymbol symbol)
+    {
+        [|ImmutableHashSet.Create<ISymbol>()|];
+        [|ImmutableHashSet.CreateBuilder<ISymbol>()|];
+        [|ImmutableHashSet.CreateRange(symbols)|];
+        [|symbols.ToImmutableHashSet()|];
+
+        [|ImmutableDictionary.Create<ISymbol, int>()|];
+        [|ImmutableDictionary.CreateBuilder<ISymbol, int>()|];
+        [|ImmutableDictionary.CreateRange(kvps)|];
+        [|kvps.ToImmutableDictionary()|];
+
+        [|symbols.Contains(symbol)|];
+        [|symbols.Distinct()|];
+        [|symbols.GroupBy(x => x)|];
+        [|symbols.GroupJoin(symbols, x => x, x => x, (x, y) => x)|];
+        [|symbols.Intersect(symbols)|];
+        [|symbols.Join(symbols, x => x, x => x, (x, y) => x)|];
+        [|symbols.SequenceEqual(symbols)|];
+        [|symbols.ToDictionary(x => x)|];
+        [|symbols.ToLookup(x => x)|];
+        [|symbols.Union(symbols)|];
+    }
+
+    public void MethodWithoutDiagnostics(IEnumerable<KeyValuePair<int, ISymbol>> kvps, IEnumerable<int> integers, int integer)
+    {
+        ImmutableHashSet.Create<int>();
+        ImmutableHashSet.CreateBuilder<int>();
+        ImmutableHashSet.CreateRange(integers);
+        integers.ToImmutableHashSet();
+
+        ImmutableDictionary.Create<int, ISymbol>();
+        ImmutableDictionary.CreateBuilder<int, ISymbol>();
+        ImmutableDictionary.CreateRange(kvps);
+        kvps.ToImmutableDictionary();
+
+        integers.Contains(integer);
+        integers.Distinct();
+        integers.GroupBy(x => x);
+        integers.GroupJoin(integers, x => x, x => x, (x, y) => x);
+        integers.Intersect(integers);
+        integers.Join(integers, x => x, x => x, (x, y) => x);
+        integers.SequenceEqual(integers);
+        integers.ToDictionary(x => x);
+        integers.ToLookup(x => x);
+        integers.Union(integers);
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+Imports System
+Imports System.Collections.Immutable
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+    Public Sub MethodWithDiagnostics(kvps As IEnumerable(Of KeyValuePair(Of ISymbol, Integer)), symbols As IEnumerable(Of ISymbol), symbol As ISymbol)
+        Dim x1 = [|ImmutableHashSet.Create(Of ISymbol)()|]
+        Dim x2 = [|ImmutableHashSet.CreateBuilder(Of ISymbol)()|]
+        Dim x3 = [|ImmutableHashSet.CreateRange(symbols)|]
+        Dim x4 = [|symbols.ToImmutableHashSet()|]
+
+        Dim x5 = [|ImmutableDictionary.Create(Of ISymbol, Integer)()|]
+        Dim x6 = [|ImmutableDictionary.CreateBuilder(Of ISymbol, Integer)()|]
+        Dim x7 = [|ImmutableDictionary.CreateRange(kvps)|]
+        Dim x8 = [|kvps.ToImmutableDictionary()|]
+
+        Dim x9 = [|symbols.Contains(symbol)|]
+        Dim x10 = [|symbols.Distinct()|]
+        Dim x11 = [|symbols.GroupBy(Function(x) x)|]
+        Dim x12 = [|symbols.GroupJoin(symbols, Function(x) x, Function(x) x, Function(x, y) x)|]
+        Dim x13 = [|symbols.Intersect(symbols)|]
+        Dim x14 = [|symbols.Join(symbols, Function(x) x, Function(x) x, Function(x, y) x)|]
+        Dim x15 = [|symbols.SequenceEqual(symbols)|]
+        Dim x16 = [|symbols.ToDictionary(Function(x) x)|]
+        Dim x17 = [|symbols.ToLookup(Function(x) x)|]
+        Dim x18 = [|symbols.Union(symbols)|]
+    End Sub
+
+    Public Sub MethodWithoutDiagnostics(kvps As IEnumerable(Of KeyValuePair(Of Integer, ISymbol)), integers As IEnumerable(Of Integer), i As Integer)
+        Dim x1 = ImmutableHashSet.Create(Of Integer)()
+        Dim x2 = ImmutableHashSet.CreateBuilder(Of Integer)()
+        Dim x3 = ImmutableHashSet.CreateRange(integers)
+        Dim x4 = integers.ToImmutableHashSet()
+
+        Dim x5 = ImmutableDictionary.Create(Of Integer, ISymbol)()
+        Dim x6 = ImmutableDictionary.CreateBuilder(Of Integer, ISymbol)()
+        Dim x7 = ImmutableDictionary.CreateRange(kvps)
+        Dim x8 = kvps.ToImmutableDictionary()
+
+        Dim x9 = integers.Contains(i)
+        Dim x10 = integers.Distinct()
+        Dim x11 = integers.GroupBy(Function(x) x)
+        Dim x12 = integers.GroupJoin(integers, Function(x) x, Function(x) x, Function(x, y) x)
+        Dim x13 = integers.Intersect(integers)
+        Dim x14 = integers.Join(integers, Function(x) x, Function(x) x, Function(x, y) x)
+        Dim x15 = integers.SequenceEqual(integers)
+        Dim x16 = integers.ToDictionary(Function(x) x)
+        Dim x17 = integers.ToLookup(Function(x) x)
+        Dim x18 = integers.Union(integers)
+    End Sub
+End Class",
+                        SymbolEqualityComparerStubVisualBasic,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(4469, "https://github.com/dotnet/roslyn-analyzers/issues/4469")]
+        public async Task RS1024_SymbolEqualityComparerDefaultAsync()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M(IEnumerable<ISymbol> e, ISymbol symbol, INamedTypeSymbol type)
+    {
+        e.Contains(symbol, SymbolEqualityComparer.Default);
+
+        var asyncMethods = type.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(x => x.IsAsync)
+            .ToLookup(x => x.ContainingType, x => x, SymbolEqualityComparer.Default);
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(4470, "https://github.com/dotnet/roslyn-analyzers/issues/4470")]
+        [WorkItem(4568, "https://github.com/dotnet/roslyn-analyzers/issues/4568")]
+        public async Task RS1024_InvocationArgumentTypeIsNullAsync()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    private readonly HashSet<ITypeSymbol> _types = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(4413, "https://github.com/dotnet/roslyn-analyzers/issues/4413")]
+        public async Task RS1024_SourceCollectionIsSymbolButLambdaIsNotAsync()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M1(IFieldSymbol[] fields)
+    {
+        var result = fields.ToLookup(f => f.Name);
+    }
+
+    public void M2(IEnumerable<IPropertySymbol> source, IEnumerable<IPropertySymbol> destination)
+    {
+        var result = source.Join(destination, p => (p.Name, p.Type.Name), p => (p.Name, p.Type.Name), (p1, p2) => p1.Name);
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(4956, "https://github.com/dotnet/roslyn-analyzers/issues/4956")]
+        public async Task RS1024_StringGetHashCodeAsync()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        ReadOnlySpan<char> testROS = default;
+        int hashCode = string.GetHashCode(testROS, StringComparison.OrdinalIgnoreCase);
+    }
+}"
+                        , SymbolEqualityComparerStubCSharp
+                    },
+                    ReferenceAssemblies = CreateNetCoreReferenceAssemblies()
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RS1024_GetHashCodeOnInt64Async()
+        {
+            var code = @"
+using System;
+using Microsoft.CodeAnalysis;
+
+static class HashCodeHelper
+{
+    public static Int32 GetHashCode(Int64 x) => 0;
+    public static Int32 GetHashCode(ISymbol symbol) => [|symbol.GetHashCode()|];
+}
+
+public class C
+{
+    public int GetHashCode(Int64 obj)
+    {
+        return HashCodeHelper.GetHashCode(obj);
+    }
+
+    public int GetHashCode(ISymbol symbol)
+    {
+        return HashCodeHelper.GetHashCode(symbol);
+    }
+
+    public int GetHashCode(object o)
+    {
+        if (o is ISymbol symbol)
+        {
+            return [|HashCode.Combine(symbol)|];
+        }
+
+        return HashCode.Combine(o);
+    }
+
+    public int GetHashCode(object o1, object o2)
+    {
+        if (o1 is ISymbol symbol1 && o2 is ISymbol symbol2)
+        {
+            return [|HashCode.Combine(symbol1, symbol2)|];
+        }
+
+        if (o1 is ISymbol symbolFirst)
+        {
+            return [|HashCode.Combine(symbolFirst, o2)|];
+        }
+
+        if (o2 is ISymbol symbolSecond)
+        {
+            return [|HashCode.Combine(o1, symbolSecond)|];
+        }
+
+        return HashCode.Combine(o1, o2);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        code, SymbolEqualityComparerStubCSharp
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        code, SymbolEqualityComparerStubCSharp
+                    },
+                    MarkupHandling = Testing.MarkupMode.Allow
+                },
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies()
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(5715, "https://github.com/dotnet/roslyn-analyzers/issues/5715")]
+        public async Task RS1024_CustomComparer_Instance_Is_InterfaceAsync()
+        {
+            var csCode = @"
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M(IEnumerable<ITypeSymbol> symbols)
+    {
+        _ = new HashSet<ISymbol>(SymbolNameComparer.Instance);
+        _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolNameComparer.Instance);
+        _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolEqualityComparer.Default);
+    }
+}
+
+internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
+{
+    private SymbolNameComparer() { }
+
+    internal static IEqualityComparer<ISymbol> Instance { get; } = new SymbolNameComparer();
+
+    public override bool Equals(ISymbol x, ISymbol y) => true;
+
+    public override int GetHashCode(ISymbol obj) => 0;
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = csCode,
+                FixedCode = csCode,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+
+            var vbCode = @"
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+
+    Public Sub M(symbols As IEnumerable(Of ITypeSymbol))
+        Dim x As New HashSet(Of ISymbol)(SymbolNameComparer.Instance)
+        Dim y = symbols.ToDictionary(Function(s) s, Function(s) s.ToDisplayString(), SymbolNameComparer.Instance)
+        Dim z = symbols.ToDictionary(Function(s) s, Function(s) s.ToDisplayString(), SymbolEqualityComparer.Default)
+    End Sub
+End Class
+
+Class SymbolNameComparer
+    Inherits EqualityComparer(Of ISymbol)
+
+    Private Sub New()
+    End Sub
+
+    Friend Shared Property Instance As IEqualityComparer(Of ISymbol) = New SymbolNameComparer()
+
+    Public Overrides Function Equals(x As ISymbol, y As ISymbol) As Boolean
+        Return True
+    End Function
+
+    Public Overrides Function GetHashCode(obj As ISymbol) As Integer
+        Return 0
+    End Function
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestCode = vbCode,
+                FixedCode = vbCode,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(5715, "https://github.com/dotnet/roslyn-analyzers/issues/5715")]
+        public async Task RS1024_CustomComparer_Instance_Is_TypeAsync()
+        {
+            var csCode = @"
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M(IEnumerable<ITypeSymbol> symbols)
+    {
+        _ = new HashSet<ISymbol>(SymbolNameComparer.Instance);
+        _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolNameComparer.Instance);
+        _ = symbols.ToDictionary(s => s, s => s.ToDisplayString(), SymbolEqualityComparer.Default);
+    }
+}
+
+internal sealed class SymbolNameComparer : EqualityComparer<ISymbol>
+{
+    private SymbolNameComparer() { }
+
+    internal static SymbolNameComparer Instance { get; } = new SymbolNameComparer();
+
+    public override bool Equals(ISymbol x, ISymbol y) => true;
+
+    public override int GetHashCode(ISymbol obj) => 0;
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = csCode,
+                FixedCode = csCode,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+
+            var vbCode = @"
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis
+
+Public Class C
+    Public Sub M(symbols As IEnumerable(Of ITypeSymbol))
+        Dim x As New HashSet(Of ISymbol)(SymbolNameComparer.Instance)
+        Dim y = symbols.ToDictionary(Function(s) s, Function(s) s.ToDisplayString(), SymbolNameComparer.Instance)
+        Dim z = symbols.ToDictionary(Function(s) s, Function(s) s.ToDisplayString(), SymbolEqualityComparer.Default)
+    End Sub
+End Class
+
+Class SymbolNameComparer
+    Inherits EqualityComparer(Of ISymbol)
+
+    Private Sub New()
+    End Sub
+
+    Friend Shared Property Instance As SymbolNameComparer = New SymbolNameComparer()
+
+    Public Overrides Function Equals(x As ISymbol, y As ISymbol) As Boolean
+        Return True
+    End Function
+
+    Public Overrides Function GetHashCode(obj As ISymbol) As Integer
+        Return 0
+    End Function
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestCode = vbCode,
+                FixedCode = vbCode,
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies(),
+
+            }.RunAsync();
+        }
+
+        private static ReferenceAssemblies CreateNetCoreReferenceAssemblies()
+            => ReferenceAssemblies.NetCore.NetCoreApp31.AddPackages(ImmutableArray.Create(
+                new PackageIdentity("Microsoft.CodeAnalysis", "4.0.1"),
+                new PackageIdentity("System.Runtime.Serialization.Formatters", "4.3.0"),
+                new PackageIdentity("System.Configuration.ConfigurationManager", "4.7.0"),
+                new PackageIdentity("System.Security.Cryptography.Cng", "4.7.0"),
+                new PackageIdentity("System.Security.Permissions", "4.7.0"),
+                new PackageIdentity("Microsoft.VisualBasic", "10.3.0")));
     }
 }

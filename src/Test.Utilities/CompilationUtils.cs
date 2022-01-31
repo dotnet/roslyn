@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,7 +17,7 @@ namespace Test.Utilities
             if (compileErrors.Any())
             {
                 var builder = new StringBuilder();
-                builder.Append($"Test contains compilation error(s). Pass {nameof(TestValidationMode)}.{nameof(TestValidationMode.AllowCompileErrors)} if these are intended:");
+                builder.Append($"Test contains compilation error(s):");
                 builder.Append(string.Concat(compileErrors.Select(x => "\n" + x.ToString())));
 
                 string message = builder.ToString();

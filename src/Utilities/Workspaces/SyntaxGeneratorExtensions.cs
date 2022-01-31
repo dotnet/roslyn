@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -432,6 +432,28 @@ namespace Analyzer.Utilities
             return generator.ThrowStatement(generator.ObjectCreationExpression(
                 generator.TypeExpression(
                     compilation.GetOrCreateTypeByMetadataName(SystemNotImplementedExceptionTypeName))));
+        }
+
+        public static SyntaxNode? TryGetContainingDeclaration(this SyntaxGenerator generator, SyntaxNode? node, DeclarationKind kind)
+        {
+            if (node is null)
+            {
+                return null;
+            }
+
+            var declarationKind = generator.GetDeclarationKind(node);
+            while (declarationKind != kind)
+            {
+                node = generator.GetDeclaration(node.Parent);
+                if (node is null)
+                {
+                    return null;
+                }
+
+                declarationKind = generator.GetDeclarationKind(node);
+            }
+
+            return node;
         }
     }
 }

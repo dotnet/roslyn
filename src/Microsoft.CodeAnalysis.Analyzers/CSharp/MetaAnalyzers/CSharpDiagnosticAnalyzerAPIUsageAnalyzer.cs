@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                 SyntaxKind.ClassDeclaration
                 or SyntaxKind.StructDeclaration
                 or SyntaxKind.EnumDeclaration
+#if CODEANALYSIS_V3_OR_BETTER
+                or SyntaxKind.RecordDeclaration:
+#endif
                 or SyntaxKind.InterfaceDeclaration => true,
                 _ => false,
             };

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -11,6 +11,7 @@ using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {
@@ -29,6 +30,7 @@ namespace Analyzer.Utilities
                 () =>
                 {
                     return ImmutableHashSet.Create<IAssemblySymbol>(
+                        SymbolEqualityComparer.Default,
                         Compilation.Assembly.Modules
                             .SelectMany(m => m.ReferencedAssemblySymbols)
                             .ToArray());
@@ -83,7 +85,20 @@ namespace Analyzer.Utilities
         /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
         /// <param name="namedTypeSymbol">Named type symbol, if any.</param>
         /// <returns>True if found in the compilation, false otherwise.</returns>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn-analyzers/issues/4893", AllowCaptures = false)]
         public bool TryGetOrCreateTypeByMetadataName(
+            string fullTypeName,
+            [NotNullWhen(returnValue: true)] out INamedTypeSymbol? namedTypeSymbol)
+        {
+            if (_fullNameToTypeMap.TryGetValue(fullTypeName, out namedTypeSymbol))
+            {
+                return namedTypeSymbol is not null;
+            }
+
+            return TryGetOrCreateTypeByMetadataNameSlow(fullTypeName, out namedTypeSymbol);
+        }
+
+        private bool TryGetOrCreateTypeByMetadataNameSlow(
             string fullTypeName,
             [NotNullWhen(returnValue: true)] out INamedTypeSymbol? namedTypeSymbol)
         {
@@ -186,7 +201,8 @@ namespace Analyzer.Utilities
         {
             return typeSymbol != null
                 && typeSymbol.OriginalDefinition != null
-                && typeSymbol.OriginalDefinition.Equals(GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask1))
+                && SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition,
+                    GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask1))
                 && typeSymbol is INamedTypeSymbol namedTypeSymbol
                 && namedTypeSymbol.TypeArguments.Length == 1
                 && typeArgumentPredicate(namedTypeSymbol.TypeArguments[0]);
@@ -202,7 +218,7 @@ namespace Analyzer.Utilities
             {
                 if (fullTypeName[i] == '.')
                 {
-                    namespaceNamesBuilder.Add(fullTypeName.Substring(prevStartIndex, i - prevStartIndex));
+                    namespaceNamesBuilder.Add(fullTypeName[prevStartIndex..i]);
                     prevStartIndex = i + 1;
                 }
                 else if (!IsIdentifierPartCharacter(fullTypeName[i]))

@@ -1,13 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.CSharp.Analyzers.CSharpSpecializedEnumerableCreationAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Roslyn.Diagnostics.VisualBasic.Analyzers.BasicSpecializedEnumerableCreationAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
@@ -28,18 +27,28 @@ Namespace Roslyn.Utilities
 End Namespace
 ";
 
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor)
-        {
-            return new DiagnosticResult(descriptor).WithLocation(line, column);
-        }
+        private static DiagnosticResult GetCSharpEmptyEnumerableResultAt(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
+            VerifyCS.Diagnostic(SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule).WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
 
-        private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor)
-        {
-            return new DiagnosticResult(descriptor).WithLocation(line, column);
-        }
+        private static DiagnosticResult GetBasicEmptyEnumerableResultAt(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
+            VerifyVB.Diagnostic(SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule).WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
+
+        private static DiagnosticResult GetCSharpSingletonEnumerableResultAt(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
+            VerifyCS.Diagnostic(SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule).WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
+
+        private static DiagnosticResult GetBasicSingletonEnumerableResultAt(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
+            VerifyVB.Diagnostic(SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule).WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
 
         [Fact]
-        public async Task ReturnEmptyArrayCSharp()
+        public async Task ReturnEmptyArrayCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -51,12 +60,12 @@ class C
     int[] M3() { return new int[0]; }
 }
 " + _csharpSpecializedCollectionsDefinition,
-                GetCSharpResultAt(6, 36, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule),
-                GetCSharpResultAt(7, 36, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
+                GetCSharpEmptyEnumerableResultAt(6, 36),
+                GetCSharpEmptyEnumerableResultAt(7, 36));
         }
 
         [Fact]
-        public async Task ReturnSingletonArrayCSharp()
+        public async Task ReturnSingletonArrayCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -69,13 +78,13 @@ class C
     int[] M4() { return new[] { 1 }; }
 }
 " + _csharpSpecializedCollectionsDefinition,
-                GetCSharpResultAt(6, 36, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
-                GetCSharpResultAt(7, 36, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
-                GetCSharpResultAt(8, 36, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
+                GetCSharpSingletonEnumerableResultAt(6, 36),
+                GetCSharpSingletonEnumerableResultAt(7, 36),
+                GetCSharpSingletonEnumerableResultAt(8, 36));
         }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableCSharp()
+        public async Task ReturnLinqEmptyEnumerableCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -86,11 +95,11 @@ class C
     IEnumerable<int> M1() { return Enumerable.Empty<int>(); }
 }
 " + _csharpSpecializedCollectionsDefinition,
-                GetCSharpResultAt(7, 36, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
+                GetCSharpEmptyEnumerableResultAt(7, 36));
         }
 
         [Fact(Skip = "855425")]
-        public async Task ReturnArrayWithinExpressionCSharp()
+        public async Task ReturnArrayWithinExpressionCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -101,13 +110,13 @@ class C
     IEnumerable<int> M2() { return null ?? new int[0]; }
 }
 " + _csharpSpecializedCollectionsDefinition,
-                GetCSharpResultAt(6, 45, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
-                GetCSharpResultAt(6, 59, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
-                GetCSharpResultAt(7, 44, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
+                GetCSharpSingletonEnumerableResultAt(6, 45),
+                GetCSharpSingletonEnumerableResultAt(6, 59),
+                GetCSharpEmptyEnumerableResultAt(7, 44));
         }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableWithinExpressionCSharp()
+        public async Task ReturnLinqEmptyEnumerableWithinExpressionCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -119,12 +128,12 @@ class C
     IEnumerable<int> M2() { return null ?? Enumerable.Empty<int>(); }
 }
 " + _csharpSpecializedCollectionsDefinition,
-                GetCSharpResultAt(7, 45, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule),
-                GetCSharpResultAt(8, 44, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
+                GetCSharpEmptyEnumerableResultAt(7, 45),
+                GetCSharpEmptyEnumerableResultAt(8, 44));
         }
 
         [Fact]
-        public async Task ReturnMultiElementArrayCSharp()
+        public async Task ReturnMultiElementArrayCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -140,7 +149,7 @@ class C
         }
 
         [Fact]
-        public async Task ReturnJaggedArrayCSharp()
+        public async Task ReturnJaggedArrayCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -152,11 +161,11 @@ class C
     IEnumerable<int[]> M3() { return new[] { new[] { 1, 2, 3 }, new[] { 1 } }; }
 }
 " + _csharpSpecializedCollectionsDefinition,
-                GetCSharpResultAt(7, 38, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
+                GetCSharpSingletonEnumerableResultAt(7, 38));
         }
 
         [Fact(Skip = "855425")]
-        public async Task ImplicitConversionToNestedEnumerableCSharp()
+        public async Task ImplicitConversionToNestedEnumerableCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -166,12 +175,12 @@ class C
     IEnumerable<IEnumerable<int>> M1() { return new[] { new[] { 1 } }; }
 }
 " + _csharpSpecializedCollectionsDefinition,
-                GetCSharpResultAt(5, 49, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
-                GetCSharpResultAt(5, 57, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
+                GetCSharpSingletonEnumerableResultAt(5, 49),
+                GetCSharpSingletonEnumerableResultAt(5, 57));
         }
 
         [Fact]
-        public async Task ReturnEmptyArrayBasic()
+        public async Task ReturnEmptyArrayBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -185,12 +194,12 @@ Class C
     End Function
 End Class
 " + _basicSpecializedCollectionsDefinition,
-            GetBasicResultAt(6, 16, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule),
-            GetBasicResultAt(9, 16, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
+            GetBasicEmptyEnumerableResultAt(6, 16),
+            GetBasicEmptyEnumerableResultAt(9, 16));
         }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableBasic()
+        public async Task ReturnLinqEmptyEnumerableBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -202,11 +211,11 @@ Class C
     End Function
 End Class
 " + _basicSpecializedCollectionsDefinition,
-                GetBasicResultAt(7, 16, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
+                GetBasicEmptyEnumerableResultAt(7, 16));
         }
 
         [Fact]
-        public async Task ReturnSingletonArrayBasic()
+        public async Task ReturnSingletonArrayBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -220,12 +229,12 @@ Class C
     End Function
 End Class
 " + _basicSpecializedCollectionsDefinition,
-                GetBasicResultAt(6, 16, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
-                GetBasicResultAt(9, 16, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
+                GetBasicSingletonEnumerableResultAt(6, 16),
+                GetBasicSingletonEnumerableResultAt(9, 16));
         }
 
         [Fact(Skip = "855425")]
-        public async Task ReturnArrayWithinExpressionBasic()
+        public async Task ReturnArrayWithinExpressionBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -239,13 +248,13 @@ Class C
     End Function
 End Class
 " + _basicSpecializedCollectionsDefinition,
-                GetBasicResultAt(6, 25, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
-                GetBasicResultAt(6, 30, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
-                GetBasicResultAt(9, 25, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
+                GetBasicSingletonEnumerableResultAt(6, 25),
+                GetBasicSingletonEnumerableResultAt(6, 30),
+                GetBasicSingletonEnumerableResultAt(9, 25));
         }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableWithinExpressionBasic()
+        public async Task ReturnLinqEmptyEnumerableWithinExpressionBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -260,12 +269,12 @@ Class C
     End Function
 End Class
 " + _basicSpecializedCollectionsDefinition,
-                GetBasicResultAt(7, 25, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule),
-                GetBasicResultAt(10, 25, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
+                GetBasicEmptyEnumerableResultAt(7, 25),
+                GetBasicEmptyEnumerableResultAt(10, 25));
         }
 
         [Fact]
-        public async Task ReturnMultiElementArrayBasic()
+        public async Task ReturnMultiElementArrayBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -282,7 +291,7 @@ End Class
         }
 
         [Fact]
-        public async Task ReturnJaggedArrayBasic()
+        public async Task ReturnJaggedArrayBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -299,11 +308,11 @@ Class C
     End Function
 End Class
 " + _basicSpecializedCollectionsDefinition,
-                GetBasicResultAt(9, 16, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
+                GetBasicSingletonEnumerableResultAt(9, 16));
         }
 
         [Fact(Skip = "855425")]
-        public async Task ImplicitConversionToNestedEnumerableBasic()
+        public async Task ImplicitConversionToNestedEnumerableBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -314,8 +323,8 @@ Class C
     End Function
 End Class
 " + _basicSpecializedCollectionsDefinition,
-                GetBasicResultAt(6, 16, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
-                GetBasicResultAt(6, 17, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
+                GetBasicSingletonEnumerableResultAt(6, 16),
+                GetBasicSingletonEnumerableResultAt(6, 17));
         }
     }
 }

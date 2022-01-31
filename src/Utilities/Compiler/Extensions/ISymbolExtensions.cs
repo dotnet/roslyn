@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#nullable disable warnings
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -152,85 +153,8 @@ namespace Analyzer.Utilities.Extensions
             {
                 IMethodSymbol m => m.Parameters,
                 IPropertySymbol p => p.Parameters,
-                _ => ImmutableArray.Create<IParameterSymbol>()
+                _ => ImmutableArray<IParameterSymbol>.Empty,
             };
-        }
-
-        /// <summary>
-        /// Returns true if the given symbol has required visibility based on options:
-        ///   1. If user has explicitly configured candidate <see cref="SymbolVisibilityGroup"/> in editor config options and
-        ///      given symbol's visibility is one of the candidate visibilites.
-        ///   2. Otherwise, if user has not configured visibility, and given symbol's visibility
-        ///      matches the given default symbol visibility.
-        /// </summary>
-        public static bool MatchesConfiguredVisibility(
-            this ISymbol symbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            CancellationToken cancellationToken,
-            SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
-        {
-            var allowedVisibilities = options.GetSymbolVisibilityGroupOption(rule, defaultRequiredVisibility, cancellationToken);
-            return allowedVisibilities == SymbolVisibilityGroup.All ||
-                allowedVisibilities.Contains(symbol.GetResultantVisibility());
-        }
-
-        /// <summary>
-        /// Returns true if the given symbol has been configured to be excluded from analysis by options.
-        /// </summary>
-        public static bool IsConfiguredToSkipAnalysis(
-            this ISymbol symbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-        {
-            var excludedSymbols = options.GetExcludedSymbolNamesOption(rule, compilation, cancellationToken);
-            var excludedTypeNamesWithDerivedTypes = options.GetExcludedTypeNamesWithDerivedTypesOption(rule, compilation, cancellationToken);
-            if (excludedSymbols.IsEmpty && excludedTypeNamesWithDerivedTypes.IsEmpty)
-            {
-                return false;
-            }
-
-            while (symbol != null)
-            {
-                if (excludedSymbols.Contains(symbol))
-                {
-                    return true;
-                }
-
-                if (symbol is INamedTypeSymbol namedType && !excludedTypeNamesWithDerivedTypes.IsEmpty)
-                {
-                    foreach (var type in namedType.GetBaseTypesAndThis())
-                    {
-                        if (excludedTypeNamesWithDerivedTypes.Contains(type))
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                symbol = symbol.ContainingSymbol;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Returns true if the given symbol has required symbol modifiers based on options:
-        ///   1. If user has explicitly configured candidate <see cref="SymbolModifiers"/> in editor config options and
-        ///      given symbol has all the required modifiers.
-        ///   2. Otherwise, if user has not configured modifiers.
-        /// </summary>
-        public static bool MatchesConfiguredModifiers(
-            this ISymbol symbol,
-            AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            CancellationToken cancellationToken,
-            SymbolModifiers defaultRequiredModifiers = SymbolModifiers.None)
-        {
-            var requiredModifiers = options.GetRequiredModifiersOption(rule, defaultRequiredModifiers, cancellationToken);
-            return symbol.GetSymbolModifiers().Contains(requiredModifiers);
         }
 
         /// <summary>
@@ -306,11 +230,6 @@ namespace Analyzer.Utilities.Extensions
             return member != null && member.Kind == SymbolKind.Property && member.MatchMemberDerivedByName(type, name);
         }
 
-        public static bool MatchFieldDerivedByName([NotNullWhen(returnValue: true)] this ISymbol? member, INamedTypeSymbol type, string name)
-        {
-            return member != null && member.Kind == SymbolKind.Field && member.MatchMemberDerivedByName(type, name);
-        }
-
         public static bool MatchMemberByName([NotNullWhen(returnValue: true)] this ISymbol? member, INamedTypeSymbol type, string name)
         {
             return member != null && Equals(member.ContainingType, type) && member.MetadataName == name;
@@ -365,6 +284,14 @@ namespace Analyzer.Utilities.Extensions
         public static IEnumerable<IParameterSymbol> GetParametersOfType(this IEnumerable<IParameterSymbol> parameters, INamedTypeSymbol type)
         {
             return parameters.Where(p => p.Type.Equals(type));
+        }
+
+        /// <summary>
+        /// Gets the parameters whose type is equal to the given special type.
+        /// </summary>
+        public static IEnumerable<IParameterSymbol> GetParametersOfType(this IEnumerable<IParameterSymbol> parameters, SpecialType specialType)
+        {
+            return parameters.Where(p => p.Type.SpecialType == specialType);
         }
 
         /// <summary>
@@ -458,16 +385,16 @@ namespace Analyzer.Utilities.Extensions
                 return true;
             }
 
-            // this doesnt account for type conversion but FxCop implementation seems doesnt either
+            // this doesn't account for type conversion but FxCop implementation seems doesn't either
             // so this should match FxCop implementation.
-            return type2.Equals(type1);
+            return SymbolEqualityComparer.Default.Equals(type2, type1);
         }
 
         /// <summary>
         /// Check whether return type, parameters count and parameter types are same for the given methods.
         /// </summary>
         public static bool ReturnTypeAndParametersAreSame(this IMethodSymbol method, IMethodSymbol otherMethod)
-            => method.ReturnType.Equals(otherMethod.ReturnType) &&
+            => SymbolEqualityComparer.Default.Equals(method.ReturnType, otherMethod.ReturnType) &&
                method.ParametersAreSame(otherMethod);
 
         /// <summary>
@@ -476,7 +403,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsFromMscorlib(this ISymbol symbol, Compilation compilation)
         {
             var @object = compilation.GetSpecialType(SpecialType.System_Object);
-            return symbol.ContainingAssembly?.Equals(@object.ContainingAssembly) == true;
+            return SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, @object.ContainingAssembly);
         }
 
         /// <summary>
@@ -489,7 +416,7 @@ namespace Analyzer.Utilities.Extensions
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // does not account for method with optional parameters
-                if (method.Equals(overload) || overload.Parameters.Length != method.Parameters.Length)
+                if (SymbolEqualityComparer.Default.Equals(method, overload) || overload.Parameters.Length != method.Parameters.Length)
                 {
                     // either itself, or signature is not same
                     continue;
@@ -501,7 +428,7 @@ namespace Analyzer.Utilities.Extensions
                     continue;
                 }
 
-                if (overload.Parameters[parameterIndex].Type.Equals(type))
+                if (SymbolEqualityComparer.Default.Equals(overload.Parameters[parameterIndex].Type, type))
                 {
                     // we no longer interested in this overload. there can be only 1 match
                     return overload;
@@ -547,10 +474,35 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
+        /// <summary>
+        /// Checks if a given symbol implements an interface member implicitly
+        /// </summary>
+        public static bool IsImplementationOfAnyImplicitInterfaceMember<TSymbol>(this ISymbol symbol, out TSymbol interfaceMember)
+            where TSymbol : ISymbol
+        {
+            if (symbol.ContainingType != null)
+            {
+                foreach (INamedTypeSymbol interfaceSymbol in symbol.ContainingType.AllInterfaces)
+                {
+                    foreach (var baseInterfaceMember in interfaceSymbol.GetMembers().OfType<TSymbol>())
+                    {
+                        if (IsImplementationOfInterfaceMember(symbol, baseInterfaceMember))
+                        {
+                            interfaceMember = baseInterfaceMember;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            interfaceMember = default;
+            return false;
+        }
+
         public static bool IsImplementationOfInterfaceMember(this ISymbol symbol, [NotNullWhen(returnValue: true)] ISymbol? interfaceMember)
         {
             return interfaceMember != null &&
-                   symbol.Equals(symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
+                SymbolEqualityComparer.Default.Equals(symbol, symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
         }
 
         /// <summary>
@@ -666,8 +618,8 @@ namespace Analyzer.Utilities.Extensions
         /// The attribute in question.
         /// </param>
         /// <returns>
-        /// <c>true</c> if <paramref name="symbol"/> has an attribute of type
-        /// <paramref name="attribute"/>; otherwise <c>false</c>.
+        /// <see langword="true"/> if <paramref name="symbol"/> has an attribute of type
+        /// <paramref name="attribute"/>; otherwise <see langword="false"/>.
         /// </returns>
         /// <remarks>
         /// If <paramref name="symbol"/> is a type, this method does not find attributes
@@ -701,7 +653,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute)))
+                if (symbol.GetAttributes().Any(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attribute)))
                 {
                     return true;
                 }
@@ -740,7 +692,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute)))
+                if (symbol.GetAttributes().Any(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attribute)))
                 {
                     return true;
                 }
@@ -762,7 +714,7 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="symbol">Symbol to examine.</param>
         /// <param name="attributes">Type symbols of the attributes to check for.</param>
         /// <returns>Boolean array, same size and order as <paramref name="attributes"/>, indicating that the corresponding
-        /// attirbute is present.</returns>
+        /// attribute is present.</returns>
         public static bool[] HasAttributes(this ISymbol symbol, params INamedTypeSymbol?[] attributes)
         {
             bool[] isAttributePresent = new bool[attributes.Length];
@@ -770,7 +722,7 @@ namespace Analyzer.Utilities.Extensions
             {
                 for (int i = 0; i < attributes.Length; i++)
                 {
-                    if (attributeData.AttributeClass.Equals(attributes[i]))
+                    if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, attributes[i]))
                     {
                         isAttributePresent[i] = true;
                     }
@@ -779,7 +731,6 @@ namespace Analyzer.Utilities.Extensions
 
             return isAttributePresent;
         }
-
 
         /// <summary>
         /// Gets enumeration of attributes that are of the specified type.
@@ -795,7 +746,7 @@ namespace Analyzer.Utilities.Extensions
                 return Enumerable.Empty<AttributeData>();
             }
 
-            return symbol.GetAttributes().Where(attr => attr.AttributeClass.Equals(attributeType));
+            return symbol.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attributeType));
         }
 
         /// <summary>
@@ -816,7 +767,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsSymbolWithSpecialDiscardName([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol?.Name.StartsWith("_", StringComparison.Ordinal) == true &&
-               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _));
 
         public static bool IsConst([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
@@ -831,18 +782,15 @@ namespace Analyzer.Utilities.Extensions
         }
 
         public static bool IsReadOnly([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            return symbol switch
+            => symbol switch
             {
                 IFieldSymbol field => field.IsReadOnly,
-
                 IPropertySymbol property => property.IsReadOnly,
-
-                // TODO: IMethodSymbol and ITypeSymbol also have IsReadOnly in Microsoft.CodeAnalysis 3.x
-                //       Add these cases once we move to the required Microsoft.CodeAnalysis.nupkg.
-
+#if CODEANALYSIS_V3_OR_BETTER
+                IMethodSymbol method => method.IsReadOnly,
+                ITypeSymbol type => type.IsReadOnly,
+#endif
                 _ => false,
             };
-        }
     }
 }

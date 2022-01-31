@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -33,7 +33,7 @@ namespace Analyzer.Utilities.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (symbol.Name.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (symbol.Name.Contains(word, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }

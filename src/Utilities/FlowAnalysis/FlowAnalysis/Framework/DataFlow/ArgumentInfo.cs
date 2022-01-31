@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -12,37 +12,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         public ArgumentInfo(
             IOperation operation,
-            AnalysisEntity? analysisEntityOpt,
+            AnalysisEntity? analysisEntity,
             PointsToAbstractValue instanceLocation,
             TAbstractAnalysisValue value)
         {
             Operation = operation;
-            AnalysisEntityOpt = analysisEntityOpt;
+            AnalysisEntity = analysisEntity;
             InstanceLocation = instanceLocation;
             Value = value;
         }
 
         public IOperation Operation { get; }
         // Can be null for allocations.
-        public AnalysisEntity? AnalysisEntityOpt { get; }
+        public AnalysisEntity? AnalysisEntity { get; }
         public PointsToAbstractValue InstanceLocation { get; }
         public TAbstractAnalysisValue Value { get; }
 
         protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
             hashCode.Add(Operation.GetHashCode());
-            hashCode.Add(AnalysisEntityOpt.GetHashCodeOrDefault());
+            hashCode.Add(AnalysisEntity.GetHashCodeOrDefault());
             hashCode.Add(InstanceLocation.GetHashCode());
-            hashCode.Add(Value.GetHashCodeOrDefault());
+            hashCode.Add(Value?.GetHashCode() ?? 0);
         }
 
         protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<ArgumentInfo<TAbstractAnalysisValue>> obj)
         {
             var other = (ArgumentInfo<TAbstractAnalysisValue>)obj;
             return Operation.GetHashCode() == other.Operation.GetHashCode()
-                && AnalysisEntityOpt.GetHashCodeOrDefault() == other.AnalysisEntityOpt.GetHashCodeOrDefault()
+                && AnalysisEntity.GetHashCodeOrDefault() == other.AnalysisEntity.GetHashCodeOrDefault()
                 && InstanceLocation.GetHashCode() == other.InstanceLocation.GetHashCode()
-                && Value.GetHashCodeOrDefault() == other.Value.GetHashCodeOrDefault();
+                && (Value?.GetHashCode() ?? 0) == (other.Value?.GetHashCode() ?? 0);
         }
     }
 }

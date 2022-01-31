@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#nullable disable warnings
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,6 +12,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     /// <summary>
     /// The importing constructor for a MEF-exported type should be marked obsolete.
     ///
@@ -20,23 +24,18 @@ namespace Roslyn.Diagnostics.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class ImportingConstructorShouldBeObsolete : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.ImportingConstructorShouldBeObsoleteTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.ImportingConstructorShouldBeObsoleteMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.ImportingConstructorShouldBeObsoleteDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
-        internal static DiagnosticDescriptor Rule = new(
+        internal static readonly DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.ImportingConstructorShouldBeObsoleteRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
-            DiagnosticCategory.RoslyDiagnosticsReliability,
+            CreateLocalizableResourceString(nameof(ImportingConstructorShouldBeObsoleteTitle)),
+            CreateLocalizableResourceString(nameof(ImportingConstructorShouldBeObsoleteMessage)),
+            DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
+            description: CreateLocalizableResourceString(nameof(ImportingConstructorShouldBeObsoleteDescription)),
             helpLinkUri: null,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -69,14 +68,14 @@ namespace Roslyn.Diagnostics.Analyzers
             });
         }
 
-        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol? obsoleteAttribute, INamedTypeSymbol? exportAttributeOpt, INamedTypeSymbol? importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes)
+        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol? obsoleteAttribute, INamedTypeSymbol? exportAttribute, INamedTypeSymbol? importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes)
         {
-            if (exportAttributeOpt is null)
+            if (exportAttribute is null)
             {
                 return;
             }
 
-            if (!exportAttributes.Any(ad => ad.AttributeClass.DerivesFrom(exportAttributeOpt)))
+            if (!exportAttributes.Any(ad => ad.AttributeClass.DerivesFrom(exportAttribute)))
             {
                 return;
             }
@@ -119,19 +118,19 @@ namespace Roslyn.Diagnostics.Analyzers
                         if (attributeData.ConstructorArguments.IsEmpty)
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingDescription, namedType.Name));
+                            context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.MissingDescription, context.CancellationToken, namedType.Name));
                             break;
                         }
                         else if (attributeData.ConstructorArguments.Length == 1)
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingError, namedType.Name));
+                            context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.MissingError, context.CancellationToken, namedType.Name));
                             break;
                         }
                         else
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                            context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, context.CancellationToken, namedType.Name));
                             break;
                         }
                     }
@@ -139,14 +138,14 @@ namespace Roslyn.Diagnostics.Analyzers
                     if (!Equals(attributeData.ConstructorArguments[0].Value, "This exported object must be obtained through the MEF export provider."))
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.IncorrectDescription, namedType.Name));
+                        context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.IncorrectDescription, context.CancellationToken, namedType.Name));
                         break;
                     }
 
                     if (!Equals(attributeData.ConstructorArguments[1].Value, true))
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.ErrorSetToFalse, namedType.Name));
+                        context.ReportDiagnostic(attributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.ErrorSetToFalse, context.CancellationToken, namedType.Name));
                         break;
                     }
 
@@ -156,7 +155,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (!foundObsoleteAttribute)
                 {
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, importingConstructorAttributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingAttribute, namedType.Name));
+                    context.ReportDiagnostic(importingConstructorAttributeData.ApplicationSyntaxReference.CreateDiagnostic(Rule, ScenarioProperties.MissingAttribute, context.CancellationToken, namedType.Name));
                     break;
                 }
             }
@@ -173,11 +172,11 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static class ScenarioProperties
         {
-            public static readonly ImmutableDictionary<string, string> MissingAttribute = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingAttribute));
-            public static readonly ImmutableDictionary<string, string> MissingDescription = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingDescription));
-            public static readonly ImmutableDictionary<string, string> IncorrectDescription = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(IncorrectDescription));
-            public static readonly ImmutableDictionary<string, string> MissingError = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingError));
-            public static readonly ImmutableDictionary<string, string> ErrorSetToFalse = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(ErrorSetToFalse));
+            public static readonly ImmutableDictionary<string, string?> MissingAttribute = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(MissingAttribute));
+            public static readonly ImmutableDictionary<string, string?> MissingDescription = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(MissingDescription));
+            public static readonly ImmutableDictionary<string, string?> IncorrectDescription = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(IncorrectDescription));
+            public static readonly ImmutableDictionary<string, string?> MissingError = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(MissingError));
+            public static readonly ImmutableDictionary<string, string?> ErrorSetToFalse = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(ErrorSetToFalse));
         }
     }
 }

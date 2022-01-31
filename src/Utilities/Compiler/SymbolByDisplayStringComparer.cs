@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -43,8 +44,11 @@ namespace Analyzer.Utilities
         /// <param name="y">Second type symbol to compare.</param>
         /// <returns>Less than 0 if <paramref name="x"/> is before <paramref name="y"/>, 0 if equal, greater than 0 if
         /// <paramref name="x"/> is after <paramref name="y"/>.</returns>
-        public int Compare(ITypeSymbol x, ITypeSymbol y)
+        public int Compare([AllowNull] ITypeSymbol x, [AllowNull] ITypeSymbol y)
         {
+            RoslynDebug.Assert(x != null);
+            RoslynDebug.Assert(y != null);
+
             return StringComparer.Ordinal.Compare(
                 this.SymbolDisplayStringCache.GetDisplayString(x),
                 this.SymbolDisplayStringCache.GetDisplayString(y));

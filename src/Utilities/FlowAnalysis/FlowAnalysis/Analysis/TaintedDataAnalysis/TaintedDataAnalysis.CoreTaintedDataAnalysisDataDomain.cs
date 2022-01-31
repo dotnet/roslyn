@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -9,8 +9,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     {
         private sealed class CoreTaintedDataAnalysisDataDomain : AnalysisEntityMapAbstractDomain<TaintedDataAbstractValue>
         {
-            public CoreTaintedDataAnalysisDataDomain(PointsToAnalysisResult? pointsToAnalysisResultOpt)
-                : base(TaintedDataAbstractValueDomain.Default, pointsToAnalysisResultOpt)
+            public CoreTaintedDataAnalysisDataDomain(PointsToAnalysisResult? pointsToAnalysisResult)
+                : base(TaintedDataAbstractValueDomain.Default, pointsToAnalysisResult)
             {
             }
 

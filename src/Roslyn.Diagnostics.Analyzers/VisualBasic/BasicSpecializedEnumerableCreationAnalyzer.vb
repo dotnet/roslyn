@@ -1,5 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -35,7 +36,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
             End Sub
 
             Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
-                Dim expressionsToAnalyze = context.Node.DescendantNodes().Where(Function(n) ShouldAnalyzeExpression(n, context.SemanticModel))
+                Dim expressionsToAnalyze = context.Node.DescendantNodes().Where(Function(n) ShouldAnalyzeExpression(n, context.SemanticModel, context.CancellationToken))
 
                 For Each expression In expressionsToAnalyze
                     Select Case expression.Kind()
@@ -44,21 +45,21 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                         Case SyntaxKind.CollectionInitializer
                             AnalyzeCollectionInitializerExpression(DirectCast(expression, CollectionInitializerSyntax), expression, AddressOf context.ReportDiagnostic)
                         Case SyntaxKind.SimpleMemberAccessExpression
-                            AnalyzeMemberAccessName(DirectCast(expression, MemberAccessExpressionSyntax).Name, context.SemanticModel, AddressOf context.ReportDiagnostic)
+                            AnalyzeMemberAccessName(DirectCast(expression, MemberAccessExpressionSyntax).Name, context.SemanticModel, AddressOf context.ReportDiagnostic, context.CancellationToken)
                     End Select
                 Next
             End Sub
 
-            Private Function ShouldAnalyzeExpression(expression As SyntaxNode, semanticModel As SemanticModel) As Boolean
+            Private Function ShouldAnalyzeExpression(expression As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
                 Select Case expression.Kind()
                     Case SyntaxKind.ArrayCreationExpression
-                        Return ShouldAnalyzeArrayCreationExpression(expression, semanticModel)
+                        Return ShouldAnalyzeArrayCreationExpression(expression, semanticModel, cancellationToken)
 
                     Case SyntaxKind.CollectionInitializer
-                        Dim typeInfo = semanticModel.GetTypeInfo(expression)
+                        Dim typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken)
 
                         If typeInfo.Type IsNot Nothing Then
-                            Return ShouldAnalyzeArrayCreationExpression(expression, semanticModel)
+                            Return ShouldAnalyzeArrayCreationExpression(expression, semanticModel, cancellationToken)
                         End If
 
                         ' Get TypeInfo of the array literal in context without the target type
@@ -68,7 +69,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                         Return arrayType IsNot Nothing AndAlso
                                arrayType.Rank = 1 AndAlso
                                typeInfo.ConvertedType IsNot Nothing AndAlso
-                               typeInfo.ConvertedType.OriginalDefinition.Equals(Me.genericEnumerableSymbol)
+                               typeInfo.ConvertedType.OriginalDefinition.Equals(Me.GenericEnumerableSymbol)
 
                     Case SyntaxKind.SimpleMemberAccessExpression
                         Return True
@@ -82,7 +83,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
 
                     ' Check for explicit specification of empty or singleton array
                     Dim literalRankSpecifier = DirectCast(arrayCreationExpression.RankSpecifiers(0).ChildNodes() _
-                        .FirstOrDefault(Function(n) n.Kind() = SyntaxKind.NumericLiteralExpression),
+                        .FirstOrDefault(Function(n) n.IsKind(SyntaxKind.NumericLiteralExpression)),
                         LiteralExpressionSyntax)
 
                     If literalRankSpecifier IsNot Nothing Then

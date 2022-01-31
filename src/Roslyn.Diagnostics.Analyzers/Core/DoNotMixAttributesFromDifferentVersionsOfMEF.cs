@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
+
+#nullable disable warnings
 
 using System;
 using System.Collections.Generic;
@@ -11,28 +13,26 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     /// <summary>
     /// RS0006: Do not mix attributes from different versions of MEF
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+        internal static readonly DiagnosticDescriptor Rule = new(
+            RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId,
+            CreateLocalizableResourceString(nameof(DoNotMixAttributesFromDifferentVersionsOfMEFTitle)),
+            CreateLocalizableResourceString(nameof(DoNotMixAttributesFromDifferentVersionsOfMEFMessage)),
+            DiagnosticCategory.RoslynDiagnosticsReliability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: CreateLocalizableResourceString(nameof(DoNotMixAttributesFromDifferentVersionsOfMEFDescription)),
+            helpLinkUri: null,
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
-        internal static DiagnosticDescriptor Rule = new(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId,
-                                                                             s_localizableTitle,
-                                                                             s_localizableMessage,
-                                                                             DiagnosticCategory.RoslyDiagnosticsReliability,
-                                                                             DiagnosticSeverity.Warning,
-                                                                             isEnabledByDefault: true,
-                                                                             description: s_localizableDescription,
-                                                                             helpLinkUri: null,
-                                                                             customTags: WellKnownDiagnosticTags.Telemetry);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -47,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     // We don't need to check assemblies unless they're referencing both versions of MEF, so we're done
                     return;
-                };
+                }
 
                 var attributeUsageAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
 
@@ -116,9 +116,17 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static void ReportDiagnostic(SymbolAnalysisContext symbolContext, INamedTypeSymbol exportedType, AttributeData problematicAttribute)
         {
-            // Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'
-            var diagnostic = Diagnostic.Create(Rule, problematicAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), problematicAttribute.AttributeClass.Name, exportedType.Name);
-            symbolContext.ReportDiagnostic(diagnostic);
+            if (problematicAttribute.ApplicationSyntaxReference == null)
+            {
+                symbolContext.ReportDiagnostic(symbolContext.Symbol.CreateDiagnostic(Rule, problematicAttribute.AttributeClass.Name, exportedType.Name));
+            }
+            else
+            {
+                // Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'
+                var diagnostic = problematicAttribute.ApplicationSyntaxReference.CreateDiagnostic(
+                    Rule, symbolContext.CancellationToken, problematicAttribute.AttributeClass.Name, exportedType.Name);
+                symbolContext.ReportDiagnostic(diagnostic);
+            }
         }
     }
 }

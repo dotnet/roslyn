@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Test.Utilities;
@@ -17,7 +17,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
-        public async Task Discoverable_CSharp(string mefNamespace)
+        public async Task Discoverable_CSharpAsync(string mefNamespace)
         {
             var source = $@"
 using {mefNamespace};
@@ -51,7 +51,39 @@ class C {{ }}
         [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
-        public async Task NotDiscoverable_CSharp(string mefNamespace)
+        public async Task DiscoverableAddImport_CSharpAsync(string mefNamespace)
+        {
+            var source = $@"
+[{mefNamespace}.Export]
+class C {{ }}
+";
+            var fixedSource = $@"
+using {mefNamespace};
+
+[{mefNamespace}.Export]
+[PartNotDiscoverable]
+class C {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task NotDiscoverable_CSharpAsync(string mefNamespace)
         {
             var source = $@"
 using {mefNamespace};
@@ -74,7 +106,7 @@ class C {{ }}
         [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
-        public async Task Discoverable_VisualBasic(string mefNamespace)
+        public async Task Discoverable_VisualBasicAsync(string mefNamespace)
         {
             var source = $@"
 Imports {mefNamespace}
@@ -110,7 +142,41 @@ End Class
         [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
-        public async Task NotDiscoverable_VisualBasic(string mefNamespace)
+        public async Task DiscoverableAddImport_VisualBasicAsync(string mefNamespace)
+        {
+            var source = $@"
+<{mefNamespace}.Export>
+Class C
+End Class
+";
+            var fixedSource = $@"
+Imports {mefNamespace}
+
+<{mefNamespace}.Export>
+<PartNotDiscoverable>
+Class C
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task NotDiscoverable_VisualBasicAsync(string mefNamespace)
         {
             var source = $@"
 Imports {mefNamespace}

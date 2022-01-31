@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Analyzer.Utilities.PooledObjects;
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     public sealed class DictionaryAnalysisData<TKey, TValue> : AbstractAnalysisData, IDictionary<TKey, TValue>
+        where TKey : notnull
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private PooledDictionary<TKey, TValue> _coreAnalysisData;

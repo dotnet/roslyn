@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,27 +18,20 @@ using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicAFix"), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicApiFix"), Shared]
     public sealed class DeclarePublicApiFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.DeclarePublicApiRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(DiagnosticIds.DeclarePublicApiRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
             return new PublicSurfaceAreaFixAllProvider();
         }
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            Project project = context.Document.Project;
-            TextDocument publicSurfaceAreaDocument = GetPublicSurfaceAreaDocument(project);
-            if (publicSurfaceAreaDocument == null)
-            {
-                return;
-            }
+            var project = context.Document.Project;
 
-            SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            SemanticModel semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
                 string minimalSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.MinimalNamePropertyBagKey];
@@ -46,39 +40,106 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     .Split(DeclarePublicApiAnalyzer.PublicApiNamesOfSiblingsToRemovePropertyBagValueSeparator.ToCharArray())
                     .ToImmutableHashSet();
 
-                context.RegisterCodeFix(
-                        new AdditionalDocumentChangeAction(
-                            $"Add {minimalSymbolName} to public API",
-                            c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, siblingSymbolNamesToRemove, c)),
-                        diagnostic);
+                foreach (var file in GetUnshippedPublicApiFiles(context.Document.Project))
+                {
+                    context.RegisterCodeFix(
+                            new AdditionalDocumentChangeAction(
+                                $"Add {minimalSymbolName} to public API file {file?.Name}",
+                                file?.Id,
+                                c => GetFixAsync(file, project, publicSurfaceAreaSymbolName, siblingSymbolNamesToRemove, c)),
+                            diagnostic);
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private static IEnumerable<TextDocument?> GetUnshippedPublicApiFiles(Project project)
+        {
+            var count = 0;
+
+            foreach (var additional in project.AdditionalDocuments)
+            {
+                var file = new PublicApiFile(additional.FilePath);
+
+                if (file.IsApiFile && !file.IsShipping)
+                {
+                    yield return additional;
+                    count++;
+                }
+            }
+
+            if (count == 0)
+            {
+                yield return null;
             }
         }
 
-        private static TextDocument GetPublicSurfaceAreaDocument(Project project)
+        private static async Task<Solution> GetFixAsync(TextDocument? publicSurfaceAreaDocument, Project project, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
         {
-            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicApiAnalyzer.UnshippedFileName, StringComparison.Ordinal));
+            if (publicSurfaceAreaDocument == null)
+            {
+                var newSourceText = AddSymbolNamesToSourceText(sourceText: null, new[] { newSymbolName });
+                return AddPublicApiFiles(project, newSourceText);
+            }
+            else
+            {
+                var sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newSourceText = AddSymbolNamesToSourceText(sourceText, new[] { newSymbolName });
+                newSourceText = RemoveSymbolNamesFromSourceText(newSourceText, siblingSymbolNamesToRemove);
+
+                return publicSurfaceAreaDocument.Project.Solution.WithAdditionalDocumentText(publicSurfaceAreaDocument.Id, newSourceText);
+            }
         }
 
-        private static async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
+        private static Solution AddPublicApiFiles(Project project, SourceText unshippedText)
         {
-            SourceText sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            SourceText newSourceText = AddSymbolNamesToSourceText(sourceText, new[] { newSymbolName });
-            newSourceText = RemoveSymbolNamesFromSourceText(newSourceText, siblingSymbolNamesToRemove);
+            Debug.Assert(unshippedText.Length > 0);
+            project = AddAdditionalDocument(project, DeclarePublicApiAnalyzer.ShippedFileName, SourceText.From(string.Empty));
+            project = AddAdditionalDocument(project, DeclarePublicApiAnalyzer.UnshippedFileName, unshippedText);
+            return project.Solution;
 
-            return publicSurfaceAreaDocument.Project.Solution.WithAdditionalDocumentText(publicSurfaceAreaDocument.Id, newSourceText);
+            // Local functions.
+            static Project AddAdditionalDocument(Project project, string name, SourceText text)
+            {
+                TextDocument? additionalDocument = project.AdditionalDocuments.FirstOrDefault(doc => string.Equals(doc.Name, name, StringComparison.OrdinalIgnoreCase));
+                if (additionalDocument == null)
+                {
+                    project = project.AddAdditionalDocument(name, text).Project;
+                }
+
+                return project;
+            }
         }
 
-        private static SourceText AddSymbolNamesToSourceText(SourceText sourceText, IEnumerable<string> newSymbolNames)
+        private static SourceText AddSymbolNamesToSourceText(SourceText? sourceText, IEnumerable<string> newSymbolNames)
         {
             List<string> lines = GetLinesFromSourceText(sourceText);
 
             foreach (string name in newSymbolNames)
             {
-                InsertInList(lines, name);
+                insertInList(lines, name);
             }
 
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, lines) + GetEndOfFileText(sourceText));
-            return newSourceText;
+            var endOfLine = sourceText.GetEndOfLine();
+
+            var newText = string.Join(endOfLine, lines) + sourceText.GetEndOfFileText(endOfLine);
+            return sourceText?.Replace(new TextSpan(0, sourceText.Length), newText) ?? SourceText.From(newText);
+
+            // Insert name at the first suitable position
+            static void insertInList(List<string> list, string name)
+            {
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (IgnoreCaseWhenPossibleComparer.Instance.Compare(name, list[i]) < 0)
+                    {
+                        list.Insert(i, name);
+                        return;
+                    }
+                }
+
+                list.Add(name);
+            }
         }
 
         private static SourceText RemoveSymbolNamesFromSourceText(SourceText sourceText, ImmutableHashSet<string> linesToRemove)
@@ -91,12 +152,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             List<string> lines = GetLinesFromSourceText(sourceText);
             IEnumerable<string> newLines = lines.Where(line => !linesToRemove.Contains(line));
 
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, newLines) + GetEndOfFileText(sourceText));
+            var endOfLine = sourceText.GetEndOfLine();
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, newLines) + sourceText.GetEndOfFileText(endOfLine));
             return newSourceText;
         }
 
-        private static List<string> GetLinesFromSourceText(SourceText sourceText)
+        internal static List<string> GetLinesFromSourceText(SourceText? sourceText)
         {
+            if (sourceText == null)
+            {
+                return new List<string>();
+            }
+
             var lines = new List<string>();
 
             foreach (TextLine textLine in sourceText.Lines)
@@ -111,51 +178,20 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return lines;
         }
 
-        /// <summary>
-        /// Insert name at the first suitable position
-        /// </summary>
-        private static void InsertInList(List<string> list, string name)
-        {
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (string.Compare(name, list[i], StringComparison.Ordinal) < 0)
-                {
-                    list.Insert(i, name);
-                    return;
-                }
-            }
-
-            list.Add(name);
-        }
-
-        /// <summary>
-        /// Returns the trailing newline from the end of <paramref name="sourceText"/>, if one exists.
-        /// </summary>
-        /// <param name="sourceText">The source text.</param>
-        /// <returns><see cref="Environment.NewLine"/> if <paramref name="sourceText"/> ends with a trailing newline;
-        /// otherwise, <see cref="string.Empty"/>.</returns>
-        public static string GetEndOfFileText(SourceText sourceText)
-        {
-            if (sourceText.Length == 0)
-                return string.Empty;
-
-            var lastLine = sourceText.Lines[sourceText.Lines.Count - 1];
-            return lastLine.Span.IsEmpty ? Environment.NewLine : string.Empty;
-        }
-
-        private class AdditionalDocumentChangeAction : CodeAction
+        internal class AdditionalDocumentChangeAction : CodeAction
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedAdditionalDocument;
 
-            public AdditionalDocumentChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument)
+            public AdditionalDocumentChangeAction(string title, DocumentId? apiDocId, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument)
             {
                 this.Title = title;
+                EquivalenceKey = apiDocId.CreateEquivalenceKey();
                 _createChangedAdditionalDocument = createChangedAdditionalDocument;
             }
 
             public override string Title { get; }
 
-            public override string EquivalenceKey => Title;
+            public override string EquivalenceKey { get; }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
@@ -166,11 +202,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private class FixAllAdditionalDocumentChangeAction : CodeAction
         {
             private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix;
+            private readonly DocumentId? _apiDocId;
             private readonly Solution _solution;
 
-            public FixAllAdditionalDocumentChangeAction(string title, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix)
+            public FixAllAdditionalDocumentChangeAction(string title, DocumentId? apiDocId, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix)
             {
                 this.Title = title;
+                _apiDocId = apiDocId;
                 _solution = solution;
                 _diagnosticsToFix = diagnosticsToFix;
             }
@@ -180,27 +218,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
                 var updatedPublicSurfaceAreaText = new List<KeyValuePair<DocumentId, SourceText>>();
+                var addedPublicSurfaceAreaText = new List<KeyValuePair<ProjectId, SourceText>>();
 
                 foreach (KeyValuePair<Project, ImmutableArray<Diagnostic>> pair in _diagnosticsToFix)
                 {
                     Project project = pair.Key;
                     ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
-                    TextDocument publicSurfaceAreaAdditionalDocument = GetPublicSurfaceAreaDocument(project);
-
-                    if (publicSurfaceAreaAdditionalDocument == null)
-                    {
-                        continue;
-                    }
-
-                    SourceText sourceText = await publicSurfaceAreaAdditionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var publicSurfaceAreaAdditionalDocument = _apiDocId is not null ? project.GetAdditionalDocument(_apiDocId) : null;
+                    var sourceText = publicSurfaceAreaAdditionalDocument != null ?
+                        await publicSurfaceAreaAdditionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false) :
+                        null;
 
                     IEnumerable<IGrouping<SyntaxTree, Diagnostic>> groupedDiagnostics =
                         diagnostics
                             .Where(d => d.Location.IsInSource)
                             .GroupBy(d => d.Location.SourceTree);
 
-                    var newSymbolNames = new List<string>();
+                    var newSymbolNames = new SortedSet<string>(IgnoreCaseWhenPossibleComparer.Instance);
                     var symbolNamesToRemoveBuilder = PooledHashSet<string>.GetInstance();
 
                     foreach (IGrouping<SyntaxTree, Diagnostic> grouping in groupedDiagnostics)
@@ -217,6 +252,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         foreach (Diagnostic diagnostic in grouping)
                         {
+                            if (diagnostic.Id == DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule.Id ||
+                                diagnostic.Id == DeclarePublicApiAnalyzer.ObliviousApiRule.Id)
+                            {
+                                continue;
+                            }
+
                             string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNamePropertyBagKey];
 
                             newSymbolNames.Add(publicSurfaceAreaSymbolName);
@@ -241,7 +282,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     SourceText newSourceText = AddSymbolNamesToSourceText(sourceText, newSymbolNames);
                     newSourceText = RemoveSymbolNamesFromSourceText(newSourceText, symbolNamesToRemove);
 
-                    updatedPublicSurfaceAreaText.Add(new KeyValuePair<DocumentId, SourceText>(publicSurfaceAreaAdditionalDocument.Id, newSourceText));
+                    if (publicSurfaceAreaAdditionalDocument != null)
+                    {
+                        updatedPublicSurfaceAreaText.Add(new KeyValuePair<DocumentId, SourceText>(publicSurfaceAreaAdditionalDocument.Id, newSourceText));
+                    }
+                    else if (newSourceText.Length > 0)
+                    {
+                        addedPublicSurfaceAreaText.Add(new KeyValuePair<ProjectId, SourceText>(project.Id, newSourceText));
+                    }
                 }
 
                 Solution newSolution = _solution;
@@ -249,6 +297,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 foreach (KeyValuePair<DocumentId, SourceText> pair in updatedPublicSurfaceAreaText)
                 {
                     newSolution = newSolution.WithAdditionalDocumentText(pair.Key, pair.Value);
+                }
+
+                // NOTE: We need to avoid creating duplicate files for multi-tfm projects. See https://github.com/dotnet/roslyn-analyzers/issues/3952.
+                using var uniqueProjectPaths = PooledHashSet<string>.GetInstance();
+                foreach (KeyValuePair<ProjectId, SourceText> pair in addedPublicSurfaceAreaText)
+                {
+                    var project = newSolution.GetProject(pair.Key);
+                    if (uniqueProjectPaths.Add(project.FilePath ?? project.Name))
+                    {
+                        newSolution = AddPublicApiFiles(project, pair.Value);
+                    }
                 }
 
                 return newSolution;
@@ -260,16 +319,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var diagnosticsToFix = new List<KeyValuePair<Project, ImmutableArray<Diagnostic>>>();
-                string titleFormat = "Add all items in {0} {1} to the public API";
-                string title;
-
+                string? title;
                 switch (fixAllContext.Scope)
                 {
                     case FixAllScope.Document:
                         {
                             ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(titleFormat, "document", fixAllContext.Document.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInDocumentToThePublicApiTitle, fixAllContext.Document.Name);
                             break;
                         }
 
@@ -278,7 +335,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             Project project = fixAllContext.Project;
                             ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(titleFormat, "project", fixAllContext.Project.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInProjectToThePublicApiTitle, fixAllContext.Project.Name);
                             break;
                         }
 
@@ -290,18 +347,37 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(project, diagnostics));
                             }
 
-                            title = "Add all items in the solution to the public API";
+                            title = PublicApiAnalyzerResources.AddAllItemsInTheSolutionToThePublicApiTitle;
                             break;
                         }
 
                     case FixAllScope.Custom:
                         return null;
+
                     default:
-                        title = titleFormat;
-                        break;
+                        Debug.Fail($"Unknown FixAllScope '{fixAllContext.Scope}'");
+                        return null;
                 }
 
-                return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.Solution, diagnosticsToFix);
+                return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.CreateDocIdFromEquivalenceKey(), fixAllContext.Solution, diagnosticsToFix);
+            }
+        }
+
+        private sealed class IgnoreCaseWhenPossibleComparer : IComparer<string>
+        {
+            public static readonly IgnoreCaseWhenPossibleComparer Instance = new();
+
+            private IgnoreCaseWhenPossibleComparer()
+            {
+            }
+
+            public int Compare(string x, string y)
+            {
+                var result = StringComparer.OrdinalIgnoreCase.Compare(x, y);
+                if (result == 0)
+                    result = StringComparer.Ordinal.Compare(x, y);
+
+                return result;
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Analyzer.Utilities
 {
@@ -37,6 +37,11 @@ namespace Analyzer.Utilities
         /// <summary>
         /// A method named Close on a type that implements <see cref="System.IDisposable"/>.
         /// </summary>
-        Close
+        Close,
+
+        /// <summary>
+        /// A method named CloseAsync that has no parameters and returns Task.
+        /// </summary>
+        CloseAsync,
     }
 }

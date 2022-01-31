@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -74,79 +74,77 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Debug.Assert(success);
             Debug.Assert(cfg != null);
 
-            using (var cancellationSource = new CancellationTokenSource())
-            {
-                DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
-                PropertySetAnalysisResult result =
-                    PropertySetAnalysis.GetOrComputeResult(
+            DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
+            PropertySetAnalysisResult result =
+                PropertySetAnalysis.GetOrComputeResult(
+                    cfg,
+                    compilation,
+                    symbol,
+                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    propertySetAnalysisParameters.TypesToTrack,
+                    propertySetAnalysisParameters.ConstructorMapper,
+                    propertySetAnalysisParameters.PropertyMapperCollection,
+                    propertySetAnalysisParameters.HazardousUsageEvaluatorCollection,
+                    InterproceduralAnalysisConfiguration.Create(
+                        new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                        dummy,
                         cfg,
                         compilation,
-                        symbol,
-                        new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
-                        propertySetAnalysisParameters.TypesToTrack,
-                        propertySetAnalysisParameters.ConstructorMapper,
-                        propertySetAnalysisParameters.PropertyMapperCollection,
-                        propertySetAnalysisParameters.HazardousUsageEvaluatorCollection,
-                        InterproceduralAnalysisConfiguration.Create(
-                            new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
-                            dummy,
-                            InterproceduralAnalysisKind.ContextSensitive,
-                            cancellationSource.Token));
-                ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
-                    result.HazardousUsages;
-                try
+                        InterproceduralAnalysisKind.ContextSensitive));
+            ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
+                result.HazardousUsages;
+            try
+            {
+                Assert.Equal(expectedResults.Length, actual.Count);
+                foreach ((int Line, int Column, string Method, HazardousUsageEvaluationResult Result) in expectedResults)
                 {
-                    Assert.Equal(expectedResults.Length, actual.Count);
-                    foreach ((int Line, int Column, string Method, HazardousUsageEvaluationResult Result) in expectedResults)
-                    {
-                        HazardousUsageEvaluationResult? actualResult = null;
-                        foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
-                        {
-                            FileLinePositionSpan span = kvp.Key.Location.GetLineSpan();
-                            if (span.Path != CSharpDefaultFilePath)
-                            {
-                                // Only looking in the first file, so that expectedResults doesn't have to specify a filename.
-                                continue;
-                            }
-
-                            if (span.StartLinePosition.Line + 1 == Line
-                                && span.StartLinePosition.Character + 1 == Column
-                                && kvp.Key.Method?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) == Method)
-                            {
-                                actualResult = kvp.Value;
-                                break;
-                            }
-                        }
-
-                        Assert.True(
-                            actualResult.HasValue,
-                            $"Could not find expected result Line {Line} Column {Column} {MethodOrReturnString(Method)} Result {Result}");
-                        Assert.True(
-                            actualResult == Result,
-                            $"Expected {Result}, Actual {actualResult}, for Line {Line} Column {Column} {MethodOrReturnString(Method)}");
-                    }
-                }
-                catch (XunitException)
-                {
-                    TestOutput.WriteLine("PropertySetAnalysis actual results:");
-                    TestOutput.WriteLine("============================");
-                    if (actual == null)
-                    {
-                        throw;
-                    }
-
+                    HazardousUsageEvaluationResult? actualResult = null;
                     foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
                     {
-                        LinePosition linePosition = kvp.Key.Location.GetLineSpan().StartLinePosition;
-                        int lineNumber = linePosition.Line + 1;
-                        int columnNumber = linePosition.Character + 1;
-                        TestOutput.WriteLine(
-                            $"Line {lineNumber}, Column {columnNumber}, {MethodSymbolOrReturnString(kvp.Key.Method)}: {kvp.Value}");
-                    }
-                    TestOutput.WriteLine("============================");
+                        FileLinePositionSpan span = kvp.Key.Location.GetLineSpan();
+                        if (span.Path != CSharpDefaultFilePath)
+                        {
+                            // Only looking in the first file, so that expectedResults doesn't have to specify a filename.
+                            continue;
+                        }
 
+                        if (span.StartLinePosition.Line + 1 == Line
+                            && span.StartLinePosition.Character + 1 == Column
+                            && kvp.Key.Method?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) == Method)
+                        {
+                            actualResult = kvp.Value;
+                            break;
+                        }
+                    }
+
+                    Assert.True(
+                        actualResult.HasValue,
+                        $"Could not find expected result Line {Line} Column {Column} {MethodOrReturnString(Method)} Result {Result}");
+                    Assert.True(
+                        actualResult == Result,
+                        $"Expected {Result}, Actual {actualResult}, for Line {Line} Column {Column} {MethodOrReturnString(Method)}");
+                }
+            }
+            catch (XunitException)
+            {
+                TestOutput.WriteLine("PropertySetAnalysis actual results:");
+                TestOutput.WriteLine("============================");
+                if (actual == null)
+                {
                     throw;
                 }
+
+                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
+                {
+                    LinePosition linePosition = kvp.Key.Location.GetLineSpan().StartLinePosition;
+                    int lineNumber = linePosition.Line + 1;
+                    int columnNumber = linePosition.Character + 1;
+                    TestOutput.WriteLine(
+                        $"Line {lineNumber}, Column {columnNumber}, {MethodSymbolOrReturnString(kvp.Key.Method)}: {kvp.Value}");
+                }
+                TestOutput.WriteLine("============================");
+
+                throw;
             }
 
             static string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
@@ -239,7 +237,7 @@ public class OtherClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only one property being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -256,7 +254,7 @@ public class OtherClass
 
                             // With only one property being tracked, this is straightforward.
 
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -273,7 +271,7 @@ public class OtherClass
 
                             // With only one property being tracked, this is straightforward.
 
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -388,7 +386,6 @@ class TestClass
                 (10, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
         }
 
-
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrackWithConstructor.AString property
         /// is not null when calling its Method() method.
@@ -436,7 +433,7 @@ class TestClass
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                         // With only one property being tracked, this is straightforward.
-                        return (abstractValue[0]) switch
+                        return abstractValue[0] switch
                         {
                             PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                             PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -535,7 +532,7 @@ class TestClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only one property being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -608,7 +605,7 @@ class TestClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only one property being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -828,8 +825,8 @@ class TestClass
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
                         if (argumentPointsToAbstractValues[1].Locations.Any(l =>
-                                l.LocationTypeOpt != null
-                                && l.LocationTypeOpt.MetadataName == "BitArray"))
+                                l.LocationType != null
+                                && l.LocationType.MetadataName == "BitArray"))
                         {
                             kind = PropertySetAbstractValueKind.Flagged;
                         }
@@ -848,8 +845,8 @@ class TestClass
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
                         if (pointsToAbstractValue.Locations.Any(l =>
-                                l.LocationTypeOpt != null
-                                && l.LocationTypeOpt.MetadataName == "BitArray"))
+                                l.LocationType != null
+                                && l.LocationType.MetadataName == "BitArray"))
                         {
                             kind = PropertySetAbstractValueKind.Flagged;
                         }
@@ -868,7 +865,7 @@ class TestClass
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                         // With only one property being tracked, this is straightforward.
-                        return (abstractValue[0]) switch
+                        return abstractValue[0] switch
                         {
                             PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                             PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -972,7 +969,7 @@ class TestClass
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                         // With only one property being tracked, this is straightforward.
-                        return (abstractValue[0]) switch
+                        return abstractValue[0] switch
                         {
                             PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                             PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -1052,7 +1049,7 @@ class TestClass
                         (PropertySetAbstractValue abstractValue) =>
                         {
                             // With only one property being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -1172,7 +1169,7 @@ class TestClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only underlying value (from the two "aliased" properties) being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -1266,7 +1263,6 @@ class TestClass
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
         }
 
-        #region Infrastructure
         private ITestOutputHelper TestOutput { get; }
 
         public PropertySetAnalysisTests(ITestOutputHelper output)
@@ -1300,12 +1296,16 @@ class TestClass
                 .AddMetadataReferences(projectId, references)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.CodeAnalysisReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeSerialization)
+#endif
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
+#endif
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, null)
                 .GetProject(projectId);
@@ -1389,7 +1389,7 @@ class TestClass
 
                 if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(EndString))
+                    if (exprFullText.Contains(EndString, StringComparison.Ordinal))
                     {
                         if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                         {
@@ -1408,7 +1408,7 @@ class TestClass
 
                 if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(StartString))
+                    if (exprFullText.Contains(StartString, StringComparison.Ordinal))
                     {
                         if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                         {
@@ -1428,7 +1428,5 @@ class TestClass
 
             return null;
         }
-
-        #endregion Infrastructure
     }
 }

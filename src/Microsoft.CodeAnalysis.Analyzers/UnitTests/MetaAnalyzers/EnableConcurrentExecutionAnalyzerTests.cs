@@ -1,20 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.EnableConcurrentExecutionAnalyzer,
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.EnableConcurrentExecutionFix>;
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers.CSharpEnableConcurrentExecutionFix>;
 using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.EnableConcurrentExecutionAnalyzer,
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.EnableConcurrentExecutionFix>;
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes.BasicEnableConcurrentExecutionFix>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
     public class EnableConcurrentExecutionAnalyzerTests
     {
         [Fact]
-        public async Task TestSimpleCase_CSharp()
+        public async Task TestSimpleCase_CSharpAsync()
         {
             var code = @"
 using System.Collections.Immutable;
@@ -46,7 +47,7 @@ class Analyzer : DiagnosticAnalyzer {
         }
 
         [Fact]
-        public async Task TestSimpleCase_VisualBasic()
+        public async Task TestSimpleCase_VisualBasicAsync()
         {
             var code = @"
 Imports System.Collections.Immutable
@@ -90,7 +91,7 @@ End Class
         }
 
         [Fact]
-        public async Task RenamedMethod_CSharp()
+        public async Task RenamedMethod_CSharpAsync()
         {
             var code = @"
 using System.Collections.Immutable;
@@ -114,7 +115,7 @@ class Analyzer : DiagnosticAnalyzer {
         }
 
         [Fact]
-        public async Task RenamedMethod_VisualBasic()
+        public async Task RenamedMethod_VisualBasicAsync()
         {
             var code = @"
 Imports System.Collections.Immutable
@@ -140,6 +141,38 @@ End Class
 ";
 
             await VerifyVB.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact, WorkItem(2698, "https://github.com/dotnet/roslyn-analyzers/issues/2698")]
+        public async Task RS1026_ExpressionBodiedMethodAsync()
+        {
+            var code = @"
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+class Analyzer : DiagnosticAnalyzer {
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw null;
+    public override void Initialize(AnalysisContext [|context|])
+        => context.RegisterCompilationAction(x => { });
+}
+";
+            var fixedCode = @"
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+class Analyzer : DiagnosticAnalyzer {
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw null;
+    public override void Initialize(AnalysisContext context)
+    {
+        context.EnableConcurrentExecution();
+        context.RegisterCompilationAction(x => { });
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
     }
 }
