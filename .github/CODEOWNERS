@@ -3,6 +3,10 @@
 
 *.yml @dotnet/roslyn-infrastructure
 .github/ @dotnet/roslyn-infrastructure
+
+docs/compilers @dotnet/roslyn-compiler
+docs/ide @dotnet/roslyn-ide
+
 eng/ @dotnet/roslyn-infrastructure
 scripts/ @dotnet/roslyn-infrastructure
 
