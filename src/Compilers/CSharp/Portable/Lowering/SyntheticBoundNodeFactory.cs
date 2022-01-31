@@ -456,16 +456,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, statements) { WasCompilerGenerated = true };
-        }
-
-        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, params BoundStatement[] statements)
-        {
-            return Block(locals, localFunctions, ImmutableArray.Create(statements));
+            return Block(locals, ImmutableArray<LocalFunctionSymbol>.Empty, statements);
         }
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
+            Debug.Assert(statements.All((statement, blockSyntax) => statement.Syntax is null || blockSyntax.Span.Contains(statement.Syntax.Span), Syntax));
+
             return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
         }
 

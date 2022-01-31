@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundStatement LowerSwitchStatement(BoundSwitchStatement node)
             {
+                var oldSyntax = _factory.Syntax;
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -176,6 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (GenerateInstrumentation)
                     translatedSwitch = _localRewriter._instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
 
+                _factory.Syntax = oldSyntax;
                 return translatedSwitch;
             }
         }
