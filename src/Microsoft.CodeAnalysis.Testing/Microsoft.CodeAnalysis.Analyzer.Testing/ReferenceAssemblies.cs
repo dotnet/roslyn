@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net6.0",
                         new PackageIdentity(
                             "Microsoft.NETCore.App.Ref",
-                            "6.0.0-rc.1.21451.13"),
+                            "6.0.0"),
                         Path.Combine("ref", "net6.0"));
                 });
 
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 new Lazy<ReferenceAssemblies>(() =>
                     Net60.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "6.0.0-rc.1.21451.3"))));
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "6.0.0"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60Android =
                 new Lazy<ReferenceAssemblies>(() =>
