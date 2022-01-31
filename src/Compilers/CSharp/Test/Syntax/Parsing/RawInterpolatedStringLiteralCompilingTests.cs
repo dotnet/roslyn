@@ -351,7 +351,7 @@ $""""""
         var v = $""{$""""""}""""""}"";
     }
 }").VerifyDiagnostics(
-                // (5,24): error CS9123: Too many closing braces for raw string literal
+                // (5,24): error CS9007: Too many closing braces for raw string literal
                 //         var v = $"{$"""}"""}";
                 Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}").WithLocation(5, 24));
     }
@@ -487,7 +487,7 @@ System.Console.Write(
     $""""""xml
     <hi/>
     """""");",
-                // (3,11): error CS9101: Unterminated raw string literal
+                // (3,11): error CS8997: Unterminated raw string literal
                 //     $"""xml
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, "l").WithLocation(3, 11),
                 // (4,6): error CS0103: The name 'hi' does not exist in the current context
@@ -496,7 +496,7 @@ System.Console.Write(
                 // (4,9): error CS1525: Invalid expression term '>'
                 //     <hi/>
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(4, 9),
-                // (5,10): error CS9101: Unterminated raw string literal
+                // (5,10): error CS8997: Unterminated raw string literal
                 //     """);
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(5, 10),
                 // (5,10): error CS1026: ) expected
@@ -515,7 +515,7 @@ System.Console.Write(
     $"""""" // lang=xml
     <hi/>
     """""");",
-                // (3,20): error CS9101: Unterminated raw string literal
+                // (3,20): error CS8997: Unterminated raw string literal
                 //     $""" // lang=xml
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, "l").WithLocation(3, 20),
                 // (4,6): error CS0103: The name 'hi' does not exist in the current context
@@ -524,7 +524,7 @@ System.Console.Write(
                 // (4,9): error CS1525: Invalid expression term '>'
                 //     <hi/>
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(4, 9),
-                // (5,10): error CS9101: Unterminated raw string literal
+                // (5,10): error CS8997: Unterminated raw string literal
                 //     """);
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, "").WithLocation(5, 10),
                 // (5,10): error CS1026: ) expected
@@ -561,7 +561,7 @@ System.Console.Write(
 /**/$""""""{{""""""/**/
 #nullable enable
 );",
-            // (4,9): error CS9122: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content
+            // (4,9): error CS9006: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content
             // /**/$"""{{"""/**/
             Diagnostic(ErrorCode.ERR_TooManyOpenBracesForRawString, "{").WithLocation(4, 9),
             // (4,11): error CS1733: Expected expression
@@ -578,7 +578,7 @@ System.Console.Write(
 /**/$""""""}""""""/**/
 #nullable enable
 );",
-            // (4,9): error CS9123: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content
+            // (4,9): error CS9007: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content
             // /**/$"""}"""/**/
             Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}").WithLocation(4, 9));
     }
@@ -592,7 +592,7 @@ System.Console.Write(
 /**/$""""""""""""/**/
 #nullable enable
 );",
-            // (4,15): error CS9101: Unterminated raw string literal
+            // (4,15): error CS8997: Unterminated raw string literal
             // /**/$""""""/**/
             Diagnostic(ErrorCode.ERR_UnterminatedRawString, "/").WithLocation(4, 15));
     }
@@ -608,7 +608,7 @@ System.Console.Write(
     """"""/**/
 #nullable enable
 );",
-                // (5,5): error CS9122: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content
+                // (5,5): error CS9006: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content
                 //     {{
                 Diagnostic(ErrorCode.ERR_TooManyOpenBracesForRawString, "{").WithLocation(5, 5),
                 // (6,5): error CS1733: Expected expression
@@ -627,7 +627,7 @@ System.Console.Write(
     """"""/**/
 #nullable enable
 );",
-                // (5,5): error CS9123: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.
+                // (5,5): error CS9007: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.
                 //     }
                 Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}").WithLocation(5, 5));
     }
@@ -642,7 +642,7 @@ System.Console.Write(
     """"""/**/
 #nullable enable
 );",
-                // (5,5): error CS9106: Multi-line raw string literals must contain at least one line of content.
+                // (5,5): error CS9002: Multi-line raw string literals must contain at least one line of content.
                 //     """/**/
                 Diagnostic(ErrorCode.ERR_RawStringMustContainContent, @"""""""").WithLocation(5, 5));
     }
@@ -791,7 +791,7 @@ class C
         RenderAndVerify(@"
 System.Console.Write(
     $"""""");",
-                // (3,10): error CS9101: Unterminated raw string literal
+                // (3,10): error CS8997: Unterminated raw string literal
                 //     $""");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(3, 10),
                 // (3,11): error CS1026: ) expected
@@ -809,7 +809,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""
     "");",
-                // (4,7): error CS9101: Unterminated raw string literal
+                // (4,7): error CS8997: Unterminated raw string literal
                 //     ");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 7),
                 // (4,8): error CS1026: ) expected
@@ -827,7 +827,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""
     """");",
-                // (4,8): error CS9101: Unterminated raw string literal
+                // (4,8): error CS8997: Unterminated raw string literal
                 //     "");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 8),
                 // (4,9): error CS1026: ) expected
@@ -845,7 +845,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""
     """""");",
-                // (4,5): error CS9106: Multi-line raw string literals must contain at least one line of content
+                // (4,5): error CS9002: Multi-line raw string literals must contain at least one line of content
                 //     """);
                 Diagnostic(ErrorCode.ERR_RawStringMustContainContent, @"""""""").WithLocation(4, 5));
     }
@@ -867,7 +867,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠
     "");",
-                // (4,7): error CS9101: Unterminated raw string literal
+                // (4,7): error CS8997: Unterminated raw string literal
                 //     ");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 7),
                 // (4,8): error CS1026: ) expected
@@ -885,7 +885,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠
     """");",
-                // (4,8): error CS9101: Unterminated raw string literal
+                // (4,8): error CS8997: Unterminated raw string literal
                 //     "");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 8),
                 // (4,9): error CS1026: ) expected
@@ -903,7 +903,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠
     """""");",
-                // (4,5): error CS9106: Multi-line raw string literals must contain at least one line of content
+                // (4,5): error CS9002: Multi-line raw string literals must contain at least one line of content
                 //     """);
                 Diagnostic(ErrorCode.ERR_RawStringMustContainContent, @"""""""").WithLocation(4, 5));
     }
@@ -925,7 +925,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     "");",
-                // (4,7): error CS9101: Unterminated raw string literal
+                // (4,7): error CS8997: Unterminated raw string literal
                 //     ");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 7),
                 // (4,8): error CS1026: ) expected
@@ -943,7 +943,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     """");",
-                // (4,8): error CS9101: Unterminated raw string literal
+                // (4,8): error CS8997: Unterminated raw string literal
                 //     "");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 8),
                 // (4,9): error CS1026: ) expected
@@ -961,7 +961,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     """""");",
-                // (4,5): error CS9106: Multi-line raw string literals must contain at least one line of content
+                // (4,5): error CS9002: Multi-line raw string literals must contain at least one line of content
                 //     """);
                 Diagnostic(ErrorCode.ERR_RawStringMustContainContent, @"""""""").WithLocation(4, 5));
     }
@@ -983,7 +983,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""
     ␠"");",
-                // (4,8): error CS9101: Unterminated raw string literal
+                // (4,8): error CS8997: Unterminated raw string literal
                 //      ");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 8),
                 // (4,9): error CS1026: ) expected
@@ -1001,7 +1001,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""
     ␠"""");",
-                // (4,9): error CS9101: Unterminated raw string literal
+                // (4,9): error CS8997: Unterminated raw string literal
                 //      "");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 9),
                 // (4,10): error CS1026: ) expected
@@ -1019,7 +1019,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠
     ␠"""");",
-                // (4,9): error CS9101: Unterminated raw string literal
+                // (4,9): error CS8997: Unterminated raw string literal
                 //      "");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 9),
                 // (4,10): error CS1026: ) expected
@@ -1037,7 +1037,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     ␠␠"""");",
-                // (4,10): error CS9101: Unterminated raw string literal
+                // (4,10): error CS8997: Unterminated raw string literal
                 //       "");
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(4, 10),
                 // (4,11): error CS1026: ) expected
@@ -1055,7 +1055,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     ␠␠"""""");",
-                // (4,7): error CS9106: Multi-line raw string literals must contain at least one line of content
+                // (4,7): error CS9002: Multi-line raw string literals must contain at least one line of content
                 //       """);
                 Diagnostic(ErrorCode.ERR_RawStringMustContainContent, @"""""""").WithLocation(4, 7));
     }
@@ -1117,7 +1117,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     a"""""");",
-                // (4,6): error CS9104: Raw string literal delimiter must be on its own line
+                // (4,6): error CS9000: Raw string literal delimiter must be on its own line
                 //     a""");
                 Diagnostic(ErrorCode.ERR_RawStringDelimiterOnOwnLine, @"""""""").WithLocation(4, 6));
     }
@@ -1129,7 +1129,7 @@ System.Console.Write(
 System.Console.Write(
     $""""""␠␠
     a"""""""");",
-                // (4,6): error CS9104: Raw string literal delimiter must be on its own line
+                // (4,6): error CS9000: Raw string literal delimiter must be on its own line
                 //     a"""");
                 Diagnostic(ErrorCode.ERR_RawStringDelimiterOnOwnLine, @"""""""""").WithLocation(4, 6));
     }
@@ -1182,7 +1182,7 @@ System.Console.Write(
     $""""""␠␠
     a
     """""""");",
-                // (5,8): error CS9102: Too many closing quotes for raw string literal
+                // (5,8): error CS8998: Too many closing quotes for raw string literal
                 //     """");
                 Diagnostic(ErrorCode.ERR_TooManyQuotesForRawString, @"""").WithLocation(5, 8));
     }
@@ -1195,7 +1195,7 @@ System.Console.Write(
     $""""""␠␠
     a
     """""""""");",
-                // (5,8): error CS9102: Too many closing quotes for raw string literal
+                // (5,8): error CS8998: Too many closing quotes for raw string literal
                 //     """"");
                 Diagnostic(ErrorCode.ERR_TooManyQuotesForRawString, @"""""").WithLocation(5, 8));
     }
@@ -1208,7 +1208,7 @@ System.Console.Write(
     $""""""␠␠
     a
     """""""""""");",
-            // (5,4): error CS9102: Too many closing quotes for raw string literal
+            // (5,4): error CS8998: Too many closing quotes for raw string literal
             //     """""");
             Diagnostic(ErrorCode.ERR_TooManyQuotesForRawString, @"""""""").WithLocation(5, 8));
     }
@@ -1225,7 +1225,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (4,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (4,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   a
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(4, 1));
     }
@@ -1242,7 +1242,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (5,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (5,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {42}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(5, 1));
     }
@@ -1259,7 +1259,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (6,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (6,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   b
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(6, 1));
     }
@@ -1276,7 +1276,7 @@ System.Console.Write(
   {43}
     c
     """""");",
-                // (7,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {43}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
     }
@@ -1293,7 +1293,7 @@ System.Console.Write(
     {43}
   c
     """""");",
-                // (8,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (8,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   c
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(8, 1));
     }
@@ -1311,7 +1311,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (5,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (5,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   aa
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(5, 1));
     }
@@ -1329,7 +1329,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (6,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (6,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {42}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(6, 1));
     }
@@ -1347,7 +1347,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (7,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   bb
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
     }
@@ -1365,7 +1365,7 @@ System.Console.Write(
   {43}
     c
     """""");",
-                // (8,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (8,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {43}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(8, 1));
     }
@@ -1383,7 +1383,7 @@ System.Console.Write(
     c
   cc
     """""");",
-                // (9,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (9,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   cc
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(9, 1));
     }
@@ -1588,7 +1588,7 @@ System.Console.Write(
     c
     c
     """""");",
-                // (5,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (5,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //  a
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, " ").WithLocation(5, 1));
     }
@@ -1661,7 +1661,7 @@ System.Console.Write(
 ␠c
     c
     """""");",
-                // (11,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+                // (11,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //  c
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, " ").WithLocation(11, 1));
     }
@@ -1819,7 +1819,7 @@ int M(out int val)
     {
         RenderAndVerify(
 "class C\r\n{\r\nconst string s = $\"\"\"\r\n\t\r\n \"\"\";\r\n}",
-                // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
+                // (4,1): error CS9003: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
                 Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, "	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
     }
 
@@ -1828,7 +1828,7 @@ int M(out int val)
     {
         RenderAndVerify(
 "class C\r\n{\r\nconst string s = $\"\"\"\r\n \r\n\t\"\"\";\r\n}",
-                    // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\u0020' versus '\t'
+                    // (4,1): error CS9003: Line contains different whitespace than the closing line of the raw string literal: '\u0020' versus '\t'
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " ").WithArguments(@"\u0020", @"\t").WithLocation(4, 1));
     }
 
@@ -1837,7 +1837,7 @@ int M(out int val)
     {
         RenderAndVerify(
 "class C\r\n{\r\nconst string s = $\"\"\"\r\n \t\r\n  \"\"\";\r\n}",
-                // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
+                // (4,1): error CS9003: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
                 Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " 	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
     }
 
@@ -1846,7 +1846,7 @@ int M(out int val)
     {
         RenderAndVerify(
 "class C\r\n{\r\nconst string s = $\"\"\"\r\n \t\r\n   \"\"\";\r\n}",
-                    // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
+                    // (4,1): error CS9003: Line contains different whitespace than the closing line of the raw string literal: '\t' versus '\u0020'
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " 	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
     }
 
@@ -1855,7 +1855,7 @@ int M(out int val)
     {
         RenderAndVerify(
 "class C\r\n{\r\nconst string s = $\"\"\"\r\n\f\r\n\v\"\"\";\r\n}",
-                    // (4,1): error CS9107: Line contains different whitespace than the closing line of the raw string literal: '\f' versus '\v'
+                    // (4,1): error CS9003: Line contains different whitespace than the closing line of the raw string literal: '\f' versus '\v'
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, "").WithArguments(@"\f", @"\v").WithLocation(4, 1));
     }
 }
