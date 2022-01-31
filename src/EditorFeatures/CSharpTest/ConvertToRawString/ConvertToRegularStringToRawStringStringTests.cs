@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 
     public class ConvertToRegularStringToRawStringStringTests
     {
-        private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0)
+        private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         {
             await new VerifyCS.Test
             {
@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersionExtensions.CSharpNext,
                 CodeActionIndex = index,
+                TestState =
+                {
+                    OutputKind = outputKind,
+                },
             }.RunAsync();
         }
 
@@ -174,6 +178,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
         var v = """"""a"""""";
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestSimpleStringTopLevel()
+        {
+            await VerifyRefactoringAsync(@"
+var v = [||]""a"";
+", @"
+var v = """"""a"""""";
+", outputKind: OutputKind.ConsoleApplication);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -400,6 +414,19 @@ goobar
             """""";
     }
 }", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestIndentedStringTopLevel()
+        {
+            await VerifyRefactoringAsync(@"
+var v = [||]""goo\r\nbar"";
+", @"
+var v = """"""
+    goo
+    bar
+    """""";
+", index: 1, outputKind: OutputKind.ConsoleApplication);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
