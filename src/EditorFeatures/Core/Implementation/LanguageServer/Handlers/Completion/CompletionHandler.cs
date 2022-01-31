@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
             //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
             // 3.  LSP client should support completion filters / expanders
-            return CompletionOptions.From(_globalOptions, document.Project.Language) with
+            return _globalOptions.GetCompletionOptions(document.Project.Language) with
             {
                 ShowItemsFromUnimportedNamespaces = false,
                 ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly

@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     internal readonly record struct SignatureHelpOptions(
         bool HideAdvancedMembers)
     {
-        public static SignatureHelpOptions From(IGlobalOptionService globalOptions, string language)
-          => new(
-              HideAdvancedMembers: globalOptions.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, language));
+        public static readonly SignatureHelpOptions Default = new(CompletionOptions.Default.HideAdvancedMembers);
     }
 }

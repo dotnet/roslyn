@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
-            var options = CompletionOptions.From(_globalOptions, document.Project.Language);
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
             var serviceRules = completionService.GetRules(options);
 
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.

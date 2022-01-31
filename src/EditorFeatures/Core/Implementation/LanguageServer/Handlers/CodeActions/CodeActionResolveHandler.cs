@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
             Assumes.Present(data);
 
-            var options = CodeActionOptionsFactory.GetCodeActionOptions(_globalOptions, document.Project.Language, isBlocking: false);
+            var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
 
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache,

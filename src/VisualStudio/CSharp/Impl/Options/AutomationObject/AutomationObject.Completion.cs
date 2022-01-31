@@ -10,8 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int BringUpOnIdentifier
         {
-            get { return GetBooleanOption(CompletionOptions.Metadata.TriggerOnTypingLetters); }
-            set { SetBooleanOption(CompletionOptions.Metadata.TriggerOnTypingLetters, value); }
+            get { return GetBooleanOption(CompletionOptionsMetadata.TriggerOnTypingLetters); }
+            set { SetBooleanOption(CompletionOptionsMetadata.TriggerOnTypingLetters, value); }
         }
 
         public int HighlightMatchingPortionsOfCompletionListItems
@@ -28,32 +28,32 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int ShowItemsFromUnimportedNamespaces
         {
-            get { return GetBooleanOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces); }
-            set { SetBooleanOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, value); }
+            get { return GetBooleanOption(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces); }
+            set { SetBooleanOption(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, value); }
         }
 
         public int InsertNewlineOnEnterWithWholeWord
         {
-            get { return (int)GetOption(CompletionOptions.Metadata.EnterKeyBehavior); }
-            set { SetOption(CompletionOptions.Metadata.EnterKeyBehavior, (EnterKeyRule)value); }
+            get { return (int)GetOption(CompletionOptionsMetadata.EnterKeyBehavior); }
+            set { SetOption(CompletionOptionsMetadata.EnterKeyBehavior, (EnterKeyRule)value); }
         }
 
         public int EnterKeyBehavior
         {
-            get { return (int)GetOption(CompletionOptions.Metadata.EnterKeyBehavior); }
-            set { SetOption(CompletionOptions.Metadata.EnterKeyBehavior, (EnterKeyRule)value); }
+            get { return (int)GetOption(CompletionOptionsMetadata.EnterKeyBehavior); }
+            set { SetOption(CompletionOptionsMetadata.EnterKeyBehavior, (EnterKeyRule)value); }
         }
 
         public int SnippetsBehavior
         {
-            get { return (int)GetOption(CompletionOptions.Metadata.SnippetsBehavior); }
-            set { SetOption(CompletionOptions.Metadata.SnippetsBehavior, (SnippetsRule)value); }
+            get { return (int)GetOption(CompletionOptionsMetadata.SnippetsBehavior); }
+            set { SetOption(CompletionOptionsMetadata.SnippetsBehavior, (SnippetsRule)value); }
         }
 
         public int TriggerInArgumentLists
         {
-            get { return GetBooleanOption(CompletionOptions.Metadata.TriggerInArgumentLists); }
-            set { SetBooleanOption(CompletionOptions.Metadata.TriggerInArgumentLists, value); }
+            get { return GetBooleanOption(CompletionOptionsMetadata.TriggerInArgumentLists); }
+            set { SetBooleanOption(CompletionOptionsMetadata.TriggerInArgumentLists, value); }
         }
 
         public int EnableArgumentCompletionSnippets

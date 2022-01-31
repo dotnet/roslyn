@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var providers = _allProviders.Where(p => p.Metadata.Language == document.Project.Language);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
-            var options = SignatureHelpOptions.From(_globalOptions, document.Project.Language);
+            var options = _globalOptions.GetSignatureHelpOptions(document.Project.Language);
 
             foreach (var provider in providers)
             {

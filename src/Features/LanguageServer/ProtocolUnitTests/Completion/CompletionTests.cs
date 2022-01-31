@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var solution = testLspServer.TestWorkspace.CurrentSolution;
 
             // Make sure the unimported types option is on by default.
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), true);
 
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var testLspServer = await CreateTestLspServerAsync(markup);
 
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.CSharp), SnippetsRule.NeverInclude);
+                new OptionKey(CompletionOptionsMetadata.SnippetsBehavior, LanguageNames.CSharp), SnippetsRule.NeverInclude);
 
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),

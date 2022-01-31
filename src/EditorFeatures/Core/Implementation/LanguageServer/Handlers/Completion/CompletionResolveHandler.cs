@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var options = CompletionOptions.From(_globalOptions, document.Project.Language);
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
             var displayOptions = SymbolDescriptionOptions.From(document.Project);
             var description = await completionService.GetDescriptionAsync(document, selectedItem, options, displayOptions, cancellationToken).ConfigureAwait(false)!;
             if (description != null)

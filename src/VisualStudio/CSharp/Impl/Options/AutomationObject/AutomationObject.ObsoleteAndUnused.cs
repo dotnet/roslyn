@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get
             {
-                return GetOption(CompletionOptions.Metadata.SnippetsBehavior) == SnippetsRule.AlwaysInclude
+                return GetOption(CompletionOptionsMetadata.SnippetsBehavior) == SnippetsRule.AlwaysInclude
                     ? 1 : 0;
             }
 
@@ -55,11 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 if (value == 0)
                 {
-                    SetOption(CompletionOptions.Metadata.SnippetsBehavior, SnippetsRule.NeverInclude);
+                    SetOption(CompletionOptionsMetadata.SnippetsBehavior, SnippetsRule.NeverInclude);
                 }
                 else
                 {
-                    SetOption(CompletionOptions.Metadata.SnippetsBehavior, SnippetsRule.AlwaysInclude);
+                    SetOption(CompletionOptionsMetadata.SnippetsBehavior, SnippetsRule.AlwaysInclude);
                 }
             }
         }

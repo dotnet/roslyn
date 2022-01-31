@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             Assumes.Present(runRequest);
 
-            var options = CodeActionOptionsFactory.GetCodeActionOptions(_globalOptions, document.Project.Language, isBlocking: false);
+            var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
 
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache, document, runRequest.Range, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
