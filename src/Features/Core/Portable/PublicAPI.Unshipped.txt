@@ -1,1 +1,1 @@
-
+*REMOVED*Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.QuickInfoService() -> void
