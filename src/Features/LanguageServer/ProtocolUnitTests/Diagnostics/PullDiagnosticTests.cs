@@ -434,7 +434,7 @@ class B {";
 @"class A {";
 
             // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFilesAndProjects, DiagnosticMode.Push, serverKind: WellKnownLspServerKinds.RazorLspServer);
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, DiagnosticMode.Push, serverKind: WellKnownLspServerKinds.RazorLspServer);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -458,7 +458,7 @@ class B {";
 @"class A {";
 
             // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFilesAndProjects, DiagnosticMode.Push, serverKind: WellKnownLspServerKinds.LiveShareLspServer);
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, DiagnosticMode.Push, serverKind: WellKnownLspServerKinds.LiveShareLspServer);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
