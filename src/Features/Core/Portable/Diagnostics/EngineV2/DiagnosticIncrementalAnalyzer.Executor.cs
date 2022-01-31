@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
                 else
                 {
-                    analyzerEnabled = analysisScope switch
+                    return analysisScope switch
                     {
                         // Analyzers are disabled for all documents.
                         BackgroundAnalysisScope.None => false,
