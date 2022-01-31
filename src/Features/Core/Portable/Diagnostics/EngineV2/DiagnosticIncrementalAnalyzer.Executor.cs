@@ -66,7 +66,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool isOpenDocument,
                 bool isGeneratedRazorDocument)
             {
-                if (isActiveDocument) Debug.Assert(isOpenDocument || isGeneratedRazorDocument);
+                Debug.Assert(!isActiveDocument || isOpenDocument || isGeneratedRazorDocument);
+
+                if (isGeneratedRazorDocument)
                 {
                     // This is a generated Razor document, and they always want all analyzer diagnostics.
                     return false;
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // Compiler analyzer is treated specially.
                     // It is executed for all documents (open and closed) for 'BackgroundAnalysisScope.FullSolution'
                     // and executed for just open documents for other analysis scopes.
-                    return analysisScope == BackgroundAnalysisScope.FullSolution || isOpenDocument;
+                    analyzerEnabled = analysisScope == BackgroundAnalysisScope.FullSolution || isOpenDocument;
                 }
                 else
                 {
