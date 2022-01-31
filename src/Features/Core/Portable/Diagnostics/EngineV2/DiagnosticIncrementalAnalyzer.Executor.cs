@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // Compiler analyzer is treated specially.
                     // It is executed for all documents (open and closed) for 'BackgroundAnalysisScope.FullSolution'
                     // and executed for just open documents for other analysis scopes.
-                    analyzerEnabled = analysisScope == BackgroundAnalysisScope.FullSolution ? true : isOpenDocument;
+                    return analysisScope == BackgroundAnalysisScope.FullSolution || isOpenDocument;
                 }
                 else
                 {
